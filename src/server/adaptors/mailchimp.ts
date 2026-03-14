@@ -183,6 +183,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
   private transformMemberData(
     member: Record<string, unknown>,
+    tagToNameMap: Map<string, string>,
   ): Record<string, unknown> {
     const data: Record<string, unknown> = {
       email_address: member.email_address,
@@ -198,14 +199,15 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       list_id: member.list_id,
     };
 
-    // Add merge field data
+    // Add merge field data, translating tags back to field names
     if (member.merge_fields) {
-      for (const [key, value] of Object.entries(member.merge_fields)) {
-        if (key === "ADDRESS" && value && typeof value === "object") {
+      for (const [tag, value] of Object.entries(member.merge_fields)) {
+        if (tag === "ADDRESS" && value && typeof value === "object") {
           // Flatten ADDRESS merge field
           Object.assign(data, this.flattenAddress(value));
         } else {
-          data[key] = value;
+          const fieldName = tagToNameMap.get(tag) ?? tag;
+          data[fieldName] = value;
         }
       }
     }
@@ -220,7 +222,17 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     return data;
   }
 
+  private async getTagToNameMap(): Promise<Map<string, string>> {
+    const mergeFields = await this.getMergeFields();
+    const map = new Map<string, string>();
+    for (const field of mergeFields) {
+      map.set(field.tag, field.name);
+    }
+    return map;
+  }
+
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
+    const tagToNameMap = await this.getTagToNameMap();
     let offset = 0;
     const count = 1000; // Mailchimp's maximum
 
@@ -243,7 +255,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       for (const member of members) {
         yield {
           externalId: member.id,
-          json: this.transformMemberData(member),
+          json: this.transformMemberData(member, tagToNameMap),
         };
       }
 
@@ -257,6 +269,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord | null> {
     try {
+      const tagToNameMap = await this.getTagToNameMap();
       const url = `${this.getListUrl()}/members?count=1`;
       const response = await fetch(url, {
         headers: this.getHeaders(),
@@ -276,7 +289,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         const member = members[0];
         return {
           externalId: member.id,
-          json: this.transformMemberData(member),
+          json: this.transformMemberData(member, tagToNameMap),
         };
       }
     } catch (error) {
@@ -295,6 +308,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       throw new Error("Cannot fetch more than 100 records at once.");
     }
 
+    const tagToNameMap = await this.getTagToNameMap();
     const records: ExternalRecord[] = [];
 
     // Mailchimp doesn't support batch fetching by ID, so we fetch individually
@@ -309,7 +323,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
           const member = (await response.json()) as { id: string };
           records.push({
             externalId: member.id,
-            json: this.transformMemberData(member),
+            json: this.transformMemberData(member, tagToNameMap),
           });
         } else if (response.status === 404) {
           // Member not found, skip

@@ -256,7 +256,6 @@ describe("Mailchimp adaptor tests", () => {
     let mergeFields = await adaptor.getMergeFields();
     const field = mergeFields.find((f) => f.name === fieldName);
     expect(field).toBeDefined();
-    const fieldTag = field?.tag || "";
 
     // Wait for Mailchimp batch processing to complete
     while (true) {
@@ -266,7 +265,8 @@ describe("Mailchimp adaptor tests", () => {
       expect(updatedRecords.length).toBe(1);
 
       try {
-        expect(updatedRecords[0].json[fieldTag]).toBe(testValue);
+        // After the tag-to-name translation fix, fetched records use field names, not tags
+        expect(updatedRecords[0].json[fieldName]).toBe(testValue);
         break;
       } catch {
         logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
@@ -560,8 +560,8 @@ describe("Mailchimp adaptor tests", () => {
       ]);
 
       try {
-        // The new column should be present with the correct value
-        expect(refetched.json[newTag]).toBe(testValue);
+        // After the tag-to-name translation fix, fetched records use field names, not tags
+        expect(refetched.json[fieldName]).toBe(testValue);
 
         break;
       } catch {
@@ -574,6 +574,78 @@ describe("Mailchimp adaptor tests", () => {
     for (const key of originalKeys) {
       expect(refetched.json).toHaveProperty(key);
       expect(refetched.json[key]).toEqual(originalJson[key]);
+    }
+
+    // Clean up
+    await adaptor.deleteColumn(fieldName);
+  });
+
+  test("fetched records use merge field names, not tags, as JSON keys", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    // Get a member to update
+    const all = [];
+    for await (const rec of adaptor.fetchAll()) {
+      all.push(rec);
+      break;
+    }
+
+    if (all.length === 0) {
+      throw new Error("No members in Mailchimp list");
+    }
+
+    const suffix = Date.now().toString().slice(-4);
+    const fieldName = `${ENRICHMENT_COLUMN_PREFIX}Name${suffix}`;
+    const testValue = "name-translation-test-" + Date.now();
+
+    // Create a merge field via updateRecords
+    await adaptor.updateRecords([
+      {
+        externalRecord: all[0],
+        columns: [
+          {
+            def: { name: fieldName, type: ColumnType.String },
+            value: testValue,
+          },
+        ],
+      },
+    ]);
+
+    // Get the tag assigned by Mailchimp (e.g. "M_NAME1234")
+    adaptor["cachedMergeFields"] = null;
+    const mergeFields = await adaptor.getMergeFields();
+    const field = mergeFields.find((f) => f.name === fieldName);
+    expect(field).toBeDefined();
+    const fieldTag = field?.tag ?? "";
+    expect(fieldTag).not.toBe("");
+    // The tag and name should be different
+    expect(fieldTag).not.toBe(fieldName);
+
+    // Wait for batch to process, then re-fetch
+    while (true) {
+      const [refetched] = await adaptor.fetchByExternalId([all[0].externalId]);
+
+      try {
+        // The record JSON should use the human-readable field name, not the tag
+        expect(refetched.json[fieldName]).toBe(testValue);
+        // The raw tag should NOT appear as a key
+        expect(refetched.json).not.toHaveProperty(fieldTag);
+        break;
+      } catch {
+        logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
+        await sleep(5000);
+      }
+    }
+
+    // Verify same behaviour for fetchFirst
+    const first = await adaptor.fetchFirst();
+    if (first && first.externalId === all[0].externalId) {
+      expect(first.json[fieldName]).toBe(testValue);
+      expect(first.json).not.toHaveProperty(fieldTag);
     }
 
     // Clean up
