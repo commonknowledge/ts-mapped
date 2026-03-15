@@ -32,7 +32,7 @@ export default function PublicMapSidebar() {
   return (
     <div
       className={cn(
-        "absolute top-0 left-0 z-100 bg-white flex h-full md:pt-[var(--navbar-height)] w-full md:w-auto",
+        "absolute top-0 left-0 bottom-0 z-100 bg-white flex md:top-[var(--navbar-height)] w-full md:w-auto",
       )}
     >
       <div className="flex flex-col h-full w-full md:w-[300px] border-r border-neutral-200">

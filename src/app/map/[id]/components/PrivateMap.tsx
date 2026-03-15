@@ -3,7 +3,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useCallback, useEffect, useMemo } from "react";
-import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
@@ -21,24 +20,25 @@ import { useMapConfig } from "../hooks/useMapConfig";
 import { useShowControls } from "../hooks/useMapControls";
 import { useMapId, useMapRef } from "../hooks/useMapCore";
 import { useMapQuery } from "../hooks/useMapQuery";
+import { useSetMapMode } from "../hooks/useSetMapMode";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import { getDataSourceIds } from "../utils/map";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
 import EditColumnMetadataModal from "./EditColumnMetadataModal";
 import Loading from "./Loading";
-import Map from "./Map";
 import MapInfoPopup from "./MapInfoPopup";
 import PrivateMapNavbar from "./PrivateMapNavbar";
 import MapTable from "./table/MapTable";
 
-export default function PrivateMap() {
+export default function PrivateMap({ viewId }: { viewId?: string }) {
+  useSetMapMode("private", viewId);
+
   const mapRef = useMapRef();
   const showControls = useShowControls();
   const mapId = useMapId();
 
   const areaStatsQuery = useAreaStats();
-  const { setLastLoadedSourceId } = useChoropleth();
 
   const { isPending: dataSourcesLoading } = useDataSources();
   const { mapConfig } = useMapConfig();
@@ -106,26 +106,35 @@ export default function PrivateMap() {
 
   return (
     <div className="flex flex-col h-screen">
-      <PrivateMapNavbar />
+      <div className="pointer-events-auto">
+        <PrivateMapNavbar />
+      </div>
       <div className="flex w-full grow min-h-0 relative">
-        <PrivateMapControls />
-        <VisualisationPanel
-          positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
-        />
+        <div className="pointer-events-auto">
+          <PrivateMapControls />
+        </div>
+        <div className="pointer-events-auto">
+          <VisualisationPanel
+            positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
+          />
+        </div>
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>
-              <Map
-                onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
-              />
+              {/* Map is rendered by the shared layout and shows through this transparent area */}
             </ResizablePanel>
             {selectedDataSourceId && (
               <>
-                <ResizableHandle withHandle style={paddedStyle} />
+                <ResizableHandle
+                  withHandle
+                  style={paddedStyle}
+                  className="pointer-events-auto"
+                />
                 <ResizablePanel
                   onResize={() => mapRef?.current?.resize()}
                   id="table"
                   order={1}
+                  className="pointer-events-auto"
                 >
                   <div className="transition-all h-full" style={paddedStyle}>
                     <MapTable />

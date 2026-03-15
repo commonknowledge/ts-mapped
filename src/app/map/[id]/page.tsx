@@ -1,10 +1,8 @@
 import { getServerSession } from "@/auth";
 import { redirectToLogin } from "@/auth/redirectToLogin";
-import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import { db } from "@/server/services/database";
 import PrivateMap from "./components/PrivateMap";
-import MapJotaiProvider from "./providers/MapJotaiProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -54,13 +52,18 @@ export default async function MapPage({
   }
 
   return (
-    <MapJotaiProvider mapId={id} viewId={viewId}>
-      <DesktopOnly>
-        <div className="with-feedback-widget">
-          <PrivateMap />
-          <SentryFeedbackWidget />
-        </div>
-      </DesktopOnly>
-    </MapJotaiProvider>
+    <>
+      {/* Desktop-only message for small screens */}
+      <div className="pointer-events-auto lg:hidden flex h-screen w-full justify-center items-center p-8 text-center z-20 relative bg-white">
+        <p className="max-w-[40ch] font-medium text-base">
+          Your screen is too small to use this application. Please use a device
+          with a larger screen.
+        </p>
+      </div>
+      <div className="hidden lg:contents">
+        <PrivateMap viewId={viewId} />
+        <SentryFeedbackWidget />
+      </div>
+    </>
   );
 }

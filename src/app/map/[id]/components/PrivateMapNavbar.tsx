@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Info } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -15,14 +14,13 @@ import { toast } from "sonner";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
+import MapVisibilityToggle from "@/components/MapVisibilityToggle";
 import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { useOpenInfoPopup } from "../hooks/useInfoPopup";
-import { useMapConfig } from "../hooks/useMapConfig";
 import { useMapId, useMapRef } from "../hooks/useMapCore";
-import { useDirtyViewIds } from "../hooks/useMapViews";
 import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
@@ -31,12 +29,9 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
  * TODO: Move complex logic into custom hooks
  */
 export default function PrivateMapNavbar() {
-  const router = useRouter();
   const mapId = useMapId();
   const mapRef = useMapRef();
-  const dirtyViewIds = useDirtyViewIds();
   const { data: map } = useMapQuery(mapId);
-  const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();
   const openInfoPopup = useOpenInfoPopup();
 
@@ -44,7 +39,6 @@ export default function PrivateMapNavbar() {
   const showPublishButton = useFeatureFlagEnabled("public-maps", currentUser);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(map?.name || "");
-  const [loading, setLoading] = useState(false);
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -86,14 +80,6 @@ export default function PrivateMapNavbar() {
     }, 200);
     return () => clearTimeout(timeout);
   }, [isEditingName]);
-
-  const onClickPublish = async () => {
-    if (!mapId || !view) return;
-    setLoading(true);
-    // Auto-save handles saving map config and views automatically
-    // Just navigate to the publish page
-    router.push(`/map/${mapId}/view/${view.id}/publish`);
-  };
 
   const regenerateMapImage = useCallback(async () => {
     if (!mapId) return;
@@ -230,24 +216,15 @@ export default function PrivateMapNavbar() {
           <MapViews />
         </div>
         <div className="flex items-center gap-4">
-          {mapId && (
-            <div className="flex items-center gap-4">
-              {showPublishButton && view && (
-                <Button
-                  type="button"
-                  disabled={
-                    loading || dirtyViewIds.length > 0 || configUpdating
-                  }
-                  variant="outline"
-                  onClick={onClickPublish}
-                >
-                  Publish
-                </Button>
-              )}
-            </div>
-          )}
-
           <SearchBox />
+
+          {showPublishButton && mapId && view && (
+            <MapVisibilityToggle
+              mode="private"
+              mapId={mapId}
+              viewId={view.id}
+            />
+          )}
         </div>
       </div>
     </Navbar>

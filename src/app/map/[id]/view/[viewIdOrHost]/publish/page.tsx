@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
-import MapJotaiProvider from "../../../providers/MapJotaiProvider";
 import PublicMap from "./components/PublicMap";
 import PublicMapProvider from "./providers/PublicMapProvider";
 import type { Metadata } from "next";
@@ -72,10 +71,12 @@ export default async function PublicMapAdminPage({
   }
 
   return (
-    <MapJotaiProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
-      <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-        <PublicMap />
-      </PublicMapProvider>
-    </MapJotaiProvider>
+    <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
+      <PublicMap
+        viewId={publicMap.viewId}
+        mapId={publicMap.mapId}
+        editable={!isPublicRoute}
+      />
+    </PublicMapProvider>
   );
 }

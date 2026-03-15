@@ -3,6 +3,10 @@ import { DEFAULT_ZOOM } from "@/constants";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type { MapRef } from "react-map-gl/mapbox";
 
+export type MapMode = "private" | "public";
+export const mapModeAtom = atom<MapMode>("private");
+export const showNavbarAtom = atom<boolean>(true);
+
 export const mapIdAtom = atom<string | null>(null);
 export const mapRefAtom = atom<{ current: MapRef | null }>({ current: null });
 export const drawAtom = atom<MapboxDraw | null>(null);
