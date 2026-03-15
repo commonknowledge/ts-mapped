@@ -10,21 +10,21 @@ const removeEnrichmentColumns = async (
   if (
     !args ||
     !("dataSourceId" in args) ||
-    !("externalColumnNames" in args) ||
-    !Array.isArray(args.externalColumnNames)
+    !("columnNames" in args) ||
+    !Array.isArray(args.columnNames)
   ) {
     return false;
   }
 
   const dataSourceId = String(args.dataSourceId);
-  const externalColumnNames: string[] = args.externalColumnNames.map(String);
+  const columnNames: string[] = args.columnNames.map(String);
 
-  if (externalColumnNames.length === 0) {
+  if (columnNames.length === 0) {
     return true;
   }
 
   logger.info(
-    `Removing enrichment columns [${externalColumnNames.join(", ")}] from data source ${dataSourceId}`,
+    `Removing enrichment columns [${columnNames.join(", ")}] from data source ${dataSourceId}`,
   );
 
   const dataSource = await findDataSourceById(dataSourceId);
@@ -36,15 +36,15 @@ const removeEnrichmentColumns = async (
   // 1. Remove the columns from the external data source via the adaptor
   const adaptor = getDataSourceAdaptor(dataSource);
   if (adaptor) {
-    for (const externalColumnName of externalColumnNames) {
+    for (const columnName of columnNames) {
       try {
-        await adaptor.deleteColumn(externalColumnName);
+        await adaptor.deleteColumn(columnName);
         logger.info(
-          `Removed column "${externalColumnName}" from external source for ${dataSourceId}`,
+          `Removed column "${columnName}" from external source for ${dataSourceId}`,
         );
       } catch (error) {
         logger.error(
-          `Failed to remove column "${externalColumnName}" from external source for ${dataSourceId}`,
+          `Failed to remove column "${columnName}" from external source for ${dataSourceId}`,
           { error },
         );
       }
@@ -52,19 +52,19 @@ const removeEnrichmentColumns = async (
   }
 
   // 2. Remove the columns from data_record.json for all records
-  for (const externalColumnName of externalColumnNames) {
+  for (const columnName of columnNames) {
     try {
       await sql`
         UPDATE data_record
-        SET json = json - ${externalColumnName}
+        SET json = json - ${columnName}
         WHERE data_source_id = ${dataSourceId}
       `.execute(db);
       logger.info(
-        `Removed "${externalColumnName}" from data_record.json for data source ${dataSourceId}`,
+        `Removed "${columnName}" from data_record.json for data source ${dataSourceId}`,
       );
     } catch (error) {
       logger.error(
-        `Failed to remove "${externalColumnName}" from data_record.json for data source ${dataSourceId}`,
+        `Failed to remove "${columnName}" from data_record.json for data source ${dataSourceId}`,
         { error },
       );
     }
@@ -72,7 +72,7 @@ const removeEnrichmentColumns = async (
 
   // 3. Remove the columns from the data source's columnDefs
   const updatedColumnDefs = (dataSource.columnDefs ?? []).filter(
-    (col) => !externalColumnNames.includes(col.name),
+    (col) => !columnNames.includes(col.name),
   );
   await db
     .updateTable("dataSource")

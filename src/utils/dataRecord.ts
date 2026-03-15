@@ -1,5 +1,4 @@
 import { parse } from "date-fns";
-import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import type { DataSource } from "@/server/models/DataSource";
 
 export function buildName(
@@ -31,8 +30,4 @@ export function parseDate(
     }
   }
   return date;
-}
-
-export function enrichmentColumnName(name: string) {
-  return `${ENRICHMENT_COLUMN_PREFIX}${name}`;
 }

@@ -39,7 +39,6 @@ import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
 import { canReadDataSource } from "@/server/utils/auth";
-import { enrichmentColumnName } from "@/utils/dataRecord";
 import {
   dataSourceOwnerProcedure,
   dataSourceReadProcedure,
@@ -173,7 +172,7 @@ export const dataSourceRouter = router({
         (dataSource.columnDefs ?? []).map((col) => col.name),
       );
       const newEnrichments = dataSource.enrichments.filter(
-        (e) => !existingColumnNames.has(enrichmentColumnName(e.name)),
+        (e) => !existingColumnNames.has(e.name),
       );
       if (newEnrichments.length === 0) {
         return {};
@@ -192,7 +191,7 @@ export const dataSourceRouter = router({
         }
         const enrichedValues: Record<string, unknown> = {};
         for (const enrichment of newEnrichments) {
-          const colName = enrichmentColumnName(enrichment.name);
+          const colName = enrichment.name;
           const col = await getEnrichedColumn(
             { externalId: record.externalId, json: record.json },
             record.geocodeResult,
@@ -442,15 +441,14 @@ export const dataSourceRouter = router({
           (name) => !newNames.has(name),
         );
         if (removedNames.length > 0) {
-          const externalColumnNames = removedNames.map(enrichmentColumnName);
           // Synchronously remove columnDefs (enrichments already updated above)
           await removeEnrichmentColumnsFromDataSource(
             ctx.dataSource.id,
-            externalColumnNames,
+            removedNames,
           );
           await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
             dataSourceId: ctx.dataSource.id,
-            externalColumnNames,
+            columnNames: removedNames,
           });
         }
       }
@@ -471,13 +469,13 @@ export const dataSourceRouter = router({
     }),
 
   deleteEnrichmentColumns: dataSourceOwnerProcedure
-    .input(z.object({ externalColumnNames: z.array(z.string()) }))
+    .input(z.object({ columnNames: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
-      for (const externalColumnName of input.externalColumnNames) {
-        if (!externalColumnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      for (const columnName of input.columnNames) {
+        if (!columnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Column "${externalColumnName}" is not an enrichment column`,
+            message: `Column "${columnName}" is not an enrichment column`,
           });
         }
       }
@@ -485,18 +483,18 @@ export const dataSourceRouter = router({
       // Synchronously remove enrichment metadata (enrichments + columnDefs)
       await removeEnrichmentColumnsFromDataSource(
         ctx.dataSource.id,
-        input.externalColumnNames,
+        input.columnNames,
       );
 
       // Enqueue background job for expensive cleanup (external source + record JSON)
       // CSV data sources don't need background cleanup — just removing the config is enough
       if (
-        input.externalColumnNames.length > 0 &&
+        input.columnNames.length > 0 &&
         ctx.dataSource.config.type !== DataSourceType.CSV
       ) {
         await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
           dataSourceId: ctx.dataSource.id,
-          externalColumnNames: input.externalColumnNames,
+          columnNames: input.columnNames,
         });
       }
 

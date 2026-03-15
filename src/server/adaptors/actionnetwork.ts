@@ -292,7 +292,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         // Build the update payload based on the enriched record
         const customFields: Record<string, unknown> = {};
         for (const column of record.columns) {
-          customFields[column.def.externalName] = column.value;
+          customFields[column.def.name] = column.value;
         }
 
         const updatePayload = {

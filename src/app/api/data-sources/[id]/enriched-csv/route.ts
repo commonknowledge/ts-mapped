@@ -6,7 +6,6 @@ import { DataSourceType } from "@/server/models/DataSource";
 import { streamOrderedDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { enrichmentColumnName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { NextRequest } from "next/server";
 
@@ -67,9 +66,7 @@ export async function GET(
     return new NextResponse("No enrichments configured", { status: 400 });
   }
 
-  const enrichmentColNames = dataSource.enrichments.map((e) =>
-    enrichmentColumnName(e.name),
-  );
+  const enrichmentColNames = dataSource.enrichments.map((e) => e.name);
 
   const encoder = new TextEncoder();
   // Build a stable column order from columnDefs + enrichments, deduped
@@ -105,7 +102,7 @@ export async function GET(
 
           const enrichedValues: Record<string, unknown> = {};
           for (const enrichment of dataSource.enrichments) {
-            const colName = enrichmentColumnName(enrichment.name);
+            const colName = enrichment.name;
             const col = record.geocodeResult
               ? await getEnrichedColumn(
                   { externalId: record.externalId, json: record.json },

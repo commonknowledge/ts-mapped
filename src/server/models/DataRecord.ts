@@ -1,16 +1,13 @@
 import z from "zod";
 import { geocodeResultSchema, pointSchema } from "./shared";
-import type { ColumnType as MappedColumnType } from "./DataSource";
+import type { ColumnDef } from "./DataSource";
 import type { ExternalRecord } from "@/types";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export interface EnrichedRecord {
   externalRecord: ExternalRecord;
   columns: {
-    def: {
-      externalName: string;
-      type: MappedColumnType;
-    };
+    def: ColumnDef;
     value: unknown;
   }[];
 }

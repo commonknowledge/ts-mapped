@@ -57,8 +57,8 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
 
       for (const record of enrichedRecords) {
         for (const col of record.columns) {
-          allEnrichedColumnDefs.set(col.def.externalName, {
-            name: col.def.externalName,
+          allEnrichedColumnDefs.set(col.def.name, {
+            name: col.def.name,
             type: col.def.type,
           });
         }

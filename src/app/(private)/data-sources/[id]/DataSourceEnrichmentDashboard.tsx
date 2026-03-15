@@ -26,7 +26,6 @@ import {
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import { enrichmentColumnName } from "@/utils/dataRecord";
 import EnrichmentColumnDialog from "../components/EnrichmentColumnDialog";
 
 export function DataSourceEnrichmentDashboard({
@@ -97,7 +96,7 @@ export function DataSourceEnrichmentDashboard({
 
   const newEnrichmentColumns = enrichments
     .map((e, i) => ({
-      name: enrichmentColumnName(e.name),
+      name: e.name,
       type: ColumnType.String,
       enrichmentIndex: i,
       enrichment: e,
@@ -137,6 +136,19 @@ export function DataSourceEnrichmentDashboard({
           if (dataSourceEvent.event === "EnrichmentFailed") {
             setEnriching(false);
             toast.error("Failed to enrich this data source.");
+          }
+          if (dataSourceEvent.event === "ImportComplete") {
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataRecord.list.queryKey({
+                dataSourceId: dataSource.id,
+                page: 0,
+              }),
+            });
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataSource.byId.queryKey({
+                dataSourceId: dataSource.id,
+              }),
+            });
           }
           if (dataSourceEvent.event === "EnrichmentComplete") {
             setEnriching(false);
@@ -182,7 +194,7 @@ export function DataSourceEnrichmentDashboard({
     if (!deleteColumn) return;
     deleteEnrichmentColumns({
       dataSourceId: dataSource.id,
-      externalColumnNames: [deleteColumn],
+      columnNames: [deleteColumn],
     });
   };
 

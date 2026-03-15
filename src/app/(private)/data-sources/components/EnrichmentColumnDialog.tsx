@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import {
@@ -161,7 +162,7 @@ export default function EnrichmentColumnDialog({
   const newEnrichments = useMemo(() => {
     if (columnType === "geographic") {
       const result = enrichmentSchema.safeParse({
-        name,
+        name: `${ENRICHMENT_COLUMN_PREFIX}${name}`,
         sourceType: EnrichmentSourceType.Area,
         areaSetCode,
         areaProperty,
@@ -171,7 +172,7 @@ export default function EnrichmentColumnDialog({
     if (columnType === "data") {
       const enrichments = selectedColumns.map((col) =>
         enrichmentSchema.safeParse({
-          name: selectedColumns.length === 1 ? name : col,
+          name: `${ENRICHMENT_COLUMN_PREFIX}${selectedColumns.length === 1 ? name : col}`,
           sourceType: EnrichmentSourceType.DataSource,
           dataSourceId: selectedDataSourceId,
           dataSourceColumn: col,
