@@ -1,23 +1,43 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { isPrivateRouteAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
 import {
+  activeDataSourceIdAtom,
   activePublishTabAtom,
-  activeTabIdAtom,
-  colorSchemeAtom,
-  editableAtom,
-  publicMapAtom,
+  hostAvailableAtom,
   searchLocationAtom,
-  updateAdditionalColumnAtom,
-  updateDataSourceConfigAtom,
-  updatePublicMapAtom,
 } from "../atoms/publicMapAtoms";
+import { usePublicMapQuery } from "./usePublicMapQuery";
+
+// Re-export query-cache-backed hooks so existing consumer imports keep working
+export {
+  useSetPublicMap,
+  useUpdatePublicMap,
+  useUpdateDataSourceConfig,
+  useUpdateAdditionalColumn,
+} from "./usePublicMapQuery";
 
 // Granular read hooks
 export function usePublicMapValue() {
-  return useAtomValue(publicMapAtom);
+  const { publicMap } = usePublicMapQuery();
+  return publicMap;
 }
 
+export function usePublishedPublicMapValue() {
+  const { publishedPublicMap } = usePublicMapQuery();
+  return publishedPublicMap;
+}
+
+/**
+ * Returns `true` when on the private `/map/[id]` route (the "editor"),
+ * `false` on the standalone public page.
+ * This replaces the old `editableAtom`.
+ */
 export function useEditable() {
-  return useAtomValue(editableAtom);
+  return useAtomValue(isPrivateRouteAtom);
+}
+
+export function useIsPrivateRoute() {
+  return useAtomValue(isPrivateRouteAtom);
 }
 
 export function useSearchLocation() {
@@ -28,12 +48,14 @@ export function useSetSearchLocation() {
   return useSetAtom(searchLocationAtom);
 }
 
-export function useActiveTabId() {
-  return useAtomValue(activeTabIdAtom);
+export function useActiveDataSourceId() {
+  const atomValue = useAtomValue(activeDataSourceIdAtom);
+  const { publicMap } = usePublicMapQuery();
+  return atomValue ?? publicMap?.dataSourceConfigs[0]?.dataSourceId ?? null;
 }
 
-export function useSetActiveTabId() {
-  return useSetAtom(activeTabIdAtom);
+export function useSetActiveDataSourceId() {
+  return useSetAtom(activeDataSourceIdAtom);
 }
 
 export function useActivePublishTab() {
@@ -45,22 +67,32 @@ export function useSetActivePublishTab() {
 }
 
 export function useColorScheme() {
-  return useAtomValue(colorSchemeAtom);
+  const { publicMap } = usePublicMapQuery();
+  return publicMap?.colorScheme || "red";
 }
 
-// Write hooks
-export function useUpdatePublicMap() {
-  return useSetAtom(updatePublicMapAtom);
+export function useHasDraftChanges() {
+  const { publicMap, publishedPublicMap } = usePublicMapQuery();
+  if (!publicMap || !publishedPublicMap) return false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const stripMeta = ({
+    id,
+    mapId,
+    viewId,
+    createdAt,
+    draft,
+    ...rest
+  }: NonNullable<typeof publicMap>) => rest;
+  return (
+    JSON.stringify(stripMeta(publicMap)) !==
+    JSON.stringify(stripMeta(publishedPublicMap))
+  );
 }
 
-export function useUpdateDataSourceConfig() {
-  return useSetAtom(updateDataSourceConfigAtom);
+export function useHostAvailable() {
+  return useAtomValue(hostAvailableAtom);
 }
 
-export function useUpdateAdditionalColumn() {
-  return useSetAtom(updateAdditionalColumnAtom);
-}
-
-export function useSetPublicMap() {
-  return useSetAtom(publicMapAtom);
+export function useSetHostAvailable() {
+  return useSetAtom(hostAvailableAtom);
 }

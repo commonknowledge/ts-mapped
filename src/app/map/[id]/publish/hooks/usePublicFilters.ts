@@ -5,7 +5,7 @@ import { publicFiltersAtom } from "../atoms/publicFiltersAtoms";
 import { ALLOWED_FILTERS, TRANS_FRIENDLY_HOST } from "../const";
 import { filterRecords, getActiveFilters } from "../filtersHelpers";
 import { usePublicDataRecordsQueries } from "./usePublicDataRecordsQueries";
-import { useActiveTabId, usePublicMapValue } from "./usePublicMap";
+import { useActiveDataSourceId, usePublicMapValue } from "./usePublicMap";
 import type { FilterField } from "@/types";
 
 export function usePublicFilters() {
@@ -18,7 +18,7 @@ export function useSetPublicFilters() {
 
 export function useFilterFields() {
   const publicMap = usePublicMapValue();
-  const activeTabId = useActiveTabId();
+  const activeDataSourceId = useActiveDataSourceId();
   const dataRecordsQueries = usePublicDataRecordsQueries();
 
   return useMemo(() => {
@@ -26,8 +26,10 @@ export function useFilterFields() {
       return [];
     }
 
-    const dataSourceConfig = activeTabId
-      ? publicMap.dataSourceConfigs.find((c) => c.dataSourceId === activeTabId)
+    const dataSourceConfig = activeDataSourceId
+      ? publicMap.dataSourceConfigs.find(
+          (c) => c.dataSourceId === activeDataSourceId,
+        )
       : publicMap.dataSourceConfigs[0];
 
     if (!dataSourceConfig) {
@@ -91,12 +93,12 @@ export function useFilterFields() {
     }
 
     return fields;
-  }, [publicMap, activeTabId, dataRecordsQueries]);
+  }, [publicMap, activeDataSourceId, dataRecordsQueries]);
 }
 
 export function useFilteredRecords() {
   const publicMap = usePublicMapValue();
-  const activeTabId = useActiveTabId();
+  const activeDataSourceId = useActiveDataSourceId();
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const publicFilters = usePublicFilters();
 
@@ -105,8 +107,8 @@ export function useFilteredRecords() {
       return [];
     }
 
-    const dataRecordsQuery = activeTabId
-      ? dataRecordsQueries?.[activeTabId]
+    const dataRecordsQuery = activeDataSourceId
+      ? dataRecordsQueries?.[activeDataSourceId]
       : dataRecordsQueries?.[publicMap.dataSourceConfigs[0]?.dataSourceId];
 
     if (!dataRecordsQuery) {
@@ -123,5 +125,5 @@ export function useFilteredRecords() {
     return activeFilters?.length
       ? filterRecords(activeFilters, allRecords, useUnknownValues)
       : allRecords;
-  }, [activeTabId, dataRecordsQueries, publicFilters, publicMap]);
+  }, [activeDataSourceId, dataRecordsQueries, publicFilters, publicMap]);
 }

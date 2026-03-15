@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -25,7 +25,7 @@ export default function BoundaryMarkersList() {
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const markerQueries = useMarkerQueries();
-  const { selectedBoundary } = useInspector();
+  const { selectedBoundary } = useInspectorState();
 
   const trpc = useTRPC();
   const { data: areaData, isPending: areaDataLoading } = useQuery(

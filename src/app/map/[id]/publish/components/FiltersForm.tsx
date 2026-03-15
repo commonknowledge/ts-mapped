@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -11,15 +11,15 @@ import {
   usePublicFilters,
   useSetPublicFilters,
 } from "../hooks/usePublicFilters";
-import { useActiveTabId } from "../hooks/usePublicMap";
+import { useActiveDataSourceId } from "../hooks/usePublicMap";
 import { toBoolean } from "../utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   const publicFilters = usePublicFilters();
   const setPublicFilters = useSetPublicFilters();
-  const activeTabId = useActiveTabId();
-  const { setSelectedRecords } = useInspector();
+  const activeDataSourceId = useActiveDataSourceId();
+  const { setSelectedRecords } = useInspectorState();
 
   const defaultValues = useMemo(
     () =>
@@ -37,24 +37,24 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   );
 
   const values = useMemo(() => {
-    if (activeTabId && publicFilters[activeTabId]?.length) {
-      return publicFilters[activeTabId];
+    if (activeDataSourceId && publicFilters[activeDataSourceId]?.length) {
+      return publicFilters[activeDataSourceId];
     }
     return defaultValues;
-  }, [activeTabId, publicFilters, defaultValues]);
+  }, [activeDataSourceId, publicFilters, defaultValues]);
 
   const updateValues = useCallback(
     (updater: (prev: PublicFiltersFormValue[]) => PublicFiltersFormValue[]) => {
-      if (!activeTabId) return;
+      if (!activeDataSourceId) return;
       setPublicFilters((prev) => {
-        const current = prev[activeTabId]?.length
-          ? prev[activeTabId]
+        const current = prev[activeDataSourceId]?.length
+          ? prev[activeDataSourceId]
           : defaultValues;
-        return { ...prev, [activeTabId]: updater(current) };
+        return { ...prev, [activeDataSourceId]: updater(current) };
       });
       setSelectedRecords([]);
     },
-    [activeTabId, setPublicFilters, setSelectedRecords, defaultValues],
+    [activeDataSourceId, setPublicFilters, setSelectedRecords, defaultValues],
   );
 
   const handleChange = (name: string, value: string) => {

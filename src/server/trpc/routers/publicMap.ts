@@ -3,14 +3,19 @@ import z from "zod";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CalculationType, MapStyleName } from "@/server/models/MapView";
-import { publicMapSchema } from "@/server/models/PublicMap";
+import { publicMapDraftSchema, publicMapSchema } from "@/server/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { createMap, updateMap } from "@/server/repositories/Map";
 import { upsertMapView } from "@/server/repositories/MapView";
 import {
+  checkHostAvailability,
+  discardDraft,
   findPublicMapByHost,
+  findPublicMapByViewId,
   findPublicMapByViewIdAndUserId,
   findPublicMapsByOrganisationId,
+  publishDraft,
+  saveDraft,
   upsertPublicMap,
 } from "@/server/repositories/PublicMap";
 import {
@@ -96,23 +101,39 @@ export const publicMapRouter = router({
 
       return { mapId: map.id, viewId: view.id };
     }),
-  getEditable: protectedProcedure
-    .input(z.object({ viewId: z.string() }))
+  get: publicProcedure
+    .input(
+      z.object({
+        viewId: z.string().optional(),
+        host: z.string().optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const publicMap = await findPublicMapByViewIdAndUserId(
-        input.viewId,
-        ctx.user.id,
+      let publicMap;
+
+      if (input.host) {
+        publicMap = await findPublicMapByHost(input.host);
+      } else if (input.viewId) {
+        publicMap = await findPublicMapByViewId(input.viewId);
+      }
+
+      if (!publicMap) return null;
+
+      // Published maps are visible to everyone
+      if (publicMap.published) return publicMap;
+
+      // Unpublished maps are only visible to authenticated owners
+      const userId = ctx.user?.id;
+      if (!userId) return null;
+
+      const ownedMap = await findPublicMapByViewIdAndUserId(
+        publicMap.viewId,
+        userId,
       );
-      return publicMap || null;
-    }),
-  getPublished: publicProcedure
-    .input(z.object({ host: z.string() }))
-    .query(async ({ input }) => {
-      const publicMap = await findPublicMapByHost(input.host);
-      return publicMap?.published ? publicMap : null;
+      return ownedMap || null;
     }),
   upsert: mapWriteProcedure
-    .input(publicMapSchema.omit({ createdAt: true, mapId: true, id: true }))
+    .input(publicMapSchema.omit({ createdAt: true, mapId: true, id: true, draft: true }))
     .mutation(async ({ input }) => {
       const existingPublicMap = await findPublicMapByHost(input.host);
 
@@ -124,5 +145,55 @@ export const publicMapRouter = router({
       }
 
       return upsertPublicMap(input);
+    }),
+  saveDraft: mapWriteProcedure
+    .input(
+      z.object({
+        viewId: z.string(),
+        draft: publicMapDraftSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return saveDraft(input.viewId, input.draft);
+    }),
+  publish: mapWriteProcedure
+    .input(
+      z.object({
+        viewId: z.string(),
+        draft: publicMapDraftSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Check hostname availability before publishing
+      if (input.draft.host) {
+        const existing = await checkHostAvailability(
+          input.draft.host,
+          input.viewId,
+        );
+        if (existing) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "A public map already exists for this subdomain.",
+          });
+        }
+      }
+
+      return publishDraft(input.viewId, input.draft);
+    }),
+  discardDraft: mapWriteProcedure
+    .input(z.object({ viewId: z.string() }))
+    .mutation(async ({ input }) => {
+      return discardDraft(input.viewId);
+    }),
+  checkHostAvailability: protectedProcedure
+    .input(
+      z.object({
+        host: z.string(),
+        viewId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const existing = await checkHostAvailability(input.host, input.viewId);
+      return { available: !existing };
     }),
 });

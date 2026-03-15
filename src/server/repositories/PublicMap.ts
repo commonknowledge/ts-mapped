@@ -1,6 +1,6 @@
 import { db } from "@/server/services/database";
 import type { MapConfig } from "@/server/models/Map";
-import type { NewPublicMap } from "@/server/models/PublicMap";
+import type { NewPublicMap, PublicMapDraft } from "@/server/models/PublicMap";
 import type { TraversedJSONPathBuilder } from "kysely";
 
 export function findPublicMapByHost(host: string) {
@@ -99,4 +99,56 @@ export function findPublicMapsByOrganisationId(organisationId: string) {
     .where("map.organisationId", "=", organisationId)
     .selectAll("publicMap")
     .execute();
+}
+
+export function saveDraft(viewId: string, draft: PublicMapDraft) {
+  return db
+    .updateTable("publicMap")
+    .set({ draft: JSON.stringify(draft) })
+    .where("viewId", "=", viewId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function publishDraft(viewId: string, draft: PublicMapDraft) {
+  // Promote draft fields to the live columns and clear the draft
+  return db
+    .updateTable("publicMap")
+    .set({
+      host: draft.host,
+      name: draft.name,
+      description: draft.description,
+      descriptionLong: draft.descriptionLong,
+      descriptionLink: draft.descriptionLink,
+      imageUrl: draft.imageUrl,
+      published: draft.published,
+      dataSourceConfigs: JSON.stringify(draft.dataSourceConfigs) as unknown as never,
+      colorScheme: draft.colorScheme,
+      draft: null,
+    })
+    .where("viewId", "=", viewId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function discardDraft(viewId: string) {
+  return db
+    .updateTable("publicMap")
+    .set({ draft: null })
+    .where("viewId", "=", viewId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function checkHostAvailability(host: string, excludeViewId?: string) {
+  let query = db
+    .selectFrom("publicMap")
+    .where("host", "=", host)
+    .selectAll();
+
+  if (excludeViewId) {
+    query = query.where("viewId", "!=", excludeViewId);
+  }
+
+  return query.executeTakeFirst();
 }

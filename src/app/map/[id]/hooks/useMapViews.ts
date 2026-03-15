@@ -12,7 +12,6 @@ import {
 } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
-import { usePublicMapValue } from "../publish/hooks/usePublicMap";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
 import { useMapId } from "./useMapCore";
@@ -27,7 +26,6 @@ export function useMapViews() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
-  const publicMap = usePublicMapValue();
 
   // Get views directly from cache
   const views = mapData?.views;
@@ -157,7 +155,6 @@ export function useMapViews() {
 
       const updatedViews =
         views?.map((v) => (v.id === view.id ? view : v)) || [];
-      const isPublicMap = publicMap?.id;
 
       setDirtyViewIds((ids) => ids.concat([view.id]));
 
@@ -175,9 +172,7 @@ export function useMapViews() {
         };
       });
 
-      if (!isPublicMap) {
-        updateViewMutate({ mapId, views: updatedViews });
-      }
+      updateViewMutate({ mapId, views: updatedViews });
     },
     [
       mapId,
@@ -186,7 +181,6 @@ export function useMapViews() {
       trpc.map.byId,
       updateViewMutate,
       views,
-      publicMap,
     ],
   );
 

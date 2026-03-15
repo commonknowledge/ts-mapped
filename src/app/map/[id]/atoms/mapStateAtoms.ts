@@ -5,7 +5,16 @@ import type { MapRef } from "react-map-gl/mapbox";
 
 export type MapMode = "private" | "public";
 export const mapModeAtom = atom<MapMode>("private");
-export const showNavbarAtom = atom<boolean>(true);
+
+/**
+ * `true` on the private `/map/[id]` route, `false` on the standalone public page.
+ * Replaces the old `editableAtom` and `showNavbarAtom` props – both are now
+ * derived from this single atom.
+ */
+export const isPrivateRouteAtom = atom<boolean>(true);
+
+/** Derived: the navbar is visible exactly when we are on the private route. */
+export const showNavbarAtom = atom<boolean>((get) => get(isPrivateRouteAtom));
 
 export const mapIdAtom = atom<string | null>(null);
 export const mapRefAtom = atom<{ current: MapRef | null }>({ current: null });
@@ -21,3 +30,4 @@ export const compareGeographiesAtom = atom<boolean>(false);
 export const infoPopupOpenAtom = atom<boolean>(false);
 export const infoPopupEditingAtom = atom<boolean>(false);
 export const mapBottomPaddingAtom = atom<number>(0);
+export const lastLoadedSourceIdAtom = atom<string | undefined>(undefined);

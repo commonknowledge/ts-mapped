@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
 import { useFilteredRecords } from "../hooks/usePublicFilters";
@@ -29,7 +29,7 @@ export default function DataRecordsList({
   colorScheme,
 }: DataRecordsListProps) {
   const publicMap = usePublicMapValue();
-  const { setSelectedRecords, focusedRecord } = useInspector();
+  const { setSelectedRecords, focusedRecord } = useInspectorState();
   const mapRef = useMapRef();
   const filteredRecords = useFilteredRecords();
   const listRef = useRef<HTMLUListElement>(null);

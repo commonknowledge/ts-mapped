@@ -1,7 +1,8 @@
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
 import MapJotaiProvider from "@/app/map/[id]/providers/MapJotaiProvider";
 import PublicMapOverlay from "@/app/map/[id]/publish/components/PublicMapOverlay";
-import { createCaller } from "@/services/trpc/server";
+import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import type { Metadata } from "next";
 
 interface Props {
@@ -10,9 +11,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { host } = await params;
-  const queryClient = await createCaller();
+  const caller = await createCaller();
 
-  const map = await queryClient.publicMap.getPublished({
+  const map = await caller.publicMap.get({
     host: decodeURIComponent(host),
   });
 
@@ -29,9 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicMapPage({ params }: Props) {
   const { host } = await params;
-  const queryClient = await createCaller();
+  const caller = await createCaller();
 
-  const publicMap = await queryClient.publicMap.getPublished({
+  const publicMap = await caller.publicMap.get({
     host: decodeURIComponent(host),
   });
 
@@ -39,15 +40,24 @@ export default async function PublicMapPage({ params }: Props) {
     notFound();
   }
 
+  // Seed the React Query cache so client-side `usePublicMapQuery` picks it
+  // up without a separate fetch.  The root layout's HydrationBoundary
+  // dehydrates this for the client.
+  const queryClient = getQueryClient();
+  queryClient.setQueryData(
+    trpc.publicMap.get.queryKey({ viewId: publicMap.viewId }),
+    publicMap,
+  );
+
   return (
-    <MapJotaiProvider
-      mapId={publicMap.mapId}
-      viewId={publicMap.viewId}
-      mapMode="public"
-      showNavbar={false}
-      publicMap={publicMap}
-    >
-      <PublicMapOverlay standalone />
-    </MapJotaiProvider>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <MapJotaiProvider
+        mapId={publicMap.mapId}
+        viewId={publicMap.viewId}
+        isPrivateRoute={false}
+      >
+        <PublicMapOverlay standalone />
+      </MapJotaiProvider>
+    </HydrationBoundary>
   );
 }

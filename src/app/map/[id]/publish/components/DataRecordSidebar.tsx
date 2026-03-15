@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { Check, X } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -24,7 +24,8 @@ import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
   const isMobile = useIsMobile();
-  const { selectedRecords, setFocusedRecord, resetInspector } = useInspector();
+  const { selectedRecords, setFocusedRecord, resetInspector } =
+    useInspectorState();
   const publicMap = usePublicMapValue();
   const colorScheme = useColorScheme();
   const dataRecordsQueries = usePublicDataRecordsQueries();

@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -24,7 +24,7 @@ export default function TurfMarkersList() {
   const { mapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { selectedTurf } = useInspector();
+  const { selectedTurf } = useInspectorState();
   const trpc = useTRPC();
 
   const dataSourceIds = getDataSourceIds(mapConfig);

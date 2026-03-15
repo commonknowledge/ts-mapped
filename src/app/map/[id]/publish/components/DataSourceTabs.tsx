@@ -10,9 +10,9 @@ import {
   useSetPublicFilters,
 } from "../hooks/usePublicFilters";
 import {
-  useActiveTabId,
+  useActiveDataSourceId,
   usePublicMapValue,
-  useSetActiveTabId,
+  useSetActiveDataSourceId,
 } from "../hooks/usePublicMap";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
@@ -39,8 +39,8 @@ export default function DataSourceTabs({
   dataRecordsQueries,
 }: DataSourceTabsProps) {
   const publicMap = usePublicMapValue();
-  const activeTabId = useActiveTabId();
-  const setActiveTabId = useSetActiveTabId();
+  const activeDataSourceId = useActiveDataSourceId();
+  const setActiveDataSourceId = useSetActiveDataSourceId();
   const publicFilters = usePublicFilters();
   const setPublicFilters = useSetPublicFilters();
 
@@ -70,10 +70,10 @@ export default function DataSourceTabs({
 
   // Multiple data sources - use tabs
   const defaultTabId =
-    activeTabId || publicMap.dataSourceConfigs[0]?.dataSourceId;
+    activeDataSourceId || publicMap.dataSourceConfigs[0]?.dataSourceId;
 
   const onTabChange = (id: string) => {
-    setActiveTabId(id);
+    setActiveDataSourceId(id);
     if (!publicFilters[id]) {
       setPublicFilters({ ...publicFilters, [id]: [] });
     }

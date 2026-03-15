@@ -1,25 +1,22 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import {
   VerticalTabs,
   VerticalTabsContent,
   VerticalTabsList,
   VerticalTabsTrigger,
 } from "@/components/VerticalTabs";
-import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
+import { useAutoSaveDraft } from "../../hooks/useAutoSaveDraft";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
 import {
+  useActiveDataSourceId,
   useActivePublishTab,
-  useActiveTabId,
   usePublicMapValue,
   useSetActivePublishTab,
 } from "../../hooks/usePublicMap";
@@ -27,50 +24,33 @@ import { buildPublicMapName } from "../../utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
-import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
   const publicMap = usePublicMapValue();
-  const activeTabId = useActiveTabId();
+  const activeDataSourceId = useActiveDataSourceId();
   const activePublishTab = useActivePublishTab();
   const setActivePublishTab = useSetActivePublishTab();
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const { setSelectedRecords } = useInspector();
+  const { setSelectedRecords } = useInspectorState();
   const [hideSidebar] = useState(false);
-  const [, setError] = useState("");
-  const [publishedHost, setPublishedHost] = useState(
-    publicMap?.published ? publicMap.host : "",
-  );
 
-  const trpc = useTRPC();
-  const { mutate: upsertPublicMap, isPending: loading } = useMutation(
-    trpc.publicMap.upsert.mutationOptions({
-      onSuccess: (res) => {
-        setPublishedHost(res.host);
-        toast.success("Your changes were saved!");
-      },
-      onError: (e) => {
-        console.error("Failed to upsert public map", e);
-        setError(e.message);
-        toast.error("Failed to save changes.");
-      },
-    }),
-  );
+  // Auto-save draft whenever the atom changes
+  useAutoSaveDraft();
 
   // Auto-select first record when data source tab changes and data panel is open
   useEffect(() => {
-    if (activePublishTab === "data" && activeTabId) {
-      const dataRecordsQuery = dataRecordsQueries[activeTabId];
+    if (activePublishTab === "data" && activeDataSourceId) {
+      const dataRecordsQuery = dataRecordsQueries[activeDataSourceId];
       const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
         const firstRecord = records[0];
         const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-          (config) => config.dataSourceId === activeTabId,
+          (config) => config.dataSourceId === activeDataSourceId,
         );
         setSelectedRecords([
           {
             id: firstRecord.id,
-            dataSourceId: activeTabId,
+            dataSourceId: activeDataSourceId,
             name: buildPublicMapName(dataSourceConfig, firstRecord),
             geocodePoint: firstRecord.geocodePoint,
           },
@@ -78,7 +58,7 @@ export default function PublishPublicMapSidebar() {
       }
     }
   }, [
-    activeTabId,
+    activeDataSourceId,
     activePublishTab,
     dataRecordsQueries,
     setSelectedRecords,
@@ -90,12 +70,6 @@ export default function PublishPublicMapSidebar() {
     return null;
   }
 
-  const onSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    upsertPublicMap(publicMap);
-  };
-
   return (
     <div
       className={cn(
@@ -105,79 +79,60 @@ export default function PublishPublicMapSidebar() {
     >
       <div className="flex flex-col h-full w-[380px]">
         {!hideSidebar && (
-          <form onSubmit={onSubmitForm} className="flex flex-col h-full">
-            <VerticalTabs
-              className="overflow-y-hidden flex-1 flex flex-col"
-              value={activePublishTab}
-              onValueChange={(value) => {
-                setActivePublishTab(value);
-                if (value === "data" && activeTabId) {
-                  // Select the first record from the active data source
-                  const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-                    (dsc) => dsc.dataSourceId === activeTabId,
-                  );
-                  if (dataSourceConfig) {
-                    const firstRecord =
-                      dataRecordsQueries[dataSourceConfig.dataSourceId]?.data
-                        ?.records?.[0];
-                    if (firstRecord) {
-                      setSelectedRecords([
-                        {
-                          id: firstRecord.id,
-                          dataSourceId: dataSourceConfig.dataSourceId,
-                          name: buildPublicMapName(
-                            dataSourceConfig,
-                            firstRecord,
-                          ),
-                          geocodePoint: firstRecord.geocodePoint,
-                        },
-                      ]);
-                    }
+          <VerticalTabs
+            className="overflow-y-hidden flex-1 flex flex-col"
+            value={activePublishTab}
+            onValueChange={(value) => {
+              setActivePublishTab(value);
+              if (value !== "data") {
+                // Clear selected records when leaving Data tab to hide DataRecordSidebar
+                setSelectedRecords([]);
+                return;
+              }
+              if (value === "data" && activeDataSourceId) {
+                // Select the first record from the active data source
+                const dataSourceConfig = publicMap?.dataSourceConfigs.find(
+                  (dsc) => dsc.dataSourceId === activeDataSourceId,
+                );
+                if (dataSourceConfig) {
+                  const firstRecord =
+                    dataRecordsQueries[dataSourceConfig.dataSourceId]?.data
+                      ?.records?.[0];
+                  if (firstRecord) {
+                    setSelectedRecords([
+                      {
+                        id: firstRecord.id,
+                        dataSourceId: dataSourceConfig.dataSourceId,
+                        name: buildPublicMapName(dataSourceConfig, firstRecord),
+                        geocodePoint: firstRecord.geocodePoint,
+                      },
+                    ]);
                   }
                 }
-              }}
-            >
-              <VerticalTabsList className="flex flex-row w-full">
-                <VerticalTabsTrigger
-                  value="settings"
-                  icon={Settings}
-                  label="Settings"
-                />
-                <VerticalTabsTrigger
-                  value="data"
-                  icon={Database}
-                  label="Data"
-                />
-              </VerticalTabsList>
+              }
+            }}
+          >
+            <VerticalTabsList className="flex flex-row w-full">
+              <VerticalTabsTrigger
+                value="settings"
+                icon={Settings}
+                label="Settings"
+              />
+              <VerticalTabsTrigger value="data" icon={Database} label="Data" />
+            </VerticalTabsList>
 
-              <VerticalTabsContent value="settings">
-                <EditorPublishSettings publishedHost={publishedHost} />
-                <Separator className="my-4" />
-                <EditorInfoSettings />
-              </VerticalTabsContent>
+            <VerticalTabsContent value="settings">
+              <EditorPublishSettings />
+              <Separator className="my-4" />
+              <EditorInfoSettings />
+            </VerticalTabsContent>
 
-              <VerticalTabsContent value="data">
-                <EditorDataSettings />
-              </VerticalTabsContent>
-            </VerticalTabs>
-            <PublishActionsSection loading={loading} />
-          </form>
+            <VerticalTabsContent value="data">
+              <EditorDataSettings />
+            </VerticalTabsContent>
+          </VerticalTabs>
         )}
       </div>
-    </div>
-  );
-}
-
-export function PublishActionsSection({ loading }: { loading: boolean }) {
-  return (
-    <div className="flex items-center border-t border-neutral-200 h-16">
-      <Button
-        disabled={loading}
-        size="lg"
-        className="flex-1 rounded-none h-full"
-      >
-        Save changes
-      </Button>
     </div>
   );
 }

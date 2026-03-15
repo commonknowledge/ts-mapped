@@ -6,14 +6,14 @@ import {
   mapModeAtom,
   showNavbarAtom,
 } from "../atoms/mapStateAtoms";
-import { useChoropleth } from "../hooks/useChoropleth";
+import { useSetLastLoadedSourceId } from "../hooks/useMapCore";
 import Map from "./Map";
 
 export default function SharedMap() {
   const mapMode = useAtomValue(mapModeAtom);
   const showNavbar = useAtomValue(showNavbarAtom);
   const mapBottomPadding = useAtomValue(mapBottomPaddingAtom);
-  const { setLastLoadedSourceId } = useChoropleth();
+  const setLastLoadedSourceId = useSetLastLoadedSourceId();
 
   const baseClass =
     mapMode === "private"

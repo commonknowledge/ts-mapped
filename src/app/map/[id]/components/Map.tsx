@@ -15,7 +15,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
 import { drawModeAtom } from "../atoms/mapStateAtoms";
 import { useDraw } from "../hooks/useDraw";
-import { useInspector } from "../hooks/useInspector";
+import { useInspectorState } from "../hooks/useInspectorState";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -66,7 +66,7 @@ export default function Map({
   const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
-  const { resetInspector, setSelectedTurf, selectedTurf } = useInspector();
+  const { resetInspector, setSelectedTurf, selectedTurf } = useInspectorState();
 
   const [draw, setDraw] = useDraw();
   const setDrawMode = useSetAtom(drawModeAtom);
@@ -296,12 +296,6 @@ export default function Map({
     viewConfig.mapType,
     ready,
   ]);
-
-  console.log("initial padding", isMobile, {
-    left: isMobile ? 0 : CONTROL_PANEL_WIDTH,
-    top: 0,
-    bottom: 0,
-  });
 
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">

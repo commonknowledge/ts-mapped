@@ -5,40 +5,29 @@ import { useHydrateAtoms } from "jotai/utils";
 import { useSearchParams } from "next/navigation";
 import {
   type MapMode,
+  isPrivateRouteAtom,
   mapIdAtom,
   mapModeAtom,
-  showNavbarAtom,
   viewIdAtom,
 } from "@/app/map/[id]/atoms/mapStateAtoms";
-import {
-  activeTabIdAtom,
-  publicMapAtom,
-} from "@/app/map/[id]/publish/atoms/publicMapAtoms";
-import type { PublicMapData } from "@/app/map/[id]/publish/atoms/publicMapAtoms";
 import type { ReactNode } from "react";
 
 /**
- * Creates a Jotai store boundary.
- * Accepts initial values for mapId, viewId, mapMode, showNavbar,
- * and optionally publicMap from server components.
+ * Creates a Jotai store boundary and hydrates all "route-level" atoms.
  *
- * When no explicit `mapMode` is provided, derives it from the URL
- * query parameter `?mode=publish` so that the first render is correct
- * (no flicker).
+ * `isPrivateRoute` replaces the old `showNavbar` / `editable` / `mapMode`
+ * props – the navbar visibility and editor-mode flag are now derived from
+ * this single boolean, and `mapMode` is derived from the URL.
  */
 export default function MapJotaiProvider({
   mapId,
   viewId,
-  mapMode,
-  showNavbar,
-  publicMap,
+  isPrivateRoute,
   children,
 }: {
   mapId: string;
   viewId?: string;
-  mapMode?: MapMode;
-  showNavbar: boolean;
-  publicMap?: NonNullable<PublicMapData>;
+  isPrivateRoute: boolean;
   children: ReactNode;
 }) {
   return (
@@ -46,9 +35,7 @@ export default function MapJotaiProvider({
       <HydrateAtoms
         mapId={mapId}
         viewId={viewId}
-        mapMode={mapMode}
-        showNavbar={showNavbar}
-        publicMap={publicMap}
+        isPrivateRoute={isPrivateRoute}
       >
         {children}
       </HydrateAtoms>
@@ -58,33 +45,32 @@ export default function MapJotaiProvider({
 
 function HydrateAtoms({
   mapId,
-  showNavbar,
   viewId,
-  mapMode,
-  publicMap,
+  isPrivateRoute,
   children,
 }: {
   mapId: string;
-  showNavbar: boolean;
   viewId?: string;
-  mapMode?: MapMode;
-  publicMap?: NonNullable<PublicMapData>;
+  isPrivateRoute: boolean;
   children: ReactNode;
 }) {
-  // When no explicit values are provided (private route layout),
-  // derive them from the URL so the very first render is correct.
+  // On the private route, derive mapMode + viewId from the URL so the very
+  // first render is correct (no flicker).
   const searchParams = useSearchParams();
-  const resolvedMapMode: MapMode =
-    mapMode ?? (searchParams.get("mode") === "publish" ? "public" : "private");
+
+  const resolvedMapMode: MapMode = isPrivateRoute
+    ? searchParams.get("mode") === "publish"
+      ? "public"
+      : "private"
+    : "public";
+
   const resolvedViewId = viewId ?? searchParams.get("viewId") ?? undefined;
 
   useHydrateAtoms([
     [mapIdAtom, mapId],
     [viewIdAtom, resolvedViewId || null],
     [mapModeAtom, resolvedMapMode],
-    [showNavbarAtom, showNavbar || false],
-    [publicMapAtom, publicMap || null],
-    [activeTabIdAtom, publicMap?.dataSourceConfigs?.[0]?.dataSourceId || null],
+    [isPrivateRouteAtom, isPrivateRoute],
   ]);
 
   return children;

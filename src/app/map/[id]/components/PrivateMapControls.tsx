@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
 import { drawModeAtom } from "../atoms/mapStateAtoms";
 import { useChoropleth } from "../hooks/useChoropleth";
-import { useInspector } from "../hooks/useInspector";
+import { useInspectorContent } from "../hooks/useInspector";
 import {
   useCompareGeographiesMode,
   useMapControls,
@@ -22,7 +22,7 @@ export default function PrivateMapControls() {
   const drawMode = useAtomValue(drawModeAtom);
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
-  const { inspectorContent } = useInspector();
+  const { inspectorContent } = useInspectorContent();
   const inspectorVisible = Boolean(inspectorContent);
   const { boundariesPanelOpen } = useChoropleth();
   const compareGeographiesMode = useCompareGeographiesMode();

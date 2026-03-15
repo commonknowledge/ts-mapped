@@ -1,5 +1,6 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
+  lastLoadedSourceIdAtom,
   mapBottomPaddingAtom,
   mapIdAtom,
   mapRefAtom,
@@ -55,4 +56,12 @@ export function useMapBottomPadding() {
 
 export function useSetMapBottomPadding() {
   return useSetAtom(mapBottomPaddingAtom);
+}
+
+export function useLastLoadedSourceId() {
+  return useAtomValue(lastLoadedSourceIdAtom);
+}
+
+export function useSetLastLoadedSourceId() {
+  return useSetAtom(lastLoadedSourceIdAtom);
 }

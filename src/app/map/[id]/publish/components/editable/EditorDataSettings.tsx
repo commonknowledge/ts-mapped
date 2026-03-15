@@ -17,9 +17,9 @@ import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import {
-  useActiveTabId,
+  useActiveDataSourceId,
   usePublicMapValue,
-  useSetActiveTabId,
+  useSetActiveDataSourceId,
   useUpdateDataSourceConfig,
 } from "../../hooks/usePublicMap";
 import DataSourcesSelect from "../DataSourcesSelect";
@@ -28,8 +28,8 @@ import ColumnCard from "./ColumnCard";
 export default function EditorDataSettings() {
   const publicMap = usePublicMapValue();
   const updateDataSourceConfig = useUpdateDataSourceConfig();
-  const activeTabId = useActiveTabId();
-  const setActiveTabId = useSetActiveTabId();
+  const activeDataSourceId = useActiveDataSourceId();
+  const setActiveDataSourceId = useSetActiveDataSourceId();
   const { getDataSourceById } = useDataSources();
   const [expandedColumns, setExpandedColumns] = useState<
     Record<string, boolean>
@@ -39,9 +39,9 @@ export default function EditorDataSettings() {
   useEffect(() => {
     if (!publicMap) return;
 
-    // Use activeTabId if available, otherwise use the first data source
+    // Use activeDataSourceId if available, otherwise use the first data source
     const currentTabId =
-      activeTabId || publicMap.dataSourceConfigs[0]?.dataSourceId;
+      activeDataSourceId || publicMap.dataSourceConfigs[0]?.dataSourceId;
     if (!currentTabId) return;
 
     const currentDataSourceConfig = publicMap.dataSourceConfigs.find(
@@ -79,7 +79,7 @@ export default function EditorDataSettings() {
 
       return newExpanded;
     });
-  }, [activeTabId, publicMap, getDataSourceById]);
+  }, [activeDataSourceId, publicMap, getDataSourceById]);
 
   if (!publicMap) {
     return null;
@@ -89,8 +89,10 @@ export default function EditorDataSettings() {
     <>
       {publicMap.dataSourceConfigs.length > 0 && (
         <Tabs
-          value={activeTabId || publicMap.dataSourceConfigs[0]?.dataSourceId}
-          onValueChange={setActiveTabId}
+          value={
+            activeDataSourceId || publicMap.dataSourceConfigs[0]?.dataSourceId
+          }
+          onValueChange={setActiveDataSourceId}
         >
           <div className="flex items-center gap-2 mb-4">
             <TabsList

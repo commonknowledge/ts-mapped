@@ -7,7 +7,7 @@ import { Link } from "@/components/Link";
 import MapVisibilityToggle from "@/components/MapVisibilityToggle";
 import { usePublicMapValue } from "../../hooks/usePublicMap";
 
-export default function EditorNavbar() {
+export default function PublicMapEditorNavbar() {
   const mapId = useMapId();
   const { data: map } = useMapQuery(mapId);
   const publicMap = usePublicMapValue();
@@ -24,7 +24,7 @@ export default function EditorNavbar() {
           </Link>
           <ChevronRight className="w-4 h-4 text-neutral-400" />
           <p className="truncate max-w-[300px]">
-            {publicMap?.name || (map ? map.name : "")}
+            {publicMap ? publicMap.name || (map ? map.name : "") : "Loading..."}
           </p>
         </div>
         <div className="flex items-center gap-4">

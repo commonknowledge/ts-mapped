@@ -45,6 +45,21 @@ export type PublicMapDataSourceConfig = z.infer<
   typeof publicMapDataSourceConfigSchema
 >;
 
+// The editable fields that can appear in a draft
+export const publicMapDraftSchema = z.object({
+  host: z.string(),
+  name: z.string(),
+  description: z.string(),
+  descriptionLong: z.string(),
+  descriptionLink: z.string(),
+  imageUrl: z.string().nullish(),
+  published: z.boolean(),
+  dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
+  colorScheme: z.string(),
+});
+
+export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;
+
 export const publicMapSchema = z.object({
   id: z.string(),
   host: z.string(),
@@ -59,13 +74,15 @@ export const publicMapSchema = z.object({
   dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
   createdAt: z.date(),
   colorScheme: z.string(),
+  draft: publicMapDraftSchema.nullish(),
 });
 
 export type PublicMap = z.infer<typeof publicMapSchema>;
 
-export type PublicMapTable = PublicMap & {
+export type PublicMapTable = Omit<PublicMap, "draft"> & {
   id: Generated<string>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
+  draft: KyselyColumnType<PublicMapDraft | null, string | null, string | null>;
 };
 export type NewPublicMap = Insertable<PublicMapTable>;
 export type PublicMapUpdate = Updateable<PublicMapTable>;

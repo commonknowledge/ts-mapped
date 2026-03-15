@@ -5,12 +5,15 @@ import Image from "next/image";
 import Loading from "@/app/map/[id]/components/Loading";
 import Map from "@/app/map/[id]/components/Map";
 import { useAreaStats } from "@/app/map/[id]/data";
-import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
-import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
+import {
+  useMapId,
+  useSetLastLoadedSourceId,
+} from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useEditable } from "../hooks/usePublicMap";
+import PublishControls from "./editable/PublishControls";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
 import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
@@ -23,7 +26,7 @@ export default function PublicMapOverlay({
   const mapId = useMapId();
   const editable = useEditable();
   const areaStatsQuery = useAreaStats();
-  const { setLastLoadedSourceId } = useChoropleth();
+  const setLastLoadedSourceId = useSetLastLoadedSourceId();
   const markerQueries = useMarkerQueries();
 
   const { data: map, isPending } = useMapQuery(mapId);
@@ -72,6 +75,11 @@ export default function PublicMapOverlay({
               />
             )}
             {loading && <Loading />}
+            {editable && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+                <PublishControls />
+              </div>
+            )}
             <a
               href="https://mapped.tools"
               target="_blank"

@@ -18,7 +18,7 @@ export default async function MapPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ mode: string | undefined }>;
+  searchParams: Promise<{ mode?: string; viewId?: string }>;
 }) {
   const serverSession = await getServerSession();
   if (!serverSession.currentUser) {
@@ -26,7 +26,7 @@ export default async function MapPage({
   }
 
   const { id } = await params;
-  const { mode } = await searchParams;
+  const { mode, viewId } = await searchParams;
   const isPublishMode = mode === "publish";
 
   // Log current view data (development only)
@@ -55,7 +55,7 @@ export default async function MapPage({
   }
 
   return (
-    <MapJotaiProvider mapId={id} showNavbar={true}>
+    <MapJotaiProvider mapId={id} viewId={viewId} isPrivateRoute={true}>
       <div className="relative h-screen w-full">
         <SharedMap />
         <div className="absolute inset-0 z-10 pointer-events-none flex flex-col">

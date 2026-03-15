@@ -1,19 +1,87 @@
+import { useIsMutating, useQuery } from "@tanstack/react-query";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useTRPC } from "@/services/trpc/react";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
-import { Separator } from "@/shadcn/ui/separator";
-import { Switch } from "@/shadcn/ui/switch";
 import {
+  useHostAvailable,
   usePublicMapValue,
+  usePublishedPublicMapValue,
+  useSetHostAvailable,
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
 
-export default function EditorPublishSettings({
-  publishedHost,
-}: {
-  publishedHost: string;
-}) {
+export default function EditorPublishSettings() {
   const publicMap = usePublicMapValue();
+  const publishedPublicMap = usePublishedPublicMapValue();
   const updatePublicMap = useUpdatePublicMap();
+  const hostAvailable = useHostAvailable();
+  const setHostAvailable = useSetHostAvailable();
+  const trpc = useTRPC();
+
+  // Detect in-flight publish/discard mutations (owned by usePublishActions in the navbar)
+  const isPublishMutating = useIsMutating({
+    mutationKey: trpc.publicMap.publish.mutationOptions().mutationKey,
+  });
+  const isDiscardMutating = useIsMutating({
+    mutationKey: trpc.publicMap.discardDraft.mutationOptions().mutationKey,
+  });
+  const loading = isPublishMutating > 0 || isDiscardMutating > 0;
+
+  // Debounced host for availability checking
+  const [debouncedHost, setDebouncedHost] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const currentHost = publicMap?.host || "";
+
+  // Debounce hostname changes for availability checking
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    // If the host hasn't changed from the published version, it's available
+    if (currentHost === publishedPublicMap?.host) {
+      setHostAvailable(currentHost ? true : null);
+      setDebouncedHost(null);
+      return;
+    }
+
+    if (!currentHost || !getSubdomain(currentHost)) {
+      setHostAvailable(null);
+      setDebouncedHost(null);
+      return;
+    }
+
+    // Mark as "checking" while debouncing
+    setHostAvailable(null);
+
+    timerRef.current = setTimeout(() => {
+      setDebouncedHost(currentHost);
+    }, 500);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [currentHost, publishedPublicMap?.host, setHostAvailable]);
+
+  // Run the availability check query
+  const { data: availability, isFetching: isChecking } = useQuery(
+    trpc.publicMap.checkHostAvailability.queryOptions(
+      { host: debouncedHost ?? "", viewId: publicMap?.viewId },
+      { enabled: !!debouncedHost },
+    ),
+  );
+
+  // Update the hostAvailable atom when the query result changes
+  useEffect(() => {
+    if (availability && debouncedHost) {
+      setHostAvailable(availability.available);
+    }
+  }, [availability, debouncedHost, setHostAvailable]);
 
   if (!publicMap) {
     return null;
@@ -33,40 +101,8 @@ export default function EditorPublishSettings({
     return `.${baseHost}`;
   };
 
-  const getSubdomain = (host: string | undefined) => {
-    if (!host) {
-      return "";
-    }
-    return host.split(".")[0];
-  };
-
   return (
     <div className="flex flex-col gap-2">
-      <Label>Published Status</Label>
-      <div className="flex items-center gap-2">
-        <Switch
-          checked={publicMap.published}
-          onCheckedChange={(published) => updatePublicMap({ published })}
-        />{" "}
-        {publicMap.published ? "Public" : "Unpublished"}
-      </div>
-      <div className="flex items-center gap-2 text-xs ">
-        View at:
-        {publishedHost ? (
-          <a
-            href={`${getBaseUrl().protocol}//${publishedHost}`}
-            target="_blank"
-            className="underline"
-          >
-            {publicMap.host}
-          </a>
-        ) : (
-          <span className="text-neutral-500">
-            Enter a subdomain below and click publish
-          </span>
-        )}
-      </div>
-      <Separator className="my-4" />
       <Label>URL</Label>
       <div className="flex items-center gap-2">
         <span className="text-sm text-neutral-500">{`${getBaseUrl().protocol}//`}</span>
@@ -75,13 +111,43 @@ export default function EditorPublishSettings({
           placeholder="my-map"
           value={getSubdomain(publicMap.host)}
           onChange={(e) => updatePublicMap({ host: makeHost(e.target.value) })}
-          required
           pattern="^[a-z]+(-[a-z]+)*$"
+          disabled={loading}
         />
         <span className="text-sm text-neutral-500">
           {getPublicMapUrlAfterSubDomain()}
         </span>
       </div>
+      {/* Hostname availability indicator */}
+      {getSubdomain(currentHost) && (
+        <div className="flex items-center gap-1.5 text-xs mt-1">
+          {isChecking || (hostAvailable === null && debouncedHost !== null) ? (
+            <>
+              <Loader2 className="w-3 h-3 animate-spin text-neutral-400" />
+              <span className="text-neutral-500">Checking availability…</span>
+            </>
+          ) : hostAvailable === true ? (
+            <>
+              <CheckCircle className="w-3 h-3 text-green-600" />
+              <span className="text-green-600">Subdomain available</span>
+            </>
+          ) : hostAvailable === false ? (
+            <>
+              <XCircle className="w-3 h-3 text-red-600" />
+              <span className="text-red-600">
+                Subdomain is taken — choose another
+              </span>
+            </>
+          ) : null}
+        </div>
+      )}
     </div>
   );
+}
+
+function getSubdomain(host: string | undefined) {
+  if (!host) {
+    return "";
+  }
+  return host.split(".")[0];
 }

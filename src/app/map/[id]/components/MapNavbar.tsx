@@ -5,7 +5,7 @@ import { mapModeAtom, showNavbarAtom } from "../atoms/mapStateAtoms";
 import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
 import { useSyncMapModeToUrl } from "../hooks/useSyncMapModeToUrl";
 import { useSyncViewIdToUrl } from "../hooks/useSyncViewIdToUrl";
-import EditorNavbar from "../publish/components/editable/EditorNavbar";
+import PublicMapEditorNavbar from "../publish/components/editable/EditorNavbar";
 import PrivateMapNavbar from "./PrivateMapNavbar";
 
 export default function MapNavbar() {
@@ -24,7 +24,7 @@ export default function MapNavbar() {
   if (mapMode === "public") {
     return (
       <div className="pointer-events-auto">
-        <EditorNavbar />
+        <PublicMapEditorNavbar />
       </div>
     );
   }

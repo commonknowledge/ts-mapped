@@ -8,7 +8,7 @@ import {
   usePublicFilters,
   useSetPublicFilters,
 } from "../hooks/usePublicFilters";
-import { useActiveTabId } from "../hooks/usePublicMap";
+import { useActiveDataSourceId } from "../hooks/usePublicMap";
 import type { PublicFiltersFormValue } from "@/types";
 
 function FiltersListBadge({
@@ -37,20 +37,20 @@ function FiltersListBadge({
 export default function FiltersList() {
   const publicFilters = usePublicFilters();
   const setPublicFilters = useSetPublicFilters();
-  const activeTabId = useActiveTabId();
+  const activeDataSourceId = useActiveDataSourceId();
   const activeFilters = getActiveFilters(
-    activeTabId ? publicFilters[activeTabId] : undefined,
+    activeDataSourceId ? publicFilters[activeDataSourceId] : undefined,
   );
 
   const removeFilter = (filter: PublicFiltersFormValue, optionName = "") => {
-    if (!activeTabId) {
+    if (!activeDataSourceId) {
       return;
     }
-    const activePublicFilters = publicFilters[activeTabId] || [];
+    const activePublicFilters = publicFilters[activeDataSourceId] || [];
     if (optionName) {
       setPublicFilters({
         ...publicFilters,
-        [activeTabId]: [
+        [activeDataSourceId]: [
           ...activePublicFilters.map((f) =>
             f.name === filter.name
               ? {
@@ -65,7 +65,7 @@ export default function FiltersList() {
       });
     } else {
       setPublicFilters({
-        [activeTabId]: [
+        [activeDataSourceId]: [
           ...activePublicFilters.map((f) =>
             f.name === filter.name ? { ...f, value: "" } : { ...f },
           ),
