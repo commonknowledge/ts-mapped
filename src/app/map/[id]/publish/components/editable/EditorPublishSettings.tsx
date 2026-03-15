@@ -1,4 +1,3 @@
-import { Link } from "@/components/Link";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
@@ -54,14 +53,13 @@ export default function EditorPublishSettings({
       <div className="flex items-center gap-2 text-xs ">
         View at:
         {publishedHost ? (
-          <Link
+          <a
             href={`${getBaseUrl().protocol}//${publishedHost}`}
             target="_blank"
             className="underline"
-            prefetch={false}
           >
             {publicMap.host}
-          </Link>
+          </a>
         ) : (
           <span className="text-neutral-500">
             Enter a subdomain below and click publish

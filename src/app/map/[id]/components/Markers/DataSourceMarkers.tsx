@@ -3,15 +3,15 @@ import { Source } from "react-map-gl/mapbox";
 
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { MarkerDisplayMode } from "@/server/models/Map";
-import { mapColors } from "../../styles";
 import {
   useFilteredRecords,
   usePublicFilters,
-} from "../../view/[viewIdOrHost]/publish/hooks/usePublicFilters";
+} from "../../publish/hooks/usePublicFilters";
 import {
   useColorScheme,
   usePublicMapValue,
-} from "../../view/[viewIdOrHost]/publish/hooks/usePublicMap";
+} from "../../publish/hooks/usePublicMap";
+import { mapColors } from "../../styles";
 import { ClustersLayer } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";

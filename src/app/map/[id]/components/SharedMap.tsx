@@ -1,13 +1,18 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import { mapModeAtom, showNavbarAtom } from "../atoms/mapStateAtoms";
+import {
+  mapBottomPaddingAtom,
+  mapModeAtom,
+  showNavbarAtom,
+} from "../atoms/mapStateAtoms";
 import { useChoropleth } from "../hooks/useChoropleth";
 import Map from "./Map";
 
 export default function SharedMap() {
   const mapMode = useAtomValue(mapModeAtom);
   const showNavbar = useAtomValue(showNavbarAtom);
+  const mapBottomPadding = useAtomValue(mapBottomPaddingAtom);
   const { setLastLoadedSourceId } = useChoropleth();
 
   const baseClass =
@@ -18,11 +23,13 @@ export default function SharedMap() {
   const topClass = showNavbar ? "top-[var(--navbar-height)]" : "";
 
   return (
-    <div className={`${baseClass} ${topClass}`}>
-      <Map
-        onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
-        hideDrawControls={mapMode === "public"}
-      />
+    <div
+      className={`${baseClass} ${topClass}`}
+      style={
+        mapBottomPadding > 0 ? { bottom: `${mapBottomPadding}px` } : undefined
+      }
+    >
+      <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
     </div>
   );
 }

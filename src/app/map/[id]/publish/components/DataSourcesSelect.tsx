@@ -1,7 +1,10 @@
 import { Database } from "lucide-react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { getDataSourceIds } from "@/app/map/[id]/utils/map";
+import {
+  type ColumnDef,
+  DataSourceRecordType,
+} from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { usePublicMapValue, useUpdatePublicMap } from "../hooks/usePublicMap";
-import type { ColumnDef } from "@/server/models/DataSource";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 
 interface DataSource {
@@ -22,14 +24,14 @@ interface DataSource {
 }
 
 export default function DataSourcesSelect() {
-  const { mapConfig } = useMapConfig();
-  const { getDataSourceById } = useDataSources();
+  const { data: dataSources } = useDataSources();
   const publicMap = usePublicMapValue();
   const updatePublicMap = useUpdatePublicMap();
+  const { mapConfig, updateMapConfig } = useMapConfig();
 
-  const dataSources = getDataSourceIds(mapConfig)
-    .map((id) => getDataSourceById(id))
-    .filter((ds) => ds !== undefined && ds !== null);
+  const validDataSources =
+    dataSources?.filter((ds) => ds.recordType !== DataSourceRecordType.Data) ||
+    [];
 
   return (
     <DropdownMenu>
@@ -40,7 +42,7 @@ export default function DataSourcesSelect() {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel>Visible Data Sources</DropdownMenuLabel>
-        {dataSources.map((ds) => (
+        {validDataSources.map((ds) => (
           <DropdownMenuCheckboxItem
             key={ds.id}
             checked={publicMap?.dataSourceConfigs.some(
@@ -54,12 +56,43 @@ export default function DataSourcesSelect() {
                     publicMap?.dataSourceConfigs || [],
                   ),
                 });
+                if (
+                  ds.recordType === DataSourceRecordType.Members &&
+                  !mapConfig.membersDataSourceId
+                ) {
+                  updateMapConfig({
+                    membersDataSourceId: ds.id,
+                  });
+                } else {
+                  if (!mapConfig.markerDataSourceIds.includes(ds.id)) {
+                    updateMapConfig({
+                      markerDataSourceIds: [
+                        ...mapConfig.markerDataSourceIds,
+                        ds.id,
+                      ],
+                    });
+                  }
+                }
               } else {
                 updatePublicMap({
                   dataSourceConfigs: publicMap?.dataSourceConfigs.filter(
                     (dsc) => dsc.dataSourceId !== ds.id,
                   ),
                 });
+                if (
+                  ds.recordType === DataSourceRecordType.Members &&
+                  mapConfig.membersDataSourceId === ds.id
+                ) {
+                  updateMapConfig({
+                    membersDataSourceId: null,
+                  });
+                } else {
+                  updateMapConfig({
+                    markerDataSourceIds: mapConfig.markerDataSourceIds.filter(
+                      (id) => id !== ds.id,
+                    ),
+                  });
+                }
               }
             }}
           >

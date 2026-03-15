@@ -6,6 +6,7 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { useOrganisations } from "@/hooks/useOrganisations";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Combobox } from "@/shadcn/ui/combobox";
@@ -40,7 +41,11 @@ export default function CreatePublicMapDialog({
     }),
   );
 
-  const options: ComboboxOption[] = (dataSources ?? []).map((ds) => ({
+  const validDataSources = dataSources?.filter(
+    (ds) => ds.recordType !== DataSourceRecordType.Data,
+  );
+
+  const options: ComboboxOption[] = (validDataSources ?? []).map((ds) => ({
     value: ds.id,
     label: ds.name,
   }));
@@ -53,7 +58,7 @@ export default function CreatePublicMapDialog({
         });
         onOpenChange(false);
         setDataSourceId("");
-        router.push(`/map/${data.mapId}/view/${data.viewId}/publish`);
+        router.push(`/map/${data.mapId}?mode=publish`);
       },
       onError: (error) => {
         toast.error("Failed to create public map", {

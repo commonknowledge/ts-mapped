@@ -2,7 +2,11 @@ import { getServerSession } from "@/auth";
 import { redirectToLogin } from "@/auth/redirectToLogin";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import { db } from "@/server/services/database";
-import PrivateMap from "./components/PrivateMap";
+import MapNavbar from "./components/MapNavbar";
+import PrivateMapOverlay from "./components/PrivateMapOverlay";
+import SharedMap from "./components/SharedMap";
+import MapJotaiProvider from "./providers/MapJotaiProvider";
+import EditablePublicMapOverlay from "./publish/components/EditablePublicMapOverlay";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -14,7 +18,7 @@ export default async function MapPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ viewId: string | undefined }>;
+  searchParams: Promise<{ mode: string | undefined }>;
 }) {
   const serverSession = await getServerSession();
   if (!serverSession.currentUser) {
@@ -22,7 +26,8 @@ export default async function MapPage({
   }
 
   const { id } = await params;
-  const { viewId } = await searchParams;
+  const { mode } = await searchParams;
+  const isPublishMode = mode === "publish";
 
   // Log current view data (development only)
   if (process.env.NODE_ENV === "development") {
@@ -34,9 +39,7 @@ export default async function MapPage({
         .execute();
 
       if (mapData && mapData.length > 0) {
-        const currentView = viewId
-          ? mapData.find((v) => v.id === viewId) || mapData[0]
-          : mapData[0];
+        const currentView = mapData[0];
 
         console.log("=== Current Map View Data ===");
         console.log("View ID:", currentView.id);
@@ -52,18 +55,30 @@ export default async function MapPage({
   }
 
   return (
-    <>
-      {/* Desktop-only message for small screens */}
-      <div className="pointer-events-auto lg:hidden flex h-screen w-full justify-center items-center p-8 text-center z-20 relative bg-white">
-        <p className="max-w-[40ch] font-medium text-base">
-          Your screen is too small to use this application. Please use a device
-          with a larger screen.
-        </p>
+    <MapJotaiProvider mapId={id} showNavbar={true}>
+      <div className="relative h-screen w-full">
+        <SharedMap />
+        <div className="absolute inset-0 z-10 pointer-events-none flex flex-col">
+          <MapNavbar />
+          <div className="flex-1 min-h-0">
+            {/* Desktop-only message for small screens */}
+            <div className="pointer-events-auto lg:hidden flex h-screen w-full justify-center items-center p-8 text-center z-20 relative bg-white">
+              <p className="max-w-[40ch] font-medium text-base">
+                Your screen is too small to use this application. Please use a
+                device with a larger screen.
+              </p>
+            </div>
+            <div className="hidden lg:contents">
+              {isPublishMode ? (
+                <EditablePublicMapOverlay />
+              ) : (
+                <PrivateMapOverlay />
+              )}
+              <SentryFeedbackWidget />
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="hidden lg:contents">
-        <PrivateMap viewId={viewId} />
-        <SentryFeedbackWidget />
-      </div>
-    </>
+    </MapJotaiProvider>
   );
 }

@@ -11,7 +11,7 @@ import BoundariesControl from "./BoundariesControl/BoundariesControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
 
-export default function PrivateMapControls() {
+export default function ControlPanel() {
   const [showControls, setShowControls] = useShowControlsAtom();
   const { setBoundariesPanelOpen } = useChoropleth();
   const { viewConfig } = useMapViews();

@@ -12,9 +12,9 @@ import {
 } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
+import { usePublicMapValue } from "../publish/hooks/usePublicMap";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
-import { usePublicMapValue } from "../view/[viewIdOrHost]/publish/hooks/usePublicMap";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";

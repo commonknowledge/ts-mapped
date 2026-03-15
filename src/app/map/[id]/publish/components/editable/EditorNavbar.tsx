@@ -28,13 +28,7 @@ export default function EditorNavbar() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          {mapId && publicMap?.viewId && (
-            <MapVisibilityToggle
-              mode="public"
-              mapId={mapId}
-              viewId={publicMap.viewId}
-            />
-          )}
+          {mapId && publicMap?.viewId && <MapVisibilityToggle mode="public" />}
         </div>
       </div>
     </Navbar>

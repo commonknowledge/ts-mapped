@@ -4,8 +4,8 @@ import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { usePublicMapValue } from "../publish/hooks/usePublicMap";
 import { getDataSourceIds } from "../utils/map";
-import { usePublicMapValue } from "../view/[viewIdOrHost]/publish/hooks/usePublicMap";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 
 export function useMarkerQueries() {

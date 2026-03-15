@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { cn } from "@/shadcn/utils";
 
@@ -8,27 +8,29 @@ type Mode = "private" | "public";
 
 interface MapVisibilityToggleProps {
   mode: Mode;
-  mapId: string;
-  viewId: string;
 }
 
 export default function MapVisibilityToggle({
   mode,
-  mapId,
-  viewId,
 }: MapVisibilityToggleProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const onToggle = useCallback(
     (target: Mode) => {
       if (target === mode) return;
+      // Read params from window.location rather than useSearchParams,
+      // because viewId is synced via history.replaceState (invisible to Next.js).
+      const params = new URLSearchParams(window.location.search);
       if (target === "public") {
-        router.push(`/map/${mapId}/view/${viewId}/publish`);
+        params.set("mode", "publish");
       } else {
-        router.push(`/map/${mapId}`);
+        params.delete("mode");
       }
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
     },
-    [mode, mapId, viewId, router],
+    [mode, pathname, router],
   );
 
   return (
@@ -43,7 +45,7 @@ export default function MapVisibilityToggle({
             : "text-neutral-500 hover:text-neutral-700",
         )}
       >
-        Private
+        Explore
       </button>
       <button
         type="button"
@@ -55,7 +57,7 @@ export default function MapVisibilityToggle({
             : "text-neutral-500 hover:text-neutral-700",
         )}
       >
-        Public
+        Publish
       </button>
     </div>
   );

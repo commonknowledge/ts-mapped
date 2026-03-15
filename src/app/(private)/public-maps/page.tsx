@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const mappedData = data?.length
     ? data.map((map) => ({
         ...map,
-        href: `/map/${map.mapId}/view/${map.viewId}/publish`,
+        href: `/map/${map.mapId}?mode=publish`,
       }))
     : [];
 

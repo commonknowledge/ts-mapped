@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
@@ -15,25 +15,25 @@ import {
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAreaStats } from "../data";
 import { useInfoPopupOpen } from "../hooks/useInfoPopup";
-import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
 import { useMapConfig } from "../hooks/useMapConfig";
 import { useShowControls } from "../hooks/useMapControls";
-import { useMapId, useMapRef } from "../hooks/useMapCore";
+import {
+  useMapId,
+  useMapRef,
+  useSetMapBottomPadding,
+} from "../hooks/useMapCore";
 import { useMapQuery } from "../hooks/useMapQuery";
-import { useSetMapMode } from "../hooks/useSetMapMode";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import { getDataSourceIds } from "../utils/map";
-import PrivateMapControls from "./controls/PrivateMapControls";
+import ControlPanel from "./controls/ControlPanel";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
 import EditColumnMetadataModal from "./EditColumnMetadataModal";
 import Loading from "./Loading";
 import MapInfoPopup from "./MapInfoPopup";
-import PrivateMapNavbar from "./PrivateMapNavbar";
+import PrivateMapControls from "./PrivateMapControls";
 import MapTable from "./table/MapTable";
 
-export default function PrivateMap({ viewId }: { viewId?: string }) {
-  useSetMapMode("private", viewId);
-
+export default function PrivateMapOverlay() {
   const mapRef = useMapRef();
   const showControls = useShowControls();
   const mapId = useMapId();
@@ -75,21 +75,26 @@ export default function PrivateMap({ viewId }: { viewId?: string }) {
     }
   }, [map?.infoContent, mapId, setInfoPopupOpen]);
 
-  // Ensure a map view exists
-  useInitialMapViewEffect();
+  const panelGroupRef = useRef<HTMLDivElement>(null);
+  const setMapBottomPadding = useSetMapBottomPadding();
 
-  // Resize map when UI changes
+  const updateMapBottomPadding = useCallback(
+    (tablePercent: number) => {
+      const containerHeight = panelGroupRef.current?.clientHeight ?? 0;
+      setMapBottomPadding(Math.round((tablePercent / 100) * containerHeight));
+      // Resize after a tick so the container has updated
+      setTimeout(() => mapRef?.current?.resize(), 0);
+    },
+    [setMapBottomPadding, mapRef],
+  );
+
+  // Reset bottom padding and resize map when table hides
   useEffect(() => {
-    if (mapRef?.current) {
-      const timeoutId = setTimeout(() => {
-        if (mapRef?.current) {
-          mapRef.current.resize();
-        }
-      }, 1);
-
-      return () => clearTimeout(timeoutId);
+    if (!selectedDataSourceId) {
+      setMapBottomPadding(0);
+      setTimeout(() => mapRef?.current?.resize(), 0);
     }
-  }, [mapRef, selectedDataSourceId]);
+  }, [selectedDataSourceId, setMapBottomPadding, mapRef]);
 
   if (!map || isPending) {
     return <Loading />;
@@ -105,20 +110,23 @@ export default function PrivateMap({ viewId }: { viewId?: string }) {
     : {};
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="pointer-events-auto">
-        <PrivateMapNavbar />
-      </div>
+    <div className="flex flex-col h-full">
       <div className="flex w-full grow min-h-0 relative">
         <div className="pointer-events-auto">
-          <PrivateMapControls />
+          <ControlPanel />
         </div>
         <div className="pointer-events-auto">
           <VisualisationPanel
             positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
           />
         </div>
-        <div className="flex flex-col gap-4 grow relative min-w-0">
+        <div className="pointer-events-auto">
+          <PrivateMapControls />
+        </div>
+        <div
+          ref={panelGroupRef}
+          className="flex flex-col gap-4 grow relative min-w-0"
+        >
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>
               {/* Map is rendered by the shared layout and shows through this transparent area */}
@@ -131,7 +139,8 @@ export default function PrivateMap({ viewId }: { viewId?: string }) {
                   className="pointer-events-auto"
                 />
                 <ResizablePanel
-                  onResize={() => mapRef?.current?.resize()}
+                  defaultSize={50}
+                  onResize={updateMapBottomPadding}
                   id="table"
                   order={1}
                   className="pointer-events-auto"

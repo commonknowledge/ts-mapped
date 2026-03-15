@@ -254,6 +254,8 @@ export default function MapTable() {
     [pendingTagDisplayName],
   );
 
+  console.log("ds", dataSource, view);
+
   if (!dataSource || !view) {
     return null;
   }

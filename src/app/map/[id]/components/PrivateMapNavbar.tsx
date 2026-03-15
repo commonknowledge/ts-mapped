@@ -219,11 +219,7 @@ export default function PrivateMapNavbar() {
           <SearchBox />
 
           {showPublishButton && mapId && view && (
-            <MapVisibilityToggle
-              mode="private"
-              mapId={mapId}
-              viewId={view.id}
-            />
+            <MapVisibilityToggle mode="private" />
           )}
         </div>
       </div>

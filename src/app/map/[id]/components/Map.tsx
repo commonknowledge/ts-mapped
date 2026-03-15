@@ -1,6 +1,7 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
+import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
@@ -12,6 +13,7 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
+import { drawModeAtom } from "../atoms/mapStateAtoms";
 import { useDraw } from "../hooks/useDraw";
 import { useInspector } from "../hooks/useInspector";
 import { useSetZoom } from "../hooks/useMapCamera";
@@ -35,7 +37,7 @@ import { getDataSourceIds, getMapStyle } from "../utils/map";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
-import MapWrapper from "./MapWrapper";
+import "./Map.css";
 import MarkerPopup from "./MarkerPopup";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -46,10 +48,8 @@ import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
 export default function Map({
   onSourceLoad,
-  hideDrawControls,
 }: {
   onSourceLoad: (sourceId: string) => void;
-  hideDrawControls?: boolean;
 }) {
   const isMobile = useIsMobile();
   const mapRef = useMapRef();
@@ -69,6 +69,7 @@ export default function Map({
   const { resetInspector, setSelectedTurf, selectedTurf } = useInspector();
 
   const [draw, setDraw] = useDraw();
+  const setDrawMode = useSetAtom(drawModeAtom);
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -88,6 +89,11 @@ export default function Map({
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
+
+  // Sync draw mode to atom so PrivateMapControls can read it
+  useEffect(() => {
+    setDrawMode(currentMode);
+  }, [currentMode, setDrawMode]);
 
   useMapClickEffect({ markerLayers, draw, currentMode, ready });
   useMapHoverEffect({ markerLayers, draw, ready });
@@ -210,31 +216,26 @@ export default function Map({
     }
 
     const map = mapRef?.current;
-    if (!map) return;
+    if (!map || !ready) return;
 
     const padding = {
       left: isMobile || !showControls ? 0 : CONTROL_PANEL_WIDTH,
-      top: 0,
+      top: isMobile ? 96 : 0,
       bottom: 0,
     };
-
-    // Public map mobile padding
-    if (window.innerWidth < 768) {
-      padding.top = 96;
-      padding.bottom = window.innerHeight * 0.5;
-    }
 
     map.easeTo({
       padding,
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, showControls, isMobile]);
+  }, [mapRef, showControls, isMobile, ready]);
 
   useEffect(() => {
     const map = mapRef?.current;
     if (
       !map ||
+      !ready ||
       didInitialFit ||
       markerQueries?.isFetching ||
       viewConfig.mapType === MapType.Hex
@@ -293,13 +294,17 @@ export default function Map({
     placedMarkers,
     isMobile,
     viewConfig.mapType,
+    ready,
   ]);
 
+  console.log("initial padding", isMobile, {
+    left: isMobile ? 0 : CONTROL_PANEL_WIDTH,
+    top: 0,
+    bottom: 0,
+  });
+
   return (
-    <MapWrapper
-      currentMode={pinDropMode ? "pin_drop" : currentMode}
-      hideDrawControls={hideDrawControls}
-    >
+    <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       <MapGL
         key={viewConfig.mapType}
         maxBounds={
@@ -385,7 +390,7 @@ export default function Map({
           toggleLabelVisibility(viewConfig.showLabels);
 
           // Initialize draw
-          if (!hideDrawControls && !draw) {
+          if (!draw) {
             const newDraw = new MapboxDraw({
               displayControlsDefault: false,
               controls: {
@@ -596,6 +601,6 @@ export default function Map({
           </>
         )}
       </MapGL>
-    </MapWrapper>
+    </div>
   );
 }

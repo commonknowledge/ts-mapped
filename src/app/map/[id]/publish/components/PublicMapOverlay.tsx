@@ -3,32 +3,27 @@
 import Image from "next/image";
 
 import Loading from "@/app/map/[id]/components/Loading";
+import Map from "@/app/map/[id]/components/Map";
 import { useAreaStats } from "@/app/map/[id]/data";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { useSetMapMode } from "@/app/map/[id]/hooks/useSetMapMode";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useEditable } from "../hooks/usePublicMap";
-import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
 import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
-export default function PublicMap({
-  viewId,
-  mapId: mapIdProp,
-  editable: editableProp = false,
+export default function PublicMapOverlay({
+  standalone = false,
 }: {
-  viewId?: string;
-  mapId?: string;
-  editable?: boolean;
+  standalone?: boolean;
 }) {
-  useSetMapMode("public", viewId, mapIdProp, editableProp);
-
   const mapId = useMapId();
   const editable = useEditable();
   const areaStatsQuery = useAreaStats();
+  const { setLastLoadedSourceId } = useChoropleth();
   const markerQueries = useMarkerQueries();
 
   const { data: map, isPending } = useMapQuery(mapId);
@@ -41,26 +36,21 @@ export default function PublicMap({
 
   const loading = areaStatsQuery?.isFetching || markerQueries?.isFetching;
 
-  const showNavbar = editable;
-
   return (
     <div
-      className="flex flex-col h-screen lg:overflow-hidden"
+      className={`flex flex-col lg:overflow-hidden ${
+        standalone ? "h-screen" : "h-full"
+      }`}
       style={
-        {
-          "--navbar-height": showNavbar ? "" : 0,
-        } as React.CSSProperties
+        standalone
+          ? ({ "--navbar-height": 0 } as React.CSSProperties)
+          : undefined
       }
     >
-      {showNavbar && (
-        <div className="absolute top-0 left-0 w-full pointer-events-auto z-20">
-          <EditorNavbar />
-        </div>
-      )}
       <div className="grow flex flex-col md:flex-row">
         {/* Desktop Sidebar - Hidden on mobile */}
         {!isMobile && (
-          <div className="pointer-events-auto">
+          <div className={standalone ? "" : "pointer-events-auto"}>
             <PublicMapSidebar />
           </div>
         )}
@@ -68,17 +58,26 @@ export default function PublicMap({
         {/* Main Content Area */}
         <div className="flex-1 relative flex flex-col md:block">
           {/* Mobile Top Bar - Hidden on desktop */}
-          <div className="md:hidden pointer-events-auto">
+          <div
+            className={`md:hidden ${standalone ? "" : "pointer-events-auto"}`}
+          >
             <PublicMapTopBarMobile />
           </div>
 
-          {/* Map - Full area (rendered by shared layout, shows through) */}
+          {/* Map area */}
           <div className="relative grow md:w-full md:h-full">
+            {standalone && (
+              <Map
+                onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+              />
+            )}
             {loading && <Loading />}
             <a
               href="https://mapped.tools"
               target="_blank"
-              className="pointer-events-auto absolute top-4 right-4 flex-col items-center w-24 md:w-auto text-sm text-neutral-500 hidden md:flex"
+              className={`absolute top-4 right-4 flex-col items-center w-24 md:w-auto text-sm text-neutral-500 hidden md:flex ${
+                standalone ? "" : "pointer-events-auto"
+              }`}
             >
               Made using Mapped
               <Image
@@ -93,7 +92,9 @@ export default function PublicMap({
           {/* Mobile Listings - Overlay on bottom half */}
           {isMobile && (
             <div
-              className="bg-white border-t relative pointer-events-auto"
+              className={`bg-white border-t relative ${
+                standalone ? "" : "pointer-events-auto"
+              }`}
               style={{ height: "50vh" }}
             >
               <div className="overflow-y-auto h-full">
