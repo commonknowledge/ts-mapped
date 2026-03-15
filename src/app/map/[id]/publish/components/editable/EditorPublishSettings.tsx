@@ -109,7 +109,7 @@ export default function EditorPublishSettings() {
         <Input
           type="text"
           placeholder="my-map"
-          value={getSubdomain(publicMap.host)}
+          value={getSubdomain(publicMap.host || "")}
           onChange={(e) => updatePublicMap({ host: makeHost(e.target.value) })}
           pattern="^[a-z]+(-[a-z]+)*$"
           disabled={loading}

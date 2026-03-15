@@ -235,7 +235,7 @@ export interface MapView {
  */
 export interface PublicMap {
   id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
-  host: string; // text, UNIQUE, NOT NULL
+  host: string | null; // text, UNIQUE (partial, WHERE host IS NOT NULL), NULL
   name: string; // text, NOT NULL
   description: string; // text, NOT NULL, DEFAULT ''
   descriptionLink: string; // text, NOT NULL, DEFAULT ''

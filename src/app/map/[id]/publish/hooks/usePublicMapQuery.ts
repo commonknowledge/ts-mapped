@@ -15,10 +15,10 @@ import { useViewId } from "@/app/map/[id]/hooks/useMapViews";
 import { useTRPC } from "@/services/trpc/react";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { activeDataSourceIdAtom } from "../atoms/publicMapAtoms";
+import { extractDraft } from "./useAutoSaveDraft";
 import type { PublicMapData } from "../atoms/publicMapAtoms";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type {
-  PublicMap,
   PublicMapColumn,
   PublicMapDataSourceConfig,
   PublicMapDraft,
@@ -37,17 +37,7 @@ interface DataSource {
  */
 function getWorkingDraft(data: NonNullable<PublicMapData>): PublicMapDraft {
   return (
-    data.draft ?? {
-      host: data.host,
-      name: data.name,
-      description: data.description,
-      descriptionLong: data.descriptionLong,
-      descriptionLink: data.descriptionLink,
-      imageUrl: data.imageUrl,
-      published: data.published,
-      dataSourceConfigs: data.dataSourceConfigs,
-      colorScheme: data.colorScheme,
-    }
+    data.draft ?? extractDraft(data)
   );
 }
 
@@ -180,7 +170,7 @@ export function useUpdatePublicMap() {
   const queryClient = useQueryClient();
 
   return useCallback(
-    (updates: Partial<PublicMap>) => {
+    (updates: Partial<PublicMapDraft>) => {
       queryClient.setQueryData<NonNullable<PublicMapData>>(queryKey, (old) => {
         if (!old) return old;
         const draft = getWorkingDraft(old);

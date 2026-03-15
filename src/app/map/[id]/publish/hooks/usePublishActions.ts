@@ -76,7 +76,7 @@ export function usePublishActions() {
         toast.error("Subdomain is taken — choose another before publishing.");
         return;
       }
-      if (!getSubdomain(publicMap.host)) {
+      if (!getSubdomain(publicMap.host ?? "")) {
         toast.error("Enter a subdomain before publishing.");
         return;
       }

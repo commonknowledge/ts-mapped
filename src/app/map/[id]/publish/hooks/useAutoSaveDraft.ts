@@ -10,7 +10,7 @@ import type { PublicMapDraft } from "@/server/models/PublicMap";
 
 function extractDraft(publicMap: NonNullable<PublicMapData>): PublicMapDraft {
   return {
-    host: publicMap.host,
+    host: publicMap.host ?? "",
     name: publicMap.name,
     description: publicMap.description,
     descriptionLong: publicMap.descriptionLong,

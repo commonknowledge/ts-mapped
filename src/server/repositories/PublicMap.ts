@@ -1,9 +1,10 @@
 import { db } from "@/server/services/database";
 import type { MapConfig } from "@/server/models/Map";
-import type { NewPublicMap, PublicMapDraft } from "@/server/models/PublicMap";
+import type { PublicMapDraft } from "@/server/models/PublicMap";
 import type { TraversedJSONPathBuilder } from "kysely";
 
 export function findPublicMapByHost(host: string) {
+  if (!host) return Promise.resolve(undefined);
   return db
     .selectFrom("publicMap")
     .where("host", "=", host)
@@ -106,15 +107,6 @@ export async function findPublishedPublicMapByDataSourceId(
     .executeTakeFirst();
 }
 
-export function upsertPublicMap(publicMap: NewPublicMap) {
-  return db
-    .insertInto("publicMap")
-    .values(publicMap)
-    .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(publicMap))
-    .returningAll()
-    .executeTakeFirstOrThrow();
-}
-
 export function findPublicMapsByOrganisationId(organisationId: string) {
   return db
     .selectFrom("publicMap")
@@ -136,7 +128,7 @@ export function saveDraft(input: {
       id: input.id,
       mapId: input.mapId,
       viewId: input.viewId,
-      host: "",
+      host: null,
       name: "My Public Map",
       description: "",
       descriptionLong: "",
@@ -145,12 +137,10 @@ export function saveDraft(input: {
       published: false,
       dataSourceConfigs: "[]" as unknown as never,
       colorScheme: "red",
-      draft: JSON.stringify(input.draft),
+      draft: input.draft,
     })
     .onConflict((oc) =>
-      oc
-        .columns(["viewId"])
-        .doUpdateSet({ draft: JSON.stringify(input.draft) }),
+      oc.columns(["viewId"]).doUpdateSet({ draft: input.draft }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -163,17 +153,7 @@ export function publishDraft(input: {
   draft: PublicMapDraft;
 }) {
   const promoted = {
-    host: input.draft.host,
-    name: input.draft.name,
-    description: input.draft.description,
-    descriptionLong: input.draft.descriptionLong,
-    descriptionLink: input.draft.descriptionLink,
-    imageUrl: input.draft.imageUrl,
-    published: input.draft.published,
-    dataSourceConfigs: JSON.stringify(
-      input.draft.dataSourceConfigs,
-    ) as unknown as never,
-    colorScheme: input.draft.colorScheme,
+    ...input.draft,
     draft: null,
   };
 
@@ -202,6 +182,7 @@ export function discardDraft(viewId: string) {
 }
 
 export function checkHostAvailability(host: string, excludeViewId?: string) {
+  if (!host) return Promise.resolve(undefined);
   let query = db.selectFrom("publicMap").where("host", "=", host).selectAll();
 
   if (excludeViewId) {

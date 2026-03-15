@@ -1,10 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import {
-  publicMapDraftSchema,
-  publicMapSchema,
-} from "@/server/models/PublicMap";
+import { publicMapDraftSchema } from "@/server/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { createMap, updateMap } from "@/server/repositories/Map";
 import {
@@ -16,7 +13,6 @@ import {
   findPublicMapsByOrganisationId,
   publishDraft,
   saveDraft,
-  upsertPublicMap,
 } from "@/server/repositories/PublicMap";
 import {
   mapWriteProcedure,
@@ -97,27 +93,6 @@ export const publicMapRouter = router({
         userId,
       );
       return ownedMap || null;
-    }),
-  upsert: mapWriteProcedure
-    .input(
-      publicMapSchema.omit({
-        createdAt: true,
-        mapId: true,
-        id: true,
-        draft: true,
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const existingPublicMap = await findPublicMapByHost(input.host);
-
-      if (existingPublicMap && existingPublicMap.viewId !== input.viewId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "A public map already exists for this subdomain.",
-        });
-      }
-
-      return upsertPublicMap(input);
     }),
   saveDraft: mapWriteProcedure
     .input(

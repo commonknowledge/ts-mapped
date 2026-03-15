@@ -60,30 +60,20 @@ export const publicMapDraftSchema = z.object({
 
 export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;
 
-// TODO: can this be extended from publicMapDraftSchema to avoid duplication?
-export const publicMapSchema = z.object({
+export const publicMapSchema = publicMapDraftSchema.extend({
+  host: z.string().nullable(),
   id: z.string(),
-  host: z.string(),
-  name: z.string(),
-  description: z.string(),
-  descriptionLong: z.string(),
-  descriptionLink: z.string(),
-  imageUrl: z.string().nullish(),
   mapId: z.string(),
   viewId: z.string(),
-  published: z.boolean(),
-  dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
   createdAt: z.date(),
-  colorScheme: z.string(),
   draft: publicMapDraftSchema.nullish(),
 });
 
 export type PublicMap = z.infer<typeof publicMapSchema>;
 
-export type PublicMapTable = Omit<PublicMap, "draft"> & {
+export type PublicMapTable = PublicMap & {
   id: Generated<string>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
-  draft: KyselyColumnType<PublicMapDraft | null, string | null, string | null>;
 };
 export type NewPublicMap = Insertable<PublicMapTable>;
 export type PublicMapUpdate = Updateable<PublicMapTable>;
