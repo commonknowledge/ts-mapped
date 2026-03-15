@@ -599,8 +599,8 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const newColumns = new Set<string>();
     for (const record of enrichedRecords) {
       for (const column of record.columns) {
-        if (!headers.includes(column.def.externalName)) {
-          newColumns.add(column.def.externalName);
+        if (!headers.includes(column.def.name)) {
+          newColumns.add(column.def.name);
         }
       }
     }
@@ -635,7 +635,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       const updates = [];
       for (const record of batch) {
         for (const column of record.columns) {
-          const columnIndex = updatedHeaders.indexOf(column.def.externalName);
+          const columnIndex = updatedHeaders.indexOf(column.def.name);
           if (columnIndex !== -1) {
             const columnLetter = indexToLetter(columnIndex);
             const externalId = record.externalRecord.externalId;

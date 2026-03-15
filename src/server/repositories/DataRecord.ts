@@ -416,7 +416,7 @@ export async function updateDataRecordJsonWithEnrichment(
 
     const enrichmentData: Record<string, unknown> = {};
     for (const column of record.columns) {
-      enrichmentData[column.def.externalName] = column.value;
+      enrichmentData[column.def.name] = column.value;
     }
 
     await sql`

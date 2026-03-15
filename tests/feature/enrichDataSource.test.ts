@@ -90,7 +90,7 @@ describe("enrichDataSource tests", () => {
     // 2. Create data source with Area enrichment
     const dataSource = await createGoogleSheetsDataSource(org.id, [
       {
-        name: "Region",
+        name: "Mapped: Region",
         sourceType: EnrichmentSourceType.Area,
         areaSetCode: AreaSetCode.UKR18,
         areaProperty: AreaPropertyType.Name,
@@ -161,7 +161,7 @@ describe("enrichDataSource tests", () => {
     // 9. Run removeEnrichmentColumns to clean up
     const removeResult = await removeEnrichmentColumns({
       dataSourceId: dataSource.id,
-      externalColumnNames: [enrichmentColumnName],
+      columnNames: [enrichmentColumnName],
     });
     expect(removeResult).toBe(true);
 
@@ -203,7 +203,7 @@ describe("enrichDataRecords tests", () => {
     // 2. Create data source with Area enrichment
     const dataSource = await createGoogleSheetsDataSource(org.id, [
       {
-        name: "Region",
+        name: "Mapped: Region",
         sourceType: EnrichmentSourceType.Area,
         areaSetCode: AreaSetCode.UKR18,
         areaProperty: AreaPropertyType.Name,
@@ -282,7 +282,7 @@ describe("enrichDataRecords tests", () => {
     // 11. Run removeEnrichmentColumns to clean up
     const removeResult = await removeEnrichmentColumns({
       dataSourceId: dataSource.id,
-      externalColumnNames: [enrichmentColumnName],
+      columnNames: [enrichmentColumnName],
     });
     expect(removeResult).toBe(true);
 

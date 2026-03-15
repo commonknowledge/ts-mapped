@@ -241,7 +241,7 @@ describe("Mailchimp adaptor tests", () => {
         externalRecord: all[0],
         columns: [
           {
-            def: { externalName: fieldName, type: ColumnType.String },
+            def: { name: fieldName, type: ColumnType.String },
             value: testValue,
           },
         ],
@@ -460,7 +460,7 @@ describe("Mailchimp adaptor tests", () => {
         externalRecord: all[0],
         columns: [
           {
-            def: { externalName: fieldName, type: ColumnType.String },
+            def: { name: fieldName, type: ColumnType.String },
             value: "tag-test",
           },
         ],
@@ -537,7 +537,7 @@ describe("Mailchimp adaptor tests", () => {
         externalRecord: originalRecord,
         columns: [
           {
-            def: { externalName: fieldName, type: ColumnType.String },
+            def: { name: fieldName, type: ColumnType.String },
             value: testValue,
           },
         ],
@@ -608,7 +608,7 @@ describe("Mailchimp adaptor tests", () => {
         externalRecord: all[0],
         columns: [
           {
-            def: { externalName: fieldName, type: ColumnType.String },
+            def: { name: fieldName, type: ColumnType.String },
             value: testValue,
           },
         ],
@@ -680,11 +680,11 @@ describe("Mailchimp adaptor tests", () => {
         externalRecord: all[0],
         columns: [
           {
-            def: { externalName: fieldName1, type: ColumnType.String },
+            def: { name: fieldName1, type: ColumnType.String },
             value: "val1",
           },
           {
-            def: { externalName: fieldName2, type: ColumnType.String },
+            def: { name: fieldName2, type: ColumnType.String },
             value: "val2",
           },
         ],

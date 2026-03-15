@@ -7,7 +7,6 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { enrichmentColumnName } from "@/utils/dataRecord";
 import { geocodeRecord } from "./geocode";
 import type { EnrichedRecord } from "../models/DataRecord";
 import type { GeocodeResult } from "../models/shared";
@@ -44,7 +43,7 @@ export const enrichRecord = async (
     if (enrichedColumn) {
       enrichedColumns.push({
         def: {
-          externalName: enrichmentColumnName(enrichment.name),
+          name: enrichment.name,
           type: enrichedColumn.def.type,
         },
         value: enrichedColumn.value,
@@ -186,17 +185,17 @@ const getDataSourceEnrichedColumn = async (
  */
 export const removeEnrichmentColumnsFromDataSource = async (
   dataSourceId: string,
-  externalColumnNames: string[],
+  columnNames: string[],
 ) => {
-  if (externalColumnNames.length === 0) return;
+  if (columnNames.length === 0) return;
 
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) return;
 
-  const namesToRemove = new Set(externalColumnNames);
+  const namesToRemove = new Set(columnNames);
 
   const remainingEnrichments = (dataSource.enrichments ?? []).filter(
-    (e) => !namesToRemove.has(enrichmentColumnName(e.name)),
+    (e) => !namesToRemove.has(e.name),
   );
   const remainingColumnDefs = (dataSource.columnDefs ?? []).filter(
     (col) => !namesToRemove.has(col.name),
@@ -208,6 +207,6 @@ export const removeEnrichmentColumnsFromDataSource = async (
   } as DataSourceUpdate);
 
   logger.info(
-    `Removed enrichment column metadata [${externalColumnNames.join(", ")}] from data source ${dataSourceId}`,
+    `Removed enrichment column metadata [${columnNames.join(", ")}] from data source ${dataSourceId}`,
   );
 };
