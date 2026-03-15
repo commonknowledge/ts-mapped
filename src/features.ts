@@ -45,4 +45,9 @@ export const DataSourceFeatures: Record<
     enrichment: true,
     syncToCrm: true,
   },
+  [DataSourceType.PayloadCMS]: {
+    autoEnrich: true,
+    autoImport: true,
+    enrichment: false,
+  },
 };
