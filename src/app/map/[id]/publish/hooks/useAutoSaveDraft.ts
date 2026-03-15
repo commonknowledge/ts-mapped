@@ -28,7 +28,7 @@ function extractDraft(publicMap: NonNullable<PublicMapData>): PublicMapDraft {
  * Uses a debounced approach (1s) to avoid excessive server calls.
  * Only saves when the working copy differs from the published snapshot.
  */
-export function useAutoSaveDraft() {
+export function useAutoSaveDraftEffect() {
   const { publicMap, publishedPublicMap } = usePublicMapQuery();
   const mapId = useMapId();
   const trpc = useTRPC();
@@ -71,6 +71,7 @@ export function useAutoSaveDraft() {
       saveDraft({
         mapId,
         viewId: publicMap.viewId,
+        publicMapId: publicMap.id,
         draft: currentDraft,
       });
     }, 1000);

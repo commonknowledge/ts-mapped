@@ -1,18 +1,17 @@
 "use client";
 
-import { useAtomValue } from "jotai";
 import {
-  mapBottomPaddingAtom,
-  mapModeAtom,
-  showNavbarAtom,
-} from "../atoms/mapStateAtoms";
-import { useSetLastLoadedSourceId } from "../hooks/useMapCore";
+  useMapBottomPadding,
+  useMapMode,
+  useSetLastLoadedSourceId,
+  useShowNavbar,
+} from "../hooks/useMapCore";
 import Map from "./Map";
 
 export default function SharedMap() {
-  const mapMode = useAtomValue(mapModeAtom);
-  const showNavbar = useAtomValue(showNavbarAtom);
-  const mapBottomPadding = useAtomValue(mapBottomPaddingAtom);
+  const mapMode = useMapMode();
+  const showNavbar = useShowNavbar();
+  const mapBottomPadding = useMapBottomPadding();
   const setLastLoadedSourceId = useSetLastLoadedSourceId();
 
   const baseClass =

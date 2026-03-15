@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { CalculationType, MapStyleName } from "@/server/models/MapView";
-import { publicMapDraftSchema, publicMapSchema } from "@/server/models/PublicMap";
+import {
+  publicMapDraftSchema,
+  publicMapSchema,
+} from "@/server/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { createMap, updateMap } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
 import {
   checkHostAvailability,
   discardDraft,
@@ -62,44 +62,10 @@ export const publicMapRouter = router({
         });
       }
 
-      // 3. Create a default view
-      const view = await upsertMapView({
-        mapId: map.id,
-        name: "Default View",
-        dataSourceViews: [],
-        position: 0,
-        config: {
-          areaDataColumn: "",
-          areaDataSourceId: isData ? input.dataSourceId : "",
-          areaSetGroupCode: AreaSetGroupCode.WMC24,
-          calculationType: CalculationType.Count,
-          colorScheme: null,
-          mapStyleName: MapStyleName.Light,
-          reverseColorScheme: false,
-          showBoundaryOutline: true,
-          showLabels: true,
-          showLocations: true,
-          showMembers: true,
-          showTurf: true,
-        },
-      });
+      // 3. View and Public Map creation are handled on the front-end
+      // to avoid duplication
 
-      // 4. Create the public map
-      await upsertPublicMap({
-        mapId: map.id,
-        viewId: view.id,
-        host: "",
-        name: "My Public Map",
-        description: "",
-        descriptionLong: "",
-        descriptionLink: "",
-        imageUrl: "",
-        published: false,
-        dataSourceConfigs: [],
-        colorScheme: "red",
-      });
-
-      return { mapId: map.id, viewId: view.id };
+      return { mapId: map.id };
     }),
   get: publicProcedure
     .input(
@@ -133,7 +99,14 @@ export const publicMapRouter = router({
       return ownedMap || null;
     }),
   upsert: mapWriteProcedure
-    .input(publicMapSchema.omit({ createdAt: true, mapId: true, id: true, draft: true }))
+    .input(
+      publicMapSchema.omit({
+        createdAt: true,
+        mapId: true,
+        id: true,
+        draft: true,
+      }),
+    )
     .mutation(async ({ input }) => {
       const existingPublicMap = await findPublicMapByHost(input.host);
 
@@ -150,20 +123,27 @@ export const publicMapRouter = router({
     .input(
       z.object({
         viewId: z.string(),
+        publicMapId: z.string(),
         draft: publicMapDraftSchema,
       }),
     )
-    .mutation(async ({ input }) => {
-      return saveDraft(input.viewId, input.draft);
+    .mutation(async ({ input, ctx }) => {
+      return saveDraft({
+        id: input.publicMapId,
+        mapId: ctx.map.id,
+        viewId: input.viewId,
+        draft: input.draft,
+      });
     }),
   publish: mapWriteProcedure
     .input(
       z.object({
         viewId: z.string(),
+        publicMapId: z.string(),
         draft: publicMapDraftSchema,
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Check hostname availability before publishing
       if (input.draft.host) {
         const existing = await checkHostAvailability(
@@ -178,12 +158,24 @@ export const publicMapRouter = router({
         }
       }
 
-      return publishDraft(input.viewId, input.draft);
+      return publishDraft({
+        id: input.publicMapId,
+        mapId: ctx.map.id,
+        viewId: input.viewId,
+        draft: input.draft,
+      });
     }),
   discardDraft: mapWriteProcedure
     .input(z.object({ viewId: z.string() }))
     .mutation(async ({ input }) => {
-      return discardDraft(input.viewId);
+      const result = await discardDraft(input.viewId);
+      if (!result) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No public map found to discard draft from.",
+        });
+      }
+      return result;
     }),
   checkHostAvailability: protectedProcedure
     .input(

@@ -10,7 +10,7 @@ import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { buildName } from "@/utils/dataRecord";
-import { getDataSourceIds } from "../../utils/map";
+import { getMarkerDataSourceIds } from "@/utils/map";
 import {
   getMarkersInsidePolygon,
   groupPlacedMarkersByFolder,
@@ -27,7 +27,7 @@ export default function TurfMarkersList() {
   const { selectedTurf } = useInspectorState();
   const trpc = useTRPC();
 
-  const dataSourceIds = getDataSourceIds(mapConfig);
+  const dataSourceIds = getMarkerDataSourceIds(mapConfig);
 
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
@@ -37,6 +37,8 @@ export default function TurfMarkersList() {
           filter: { type: FilterType.GEO, turf: selectedTurf?.id },
           page: 0,
         },
+        // Refetch on mount as the user may have modified the turf in between
+        // viewing its markers
         { refetchOnMount: "always" },
       ),
     ),

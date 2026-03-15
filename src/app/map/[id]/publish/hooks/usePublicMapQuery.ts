@@ -1,24 +1,35 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import {
+  isPublicMapRouteAtom,
+  mapModeAtom,
+} from "@/app/map/[id]/atoms/mapStateAtoms";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useViewId } from "@/app/map/[id]/hooks/useMapViews";
-import { getDataSourceIds } from "@/app/map/[id]/utils/map";
 import { useTRPC } from "@/services/trpc/react";
+import { getMarkerDataSourceIds } from "@/utils/map";
 import { activeDataSourceIdAtom } from "../atoms/publicMapAtoms";
-import { createDataSourceConfig } from "../components/DataSourcesSelect";
 import type { PublicMapData } from "../atoms/publicMapAtoms";
+import type { ColumnDef } from "@/server/models/DataSource";
 import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataSourceConfig,
   PublicMapDraft,
 } from "@/server/models/PublicMap";
+
+interface DataSource {
+  id: string;
+  name: string;
+  columnDefs: ColumnDef[];
+  columnRoles: { nameColumns?: string[] | null };
+}
 
 /**
  * Return the working draft, creating one from the published fields if
@@ -74,22 +85,33 @@ export function usePublicMapQuery() {
   const viewId = useViewId();
   const mapId = useMapId();
   const trpc = useTRPC();
+  const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
+  const mapMode = useAtomValue(mapModeAtom);
 
-  // Subscribe to the query – this causes re-renders when the cache changes.
-  const { data: rawData, isPending } = useQuery(
-    trpc.publicMap.get.queryOptions(
-      { viewId: viewId ?? "" },
-      { enabled: !!viewId },
-    ),
+  // Only fetch when on the public route or in publish mode – avoids an
+  // unnecessary tRPC call on every private map page load.
+  const needsPublicMap = isPublicMapRoute || mapMode === "public";
+
+  // Stable stub ID across re-renders so refetches produce the same stub.
+  const stubIdRef = useRef(uuidv4());
+
+  const options = trpc.publicMap.get.queryOptions(
+    { viewId: viewId ?? "" },
+    { enabled: Boolean(viewId) && needsPublicMap },
   );
 
-  // Stable stub for when no server record exists (new public map)
-  const [stubId] = useState(() => uuidv4());
-  const stub = useMemo(
-    () =>
-      viewId && mapId
-        ? ({
-            id: stubId,
+  // Wrap queryFn to replace null responses with a stub directly in the
+  // cache, so optimistic updaters always see a non-null `old` value.
+  const { queryFn } = options;
+  const { data: rawData, isPending } = useQuery({
+    ...options,
+    queryFn: queryFn
+      ? async (ctx) => {
+          const result = await queryFn(ctx);
+          if (result !== null) return result;
+          if (!viewId || !mapId) return result;
+          return {
+            id: stubIdRef.current,
             mapId,
             viewId,
             host: "",
@@ -103,15 +125,12 @@ export function usePublicMapQuery() {
             dataSourceConfigs: [],
             createdAt: new Date(),
             draft: null,
-          } as NonNullable<PublicMapData>)
-        : null,
-    [viewId, mapId, stubId],
-  );
+          };
+        }
+      : undefined,
+  });
 
-  // Only fall back to the stub once the query has settled with no
-  // existing record.  While still loading, keep `data` as null so
-  // consumers can show a loading state instead of the stub defaults.
-  const data = rawData ?? (isPending ? null : stub);
+  const data = rawData ?? null;
 
   // Combined version: published fields + draft overlay (for rendering)
   const publicMap = useMemo(() => {
@@ -241,23 +260,24 @@ export function useUpdateAdditionalColumn() {
 // Auto-populate data source configs for newly created public maps
 // ---------------------------------------------------------------------------
 
-export function useAutoPopulateDataSources() {
+export function useAutoPopulateDataSourcesEffect() {
   const { publicMap } = usePublicMapQuery();
   const { mapConfig } = useMapConfig();
   const { getDataSourceById } = useDataSources();
   const updatePublicMap = useUpdatePublicMap();
   const setActiveDataSourceId = useSetAtom(activeDataSourceIdAtom);
 
-  const hasAutoPopulated = useRef(false);
+  const needsAutoPopulate = useRef(true);
 
   useEffect(() => {
-    if (hasAutoPopulated.current) return;
+    if (!needsAutoPopulate.current) return;
     if (!publicMap || !mapConfig) return;
-    if (publicMap.dataSourceConfigs.length > 0) return;
+    if (publicMap.dataSourceConfigs.length > 0) {
+      needsAutoPopulate.current = false;
+      return;
+    }
 
-    hasAutoPopulated.current = true;
-
-    const dataSources = getDataSourceIds(mapConfig)
+    const dataSources = getMarkerDataSourceIds(mapConfig)
       .map(getDataSourceById)
       .filter((ds): ds is NonNullable<typeof ds> => ds != null);
 
@@ -266,6 +286,7 @@ export function useAutoPopulateDataSources() {
     updatePublicMap({ dataSourceConfigs });
     if (dataSourceConfigs.length) {
       setActiveDataSourceId(dataSourceConfigs[0].dataSourceId);
+      needsAutoPopulate.current = false;
     }
   }, [
     publicMap,
@@ -275,3 +296,21 @@ export function useAutoPopulateDataSources() {
     setActiveDataSourceId,
   ]);
 }
+
+export const createDataSourceConfig = (
+  dataSource: DataSource,
+): PublicMapDataSourceConfig => {
+  return {
+    allowUserEdit: false,
+    allowUserSubmit: false,
+    dataSourceId: dataSource.id,
+    dataSourceLabel: dataSource.name,
+    formUrl: "",
+    editFormUrl: "",
+    nameLabel: "Name",
+    nameColumns: dataSource.columnRoles.nameColumns || [],
+    descriptionLabel: "",
+    descriptionColumn: "",
+    additionalColumns: [],
+  };
+};

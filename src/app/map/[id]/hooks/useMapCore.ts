@@ -1,9 +1,12 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
+  drawModeAtom,
   lastLoadedSourceIdAtom,
   mapBottomPaddingAtom,
   mapIdAtom,
+  mapModeAtom,
   mapRefAtom,
+  showNavbarAtom,
 } from "../atoms/mapStateAtoms";
 
 /**
@@ -64,4 +67,20 @@ export function useLastLoadedSourceId() {
 
 export function useSetLastLoadedSourceId() {
   return useSetAtom(lastLoadedSourceIdAtom);
+}
+
+export function useMapMode() {
+  return useAtomValue(mapModeAtom);
+}
+
+export function useShowNavbar() {
+  return useAtomValue(showNavbarAtom);
+}
+
+export function useDrawMode() {
+  return useAtomValue(drawModeAtom);
+}
+
+export function useSetDrawMode() {
+  return useSetAtom(drawModeAtom);
 }

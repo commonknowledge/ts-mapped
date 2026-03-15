@@ -25,9 +25,6 @@ import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
 
-/**
- * TODO: Move complex logic into custom hooks
- */
 export default function PrivateMapNavbar() {
   const mapId = useMapId();
   const mapRef = useMapRef();

@@ -72,7 +72,7 @@ export default function EditorPublishSettings() {
   const { data: availability, isFetching: isChecking } = useQuery(
     trpc.publicMap.checkHostAvailability.queryOptions(
       { host: debouncedHost ?? "", viewId: publicMap?.viewId },
-      { enabled: !!debouncedHost },
+      { enabled: Boolean(debouncedHost) },
     ),
   );
 

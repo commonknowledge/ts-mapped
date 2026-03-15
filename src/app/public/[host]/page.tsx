@@ -54,7 +54,7 @@ export default async function PublicMapPage({ params }: Props) {
       <MapJotaiProvider
         mapId={publicMap.mapId}
         viewId={publicMap.viewId}
-        isPrivateRoute={false}
+        isPublicMapRoute={true}
       >
         <PublicMapOverlay standalone />
       </MapJotaiProvider>

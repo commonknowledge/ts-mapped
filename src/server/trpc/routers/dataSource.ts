@@ -33,24 +33,44 @@ import {
   getUniqueColumnValues,
   updateDataSource,
 } from "@/server/repositories/DataSource";
+import { findMapViewById } from "@/server/repositories/MapView";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
 import { canReadDataSource } from "@/server/utils/auth";
+import { getVisualisedDataSourceIds } from "@/utils/map";
 import {
   dataSourceOwnerProcedure,
   dataSourceReadProcedure,
+  mapReadProcedure,
   organisationProcedure,
-  publicProcedure,
+  protectedProcedure,
   router,
 } from "../index";
 import type { DataSourceEvent } from "@/server/events";
 import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
-  listReadable: publicProcedure
+  listForMapView: mapReadProcedure
+    .input(z.object({ viewId: z.string() }))
+    .query(async ({ ctx: { map }, input }) => {
+      const view = await findMapViewById(input.viewId);
+      if (!view || view.mapId !== map.id) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "View not found" });
+      }
+
+      const ids = getVisualisedDataSourceIds(map.config, view);
+      if (!ids.length) return [];
+      const dataSources = await findDataSourcesByIds(ids);
+      const withImportInfo = await addImportInfo(dataSources);
+      return withImportInfo.map((ds) => ({
+        ...ds,
+        columnMetadataOverride: null,
+      }));
+    }),
+  listReadable: protectedProcedure
     .input(z.object({ activeOrganisationId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const organisations = ctx.user

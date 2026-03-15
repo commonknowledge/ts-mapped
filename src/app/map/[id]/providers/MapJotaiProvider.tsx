@@ -5,7 +5,7 @@ import { useHydrateAtoms } from "jotai/utils";
 import { useSearchParams } from "next/navigation";
 import {
   type MapMode,
-  isPrivateRouteAtom,
+  isPublicMapRouteAtom,
   mapIdAtom,
   mapModeAtom,
   viewIdAtom,
@@ -15,19 +15,19 @@ import type { ReactNode } from "react";
 /**
  * Creates a Jotai store boundary and hydrates all "route-level" atoms.
  *
- * `isPrivateRoute` replaces the old `showNavbar` / `editable` / `mapMode`
- * props – the navbar visibility and editor-mode flag are now derived from
- * this single boolean, and `mapMode` is derived from the URL.
+ * `isPublicMapRoute` is `true` only on the standalone public page (`/public/[host]`).
+ * The navbar visibility and editor-mode flag are derived from this single boolean,
+ * and `mapMode` is derived from the URL.
  */
 export default function MapJotaiProvider({
   mapId,
   viewId,
-  isPrivateRoute,
+  isPublicMapRoute = false,
   children,
 }: {
   mapId: string;
   viewId?: string;
-  isPrivateRoute: boolean;
+  isPublicMapRoute?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -35,7 +35,7 @@ export default function MapJotaiProvider({
       <HydrateAtoms
         mapId={mapId}
         viewId={viewId}
-        isPrivateRoute={isPrivateRoute}
+        isPublicMapRoute={isPublicMapRoute}
       >
         {children}
       </HydrateAtoms>
@@ -46,23 +46,23 @@ export default function MapJotaiProvider({
 function HydrateAtoms({
   mapId,
   viewId,
-  isPrivateRoute,
+  isPublicMapRoute,
   children,
 }: {
   mapId: string;
   viewId?: string;
-  isPrivateRoute: boolean;
+  isPublicMapRoute: boolean;
   children: ReactNode;
 }) {
   // On the private route, derive mapMode + viewId from the URL so the very
   // first render is correct (no flicker).
   const searchParams = useSearchParams();
 
-  const resolvedMapMode: MapMode = isPrivateRoute
-    ? searchParams.get("mode") === "publish"
+  const resolvedMapMode: MapMode = isPublicMapRoute
+    ? "public"
+    : searchParams.get("mode") === "publish"
       ? "public"
-      : "private"
-    : "public";
+      : "private";
 
   const resolvedViewId = viewId ?? searchParams.get("viewId") ?? undefined;
 
@@ -70,7 +70,7 @@ function HydrateAtoms({
     [mapIdAtom, mapId],
     [viewIdAtom, resolvedViewId || null],
     [mapModeAtom, resolvedMapMode],
-    [isPrivateRouteAtom, isPrivateRoute],
+    [isPublicMapRouteAtom, isPublicMapRoute],
   ]);
 
   return children;

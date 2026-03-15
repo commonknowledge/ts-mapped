@@ -3,6 +3,7 @@ import { Source } from "react-map-gl/mapbox";
 
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { MarkerDisplayMode } from "@/server/models/Map";
+import { useMapMode } from "../../hooks/useMapCore";
 import {
   useFilteredRecords,
   usePublicFilters,
@@ -36,6 +37,7 @@ export function DataSourceMarkers({
   const publicFilters = usePublicFilters();
   const publicMap = usePublicMapValue();
   const colorScheme = useColorScheme();
+  const mapMode = useMapMode();
 
   const displayMode =
     mapConfig.markerDisplayModes?.[dataSourceMarkers.dataSourceId] ??
@@ -92,7 +94,10 @@ export function DataSourceMarkers({
     ? mapColors.member.color
     : mapColors.dataSource.color;
 
-  const color = publicMapColor || customColor || defaultColor;
+  const color =
+    mapMode === "public"
+      ? publicMapColor || defaultColor
+      : customColor || defaultColor;
 
   const NOT_MATCHED_CASE = [
     "any",

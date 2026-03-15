@@ -11,7 +11,7 @@ import { viewIdAtom } from "../atoms/mapStateAtoms";
  * This hook writes subsequent atom changes back to the URL via
  * `history.replaceState` (avoids Next.js RSC round-trips).
  */
-export function useSyncViewIdToUrl() {
+export function useSyncViewIdToUrlEffect() {
   const viewId = useAtomValue(viewIdAtom);
 
   useEffect(() => {

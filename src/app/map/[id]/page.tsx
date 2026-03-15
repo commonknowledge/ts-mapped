@@ -55,7 +55,7 @@ export default async function MapPage({
   }
 
   return (
-    <MapJotaiProvider mapId={id} viewId={viewId} isPrivateRoute={true}>
+    <MapJotaiProvider mapId={id} viewId={viewId}>
       <div className="relative h-screen w-full">
         <SharedMap />
         <div className="absolute inset-0 z-10 pointer-events-none flex flex-col">

@@ -1,5 +1,8 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { isPrivateRouteAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
+import { useMemo } from "react";
+import { isPublicMapRouteAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { getPublicDataSourceIds } from "@/utils/map";
 import {
   activeDataSourceIdAtom,
   activePublishTabAtom,
@@ -33,11 +36,11 @@ export function usePublishedPublicMapValue() {
  * This replaces the old `editableAtom`.
  */
 export function useEditable() {
-  return useAtomValue(isPrivateRouteAtom);
+  return !useAtomValue(isPublicMapRouteAtom);
 }
 
-export function useIsPrivateRoute() {
-  return useAtomValue(isPrivateRouteAtom);
+export function useIsPublicMapRoute() {
+  return useAtomValue(isPublicMapRouteAtom);
 }
 
 export function useSearchLocation() {
@@ -48,10 +51,27 @@ export function useSetSearchLocation() {
   return useSetAtom(searchLocationAtom);
 }
 
+/**
+ * Returns the intersection of mapConfig marker data source IDs and
+ * publicMap.dataSourceConfigs. This is the canonical list of data sources
+ * visible on the public map.
+ */
+export function usePublicDataSourceIds(): string[] {
+  const { mapConfig } = useMapConfig();
+  const publicMap = usePublicMapValue();
+  return useMemo(
+    () =>
+      publicMap
+        ? getPublicDataSourceIds(mapConfig, publicMap.dataSourceConfigs)
+        : [],
+    [mapConfig, publicMap],
+  );
+}
+
 export function useActiveDataSourceId() {
   const atomValue = useAtomValue(activeDataSourceIdAtom);
-  const { publicMap } = usePublicMapQuery();
-  return atomValue ?? publicMap?.dataSourceConfigs[0]?.dataSourceId ?? null;
+  const publicDataSourceIds = usePublicDataSourceIds();
+  return atomValue ?? publicDataSourceIds[0] ?? null;
 }
 
 export function useSetActiveDataSourceId() {
@@ -74,12 +94,17 @@ export function useColorScheme() {
 export function useHasDraftChanges() {
   const { publicMap, publishedPublicMap } = usePublicMapQuery();
   if (!publicMap || !publishedPublicMap) return false;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const stripMeta = ({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     id,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     mapId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     viewId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     createdAt,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     draft,
     ...rest
   }: NonNullable<typeof publicMap>) => rest;

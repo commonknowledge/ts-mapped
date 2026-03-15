@@ -2,36 +2,33 @@ import { useQueries } from "@tanstack/react-query";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
-import { usePublicMapValue, useSearchLocation } from "./usePublicMap";
+import { usePublicDataSourceIds, useSearchLocation } from "./usePublicMap";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function usePublicDataRecordsQueries() {
-  const publicMap = usePublicMapValue();
   const searchLocation = useSearchLocation();
   const { view } = useMapViews();
   const trpc = useTRPC();
 
+  const dataSourceIds = usePublicDataSourceIds();
+
   return useQueries({
-    queries:
-      publicMap?.dataSourceConfigs.map((config) => {
-        const filter = view?.dataSourceViews.find(
-          (dsv) => dsv.dataSourceId === config.dataSourceId,
-        )?.filter;
+    queries: dataSourceIds.map((dataSourceId) => {
+      const filter = view?.dataSourceViews.find(
+        (dsv) => dsv.dataSourceId === dataSourceId,
+      )?.filter;
 
-        const sort = searchLocation
-          ? [{ name: SORT_BY_LOCATION, location: searchLocation, desc: false }]
-          : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
+      const sort = searchLocation
+        ? [{ name: SORT_BY_LOCATION, location: searchLocation, desc: false }]
+        : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
 
-        return trpc.dataSource.byIdWithRecords.queryOptions(
-          {
-            dataSourceId: config.dataSourceId,
-            filter,
-            sort,
-            all: true,
-          },
-          { refetchOnMount: "always" },
-        );
-      }) ?? [],
+      return trpc.dataSource.byIdWithRecords.queryOptions({
+        dataSourceId,
+        filter,
+        sort,
+        all: true,
+      });
+    }),
     combine: (results) => {
       const dataRecordsQueries: Record<
         string,
@@ -41,9 +38,9 @@ export function usePublicDataRecordsQueries() {
         }
       > = {};
 
-      publicMap?.dataSourceConfigs.forEach((config, index) => {
+      dataSourceIds.forEach((dataSourceId, index) => {
         const result = results[index];
-        dataRecordsQueries[config.dataSourceId] = {
+        dataRecordsQueries[dataSourceId] = {
           data: result?.data,
           isPending: result?.isPending ?? false,
         };

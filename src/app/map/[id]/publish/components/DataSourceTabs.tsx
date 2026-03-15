@@ -11,6 +11,7 @@ import {
 } from "../hooks/usePublicFilters";
 import {
   useActiveDataSourceId,
+  usePublicDataSourceIds,
   usePublicMapValue,
   useSetActiveDataSourceId,
 } from "../hooks/usePublicMap";
@@ -44,14 +45,16 @@ export default function DataSourceTabs({
   const publicFilters = usePublicFilters();
   const setPublicFilters = useSetPublicFilters();
 
-  if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
+  const markerDataSourceIds = usePublicDataSourceIds();
+
+  if (!publicMap || markerDataSourceIds.length === 0) {
     return null;
   }
 
   // Single data source - no tabs needed
-  if (publicMap.dataSourceConfigs.length === 1) {
-    const dsc = publicMap.dataSourceConfigs[0];
-    const dataRecordsQuery = dataRecordsQueries[dsc.dataSourceId];
+  if (markerDataSourceIds.length === 1) {
+    const dataSourceId = markerDataSourceIds[0];
+    const dataRecordsQuery = dataRecordsQueries[dataSourceId];
 
     return (
       dataRecordsQuery && (
@@ -69,8 +72,7 @@ export default function DataSourceTabs({
   }
 
   // Multiple data sources - use tabs
-  const defaultTabId =
-    activeDataSourceId || publicMap.dataSourceConfigs[0]?.dataSourceId;
+  const defaultTabId = activeDataSourceId || markerDataSourceIds[0];
 
   const onTabChange = (id: string) => {
     setActiveDataSourceId(id);
@@ -85,29 +87,28 @@ export default function DataSourceTabs({
         <TabsList
           className="grid w-full"
           style={{
-            gridTemplateColumns: `repeat(${
-              publicMap.dataSourceConfigs.length
-            }, 1fr)`,
+            gridTemplateColumns: `repeat(${markerDataSourceIds.length}, 1fr)`,
           }}
         >
-          {publicMap.dataSourceConfigs.map((dsc) => (
-            <TabsTrigger value={dsc.dataSourceId} key={dsc.dataSourceId}>
-              {dsc.dataSourceLabel}
-            </TabsTrigger>
-          ))}
+          {markerDataSourceIds.map((id) => {
+            const dsc = publicMap.dataSourceConfigs.find(
+              (c) => c.dataSourceId === id,
+            );
+            return (
+              <TabsTrigger value={id} key={id}>
+                {dsc?.dataSourceLabel ?? id}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
         {editable && <DataSourcesSelect />}
       </div>
 
-      {publicMap.dataSourceConfigs.map((dsc) => {
-        const dataRecordsQuery = dataRecordsQueries[dsc.dataSourceId];
+      {markerDataSourceIds.map((id) => {
+        const dataRecordsQuery = dataRecordsQueries[id];
         return (
           dataRecordsQuery && (
-            <TabsContent
-              value={dsc.dataSourceId}
-              key={dsc.dataSourceId}
-              className="flex flex-col min-h-0"
-            >
+            <TabsContent value={id} key={id} className="flex flex-col min-h-0">
               <SingleDataSourceContent
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
@@ -145,12 +146,9 @@ function SingleDataSourceContent({
     dataSourceId ? publicFilters[dataSourceId] : [],
   );
 
-  const config =
-    publicMap?.dataSourceConfigs?.length === 1
-      ? publicMap?.dataSourceConfigs[0]
-      : publicMap?.dataSourceConfigs.find(
-          (c) => c.dataSourceId === dataSourceId,
-        );
+  const config = publicMap?.dataSourceConfigs.find(
+    (c) => c.dataSourceId === dataSourceId,
+  );
 
   const getListingsLabel = () => {
     if (dataRecordsQuery.isPending) {

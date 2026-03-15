@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 
 import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobileEffect } from "@/hooks/useIsMobile";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
@@ -23,7 +23,7 @@ import {
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobileEffect();
   const { selectedRecords, setFocusedRecord, resetInspector } =
     useInspectorState();
   const publicMap = usePublicMapValue();

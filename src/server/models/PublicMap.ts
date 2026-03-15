@@ -60,6 +60,7 @@ export const publicMapDraftSchema = z.object({
 
 export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;
 
+// TODO: can this be extended from publicMapDraftSchema to avoid duplication?
 export const publicMapSchema = z.object({
   id: z.string(),
   host: z.string(),

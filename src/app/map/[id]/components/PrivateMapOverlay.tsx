@@ -13,6 +13,7 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { getMarkerDataSourceIds } from "@/utils/map";
 import { useAreaStats } from "../data";
 import { useInfoPopupOpen } from "../hooks/useInfoPopup";
 import { useMapConfig } from "../hooks/useMapConfig";
@@ -24,7 +25,6 @@ import {
 } from "../hooks/useMapCore";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
-import { getDataSourceIds } from "../utils/map";
 import ControlPanel from "./controls/ControlPanel";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
 import EditColumnMetadataModal from "./EditColumnMetadataModal";
@@ -42,7 +42,10 @@ export default function PrivateMapOverlay() {
 
   const { isPending: dataSourcesLoading } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const dataSourceIds = useMemo(() => getDataSourceIds(mapConfig), [mapConfig]);
+  const dataSourceIds = useMemo(
+    () => getMarkerDataSourceIds(mapConfig),
+    [mapConfig],
+  );
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();

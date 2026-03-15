@@ -1,10 +1,7 @@
 import { Database } from "lucide-react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import {
-  type ColumnDef,
-  DataSourceRecordType,
-} from "@/server/models/DataSource";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -13,21 +10,24 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { usePublicMapValue, useUpdatePublicMap } from "../hooks/usePublicMap";
-import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
-
-interface DataSource {
-  id: string;
-  name: string;
-  columnDefs: ColumnDef[];
-  columnRoles: { nameColumns?: string[] | null };
-}
+import { getMarkerDataSourceIds } from "@/utils/map";
+import {
+  usePublicDataSourceIds,
+  usePublicMapValue,
+  useSetActiveDataSourceId,
+  useUpdatePublicMap,
+} from "../hooks/usePublicMap";
+import { createDataSourceConfig } from "../hooks/usePublicMapQuery";
 
 export default function DataSourcesSelect() {
   const { data: dataSources } = useDataSources();
   const publicMap = usePublicMapValue();
   const updatePublicMap = useUpdatePublicMap();
   const { mapConfig, updateMapConfig } = useMapConfig();
+
+  const markerDataSources = getMarkerDataSourceIds(mapConfig);
+  const publicDataSourceIds = usePublicDataSourceIds();
+  const setActiveDataSourceId = useSetActiveDataSourceId();
 
   const validDataSources =
     dataSources?.filter((ds) => ds.recordType !== DataSourceRecordType.Data) ||
@@ -41,13 +41,11 @@ export default function DataSourcesSelect() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel>Visible Data Sources</DropdownMenuLabel>
+        <DropdownMenuLabel>Data Sources</DropdownMenuLabel>
         {validDataSources.map((ds) => (
           <DropdownMenuCheckboxItem
             key={ds.id}
-            checked={publicMap?.dataSourceConfigs.some(
-              (dsc) => dsc.dataSourceId === ds.id,
-            )}
+            checked={publicDataSourceIds.includes(ds.id)}
             onSelect={(e) => e.preventDefault()}
             onCheckedChange={(checked) => {
               if (checked) {
@@ -56,6 +54,10 @@ export default function DataSourcesSelect() {
                     publicMap?.dataSourceConfigs || [],
                   ),
                 });
+                // Add the data source to the private map
+                if (markerDataSources.includes(ds.id)) {
+                  return;
+                }
                 if (
                   ds.recordType === DataSourceRecordType.Members &&
                   !mapConfig.membersDataSourceId
@@ -74,25 +76,16 @@ export default function DataSourcesSelect() {
                   }
                 }
               } else {
-                updatePublicMap({
-                  dataSourceConfigs: publicMap?.dataSourceConfigs.filter(
+                // Only remove from dataSourceConfigs — keep mapConfig intact
+                // so the data source remains available in the private view.
+                const remainingConfigs =
+                  publicMap?.dataSourceConfigs.filter(
                     (dsc) => dsc.dataSourceId !== ds.id,
-                  ),
-                });
-                if (
-                  ds.recordType === DataSourceRecordType.Members &&
-                  mapConfig.membersDataSourceId === ds.id
-                ) {
-                  updateMapConfig({
-                    membersDataSourceId: null,
-                  });
-                } else {
-                  updateMapConfig({
-                    markerDataSourceIds: mapConfig.markerDataSourceIds.filter(
-                      (id) => id !== ds.id,
-                    ),
-                  });
-                }
+                  ) ?? [];
+                updatePublicMap({ dataSourceConfigs: remainingConfigs });
+                setActiveDataSourceId(
+                  remainingConfigs[0]?.dataSourceId ?? null,
+                );
               }
             }}
           >
@@ -103,21 +96,3 @@ export default function DataSourcesSelect() {
     </DropdownMenu>
   );
 }
-
-export const createDataSourceConfig = (
-  dataSource: DataSource,
-): PublicMapDataSourceConfig => {
-  return {
-    allowUserEdit: false,
-    allowUserSubmit: false,
-    dataSourceId: dataSource.id,
-    dataSourceLabel: dataSource.name,
-    formUrl: "",
-    editFormUrl: "",
-    nameLabel: "Name",
-    nameColumns: dataSource.columnRoles.nameColumns || [],
-    descriptionLabel: "",
-    descriptionColumn: "",
-    additionalColumns: [],
-  };
-};

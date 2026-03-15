@@ -11,7 +11,7 @@ import {
 } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobileEffect } from "@/hooks/useIsMobile";
 import { useEditable } from "../hooks/usePublicMap";
 import PublishControls from "./editable/PublishControls";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
@@ -31,7 +31,7 @@ export default function PublicMapOverlay({
 
   const { data: map, isPending } = useMapQuery(mapId);
 
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobileEffect();
 
   if (!map || isPending) {
     return <Loading />;

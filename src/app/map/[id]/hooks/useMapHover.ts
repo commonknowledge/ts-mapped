@@ -116,6 +116,8 @@ export function useMapHoverEffect({
         setHoverMarker(null);
         clearSecondaryAreaHover();
         return;
+      } else {
+        map.getCanvas().style.cursor = prevPointer.cursor;
       }
 
       handleHoverSecondaryArea(e);

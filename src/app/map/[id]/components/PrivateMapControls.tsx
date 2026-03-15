@@ -1,8 +1,6 @@
-import { useAtomValue } from "jotai";
 import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
-import { drawModeAtom } from "../atoms/mapStateAtoms";
 import { useChoropleth } from "../hooks/useChoropleth";
 import { useInspectorContent } from "../hooks/useInspector";
 import {
@@ -10,6 +8,7 @@ import {
   useMapControls,
   useShowControls,
 } from "../hooks/useMapControls";
+import { useDrawMode } from "../hooks/useMapCore";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import BoundaryHoverInfo from "./BoundaryHoverInfo";
@@ -19,7 +18,7 @@ import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";
 
 export default function PrivateMapControls() {
-  const drawMode = useAtomValue(drawModeAtom);
+  const drawMode = useDrawMode();
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspectorContent();

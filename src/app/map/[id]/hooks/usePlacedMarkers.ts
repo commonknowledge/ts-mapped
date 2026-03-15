@@ -5,12 +5,13 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useAtom } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useTRPC } from "@/services/trpc/react";
 import {
+  dropPinClickHandlerAtom,
   mapSearchResultAtom,
   placedMarkerVisibilityAtom,
   selectedPlacedMarkerIdAtom,
@@ -225,37 +226,26 @@ export function usePlacedMarkerState() {
   };
 }
 
+/**
+ * Returns the handleDropPin callback. Safe to call from multiple components.
+ * Does NOT include the cleanup effect — call useDropPinCleanupEffect once
+ * in the component that owns the Mapbox map instance.
+ */
 export const useHandleDropPin = () => {
   const mapRef = useMapRef();
   const mapId = useMapId();
   const setPinDropMode = useSetPinDropMode();
-  const pinDropMode = usePinDropMode();
   const { insertPlacedMarker } = usePlacedMarkerMutations();
-  const clickHandlerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(
-    null,
-  );
-
-  // Cleanup effect when pinDropMode is disabled
-  useEffect(() => {
-    const map = mapRef?.current;
-    if (!map) return;
-
-    if (!pinDropMode && clickHandlerRef.current) {
-      // Remove the click handler if it exists
-      map.off("click", clickHandlerRef.current);
-      clickHandlerRef.current = null;
-      // Reset cursor
-      map.getCanvas().style.cursor = "";
-    }
-  }, [pinDropMode, mapRef]);
+  const dropPinClickHandler = useAtomValue(dropPinClickHandlerAtom);
+  const setDropPinClickHandler = useSetAtom(dropPinClickHandlerAtom);
 
   const handleDropPin = useCallback(() => {
     const map = mapRef?.current;
     if (!map || !mapId) return;
 
     // Clear any existing handler first
-    if (clickHandlerRef.current) {
-      map.off("click", clickHandlerRef.current);
+    if (dropPinClickHandler) {
+      map.off("click", dropPinClickHandler);
     }
 
     setPinDropMode(true);
@@ -271,8 +261,7 @@ export const useHandleDropPin = () => {
       });
 
       map.off("click", clickHandler);
-      clickHandlerRef.current = null;
-
+      setDropPinClickHandler(() => null);
       // Set pinDropMode to false; hover effect will reset cursor
       setPinDropMode(false);
 
@@ -283,9 +272,39 @@ export const useHandleDropPin = () => {
       });
     };
 
-    clickHandlerRef.current = clickHandler;
+    setDropPinClickHandler(() => clickHandler);
     map.once("click", clickHandler);
-  }, [mapRef, mapId, setPinDropMode, insertPlacedMarker]);
+  }, [
+    mapRef,
+    mapId,
+    setPinDropMode,
+    insertPlacedMarker,
+    dropPinClickHandler,
+    setDropPinClickHandler,
+  ]);
 
   return { handleDropPin };
+};
+
+/**
+ * Cleanup effect that removes the Mapbox click handler and resets the cursor
+ * when pinDropMode is disabled. Must be called in exactly one component
+ * (the one that owns the Mapbox map instance, e.g. Map.tsx).
+ */
+export const useDropPinCleanupEffect = () => {
+  const mapRef = useMapRef();
+  const pinDropMode = usePinDropMode();
+  const dropPinClickHandler = useAtomValue(dropPinClickHandlerAtom);
+  const setDropPinClickHandler = useSetAtom(dropPinClickHandlerAtom);
+
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!map) return;
+
+    if (!pinDropMode && dropPinClickHandler) {
+      map.off("click", dropPinClickHandler);
+      setDropPinClickHandler(null);
+      map.getCanvas().style.cursor = "";
+    }
+  }, [pinDropMode, mapRef, dropPinClickHandler, setDropPinClickHandler]);
 };

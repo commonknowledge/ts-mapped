@@ -7,14 +7,16 @@ export type MapMode = "private" | "public";
 export const mapModeAtom = atom<MapMode>("private");
 
 /**
- * `true` on the private `/map/[id]` route, `false` on the standalone public page.
+ * `true` on the standalone public page (`/public/[host]`), `false` everywhere else.
  * Replaces the old `editableAtom` and `showNavbarAtom` props – both are now
  * derived from this single atom.
  */
-export const isPrivateRouteAtom = atom<boolean>(true);
+export const isPublicMapRouteAtom = atom<boolean>(false);
 
-/** Derived: the navbar is visible exactly when we are on the private route. */
-export const showNavbarAtom = atom<boolean>((get) => get(isPrivateRouteAtom));
+/** Derived: the navbar is visible exactly when we are NOT on the public route. */
+export const showNavbarAtom = atom<boolean>(
+  (get) => !get(isPublicMapRouteAtom),
+);
 
 export const mapIdAtom = atom<string | null>(null);
 export const mapRefAtom = atom<{ current: MapRef | null }>({ current: null });

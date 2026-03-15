@@ -4,7 +4,7 @@ import { useViewId } from "@/app/map/[id]/hooks/useMapViews";
 import Loading from "../../components/Loading";
 import PublicMapOverlay from "../components/PublicMapOverlay";
 import {
-  useAutoPopulateDataSources,
+  useAutoPopulateDataSourcesEffect,
   usePublicMapQuery,
 } from "../hooks/usePublicMapQuery";
 
@@ -21,7 +21,7 @@ export default function EditablePublicMapOverlay() {
   const { publicMap, isPending } = usePublicMapQuery();
 
   // Auto-populate data source configs for fresh public maps
-  useAutoPopulateDataSources();
+  useAutoPopulateDataSourcesEffect();
 
   if (!viewId || (isPending && !publicMap)) {
     return <Loading />;

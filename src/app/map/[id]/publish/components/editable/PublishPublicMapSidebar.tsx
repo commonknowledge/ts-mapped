@@ -12,7 +12,7 @@ import {
 } from "@/components/VerticalTabs";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { useAutoSaveDraft } from "../../hooks/useAutoSaveDraft";
+import { useAutoSaveDraftEffect } from "../../hooks/useAutoSaveDraft";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
 import {
   useActiveDataSourceId,
@@ -35,7 +35,7 @@ export default function PublishPublicMapSidebar() {
   const [hideSidebar] = useState(false);
 
   // Auto-save draft whenever the atom changes
-  useAutoSaveDraft();
+  useAutoSaveDraftEffect();
 
   // Auto-select first record when data source tab changes and data panel is open
   useEffect(() => {

@@ -81,11 +81,21 @@ export function usePublishActions() {
         return;
       }
       const draft = extractDraft({ ...publicMap, published: true });
-      publish({ mapId, viewId: publicMap.viewId, draft });
+      publish({
+        mapId,
+        viewId: publicMap.viewId,
+        publicMapId: publicMap.id,
+        draft,
+      });
       updatePublicMap({ published: true });
     } else {
       const draft = extractDraft({ ...publicMap, published: false });
-      publish({ mapId, viewId: publicMap.viewId, draft });
+      publish({
+        mapId,
+        viewId: publicMap.viewId,
+        publicMapId: publicMap.id,
+        draft,
+      });
       updatePublicMap({ published: false });
     }
   };
@@ -99,6 +109,7 @@ export function usePublishActions() {
     publish({
       mapId,
       viewId: publicMap.viewId,
+      publicMapId: publicMap.id,
       draft: extractDraft(publicMap),
     });
   };

@@ -44,10 +44,17 @@ export function findPublicMapByViewIdAndUserId(viewId: string, userId: string) {
     .executeTakeFirst();
 }
 
+/**
+ * Matches maps that have the data source in the memberDataSourceId, markerDataSourceIds,
+ * or associated view areaDataSourceId.
+ *
+ * Is the inverse of getVisualisedDataSourceIds in src/utils/map.ts.
+ */
 export async function findPublishedPublicMapByDataSourceId(
   dataSourceId: string,
 ) {
-  const maps = await db
+  // Find maps that reference this data source in their config
+  const mapsFromConfig = await db
     .selectFrom("map")
     .where(({ eb, ref }) => {
       return eb.or([
@@ -67,18 +74,34 @@ export async function findPublishedPublicMapByDataSourceId(
     .select("id")
     .execute();
 
-  if (!maps.length) {
+  // Find maps that reference this data source in their views
+  const mapsFromViews = await db
+    .selectFrom("mapView")
+    .where(({ eb, ref }) => {
+      return eb(
+        ref("config", "->>").key("areaDataSourceId"),
+        "=",
+        dataSourceId,
+      );
+    })
+    .select("mapId as id")
+    .execute();
+
+  const mapIds = [
+    ...new Set([
+      ...mapsFromConfig.map((m) => m.id),
+      ...mapsFromViews.map((m) => m.id),
+    ]),
+  ];
+
+  if (!mapIds.length) {
     return null;
   }
 
   return db
     .selectFrom("publicMap")
     .where("published", "=", true)
-    .where(
-      "mapId",
-      "in",
-      maps.map((m) => m.id),
-    )
+    .where("mapId", "in", mapIds)
     .selectAll()
     .executeTakeFirst();
 }
@@ -101,32 +124,70 @@ export function findPublicMapsByOrganisationId(organisationId: string) {
     .execute();
 }
 
-export function saveDraft(viewId: string, draft: PublicMapDraft) {
+export function saveDraft(input: {
+  id: string;
+  mapId: string;
+  viewId: string;
+  draft: PublicMapDraft;
+}) {
   return db
-    .updateTable("publicMap")
-    .set({ draft: JSON.stringify(draft) })
-    .where("viewId", "=", viewId)
+    .insertInto("publicMap")
+    .values({
+      id: input.id,
+      mapId: input.mapId,
+      viewId: input.viewId,
+      host: "",
+      name: "My Public Map",
+      description: "",
+      descriptionLong: "",
+      descriptionLink: "",
+      imageUrl: "",
+      published: false,
+      dataSourceConfigs: "[]" as unknown as never,
+      colorScheme: "red",
+      draft: JSON.stringify(input.draft),
+    })
+    .onConflict((oc) =>
+      oc
+        .columns(["viewId"])
+        .doUpdateSet({ draft: JSON.stringify(input.draft) }),
+    )
     .returningAll()
     .executeTakeFirstOrThrow();
 }
 
-export function publishDraft(viewId: string, draft: PublicMapDraft) {
-  // Promote draft fields to the live columns and clear the draft
+export function publishDraft(input: {
+  id: string;
+  mapId: string;
+  viewId: string;
+  draft: PublicMapDraft;
+}) {
+  const promoted = {
+    host: input.draft.host,
+    name: input.draft.name,
+    description: input.draft.description,
+    descriptionLong: input.draft.descriptionLong,
+    descriptionLink: input.draft.descriptionLink,
+    imageUrl: input.draft.imageUrl,
+    published: input.draft.published,
+    dataSourceConfigs: JSON.stringify(
+      input.draft.dataSourceConfigs,
+    ) as unknown as never,
+    colorScheme: input.draft.colorScheme,
+    draft: null,
+  };
+
+  // Promote draft fields to the live columns and clear the draft.
+  // Upserts so the row is created if it doesn't exist yet.
   return db
-    .updateTable("publicMap")
-    .set({
-      host: draft.host,
-      name: draft.name,
-      description: draft.description,
-      descriptionLong: draft.descriptionLong,
-      descriptionLink: draft.descriptionLink,
-      imageUrl: draft.imageUrl,
-      published: draft.published,
-      dataSourceConfigs: JSON.stringify(draft.dataSourceConfigs) as unknown as never,
-      colorScheme: draft.colorScheme,
-      draft: null,
+    .insertInto("publicMap")
+    .values({
+      id: input.id,
+      mapId: input.mapId,
+      viewId: input.viewId,
+      ...promoted,
     })
-    .where("viewId", "=", viewId)
+    .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(promoted))
     .returningAll()
     .executeTakeFirstOrThrow();
 }
@@ -137,14 +198,11 @@ export function discardDraft(viewId: string) {
     .set({ draft: null })
     .where("viewId", "=", viewId)
     .returningAll()
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
 }
 
 export function checkHostAvailability(host: string, excludeViewId?: string) {
-  let query = db
-    .selectFrom("publicMap")
-    .where("host", "=", host)
-    .selectAll();
+  let query = db.selectFrom("publicMap").where("host", "=", host).selectAll();
 
   if (excludeViewId) {
     query = query.where("viewId", "!=", excludeViewId);

@@ -1,23 +1,22 @@
 "use client";
 
-import { useAtomValue } from "jotai";
-import { mapModeAtom, showNavbarAtom } from "../atoms/mapStateAtoms";
 import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
-import { useSyncMapModeToUrl } from "../hooks/useSyncMapModeToUrl";
-import { useSyncViewIdToUrl } from "../hooks/useSyncViewIdToUrl";
+import { useMapMode, useShowNavbar } from "../hooks/useMapCore";
+import { useSyncMapModeToUrlEffect } from "../hooks/useSyncMapModeToUrl";
+import { useSyncViewIdToUrlEffect } from "../hooks/useSyncViewIdToUrl";
 import PublicMapEditorNavbar from "../publish/components/editable/EditorNavbar";
 import PrivateMapNavbar from "./PrivateMapNavbar";
 
 export default function MapNavbar() {
-  const showNavbar = useAtomValue(showNavbarAtom);
-  const mapMode = useAtomValue(mapModeAtom);
+  const showNavbar = useShowNavbar();
+  const mapMode = useMapMode();
 
   // Ensure a view is selected (creates a default view if none exist)
   useInitialMapViewEffect();
   // Keep the viewId URL param in sync with the Jotai atom
-  useSyncViewIdToUrl();
+  useSyncViewIdToUrlEffect();
   // Sync ?mode=publish to the mapMode atom
-  useSyncMapModeToUrl();
+  useSyncMapModeToUrlEffect();
 
   if (!showNavbar) return null;
 
