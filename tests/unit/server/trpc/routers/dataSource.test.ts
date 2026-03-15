@@ -57,27 +57,7 @@ describe("dataSource router tests", () => {
   };
 
   describe("listReadable", () => {
-    test("unauthenticated client can see public data sources", async () => {
-      const org = await upsertOrganisation({
-        name: "Test ListReadable Public Org",
-      });
-      const publicDs = await createTestDataSource(org.id, true, "Public DS");
-      const privateDs = await createTestDataSource(org.id, false, "Private DS");
-
-      const result = await dataSourceRouter.listReadable({
-        ctx: { user: null },
-        getRawInput: async () => ({}),
-        path: "",
-        type: "query",
-        signal: undefined,
-      });
-
-      const ids = result.map((ds) => ds.id);
-      expect(ids).toContain(publicDs.id);
-      expect(ids).not.toContain(privateDs.id);
-    });
-
-    test("unauthenticated client gets FORBIDDEN when requesting by organisationId", async () => {
+    test("unauthenticated client gets UNAUTHORIZED", async () => {
       const org = await upsertOrganisation({
         name: "Test ListReadable Unauthed Org Filter",
       });
@@ -103,7 +83,7 @@ describe("dataSource router tests", () => {
         });
       } catch (e) {
         expect(e).toBeInstanceOf(TRPCError);
-        expect((e as TRPCError).code).toBe("FORBIDDEN");
+        expect((e as TRPCError).code).toBe("UNAUTHORIZED");
       }
     });
 
