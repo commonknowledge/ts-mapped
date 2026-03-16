@@ -135,7 +135,7 @@ export function saveDraft(input: {
       descriptionLink: "",
       imageUrl: "",
       published: false,
-      dataSourceConfigs: "[]" as unknown as never,
+      dataSourceConfigs: [],
       colorScheme: "red",
       draft: input.draft,
     })
@@ -146,7 +146,7 @@ export function saveDraft(input: {
     .executeTakeFirstOrThrow();
 }
 
-export function publishDraft(input: {
+export function applyDraft(input: {
   id: string;
   mapId: string;
   viewId: string;

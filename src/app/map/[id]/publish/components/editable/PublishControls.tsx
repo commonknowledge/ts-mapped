@@ -17,11 +17,11 @@ export default function PublishControls() {
 
   const {
     loading,
-    isPublishing,
+    isApplyingDraft,
     isPublishedOnServer,
     publishedHost,
     handleSwitchChange,
-    handlePublishChanges,
+    handleApplyDraft,
     handleRevert,
   } = usePublishActions();
 
@@ -45,7 +45,11 @@ export default function PublishControls() {
           {loading ? (
             <span className="flex items-center gap-1 text-neutral-500">
               <Loader2 className="w-3 h-3 animate-spin" />
-              {isPublishing ? "Publishing…" : "Reverting…"}
+              {isApplyingDraft
+                ? switchChecked
+                  ? "Publishing…"
+                  : "Unpublishing…"
+                : "Reverting…"}
             </span>
           ) : switchChecked && publishedHost ? (
             <>
@@ -88,7 +92,7 @@ export default function PublishControls() {
               type="button"
               size="sm"
               className="h-6 px-1.5 text-xs"
-              onClick={handlePublishChanges}
+              onClick={handleApplyDraft}
               disabled={loading || hostAvailable === false}
             >
               <Upload className="w-3 h-3 mr-1" />

@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useTRPC } from "@/services/trpc/react";
-import { extractDraft } from "./useAutoSaveDraft";
 import {
   useHostAvailable,
   usePublicMapValue,
@@ -12,6 +11,7 @@ import {
   useSetPublicMap,
   useUpdatePublicMap,
 } from "./usePublicMap";
+import { extractDraft } from "./usePublicMapQuery";
 
 function getSubdomain(host: string | undefined) {
   if (!host) return "";
@@ -33,20 +33,20 @@ export function usePublishActions() {
 
   const isPublishedOnServer = publishedPublicMap?.published === true;
 
-  // Publish mutation
-  const { mutate: publish, isPending: isPublishing } = useMutation(
-    trpc.publicMap.publish.mutationOptions({
+  // Apply-draft mutation (promotes draft fields to the live record)
+  const { mutate: applyDraft, isPending: isApplyingDraft } = useMutation(
+    trpc.publicMap.applyDraft.mutationOptions({
       onSuccess: (res) => {
         // Server returns the new authoritative state — replace the whole cache entry
         setPublicMap({ ...res, draft: null });
-        toast.success("Changes published!");
+        toast.success(res.published ? "Map published!" : "Map unpublished");
       },
       onError: (e) => {
-        console.error("Failed to publish", e);
+        console.error("Failed to apply draft", e);
         if (publicMap && !isPublishedOnServer) {
           updatePublicMap({ published: false });
         }
-        toast.error(e.message || "Failed to publish changes.");
+        toast.error(e.message || "Failed to apply draft.");
       },
     }),
   );
@@ -66,7 +66,7 @@ export function usePublishActions() {
     }),
   );
 
-  const loading = isPublishing || isDiscarding;
+  const loading = isApplyingDraft || isDiscarding;
 
   const handleSwitchChange = (checked: boolean) => {
     if (!publicMap || !mapId) return;
@@ -81,7 +81,7 @@ export function usePublishActions() {
         return;
       }
       const draft = extractDraft({ ...publicMap, published: true });
-      publish({
+      applyDraft({
         mapId,
         viewId: publicMap.viewId,
         publicMapId: publicMap.id,
@@ -90,7 +90,7 @@ export function usePublishActions() {
       updatePublicMap({ published: true });
     } else {
       const draft = extractDraft({ ...publicMap, published: false });
-      publish({
+      applyDraft({
         mapId,
         viewId: publicMap.viewId,
         publicMapId: publicMap.id,
@@ -100,13 +100,13 @@ export function usePublishActions() {
     }
   };
 
-  const handlePublishChanges = () => {
+  const handleApplyDraft = () => {
     if (!publicMap || !mapId) return;
     if (hostAvailable === false) {
       toast.error("Subdomain is taken — choose another before publishing.");
       return;
     }
-    publish({
+    applyDraft({
       mapId,
       viewId: publicMap.viewId,
       publicMapId: publicMap.id,
@@ -123,12 +123,12 @@ export function usePublishActions() {
 
   return {
     loading,
-    isPublishing,
+    isApplyingDraft,
     isDiscarding,
     isPublishedOnServer,
     publishedHost,
     handleSwitchChange,
-    handlePublishChanges,
+    handleApplyDraft,
     handleRevert,
   };
 }

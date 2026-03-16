@@ -4,7 +4,7 @@ import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
-import MapVisibilityToggle from "@/components/MapVisibilityToggle";
+import MapModeToggle from "@/components/MapModeToggle";
 import { usePublicMapValue } from "../../hooks/usePublicMap";
 
 export default function PublicMapEditorNavbar() {
@@ -28,7 +28,7 @@ export default function PublicMapEditorNavbar() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          {mapId && publicMap?.viewId && <MapVisibilityToggle mode="public" />}
+          {mapId && publicMap?.viewId && <MapModeToggle mode="public" />}
         </div>
       </div>
     </Navbar>

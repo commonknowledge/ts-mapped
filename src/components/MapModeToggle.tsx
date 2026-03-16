@@ -6,13 +6,11 @@ import { cn } from "@/shadcn/utils";
 
 type Mode = "private" | "public";
 
-interface MapVisibilityToggleProps {
+interface MapModeToggleProps {
   mode: Mode;
 }
 
-export default function MapVisibilityToggle({
-  mode,
-}: MapVisibilityToggleProps) {
+export default function MapModeToggle({ mode }: MapModeToggleProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -57,7 +55,7 @@ export default function MapVisibilityToggle({
             : "text-neutral-500 hover:text-neutral-700",
         )}
       >
-        Publish
+        Share
       </button>
     </div>
   );

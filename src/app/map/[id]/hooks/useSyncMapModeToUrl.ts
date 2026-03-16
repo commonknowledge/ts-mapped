@@ -11,7 +11,7 @@ import { mapModeAtom } from "../atoms/mapStateAtoms";
  * `?mode=publish`  → `"public"`
  * otherwise        → `"private"`
  *
- * Reacts to every searchParams change (e.g. when MapVisibilityToggle
+ * Reacts to every searchParams change (e.g. when MapModeToggle
  * triggers a client-side navigation via router.replace).
  */
 export function useSyncMapModeToUrlEffect() {

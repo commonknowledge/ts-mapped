@@ -30,7 +30,7 @@ import {
   useSetEditAreaMode,
   useShowControls,
 } from "../hooks/useMapControls";
-import { useMapRef, useSetDrawMode } from "../hooks/useMapCore";
+import { useMapMode, useMapRef, useSetDrawMode } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
 import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
@@ -69,6 +69,7 @@ export default function Map({
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
   const { resetInspector, setSelectedTurf, selectedTurf } = useInspectorState();
+  const mapMode = useMapMode();
 
   const [draw, setDraw] = useDraw();
   const setDrawMode = useSetDrawMode();
@@ -112,6 +113,10 @@ export default function Map({
       // Ignore failure to remove existing turfs
     }
 
+    if (mapMode !== "private") {
+      return;
+    }
+
     // Add existing polygons from your array
     visibleTurfs.forEach((turf) => {
       draw.add({
@@ -120,7 +125,7 @@ export default function Map({
         geometry: turf.polygon,
       });
     });
-  }, [visibleTurfs, draw, viewConfig?.showTurf]);
+  }, [visibleTurfs, draw, viewConfig.showTurf, mapMode]);
 
   // Update draw layer colors when turfColor changes
   useEffect(() => {
@@ -587,9 +592,13 @@ export default function Map({
       >
         {ready && (
           <>
-            <Choropleth />
-            <SecondaryBoundaries />
-            <FilterMarkers />
+            {mapMode === "private" && (
+              <>
+                <Choropleth />
+                <SecondaryBoundaries />
+                <FilterMarkers />
+              </>
+            )}
             <PlacedMarkers />
             <Markers />
             <SearchResultMarker />

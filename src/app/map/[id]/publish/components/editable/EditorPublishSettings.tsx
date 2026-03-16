@@ -20,14 +20,14 @@ export default function EditorPublishSettings() {
   const setHostAvailable = useSetHostAvailable();
   const trpc = useTRPC();
 
-  // Detect in-flight publish/discard mutations (owned by usePublishActions in the navbar)
-  const isPublishMutating = useIsMutating({
-    mutationKey: trpc.publicMap.publish.mutationOptions().mutationKey,
+  // Detect in-flight applyDraft/discard mutations (owned by usePublishActions in the navbar)
+  const isApplyDraftMutating = useIsMutating({
+    mutationKey: trpc.publicMap.applyDraft.mutationOptions().mutationKey,
   });
   const isDiscardMutating = useIsMutating({
     mutationKey: trpc.publicMap.discardDraft.mutationOptions().mutationKey,
   });
-  const loading = isPublishMutating > 0 || isDiscardMutating > 0;
+  const loading = isApplyDraftMutating > 0 || isDiscardMutating > 0;
 
   // Debounced host for availability checking
   const [debouncedHost, setDebouncedHost] = useState<string | null>(null);

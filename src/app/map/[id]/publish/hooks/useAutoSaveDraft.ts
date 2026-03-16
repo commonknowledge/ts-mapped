@@ -4,23 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useTRPC } from "@/services/trpc/react";
-import { usePublicMapQuery } from "./usePublicMapQuery";
-import type { PublicMapData } from "../atoms/publicMapAtoms";
-import type { PublicMapDraft } from "@/server/models/PublicMap";
-
-function extractDraft(publicMap: NonNullable<PublicMapData>): PublicMapDraft {
-  return {
-    host: publicMap.host ?? "",
-    name: publicMap.name,
-    description: publicMap.description,
-    descriptionLong: publicMap.descriptionLong,
-    descriptionLink: publicMap.descriptionLink,
-    imageUrl: publicMap.imageUrl,
-    published: publicMap.published,
-    dataSourceConfigs: publicMap.dataSourceConfigs,
-    colorScheme: publicMap.colorScheme,
-  };
-}
+import { extractDraft, usePublicMapQuery } from "./usePublicMapQuery";
 
 /**
  * Auto-saves draft changes to the server whenever the public map changes
@@ -85,5 +69,3 @@ export function useAutoSaveDraftEffect() {
 
   return { isSaving: isPending };
 }
-
-export { extractDraft };

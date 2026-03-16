@@ -15,7 +15,6 @@ import { useViewId } from "@/app/map/[id]/hooks/useMapViews";
 import { useTRPC } from "@/services/trpc/react";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { activeDataSourceIdAtom } from "../atoms/publicMapAtoms";
-import { extractDraft } from "./useAutoSaveDraft";
 import type { PublicMapData } from "../atoms/publicMapAtoms";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type {
@@ -31,14 +30,28 @@ interface DataSource {
   columnRoles: { nameColumns?: string[] | null };
 }
 
+export function extractDraft(
+  publicMap: NonNullable<PublicMapData>,
+): PublicMapDraft {
+  return {
+    host: publicMap.host ?? "",
+    name: publicMap.name,
+    description: publicMap.description,
+    descriptionLong: publicMap.descriptionLong,
+    descriptionLink: publicMap.descriptionLink,
+    imageUrl: publicMap.imageUrl,
+    published: publicMap.published,
+    dataSourceConfigs: publicMap.dataSourceConfigs,
+    colorScheme: publicMap.colorScheme,
+  };
+}
+
 /**
  * Return the working draft, creating one from the published fields if
  * none exists yet.
  */
 function getWorkingDraft(data: NonNullable<PublicMapData>): PublicMapDraft {
-  return (
-    data.draft ?? extractDraft(data)
-  );
+  return data.draft ?? extractDraft(data);
 }
 
 /**
@@ -82,9 +95,6 @@ export function usePublicMapQuery() {
   // unnecessary tRPC call on every private map page load.
   const needsPublicMap = isPublicMapRoute || mapMode === "public";
 
-  // Stable stub ID across re-renders so refetches produce the same stub.
-  const stubIdRef = useRef(uuidv4());
-
   const options = trpc.publicMap.get.queryOptions(
     { viewId: viewId ?? "" },
     { enabled: Boolean(viewId) && needsPublicMap },
@@ -101,7 +111,7 @@ export function usePublicMapQuery() {
           if (result !== null) return result;
           if (!viewId || !mapId) return result;
           return {
-            id: stubIdRef.current,
+            id: uuidv4(),
             mapId,
             viewId,
             host: "",
@@ -122,11 +132,13 @@ export function usePublicMapQuery() {
 
   const data = rawData ?? null;
 
-  // Combined version: published fields + draft overlay (for rendering)
+  // Combined version: published fields + draft overlay (for rendering).
+  // On the public-facing route, never apply the draft — only show
+  // what has actually been published.
   const publicMap = useMemo(() => {
     if (!data) return null;
-    return applyDraft(data);
-  }, [data]);
+    return isPublicMapRoute ? data : applyDraft(data);
+  }, [data, isPublicMapRoute]);
 
   // Raw version: draft NOT applied (for diffing / revert)
   const publishedPublicMap = data ?? null;

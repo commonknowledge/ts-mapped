@@ -5,13 +5,13 @@ import { publicMapDraftSchema } from "@/server/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { createMap, updateMap } from "@/server/repositories/Map";
 import {
+  applyDraft,
   checkHostAvailability,
   discardDraft,
   findPublicMapByHost,
   findPublicMapByViewId,
   findPublicMapByViewIdAndUserId,
   findPublicMapsByOrganisationId,
-  publishDraft,
   saveDraft,
 } from "@/server/repositories/PublicMap";
 import {
@@ -81,18 +81,19 @@ export const publicMapRouter = router({
 
       if (!publicMap) return null;
 
+      const userId = ctx.user?.id;
+      const ownedMap = userId
+        ? await findPublicMapByViewIdAndUserId(publicMap.viewId, userId)
+        : null;
+
       // Published maps are visible to everyone
-      if (publicMap.published) return publicMap;
+      if (publicMap.published) {
+        // Remove the draft if the user does not own the map
+        return ownedMap ? publicMap : { ...publicMap, draft: null };
+      }
 
       // Unpublished maps are only visible to authenticated owners
-      const userId = ctx.user?.id;
-      if (!userId) return null;
-
-      const ownedMap = await findPublicMapByViewIdAndUserId(
-        publicMap.viewId,
-        userId,
-      );
-      return ownedMap || null;
+      return ownedMap;
     }),
   saveDraft: mapWriteProcedure
     .input(
@@ -110,7 +111,7 @@ export const publicMapRouter = router({
         draft: input.draft,
       });
     }),
-  publish: mapWriteProcedure
+  applyDraft: mapWriteProcedure
     .input(
       z.object({
         viewId: z.string(),
@@ -133,7 +134,7 @@ export const publicMapRouter = router({
         }
       }
 
-      return publishDraft({
+      return applyDraft({
         id: input.publicMapId,
         mapId: ctx.map.id,
         viewId: input.viewId,

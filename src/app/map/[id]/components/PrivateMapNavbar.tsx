@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
-import MapVisibilityToggle from "@/components/MapVisibilityToggle";
+import MapModeToggle from "@/components/MapModeToggle";
 import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
@@ -216,7 +216,7 @@ export default function PrivateMapNavbar() {
           <SearchBox />
 
           {showPublishButton && mapId && view && (
-            <MapVisibilityToggle mode="private" />
+            <MapModeToggle mode="private" />
           )}
         </div>
       </div>
