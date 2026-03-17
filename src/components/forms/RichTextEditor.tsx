@@ -181,7 +181,9 @@ function MenuBar({ editor }: { editor: Editor }) {
         <Button
           onClick={handleSetLink}
           type="button"
-          variant={editorState.isLink || showLinkInput ? "default" : "secondary"}
+          variant={
+            editorState.isLink || showLinkInput ? "default" : "secondary"
+          }
         >
           <Link2Icon />
         </Button>
