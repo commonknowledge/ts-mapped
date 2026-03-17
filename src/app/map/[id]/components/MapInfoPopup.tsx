@@ -55,10 +55,6 @@ export default function MapInfoPopup({
     }),
   );
 
-  const handleSave = useCallback(() => {
-    updateMap({ mapId, infoContent: draft || null });
-  }, [updateMap, mapId, draft]);
-
   const handleStartEdit = useCallback(() => {
     setDraft(infoContent || "");
     setEditing(true);
@@ -80,12 +76,22 @@ export default function MapInfoPopup({
     [onOpenChange, infoContent],
   );
 
-  const hasContent = useMemo(() => {
-    if (!infoContent) return false;
+  const htmlHasText = useCallback((html: string | null | undefined) => {
+    if (!html) return false;
     const div = document.createElement("div");
-    div.innerHTML = infoContent;
+    div.innerHTML = html;
     return Boolean(div.textContent?.trim());
-  }, [infoContent]);
+  }, []);
+
+  const hasContent = useMemo(
+    () => htmlHasText(infoContent),
+    [htmlHasText, infoContent],
+  );
+
+  const handleSave = useCallback(() => {
+    const valueToSave = htmlHasText(draft) ? draft : null;
+    updateMap({ mapId, infoContent: valueToSave });
+  }, [updateMap, mapId, draft, htmlHasText]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
