@@ -25,6 +25,7 @@ export const mapSchema = z.object({
   name: z.string(),
   organisationId: z.string(),
   imageUrl: z.string().nullish(),
+  infoContent: z.string().nullish(),
   config: mapConfigSchema,
   createdAt: z.date(),
 });

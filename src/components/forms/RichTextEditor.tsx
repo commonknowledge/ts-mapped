@@ -1,7 +1,10 @@
 "use client";
 
+import { Extension } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
 import { TextStyleKit } from "@tiptap/extension-text-style";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -16,6 +19,55 @@ import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import type { Editor } from "@tiptap/react";
 
+const selectionPreserverKey = new PluginKey("selectionPreserver");
+
+const SelectionPreserver = Extension.create({
+  name: "selectionPreserver",
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: selectionPreserverKey,
+        state: {
+          init() {
+            return DecorationSet.empty;
+          },
+          apply(tr, decorationSet) {
+            const meta = tr.getMeta(selectionPreserverKey);
+            if (meta === "blur") {
+              const { from, to } = tr.selection;
+              if (from === to) return DecorationSet.empty;
+              return DecorationSet.create(tr.doc, [
+                Decoration.inline(from, to, {
+                  class: "bg-blue-200/70",
+                }),
+              ]);
+            }
+            if (meta === "focus") {
+              return DecorationSet.empty;
+            }
+            return decorationSet.map(tr.mapping, tr.doc);
+          },
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state);
+          },
+        },
+      }),
+    ];
+  },
+  onBlur({ editor }) {
+    editor.view.dispatch(
+      editor.view.state.tr.setMeta(selectionPreserverKey, "blur"),
+    );
+  },
+  onFocus({ editor }) {
+    editor.view.dispatch(
+      editor.view.state.tr.setMeta(selectionPreserverKey, "focus"),
+    );
+  },
+});
+
 const RichTextEditor = ({
   value,
   onChange,
@@ -28,6 +80,7 @@ const RichTextEditor = ({
     extensions: [
       StarterKit,
       TextStyleKit,
+      SelectionPreserver,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -49,10 +102,7 @@ const RichTextEditor = ({
   return (
     <div className="flex flex-col gap-4">
       <MenuBar editor={editor} />
-      <EditorContent
-        editor={editor}
-        className="border rounded-lg p-2 text-sm [&_p]:mb-3"
-      />
+      <EditorContent editor={editor} className="border rounded-lg p-2 prose" />
     </div>
   );
 };
@@ -131,7 +181,7 @@ function MenuBar({ editor }: { editor: Editor }) {
         <Button
           onClick={handleSetLink}
           type="button"
-          variant={editorState.isLink ? "default" : "secondary"}
+          variant={editorState.isLink || showLinkInput ? "default" : "secondary"}
         >
           <Link2Icon />
         </Button>

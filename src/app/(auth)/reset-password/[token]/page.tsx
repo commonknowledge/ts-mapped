@@ -40,6 +40,14 @@ export default function Page({
   );
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
     setLoading(true);
     resetPassword({ token, password });
   };
@@ -55,6 +63,8 @@ export default function Page({
               placeholder="Enter your new password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
             />
           </FormFieldWrapper>
           <FormFieldWrapper label="Confirm Password">
@@ -63,6 +73,8 @@ export default function Page({
               placeholder="Enter your new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={8}
             />
           </FormFieldWrapper>
           <Button type="submit" disabled={loading}>
