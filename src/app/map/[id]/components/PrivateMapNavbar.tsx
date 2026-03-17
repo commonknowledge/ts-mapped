@@ -223,6 +223,7 @@ export default function PrivateMapNavbar() {
               size="icon"
               onClick={() => setInfoPopupOpen(true)}
               title="Map info"
+              aria-label="Map info"
             >
               <Info className="w-4 h-4" />
             </Button>
