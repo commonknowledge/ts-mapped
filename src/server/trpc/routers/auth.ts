@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/ForgotPassword";
+import { passwordSchema } from "@/server/models/User";
 import {
   findAndUseInvitation,
   updateInvitation,
@@ -23,7 +24,7 @@ import { publicProcedure, router } from "../index";
 
 export const authRouter = router({
   confirmInvite: publicProcedure
-    .input(z.object({ token: z.string(), password: z.string() }))
+    .input(z.object({ token: z.string(), password: passwordSchema }))
     .mutation(async ({ input }) => {
       try {
         const { password, token } = input;
@@ -105,7 +106,7 @@ export const authRouter = router({
       return true;
     }),
   resetPassword: publicProcedure
-    .input(z.object({ token: z.string(), password: z.string() }))
+    .input(z.object({ token: z.string(), password: passwordSchema }))
     .mutation(async ({ input }) => {
       try {
         const { token, password } = input;

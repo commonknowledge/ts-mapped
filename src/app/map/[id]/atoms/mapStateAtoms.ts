@@ -13,3 +13,4 @@ export const pinDropModeAtom = atom<boolean>(false);
 export const editAreaModeAtom = atom<boolean>(false);
 export const showControlsAtom = atom<boolean>(true);
 export const compareGeographiesAtom = atom<boolean>(false);
+export const infoPopupOpenAtom = atom<boolean>(false);

@@ -7,7 +7,7 @@ import logger from "@/server/services/logger";
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  password: z.string().min(1, "Password is required"),
 });
 
 export async function POST(request: Request) {

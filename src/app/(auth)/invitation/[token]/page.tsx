@@ -43,6 +43,10 @@ export default function InvitePage() {
       setError("Invalid token");
       return;
     }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
     confirmInvite({ password, token });
   };
 
@@ -64,6 +68,8 @@ export default function InvitePage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
             />
           </FormFieldWrapper>
 
