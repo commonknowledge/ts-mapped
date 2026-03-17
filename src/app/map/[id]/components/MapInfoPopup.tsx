@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Pencil } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import RichTextEditor from "@/components/forms/RichTextEditor";
@@ -17,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { useInfoPopupEditing } from "../hooks/useInfoPopup";
 
 interface MapInfoPopupProps {
   open: boolean;
@@ -31,7 +31,7 @@ export default function MapInfoPopup({
   mapId,
   infoContent,
 }: MapInfoPopupProps) {
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useInfoPopupEditing();
   const [draft, setDraft] = useState(infoContent || "");
 
   const trpc = useTRPC();
@@ -55,15 +55,10 @@ export default function MapInfoPopup({
     }),
   );
 
-  const handleStartEdit = useCallback(() => {
-    setDraft(infoContent || "");
-    setEditing(true);
-  }, [infoContent]);
-
   const handleCancel = useCallback(() => {
     setDraft(infoContent || "");
     setEditing(false);
-  }, [infoContent]);
+  }, [infoContent, setEditing]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -73,7 +68,7 @@ export default function MapInfoPopup({
       }
       onOpenChange(nextOpen);
     },
-    [onOpenChange, infoContent],
+    [onOpenChange, infoContent, setEditing],
   );
 
   const htmlHasText = useCallback((html: string | null | undefined) => {
@@ -114,30 +109,12 @@ export default function MapInfoPopup({
             </DialogFooter>
           </>
         ) : hasContent ? (
-          <>
-            <ReadOnlyContent content={infoContent || ""} />
-            <DialogFooter>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleStartEdit}
-                className="gap-1"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                Edit this text
-              </Button>
-            </DialogFooter>
-          </>
+          <ReadOnlyContent content={infoContent || ""} />
         ) : (
-          <>
-            <p className="text-sm text-neutral-500 italic">
-              No info content yet. Add a description to explain the data on this
-              map.
-            </p>
-            <DialogFooter>
-              <Button onClick={handleStartEdit}>Add info</Button>
-            </DialogFooter>
-          </>
+          <p className="text-sm text-neutral-500 italic">
+            No map introduction yet. Add a description to explain the data on
+            this map.
+          </p>
         )}
       </DialogContent>
     </Dialog>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
 import { ChevronRight, Info } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -20,7 +19,7 @@ import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
-import { infoPopupOpenAtom } from "../atoms/mapStateAtoms";
+import { useOpenInfoPopup } from "../hooks/useInfoPopup";
 import { useMapConfig } from "../hooks/useMapConfig";
 import { useMapId, useMapRef } from "../hooks/useMapCore";
 import { useDirtyViewIds } from "../hooks/useMapViews";
@@ -39,7 +38,7 @@ export default function PrivateMapNavbar() {
   const { data: map } = useMapQuery(mapId);
   const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();
-  const setInfoPopupOpen = useSetAtom(infoPopupOpenAtom);
+  const openInfoPopup = useOpenInfoPopup();
 
   const { currentUser } = useCurrentUser();
   const showPublishButton = useFeatureFlagEnabled("public-maps", currentUser);
@@ -221,7 +220,7 @@ export default function PrivateMapNavbar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setInfoPopupOpen(true)}
+              onClick={openInfoPopup}
               title="Map info"
               aria-label="Map info"
             >

@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shadcn/ui/alert-dialog";
+import { useOpenInfoPopupEditing } from "../hooks/useInfoPopup";
 import type {
   DropdownItem,
   DropdownSeparator,
@@ -37,6 +38,7 @@ export default function PrivateMapNavbarControls({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const openInfoPopupEditing = useOpenInfoPopupEditing();
 
   const { mutateAsync: updateMapAsync } = useMutation(
     trpc.map.update.mutationOptions(),
@@ -168,6 +170,14 @@ export default function PrivateMapNavbarControls({
         onClick: () => setIsEditingName(true),
       });
     }
+
+    items.push({
+      type: "item" as const,
+      label: "Edit map intro",
+      onClick: openInfoPopupEditing,
+    });
+
+    items.push({ type: "separator" as const });
 
     items.push({
       type: "item" as const,

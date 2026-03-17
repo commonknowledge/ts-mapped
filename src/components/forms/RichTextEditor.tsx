@@ -77,6 +77,7 @@ const RichTextEditor = ({
 }) => {
   const editor = useEditor({
     immediatelyRender: false,
+    autofocus: "end",
     extensions: [
       StarterKit,
       TextStyleKit,

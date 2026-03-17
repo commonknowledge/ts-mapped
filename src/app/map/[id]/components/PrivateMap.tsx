@@ -2,7 +2,6 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
@@ -15,8 +14,8 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { infoPopupOpenAtom } from "../atoms/mapStateAtoms";
 import { useAreaStats } from "../data";
+import { useInfoPopupOpen } from "../hooks/useInfoPopup";
 import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
 import { useMapConfig } from "../hooks/useMapConfig";
 import { useShowControls } from "../hooks/useMapControls";
@@ -64,7 +63,7 @@ export default function PrivateMap() {
 
   const { data: map, isPending } = useMapQuery(mapId);
 
-  const [infoPopupOpen, setInfoPopupOpen] = useAtom(infoPopupOpenAtom);
+  const [infoPopupOpen, setInfoPopupOpen] = useInfoPopupOpen();
 
   // Auto-open info popup on first visit if content exists
   useEffect(() => {
