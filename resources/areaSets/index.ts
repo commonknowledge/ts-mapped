@@ -153,4 +153,13 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
     codeKey: "SENC22CD",
     nameKey: "SENC22NM",
   },
+  {
+    code: AreaSetCode.COED26,
+    name: "Church of England Dioceses 2026",
+    filename: "coe_dioceses.geojson",
+    link: "https://www.arcgis.com/apps/mapviewer/index.html?layerId=0&layers=d8c9dcffa565478b84661b4c337a404a",
+    isNationalGridSRID: false,
+    codeKey: "DioNumber",
+    nameKey: "Diocese",
+  },
 ];

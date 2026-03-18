@@ -243,6 +243,19 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  COED26: [
+    {
+      areaSetCode: AreaSetCode.COED26,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "DioNumber",
+        featureNameProperty: "Diocese",
+        layerId: "coe_dioceses",
+        sourceId: "commonknowledge.2vi2o8pq",
+      },
+    },
+  ],
 };
 
 export const HEX_CHOROPLETH_LAYER_CONFIG: ChoroplethLayerConfig = {
