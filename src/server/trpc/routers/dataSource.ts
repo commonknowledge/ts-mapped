@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
-import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
+import { ENRICHMENT_COLUMN_PREFIX, GE_DATA_SOURCE_NAME } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   getEnrichedColumn,
@@ -84,11 +84,20 @@ export const dataSourceRouter = router({
         .execute();
 
       const orgId = input?.activeOrganisationId;
+      const activeOrg = organisations.find((o) => o.id === orgId);
+      const isABCT = activeOrg?.name.includes("AB Charitable Trust") ?? false;
+      const filteredDataSources = isABCT
+        ? dataSources.filter(
+            (ds) =>
+              ds.organisationId === orgId || ds.name === GE_DATA_SOURCE_NAME,
+          )
+        : dataSources;
+
       const overrides =
-        orgId && dataSources.length
+        orgId && filteredDataSources.length
           ? await findColumnMetadataOverridesByOrg(
               orgId,
-              dataSources.map((ds) => ds.id),
+              filteredDataSources.map((ds) => ds.id),
             )
           : [];
 
@@ -96,7 +105,7 @@ export const dataSourceRouter = router({
         overrides.map((o) => [o.dataSourceId, o.columnMetadata]),
       );
 
-      const withImportInfo = await addImportInfo(dataSources);
+      const withImportInfo = await addImportInfo(filteredDataSources);
       return withImportInfo.map((ds) => ({
         ...ds,
         columnMetadataOverride: overrideMap.get(ds.id) ?? null,

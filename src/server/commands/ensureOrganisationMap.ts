@@ -1,4 +1,4 @@
-import { ADMIN_ORGANISATION_NAME } from "@/constants";
+import { ADMIN_ORGANISATION_NAME, GE_DATA_SOURCE_NAME } from "@/constants";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
   DataSourceRecordType,
@@ -31,7 +31,6 @@ import type { DataSource } from "@/server/models/DataSource";
 import type { Map } from "@/server/models/Map";
 
 const MAP_NAME = "Sample Map";
-const GE_DATA_SOURCE_NAME = "2024 GE Results";
 const MEMBERS_DATA_SOURCE_NAME = "Sample Members";
 
 /**
