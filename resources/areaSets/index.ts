@@ -8,7 +8,7 @@ export interface AreaSetMetadata {
   isNationalGridSRID: boolean;
   codeKey: string;
   nameKey: string;
-  nameFormatter?: (props: Record<string, string>) => string;
+  nameFormatter?: (props: Record<string, unknown>) => string;
 }
 
 export const areaSetsMetadata: AreaSetMetadata[] = [

@@ -1,5 +1,6 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import {
   CalculationType,
   DEFAULT_CALCULATION_TYPE,
@@ -55,7 +56,7 @@ export const useAreaStats = () => {
 
   // Use a dummy column for counts to avoid un-necessary refetching
   const columnOrCount =
-    calculationType === CalculationType.Count ? "__count" : column;
+    calculationType === CalculationType.Count ? DUMMY_COUNT_COLUMN : column;
 
   const isMissingDataColumn =
     !column && calculationType !== CalculationType.Count;

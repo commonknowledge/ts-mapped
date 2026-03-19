@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { getDisplayValue } from "../../utils/stats";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
@@ -62,7 +63,7 @@ export default function DataSourcePropertiesList({
         return (
           <div key={`${column}-${i}`}>
             <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-0.5">
-              {column}
+              {column === DUMMY_COUNT_COLUMN ? "Count" : column}
               <ColumnMetadataIcons
                 column={column}
                 dataSource={dataSource}

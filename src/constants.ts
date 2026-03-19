@@ -16,6 +16,8 @@ export const DEFAULT_CUSTOM_COLOR = "#3b82f6";
 
 export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 
+export const DUMMY_COUNT_COLUMN = "__count";
+
 export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";
 
 export const GE_DATA_SOURCE_NAME = "2024 GE Results";

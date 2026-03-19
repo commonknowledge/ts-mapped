@@ -313,7 +313,7 @@ export function useMapClickEffect({
 
       if (features.length > 0) {
         const feature = features[0];
-        const areaCode = feature.properties?.[featureCodeProperty] as string;
+        const areaCode = String(feature.properties?.[featureCodeProperty]);
         const areaName = feature.properties?.[featureNameProperty] as string;
 
         if (areaCode && areaName && feature.id !== undefined) {

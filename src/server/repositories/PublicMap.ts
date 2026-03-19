@@ -142,6 +142,8 @@ export function applyDraft(input: {
 }) {
   const promoted = {
     ...input.draft,
+    // Prevent empty host being saved
+    host: input.draft.host || null,
     draft: null,
     listed: true,
   };
@@ -155,8 +157,6 @@ export function applyDraft(input: {
       mapId: input.mapId,
       viewId: input.viewId,
       ...promoted,
-      // Prevent empty host being saved
-      host: promoted.host === "" ? null : promoted.host,
     })
     .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(promoted))
     .returningAll()
