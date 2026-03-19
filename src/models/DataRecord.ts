@@ -1,5 +1,5 @@
 import z from "zod";
-import { geocodeResultSchema, pointSchema } from "./shared";
+import { pointSchema } from "./shared";
 import type { ColumnDef } from "./DataSource";
 import type { ExternalRecord } from "@/types";
 export interface EnrichedRecord {
@@ -9,6 +9,14 @@ export interface EnrichedRecord {
     value: unknown;
   }[];
 }
+
+const geocodeResultSchema = z.object({
+  areas: z.record(z.string(), z.string()),
+  centralPoint: pointSchema.nullable(),
+  samplePoint: pointSchema.nullable(),
+});
+
+export type GeocodeResult = z.infer<typeof geocodeResultSchema>;
 
 export const dataRecordSchema = z.object({
   id: z.string(),

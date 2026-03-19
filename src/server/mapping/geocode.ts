@@ -14,7 +14,8 @@ import {
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { geojsonPointToPoint } from "../utils/geo";
-import type { GeocodeResult, Point } from "@/models/shared";
+import type { GeocodeResult } from "@/models/DataRecord";
+import type { Point } from "@/models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
 
 const POSTCODE_REGEX = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;

@@ -49,8 +49,9 @@ import {
   protectedProcedure,
   router,
 } from "../index";
-import type { DataSource, DataSourceUpdate } from "@/models/DataSource";
+import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
+import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
   listForMapView: mapReadProcedure

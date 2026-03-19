@@ -1,12 +1,6 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
 import { pointSchema } from "./shared";
-import type {
-  Generated,
-  Insertable,
-  ColumnType as KyselyColumnType,
-  Updateable,
-} from "kysely";
 
 export enum FilterOperator {
   AND = "AND",
@@ -207,11 +201,3 @@ export const mapViewSchema = z.object({
 });
 
 export type MapView = z.infer<typeof mapViewSchema>;
-
-export type MapViewTable = MapView & {
-  id: Generated<string>;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-};
-
-export type NewMapView = Insertable<MapViewTable>;
-export type MapViewUpdate = Updateable<MapViewTable>;

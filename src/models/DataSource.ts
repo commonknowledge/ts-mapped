@@ -1,11 +1,5 @@
 import z from "zod";
 import { AreaSetCode } from "./AreaSet";
-import type {
-  Generated,
-  Insertable,
-  ColumnType as KyselyColumnType,
-  Updateable,
-} from "kysely";
 
 export enum JobStatus {
   None = "None",
@@ -261,13 +255,3 @@ export const dataSourceSchema = z.object({
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;
-
-export type DataSourceTable = DataSource & {
-  id: Generated<string>;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-  dateFormat: Generated<string>;
-  recordCount: Generated<number>;
-};
-
-export type NewDataSource = Insertable<DataSourceTable>;
-export type DataSourceUpdate = Updateable<DataSourceTable>;

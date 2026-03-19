@@ -1,10 +1,4 @@
 import z from "zod";
-import type {
-  Generated,
-  Insertable,
-  ColumnType as KyselyColumnType,
-  Updateable,
-} from "kysely";
 
 export enum PublicMapColumnType {
   Boolean = "Boolean",
@@ -74,10 +68,3 @@ export const publicMapSchema = publicMapDraftSchema.extend({
 });
 
 export type PublicMap = z.infer<typeof publicMapSchema>;
-
-export type PublicMapTable = PublicMap & {
-  id: Generated<string>;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-};
-export type NewPublicMap = Insertable<PublicMapTable>;
-export type PublicMapUpdate = Updateable<PublicMapTable>;
