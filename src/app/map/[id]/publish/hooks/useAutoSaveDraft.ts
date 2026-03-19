@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useTRPC } from "@/services/trpc/react";
@@ -16,6 +17,8 @@ export function useAutoSaveDraftEffect() {
   const { publicMap, publishedPublicMap } = usePublicMapQuery();
   const mapId = useMapId();
   const trpc = useTRPC();
+  const searchParams = useSearchParams();
+  const listed = searchParams.get("listed") === "true" ? true : undefined;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Track whether this is the first render to skip auto-save on mount
   const isInitialRender = useRef(true);
@@ -57,6 +60,7 @@ export function useAutoSaveDraftEffect() {
         viewId: publicMap.viewId,
         publicMapId: publicMap.id,
         draft: currentDraft,
+        listed,
       });
     }, 1000);
 
@@ -65,7 +69,7 @@ export function useAutoSaveDraftEffect() {
         clearTimeout(timerRef.current);
       }
     };
-  }, [publicMap, publishedPublicMap, mapId, saveDraft]);
+  }, [publicMap, publishedPublicMap, mapId, saveDraft, listed]);
 
   return { isSaving: isPending };
 }

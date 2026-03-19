@@ -243,6 +243,7 @@ export interface PublicMap {
   mapId: string; // uuid, NOT NULL
   viewId: string; // uuid, UNIQUE, NOT NULL
   published: boolean; // boolean, NOT NULL, DEFAULT false
+  listed: boolean; // boolean, NOT NULL, DEFAULT false
   dataSourceConfigs: unknown[]; // jsonb, NOT NULL, DEFAULT []
   colorScheme: string | null; // text, NULL (renamed from colour_scheme -> color_scheme)
   imageUrl: string | null; // text, NULL

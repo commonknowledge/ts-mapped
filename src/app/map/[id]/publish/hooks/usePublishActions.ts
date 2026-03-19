@@ -1,8 +1,9 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
 import {
   useHostAvailable,
@@ -30,6 +31,8 @@ export function usePublishActions() {
   const hostAvailable = useHostAvailable();
   const mapId = useMapId();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { organisationId } = useOrganisations();
 
   const isPublishedOnServer = publishedPublicMap?.published === true;
 
@@ -39,6 +42,11 @@ export function usePublishActions() {
       onSuccess: (res) => {
         // Server returns the new authoritative state — replace the whole cache entry
         setPublicMap({ ...res, draft: null });
+        queryClient.invalidateQueries({
+          queryKey: trpc.publicMap.list.queryKey({
+            organisationId: organisationId || "",
+          }),
+        });
         toast.success(res.published ? "Map published!" : "Map unpublished");
       },
       onError: (e) => {

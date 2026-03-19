@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": ["Bash(ls *)", "Bash(grep *)"]
+  },
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": ["Thinking"]
+  }
+}

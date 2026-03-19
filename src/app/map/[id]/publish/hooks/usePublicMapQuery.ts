@@ -125,6 +125,7 @@ export function usePublicMapQuery() {
             dataSourceConfigs: [],
             createdAt: new Date(),
             draft: null,
+            listed: false,
           };
         }
       : undefined,

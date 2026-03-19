@@ -40,7 +40,7 @@ export default function Sidebar() {
           icon: <LockIcon className="w-4 h-4" />,
         },
         {
-          label: "Published maps",
+          label: "Public maps",
           href: "/public-maps",
           icon: <MapIcon className="w-4 h-4" />,
         },

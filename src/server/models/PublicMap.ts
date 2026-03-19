@@ -65,6 +65,10 @@ export const publicMapSchema = publicMapDraftSchema.extend({
   id: z.string(),
   mapId: z.string(),
   viewId: z.string(),
+  // If this map should show in the Public Maps dashboard
+  // True if created from the Public Maps dashboard, or if the map has ever been published
+  // This is to prevent auto-generated public maps cluttering the dashboard
+  listed: z.boolean(),
   createdAt: z.date(),
   draft: publicMapDraftSchema.nullish(),
 });

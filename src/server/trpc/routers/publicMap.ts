@@ -57,6 +57,7 @@ export const publicMapRouter = router({
       // 2. Set data source on map config
       if (!isData) {
         await updateMap(map.id, {
+          name: "My Public Map",
           config: isMembers
             ? {
                 membersDataSourceId: input.dataSourceId,
@@ -112,6 +113,7 @@ export const publicMapRouter = router({
         viewId: z.string(),
         publicMapId: z.string(),
         draft: publicMapDraftSchema,
+        listed: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -120,6 +122,7 @@ export const publicMapRouter = router({
         mapId: ctx.map.id,
         viewId: input.viewId,
         draft: input.draft,
+        listed: input.listed,
       });
     }),
   applyDraft: mapWriteProcedure

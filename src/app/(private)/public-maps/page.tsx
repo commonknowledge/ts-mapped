@@ -19,16 +19,17 @@ export default function DashboardPage() {
   const { data, isPending } = useQuery(
     trpc.publicMap.list.queryOptions(
       { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) },
+      { enabled: Boolean(organisationId), refetchOnMount: "always" },
     ),
   );
 
   const mappedData = data?.length
     ? data
-        .filter((map) => map.published)
+        .filter((map) => map.published || map.listed)
         .map((map) => ({
           ...map,
           publicMapId: map.id,
+          isDraft: map.listed && !map.published,
           href: `/map/${map.mapId}?viewId=${map.viewId}&mode=publish`,
         }))
     : [];
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Published maps"
+        title="Public maps"
         action={
           <Button type="button" size="lg" onClick={() => setDialogOpen(true)}>
             <PlusIcon /> Add new
@@ -49,12 +50,22 @@ export default function DashboardPage() {
       ) : (
         <MapsList
           maps={mappedData}
-          renderControls={(map, onMenuToggle) => (
-            <PublicMapCardControls
-              publicMapId={(map as (typeof mappedData)[number]).publicMapId}
-              onMenuToggle={onMenuToggle}
-            />
-          )}
+          renderControls={(map, onMenuToggle) => {
+            const typedMap = map as (typeof mappedData)[number];
+            return (
+              <div className="flex items-center gap-2">
+                {typedMap.isDraft && (
+                  <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                    Draft
+                  </span>
+                )}
+                <PublicMapCardControls
+                  publicMapId={typedMap.publicMapId}
+                  onMenuToggle={onMenuToggle}
+                />
+              </div>
+            );
+          }}
         />
       )}
 

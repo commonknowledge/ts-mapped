@@ -104,6 +104,7 @@ export function saveDraft(input: {
   mapId: string;
   viewId: string;
   draft: PublicMapDraft;
+  listed?: boolean;
 }) {
   return db
     .insertInto("publicMap")
@@ -118,12 +119,16 @@ export function saveDraft(input: {
       descriptionLink: "",
       imageUrl: "",
       published: false,
+      listed: input.listed ?? false,
       dataSourceConfigs: [],
       colorScheme: "red",
       draft: input.draft,
     })
     .onConflict((oc) =>
-      oc.columns(["viewId"]).doUpdateSet({ draft: input.draft }),
+      oc.columns(["viewId"]).doUpdateSet({
+        draft: input.draft,
+        ...(input.listed ? { listed: true } : {}),
+      }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -138,6 +143,7 @@ export function applyDraft(input: {
   const promoted = {
     ...input.draft,
     draft: null,
+    listed: true,
   };
 
   // Promote draft fields to the live columns and clear the draft.

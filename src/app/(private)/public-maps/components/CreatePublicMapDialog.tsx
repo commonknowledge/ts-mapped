@@ -54,11 +54,13 @@ export default function CreatePublicMapDialog({
     trpc.publicMap.create.mutationOptions({
       onSuccess: (data) => {
         queryClient.invalidateQueries({
-          queryKey: trpc.publicMap.list.queryKey(),
+          queryKey: trpc.publicMap.list.queryKey({
+            organisationId: organisationId || "",
+          }),
         });
         onOpenChange(false);
         setDataSourceId("");
-        router.push(`/map/${data.mapId}?mode=publish`);
+        router.push(`/map/${data.mapId}?mode=publish&listed=true`);
       },
       onError: (error) => {
         toast.error("Failed to create public map", {
