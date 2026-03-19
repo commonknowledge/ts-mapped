@@ -5,6 +5,7 @@ import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { MapsList } from "@/app/(private)/components/MapsList";
 import CreatePublicMapDialog from "@/app/(private)/public-maps/components/CreatePublicMapDialog";
+import PublicMapCardControls from "@/app/(private)/public-maps/components/PublicMapCardControls";
 import PageHeader from "@/components/PageHeader";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
@@ -23,16 +24,19 @@ export default function DashboardPage() {
   );
 
   const mappedData = data?.length
-    ? data.map((map) => ({
-        ...map,
-        href: `/map/${map.mapId}?mode=publish`,
-      }))
+    ? data
+        .filter((map) => map.published)
+        .map((map) => ({
+          ...map,
+          publicMapId: map.id,
+          href: `/map/${map.mapId}?viewId=${map.viewId}&mode=publish`,
+        }))
     : [];
 
   return (
     <div>
       <PageHeader
-        title="Public maps"
+        title="Published maps"
         action={
           <Button type="button" size="lg" onClick={() => setDialogOpen(true)}>
             <PlusIcon /> Add new
@@ -43,7 +47,15 @@ export default function DashboardPage() {
       {isPending ? (
         <LoaderPinwheel className="animate-spin" />
       ) : (
-        <MapsList maps={mappedData} />
+        <MapsList
+          maps={mappedData}
+          renderControls={(map, onMenuToggle) => (
+            <PublicMapCardControls
+              publicMapId={(map as (typeof mappedData)[number]).publicMapId}
+              onMenuToggle={onMenuToggle}
+            />
+          )}
+        />
       )}
 
       <CreatePublicMapDialog open={dialogOpen} onOpenChange={setDialogOpen} />

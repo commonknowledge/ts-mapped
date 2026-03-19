@@ -1,9 +1,9 @@
 import { MapIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import PrivateMapNavbarControls from "@/app/map/[id]/components/PrivateMapNavbarControls";
 import { Link } from "@/components/Link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import type { ReactNode } from "react";
 
 export interface MapCardInterface {
   id: string;
@@ -15,9 +15,10 @@ export interface MapCardInterface {
 
 export interface MapCardProps {
   map: MapCardInterface;
+  renderControls?: (onMenuToggle: (open: boolean) => void) => ReactNode;
 }
 
-export default function MapCard({ map }: MapCardProps) {
+export default function MapCard({ map, renderControls }: MapCardProps) {
   const { createdAt, href, name, imageUrl } = map;
   const [cardHovered, setCardHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,19 +34,18 @@ export default function MapCard({ map }: MapCardProps) {
           <CardTitle className="flex flex-col gap-1 p-4">
             <div className="flex items-center justify-between w-full">
               <span className="font-semibold text-base truncate">{name}</span>
-              <div
-                className={`transition-opacity duration-150 ${cardHovered || menuOpen ? "opacity-100" : "opacity-0"}`}
-                onMouseEnter={() => setCardHovered(true)}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                <PrivateMapNavbarControls
-                  mapId={map.id}
-                  onMenuToggle={(open) => setMenuOpen(open)}
-                />
-              </div>
+              {renderControls && (
+                <div
+                  className={`transition-opacity duration-150 ${cardHovered || menuOpen ? "opacity-100" : "opacity-0"}`}
+                  onMouseEnter={() => setCardHovered(true)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  {renderControls(setMenuOpen)}
+                </div>
+              )}
             </div>
 
             <div className="mt-1 flex items-center">

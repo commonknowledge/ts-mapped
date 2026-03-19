@@ -5,6 +5,7 @@ import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MapsList } from "@/app/(private)/components/MapsList";
+import PrivateMapNavbarControls from "@/app/map/[id]/components/PrivateMapNavbarControls";
 import PageHeader from "@/components/PageHeader";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
@@ -72,7 +73,15 @@ export default function DashboardPage() {
       {isPending ? (
         <LoaderPinwheel className="animate-spin" />
       ) : (
-        <MapsList maps={mappedData} />
+        <MapsList
+          maps={mappedData}
+          renderControls={(map, onMenuToggle) => (
+            <PrivateMapNavbarControls
+              mapId={map.id}
+              onMenuToggle={onMenuToggle}
+            />
+          )}
+        />
       )}
     </div>
   );

@@ -7,12 +7,14 @@ import { createMap, updateMap } from "@/server/repositories/Map";
 import {
   applyDraft,
   checkHostAvailability,
+  deletePublicMap,
   discardDraft,
   findPublicMapByHost,
   findPublicMapByViewId,
   findPublicMapByViewIdAndUserId,
   findPublicMapsByOrganisationId,
   saveDraft,
+  unpublishPublicMap,
 } from "@/server/repositories/PublicMap";
 import {
   mapWriteProcedure,
@@ -163,5 +165,29 @@ export const publicMapRouter = router({
     .query(async ({ input }) => {
       const existing = await checkHostAvailability(input.host, input.viewId);
       return { available: !existing };
+    }),
+  delete: organisationProcedure
+    .input(z.object({ publicMapId: z.string() }))
+    .mutation(async ({ input }) => {
+      const result = await deletePublicMap(input.publicMapId);
+      if (!result) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Public map not found.",
+        });
+      }
+      return result;
+    }),
+  unpublish: organisationProcedure
+    .input(z.object({ publicMapId: z.string() }))
+    .mutation(async ({ input }) => {
+      const result = await unpublishPublicMap(input.publicMapId);
+      if (!result) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Public map not found.",
+        });
+      }
+      return result;
     }),
 });

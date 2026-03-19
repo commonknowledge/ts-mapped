@@ -176,3 +176,20 @@ export function checkHostAvailability(host: string, excludeViewId?: string) {
 
   return query.executeTakeFirst();
 }
+
+export function deletePublicMap(publicMapId: string) {
+  return db
+    .deleteFrom("publicMap")
+    .where("id", "=", publicMapId)
+    .returningAll()
+    .executeTakeFirst();
+}
+
+export function unpublishPublicMap(publicMapId: string) {
+  return db
+    .updateTable("publicMap")
+    .set({ published: false })
+    .where("id", "=", publicMapId)
+    .returningAll()
+    .executeTakeFirst();
+}
