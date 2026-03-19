@@ -1,7 +1,9 @@
+import { type SqlBool, type TraversedJSONPathBuilder, sql } from "kysely";
+
 import { db } from "@/server/services/database";
 import type { MapConfig } from "@/server/models/Map";
+import type { MapViewConfig } from "@/server/models/MapView";
 import type { PublicMapDraft } from "@/server/models/PublicMap";
-import type { TraversedJSONPathBuilder } from "kysely";
 
 export function findPublicMapByHost(host: string) {
   if (!host) return Promise.resolve(undefined);
@@ -46,64 +48,45 @@ export function findPublicMapByViewIdAndUserId(viewId: string, userId: string) {
 }
 
 /**
- * Matches maps that have the data source in the memberDataSourceId, markerDataSourceIds,
- * or associated view areaDataSourceId.
- *
- * Is the inverse of getVisualisedDataSourceIds in src/utils/map.ts.
+ * Find a published public map whose dataSourceConfigs reference this
+ * dataSourceId, verifying that the dataSourceId is also present in one of
+ * map->membersDataSourceId, map->markerDataSourceIds, or view->areaDataSourceId.
  */
 export async function findPublishedPublicMapByDataSourceId(
   dataSourceId: string,
 ) {
-  // Find maps that reference this data source in their config
-  const mapsFromConfig = await db
-    .selectFrom("map")
-    .where(({ eb, ref }) => {
-      return eb.or([
-        eb(ref("config", "->>").key("membersDataSourceId"), "=", dataSourceId),
+  return db
+    .selectFrom("publicMap")
+    .where("published", "=", true)
+    .where(
+      sql<SqlBool>`${sql.ref("publicMap.dataSourceConfigs")} @> ${JSON.stringify([{ dataSourceId }])}::jsonb`,
+    )
+    .innerJoin("map", "map.id", "publicMap.mapId")
+    .innerJoin("mapView", "mapView.id", "publicMap.viewId")
+    .where(({ eb, ref }) =>
+      eb.or([
         eb(
-          // The typing here is weird because the "@>" operator in kysely only
-          // allows for arrays on the right-hand side, but because a JSON
-          // object is being queried, a JSON string needs to be provided
-          ref("config", "->").key(
+          ref("map.config", "->>").key("membersDataSourceId"),
+          "=",
+          dataSourceId,
+        ),
+        eb(
+          ref("map.config", "->").key(
             "markerDataSourceIds",
           ) as TraversedJSONPathBuilder<MapConfig, string>,
           "@>",
           JSON.stringify([dataSourceId]),
         ),
-      ]);
-    })
-    .select("id")
-    .execute();
-
-  // Find maps that reference this data source in their views
-  const mapsFromViews = await db
-    .selectFrom("mapView")
-    .where(({ eb, ref }) => {
-      return eb(
-        ref("config", "->>").key("areaDataSourceId"),
-        "=",
-        dataSourceId,
-      );
-    })
-    .select("mapId as id")
-    .execute();
-
-  const mapIds = [
-    ...new Set([
-      ...mapsFromConfig.map((m) => m.id),
-      ...mapsFromViews.map((m) => m.id),
-    ]),
-  ];
-
-  if (!mapIds.length) {
-    return null;
-  }
-
-  return db
-    .selectFrom("publicMap")
-    .where("published", "=", true)
-    .where("mapId", "in", mapIds)
-    .selectAll()
+        eb(
+          ref("mapView.config", "->>").key(
+            "areaDataSourceId",
+          ) as TraversedJSONPathBuilder<MapViewConfig, string>,
+          "=",
+          dataSourceId,
+        ),
+      ]),
+    )
+    .selectAll("publicMap")
     .executeTakeFirst();
 }
 
@@ -166,6 +149,8 @@ export function applyDraft(input: {
       mapId: input.mapId,
       viewId: input.viewId,
       ...promoted,
+      // Prevent empty host being saved
+      host: promoted.host === "" ? null : promoted.host,
     })
     .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(promoted))
     .returningAll()
