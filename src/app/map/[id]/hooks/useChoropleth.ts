@@ -6,7 +6,6 @@ import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { GeocodingType } from "@/server/models/DataSource";
 import {
   boundariesPanelOpenAtom,
-  lastLoadedSourceIdAtom,
   selectedBivariateBucketAtom,
 } from "../atoms/choroplethAtoms";
 import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
@@ -24,9 +23,6 @@ export function useChoropleth() {
   );
   const [selectedBivariateBucket, setSelectedBivariateBucket] = useAtom(
     selectedBivariateBucketAtom,
-  );
-  const [lastLoadedSourceId, setLastLoadedSourceId] = useAtom(
-    lastLoadedSourceIdAtom,
   );
 
   const choroplethLayerConfig = useMemo(() => {
@@ -63,8 +59,6 @@ export function useChoropleth() {
     setBoundariesPanelOpen,
     selectedBivariateBucket,
     setSelectedBivariateBucket,
-    lastLoadedSourceId,
-    setLastLoadedSourceId,
     choroplethLayerConfig,
   };
 }

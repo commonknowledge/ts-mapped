@@ -1,20 +1,39 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
+import { isPublicMapRouteAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMapViews, useViewId } from "@/app/map/[id]/hooks/useMapViews";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useTRPC } from "@/services/trpc/react";
+import { useMapId } from "./useMapCore";
 
 export function useDataSources() {
   const trpc = useTRPC();
   const organisationId = useOrganisationId();
-  const query = useQuery(
-    trpc.dataSource.listReadable.queryOptions({
-      activeOrganisationId: organisationId ?? undefined,
-    }),
+  const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
+  const mapId = useMapId();
+  const viewId = useViewId();
+
+  const listReadableQuery = useQuery(
+    trpc.dataSource.listReadable.queryOptions(
+      {
+        activeOrganisationId: organisationId ?? undefined,
+      },
+      { enabled: !isPublicMapRoute },
+    ),
   );
+
+  const listForMapViewQuery = useQuery(
+    trpc.dataSource.listForMapView.queryOptions(
+      { mapId: mapId ?? "", viewId: viewId ?? "" },
+      { enabled: isPublicMapRoute && Boolean(mapId) && Boolean(viewId) },
+    ),
+  );
+
+  const query = isPublicMapRoute ? listForMapViewQuery : listReadableQuery;
 
   const getDataSourceById = useCallback(
     (id: string | null | undefined) => {

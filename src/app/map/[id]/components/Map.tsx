@@ -8,12 +8,16 @@ import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import {
+  useDropPinCleanupEffect,
+  usePlacedMarkersQuery,
+} from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobileEffect } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
+import { getMarkerDataSourceIds } from "@/utils/map";
 import { useDraw } from "../hooks/useDraw";
-import { useInspector } from "../hooks/useInspector";
+import { useInspectorState } from "../hooks/useInspectorState";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -26,16 +30,16 @@ import {
   useSetEditAreaMode,
   useShowControls,
 } from "../hooks/useMapControls";
-import { useMapRef } from "../hooks/useMapCore";
+import { useMapMode, useMapRef, useSetDrawMode } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
 import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import { getDataSourceIds, getMapStyle } from "../utils/map";
+import { getMapStyle } from "../utils/map";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
-import MapWrapper from "./MapWrapper";
+import "./Map.css";
 import MarkerPopup from "./MarkerPopup";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -46,12 +50,10 @@ import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
 export default function Map({
   onSourceLoad,
-  hideDrawControls,
 }: {
   onSourceLoad: (sourceId: string) => void;
-  hideDrawControls?: boolean;
 }) {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobileEffect();
   const mapRef = useMapRef();
   const setZoom = useSetZoom();
   const pinDropMode = usePinDropMode();
@@ -66,9 +68,11 @@ export default function Map({
   const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
-  const { resetInspector, setSelectedTurf, selectedTurf } = useInspector();
+  const { resetInspector, setSelectedTurf, selectedTurf } = useInspectorState();
+  const mapMode = useMapMode();
 
   const [draw, setDraw] = useDraw();
+  const setDrawMode = useSetDrawMode();
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -76,23 +80,28 @@ export default function Map({
 
   const turfColor = mapConfig.turfColor ?? mapColors.areas.color;
 
-  const markerLayers = useMemo(
-    () =>
-      getDataSourceIds(mapConfig)
-        .flatMap((id) => [
-          `${id}-markers-circles`,
-          `${id}-markers-counts`,
-          `${id}-markers-pins`,
-          `${id}-markers-labels`,
-        ])
-        .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig],
-  );
+  const markerLayers = useMemo(() => {
+    const ids = getMarkerDataSourceIds(mapConfig);
+    return ids
+      .flatMap((id) => [
+        `${id}-markers-circles`,
+        `${id}-markers-counts`,
+        `${id}-markers-pins`,
+        `${id}-markers-labels`,
+      ])
+      .concat(["search-history-pins", "search-history-labels"]);
+  }, [mapConfig]);
+
+  // Sync draw mode to atom so PrivateMapControls can read it
+  useEffect(() => {
+    setDrawMode(currentMode);
+  }, [currentMode, setDrawMode]);
 
   useMapClickEffect({ markerLayers, draw, currentMode, ready });
   useMapHoverEffect({ markerLayers, draw, ready });
   useWatchDrawModeEffect();
   useMapControlsEscapeKeyEffect();
+  useDropPinCleanupEffect();
 
   // draw existing turfs
   useEffect(() => {
@@ -104,6 +113,10 @@ export default function Map({
       // Ignore failure to remove existing turfs
     }
 
+    if (mapMode !== "private") {
+      return;
+    }
+
     // Add existing polygons from your array
     visibleTurfs.forEach((turf) => {
       draw.add({
@@ -112,7 +125,7 @@ export default function Map({
         geometry: turf.polygon,
       });
     });
-  }, [visibleTurfs, draw, viewConfig?.showTurf]);
+  }, [visibleTurfs, draw, viewConfig.showTurf, mapMode]);
 
   // Update draw layer colors when turfColor changes
   useEffect(() => {
@@ -210,31 +223,26 @@ export default function Map({
     }
 
     const map = mapRef?.current;
-    if (!map) return;
+    if (!map || !ready) return;
 
     const padding = {
       left: isMobile || !showControls ? 0 : CONTROL_PANEL_WIDTH,
-      top: 0,
+      top: isMobile ? 96 : 0,
       bottom: 0,
     };
-
-    // Public map mobile padding
-    if (window.innerWidth < 768) {
-      padding.top = 96;
-      padding.bottom = window.innerHeight * 0.5;
-    }
 
     map.easeTo({
       padding,
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, showControls, isMobile]);
+  }, [mapRef, showControls, isMobile, ready]);
 
   useEffect(() => {
     const map = mapRef?.current;
     if (
       !map ||
+      !ready ||
       didInitialFit ||
       markerQueries?.isFetching ||
       viewConfig.mapType === MapType.Hex
@@ -293,13 +301,11 @@ export default function Map({
     placedMarkers,
     isMobile,
     viewConfig.mapType,
+    ready,
   ]);
 
   return (
-    <MapWrapper
-      currentMode={pinDropMode ? "pin_drop" : currentMode}
-      hideDrawControls={hideDrawControls}
-    >
+    <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       <MapGL
         key={viewConfig.mapType}
         maxBounds={
@@ -385,7 +391,7 @@ export default function Map({
           toggleLabelVisibility(viewConfig.showLabels);
 
           // Initialize draw
-          if (!hideDrawControls && !draw) {
+          if (!draw) {
             const newDraw = new MapboxDraw({
               displayControlsDefault: false,
               controls: {
@@ -586,9 +592,13 @@ export default function Map({
       >
         {ready && (
           <>
-            <Choropleth />
-            <SecondaryBoundaries />
-            <FilterMarkers />
+            {mapMode === "private" && (
+              <>
+                <Choropleth />
+                <SecondaryBoundaries />
+                <FilterMarkers />
+              </>
+            )}
             <PlacedMarkers />
             <Markers />
             <SearchResultMarker />
@@ -596,6 +606,6 @@ export default function Map({
           </>
         )}
       </MapGL>
-    </MapWrapper>
+    </div>
   );
 }

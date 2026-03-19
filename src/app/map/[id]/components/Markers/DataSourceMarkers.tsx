@@ -3,15 +3,16 @@ import { Source } from "react-map-gl/mapbox";
 
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { MarkerDisplayMode } from "@/server/models/Map";
-import { mapColors } from "../../styles";
+import { useMapMode } from "../../hooks/useMapCore";
 import {
   useFilteredRecords,
   usePublicFilters,
-} from "../../view/[viewIdOrHost]/publish/hooks/usePublicFilters";
+} from "../../publish/hooks/usePublicFilters";
 import {
   useColorScheme,
   usePublicMapValue,
-} from "../../view/[viewIdOrHost]/publish/hooks/usePublicMap";
+} from "../../publish/hooks/usePublicMap";
+import { mapColors } from "../../styles";
 import { ClustersLayer } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
@@ -36,6 +37,7 @@ export function DataSourceMarkers({
   const publicFilters = usePublicFilters();
   const publicMap = usePublicMapValue();
   const colorScheme = useColorScheme();
+  const mapMode = useMapMode();
 
   const displayMode =
     mapConfig.markerDisplayModes?.[dataSourceMarkers.dataSourceId] ??
@@ -92,7 +94,10 @@ export function DataSourceMarkers({
     ? mapColors.member.color
     : mapColors.dataSource.color;
 
-  const color = publicMapColor || customColor || defaultColor;
+  const color =
+    mapMode === "public"
+      ? publicMapColor || defaultColor
+      : customColor || defaultColor;
 
   const NOT_MATCHED_CASE = [
     "any",

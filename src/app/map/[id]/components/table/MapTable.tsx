@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
@@ -64,7 +64,7 @@ export default function MapTable() {
   const { data: map } = useMapQuery(mapId);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { focusedRecord, setFocusedRecord } = useInspector();
+  const { focusedRecord, setFocusedRecord } = useInspectorState();
   const [lookingUpPage, setLookingUpPage] = useState(false);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [pendingTagColumnName, setPendingTagColumnName] = useState<

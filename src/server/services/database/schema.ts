@@ -235,7 +235,7 @@ export interface MapView {
  */
 export interface PublicMap {
   id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
-  host: string; // text, UNIQUE, NOT NULL
+  host: string | null; // text, UNIQUE (partial, WHERE host IS NOT NULL), NULL
   name: string; // text, NOT NULL
   description: string; // text, NOT NULL, DEFAULT ''
   descriptionLink: string; // text, NOT NULL, DEFAULT ''
@@ -243,6 +243,7 @@ export interface PublicMap {
   mapId: string; // uuid, NOT NULL
   viewId: string; // uuid, UNIQUE, NOT NULL
   published: boolean; // boolean, NOT NULL, DEFAULT false
+  listed: boolean; // boolean, NOT NULL, DEFAULT false
   dataSourceConfigs: unknown[]; // jsonb, NOT NULL, DEFAULT []
   colorScheme: string | null; // text, NULL (renamed from colour_scheme -> color_scheme)
   imageUrl: string | null; // text, NULL

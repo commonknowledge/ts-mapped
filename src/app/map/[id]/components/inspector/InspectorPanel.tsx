@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorContent } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -27,13 +28,13 @@ export default function InspectorPanel() {
   const [activeTab, setActiveTab] = useState("data");
 
   const {
-    inspectorContent,
     resetInspector,
     selectedBoundary,
     selectedTurf,
     setFocusedRecord,
     selectedRecords,
-  } = useInspector();
+  } = useInspectorState();
+  const { inspectorContent } = useInspectorContent();
   const { type } = inspectorContent ?? {};
 
   const trpc = useTRPC();

@@ -16,10 +16,7 @@ export async function proxy(request: NextRequest) {
     );
 
     if (host && host !== mainHost.host) {
-      // Special "public" value for [id] to mark this view as public
-      return NextResponse.rewrite(
-        new URL(`/map/public/view/${host}/publish`, request.url),
-      );
+      return NextResponse.rewrite(new URL(`/public/${host}`, request.url));
     }
 
     const jwt = await decodeJWT();

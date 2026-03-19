@@ -58,7 +58,7 @@ const importAreaSet = async (areaSetCode: AreaSetCode) => {
   const geojson = fs.readFileSync(geojsonPath, "utf8");
   const areas = JSON.parse(geojson) as {
     features: {
-      properties: Record<string, string>;
+      properties: Record<string, unknown>;
       geometry: unknown;
     }[];
   };

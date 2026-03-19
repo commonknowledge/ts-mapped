@@ -1,5 +1,13 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { mapIdAtom, mapRefAtom } from "../atoms/mapStateAtoms";
+import {
+  drawModeAtom,
+  lastLoadedSourceIdAtom,
+  mapBottomPaddingAtom,
+  mapIdAtom,
+  mapModeAtom,
+  mapRefAtom,
+  showNavbarAtom,
+} from "../atoms/mapStateAtoms";
 
 /**
  * Hook for accessing core map instance references
@@ -43,4 +51,36 @@ export function useMapRefAtom() {
 
 export function useSetMapRef() {
   return useSetAtom(mapRefAtom);
+}
+
+export function useMapBottomPadding() {
+  return useAtomValue(mapBottomPaddingAtom);
+}
+
+export function useSetMapBottomPadding() {
+  return useSetAtom(mapBottomPaddingAtom);
+}
+
+export function useLastLoadedSourceId() {
+  return useAtomValue(lastLoadedSourceIdAtom);
+}
+
+export function useSetLastLoadedSourceId() {
+  return useSetAtom(lastLoadedSourceIdAtom);
+}
+
+export function useMapMode() {
+  return useAtomValue(mapModeAtom);
+}
+
+export function useShowNavbar() {
+  return useAtomValue(showNavbarAtom);
+}
+
+export function useDrawMode() {
+  return useAtomValue(drawModeAtom);
+}
+
+export function useSetDrawMode() {
+  return useSetAtom(drawModeAtom);
 }

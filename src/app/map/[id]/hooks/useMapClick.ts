@@ -3,7 +3,7 @@ import { booleanPointInPolygon } from "@turf/turf";
 import { useEffect, useRef } from "react";
 import { type SelectedArea } from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useCompareGeographiesMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
@@ -40,7 +40,7 @@ export function useMapClickEffect({
     selectedBoundary,
     setSelectedRecords,
     setSelectedTurf,
-  } = useInspector();
+  } = useInspectorState();
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
   const [, setSelectedSecondaryArea] = useSelectedSecondaryArea();
   const compareGeographiesMode = useCompareGeographiesMode();
@@ -313,7 +313,7 @@ export function useMapClickEffect({
 
       if (features.length > 0) {
         const feature = features[0];
-        const areaCode = feature.properties?.[featureCodeProperty] as string;
+        const areaCode = String(feature.properties?.[featureCodeProperty]);
         const areaName = feature.properties?.[featureNameProperty] as string;
 
         if (areaCode && areaName && feature.id !== undefined) {

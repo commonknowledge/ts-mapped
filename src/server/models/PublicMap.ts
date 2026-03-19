@@ -45,20 +45,32 @@ export type PublicMapDataSourceConfig = z.infer<
   typeof publicMapDataSourceConfigSchema
 >;
 
-export const publicMapSchema = z.object({
-  id: z.string(),
+// The editable fields that can appear in a draft
+export const publicMapDraftSchema = z.object({
   host: z.string(),
   name: z.string(),
   description: z.string(),
   descriptionLong: z.string(),
   descriptionLink: z.string(),
   imageUrl: z.string().nullish(),
-  mapId: z.string(),
-  viewId: z.string(),
   published: z.boolean(),
   dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
-  createdAt: z.date(),
   colorScheme: z.string(),
+});
+
+export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;
+
+export const publicMapSchema = publicMapDraftSchema.extend({
+  host: z.string().nullable(),
+  id: z.string(),
+  mapId: z.string(),
+  viewId: z.string(),
+  // If this map should show in the Public Maps dashboard
+  // True if created from the Public Maps dashboard, or if the map has ever been published
+  // This is to prevent auto-generated public maps cluttering the dashboard
+  listed: z.boolean(),
+  createdAt: z.date(),
+  draft: publicMapDraftSchema.nullish(),
 });
 
 export type PublicMap = z.infer<typeof publicMapSchema>;

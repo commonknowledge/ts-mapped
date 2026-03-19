@@ -1,9 +1,12 @@
+import { type SqlBool, type TraversedJSONPathBuilder, sql } from "kysely";
+
 import { db } from "@/server/services/database";
 import type { MapConfig } from "@/server/models/Map";
-import type { NewPublicMap } from "@/server/models/PublicMap";
-import type { TraversedJSONPathBuilder } from "kysely";
+import type { MapViewConfig } from "@/server/models/MapView";
+import type { PublicMapDraft } from "@/server/models/PublicMap";
 
 export function findPublicMapByHost(host: string) {
+  if (!host) return Promise.resolve(undefined);
   return db
     .selectFrom("publicMap")
     .where("host", "=", host)
@@ -44,52 +47,47 @@ export function findPublicMapByViewIdAndUserId(viewId: string, userId: string) {
     .executeTakeFirst();
 }
 
+/**
+ * Find a published public map whose dataSourceConfigs reference this
+ * dataSourceId, verifying that the dataSourceId is also present in one of
+ * map->membersDataSourceId, map->markerDataSourceIds, or view->areaDataSourceId.
+ */
 export async function findPublishedPublicMapByDataSourceId(
   dataSourceId: string,
 ) {
-  const maps = await db
-    .selectFrom("map")
-    .where(({ eb, ref }) => {
-      return eb.or([
-        eb(ref("config", "->>").key("membersDataSourceId"), "=", dataSourceId),
+  return db
+    .selectFrom("publicMap")
+    .where("published", "=", true)
+    .where(
+      sql<SqlBool>`${sql.ref("publicMap.dataSourceConfigs")} @> ${JSON.stringify([{ dataSourceId }])}::jsonb`,
+    )
+    .innerJoin("map", "map.id", "publicMap.mapId")
+    .innerJoin("mapView", "mapView.id", "publicMap.viewId")
+    .where(({ eb, ref }) =>
+      eb.or([
         eb(
-          // The typing here is weird because the "@>" operator in kysely only
-          // allows for arrays on the right-hand side, but because a JSON
-          // object is being queried, a JSON string needs to be provided
-          ref("config", "->").key(
+          ref("map.config", "->>").key("membersDataSourceId"),
+          "=",
+          dataSourceId,
+        ),
+        eb(
+          ref("map.config", "->").key(
             "markerDataSourceIds",
           ) as TraversedJSONPathBuilder<MapConfig, string>,
           "@>",
           JSON.stringify([dataSourceId]),
         ),
-      ]);
-    })
-    .select("id")
-    .execute();
-
-  if (!maps.length) {
-    return null;
-  }
-
-  return db
-    .selectFrom("publicMap")
-    .where("published", "=", true)
-    .where(
-      "mapId",
-      "in",
-      maps.map((m) => m.id),
+        eb(
+          ref("mapView.config", "->>").key(
+            "areaDataSourceId",
+          ) as TraversedJSONPathBuilder<MapViewConfig, string>,
+          "=",
+          dataSourceId,
+        ),
+      ]),
     )
-    .selectAll()
+    .selectAll("publicMap")
     .executeTakeFirst();
-}
-
-export function upsertPublicMap(publicMap: NewPublicMap) {
-  return db
-    .insertInto("publicMap")
-    .values(publicMap)
-    .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(publicMap))
-    .returningAll()
-    .executeTakeFirstOrThrow();
 }
 
 export function findPublicMapsByOrganisationId(organisationId: string) {
@@ -99,4 +97,105 @@ export function findPublicMapsByOrganisationId(organisationId: string) {
     .where("map.organisationId", "=", organisationId)
     .selectAll("publicMap")
     .execute();
+}
+
+export function saveDraft(input: {
+  id: string;
+  mapId: string;
+  viewId: string;
+  draft: PublicMapDraft;
+  listed?: boolean;
+}) {
+  return db
+    .insertInto("publicMap")
+    .values({
+      id: input.id,
+      mapId: input.mapId,
+      viewId: input.viewId,
+      host: null,
+      name: "My Public Map",
+      description: "",
+      descriptionLong: "",
+      descriptionLink: "",
+      imageUrl: "",
+      published: false,
+      listed: input.listed ?? false,
+      dataSourceConfigs: [],
+      colorScheme: "red",
+      draft: input.draft,
+    })
+    .onConflict((oc) =>
+      oc.columns(["viewId"]).doUpdateSet({
+        draft: input.draft,
+        ...(input.listed ? { listed: true } : {}),
+      }),
+    )
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function applyDraft(input: {
+  id: string;
+  mapId: string;
+  viewId: string;
+  draft: PublicMapDraft;
+}) {
+  const promoted = {
+    ...input.draft,
+    // Prevent empty host being saved
+    host: input.draft.host || null,
+    draft: null,
+    listed: true,
+  };
+
+  // Promote draft fields to the live columns and clear the draft.
+  // Upserts so the row is created if it doesn't exist yet.
+  return db
+    .insertInto("publicMap")
+    .values({
+      id: input.id,
+      mapId: input.mapId,
+      viewId: input.viewId,
+      ...promoted,
+    })
+    .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(promoted))
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function discardDraft(viewId: string) {
+  return db
+    .updateTable("publicMap")
+    .set({ draft: null })
+    .where("viewId", "=", viewId)
+    .returningAll()
+    .executeTakeFirst();
+}
+
+export function checkHostAvailability(host: string, excludeViewId?: string) {
+  if (!host) return Promise.resolve(undefined);
+  let query = db.selectFrom("publicMap").where("host", "=", host).selectAll();
+
+  if (excludeViewId) {
+    query = query.where("viewId", "!=", excludeViewId);
+  }
+
+  return query.executeTakeFirst();
+}
+
+export function deletePublicMap(publicMapId: string) {
+  return db
+    .deleteFrom("publicMap")
+    .where("id", "=", publicMapId)
+    .returningAll()
+    .executeTakeFirst();
+}
+
+export function unpublishPublicMap(publicMapId: string) {
+  return db
+    .updateTable("publicMap")
+    .set({ published: false })
+    .where("id", "=", publicMapId)
+    .returningAll()
+    .executeTakeFirst();
 }

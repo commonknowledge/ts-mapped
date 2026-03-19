@@ -1,51 +1,19 @@
 "use client";
 
-import { useAtom } from "jotai";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
-import {
-  focusedRecordAtom,
-  selectedBoundaryAtom,
-  selectedRecordsAtom,
-  selectedTurfAtom,
-} from "../atoms/inspectorAtoms";
+import { useInspectorState } from "./useInspectorState";
 import type { PropertiesListItem } from "../components/inspector/SimplePropertiesList";
-import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 import type { DataSource } from "@/server/models/DataSource";
 
-export function useInspector() {
+export function useInspectorContent() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
 
-  const [selectedRecords, _setSelectedRecords] = useAtom(selectedRecordsAtom);
-  const [focusedRecord, _setFocusedRecord] = useAtom(focusedRecordAtom);
-  const [selectedTurf, setSelectedTurf] = useAtom(selectedTurfAtom);
-  const [selectedBoundary, setSelectedBoundary] = useAtom(selectedBoundaryAtom);
-
-  // Custom setter to keep selectedRecords and focusedRecord in sync
-  const setSelectedRecords = useCallback(
-    (records: SelectedRecord[]) => {
-      _setSelectedRecords(records);
-      _setFocusedRecord(records.length ? records[0] : null);
-    },
-    [_setSelectedRecords, _setFocusedRecord],
-  );
-
-  // Custom setter to keep selectedRecords and focusedRecord in sync
-  const setFocusedRecord = useCallback(
-    (record: SelectedRecord | null) => {
-      _setFocusedRecord(record);
-      if (!record) {
-        return;
-      }
-      if (!selectedRecords.some((sr) => sr.id === record.id)) {
-        _setSelectedRecords([record]);
-      }
-    },
-    [selectedRecords, _setSelectedRecords, _setFocusedRecord],
-  );
+  const { focusedRecord, selectedTurf, selectedBoundary, selectedRecords } =
+    useInspectorState();
 
   const inspectorContent: {
     type: LayerType;
@@ -106,22 +74,5 @@ export function useInspector() {
     selectedTurf,
   ]);
 
-  const resetInspector = useCallback(() => {
-    setSelectedRecords([]);
-    setSelectedTurf(null);
-    setSelectedBoundary(null);
-  }, [setSelectedRecords, setSelectedTurf, setSelectedBoundary]);
-
-  return {
-    inspectorContent,
-    selectedRecords,
-    setSelectedRecords,
-    focusedRecord,
-    setFocusedRecord,
-    selectedTurf,
-    setSelectedTurf,
-    selectedBoundary,
-    setSelectedBoundary,
-    resetInspector,
-  };
+  return { inspectorContent };
 }

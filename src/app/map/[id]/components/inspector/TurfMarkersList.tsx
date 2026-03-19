@@ -3,14 +3,13 @@ import { useMemo } from "react";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { buildName } from "@/utils/dataRecord";
-import { getDataSourceIds } from "../../utils/map";
+import { getMarkerDataSourceIds } from "@/utils/map";
 import {
   getMarkersInsidePolygon,
   groupPlacedMarkersByFolder,
@@ -24,10 +23,10 @@ export default function TurfMarkersList() {
   const { mapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { selectedTurf } = useInspector();
+  const { selectedTurf } = useInspectorState();
   const trpc = useTRPC();
 
-  const dataSourceIds = getDataSourceIds(mapConfig);
+  const dataSourceIds = getMarkerDataSourceIds(mapConfig);
 
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
@@ -37,6 +36,8 @@ export default function TurfMarkersList() {
           filter: { type: FilterType.GEO, turf: selectedTurf?.id },
           page: 0,
         },
+        // Refetch on mount as the user may have modified the turf in between
+        // viewing its markers
         { refetchOnMount: "always" },
       ),
     ),
@@ -77,17 +78,17 @@ export default function TurfMarkersList() {
   const members = useMemo(
     () =>
       data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
+        (item) => item?.dataSource?.id === mapConfig.membersDataSourceId,
       ),
-    [data],
+    [data, mapConfig.membersDataSourceId],
   );
 
   const markers = useMemo(
     () =>
       data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+        (item) => item?.dataSource?.id !== mapConfig.membersDataSourceId,
       ),
-    [data],
+    [data, mapConfig.membersDataSourceId],
   );
 
   const turfFeature = useMemo(() => {

@@ -2,7 +2,10 @@ import { useEffect, useRef } from "react";
 import { useFillColor } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
-import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
+import {
+  useLastLoadedSourceId,
+  useMapRef,
+} from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 
 export function useChoroplethFillColor() {
@@ -24,7 +27,8 @@ export function useChoroplethFillColor() {
 
 export function useChoroplethFeatureStatesEffect() {
   const mapRef = useMapRef();
-  const { choroplethLayerConfig, lastLoadedSourceId } = useChoropleth();
+  const { choroplethLayerConfig } = useChoropleth();
+  const lastLoadedSourceId = useLastLoadedSourceId();
   const {
     mapbox: { sourceId, layerId },
   } = choroplethLayerConfig;

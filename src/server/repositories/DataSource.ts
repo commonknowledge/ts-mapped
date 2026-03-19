@@ -174,7 +174,7 @@ export async function updateColumnDefsWithEnrichment(
   const updatedColumnDefs = [...(dataSource.columnDefs ?? []), ...newDefs];
   await db
     .updateTable("dataSource")
-    .set({ columnDefs: JSON.stringify(updatedColumnDefs) as never })
+    .set({ columnDefs: updatedColumnDefs })
     .where("id", "=", dataSourceId)
     .execute();
 }

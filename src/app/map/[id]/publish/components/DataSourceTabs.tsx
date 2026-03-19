@@ -1,0 +1,216 @@
+"use client";
+
+import { Button } from "@/shadcn/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { cn } from "@/shadcn/utils";
+import { getActiveFilters } from "../filtersHelpers";
+import {
+  useFilteredRecords,
+  usePublicFilters,
+  useSetPublicFilters,
+} from "../hooks/usePublicFilters";
+import {
+  useActiveDataSourceId,
+  usePublicDataSourceIds,
+  usePublicMapValue,
+  useSetActiveDataSourceId,
+} from "../hooks/usePublicMap";
+import DataRecordsList from "./DataRecordsList";
+import DataSourcesSelect from "./DataSourcesSelect";
+import Filters from "./Filters";
+import FiltersList from "./FiltersList";
+import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
+import type { RouterOutputs } from "@/services/trpc/react";
+
+interface DataSourceTabsProps {
+  colorScheme: PublicMapColorScheme;
+  editable: boolean;
+  dataRecordsQueries: Record<
+    string,
+    {
+      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+      isPending: boolean;
+    }
+  >;
+}
+
+export default function DataSourceTabs({
+  colorScheme,
+  editable,
+  dataRecordsQueries,
+}: DataSourceTabsProps) {
+  const publicMap = usePublicMapValue();
+  const activeDataSourceId = useActiveDataSourceId();
+  const setActiveDataSourceId = useSetActiveDataSourceId();
+  const publicFilters = usePublicFilters();
+  const setPublicFilters = useSetPublicFilters();
+
+  const markerDataSourceIds = usePublicDataSourceIds();
+
+  if (!publicMap || markerDataSourceIds.length === 0) {
+    return null;
+  }
+
+  // Single data source - no tabs needed
+  if (markerDataSourceIds.length === 1) {
+    const dataSourceId = markerDataSourceIds[0];
+    const dataRecordsQuery = dataRecordsQueries[dataSourceId];
+
+    return (
+      dataRecordsQuery && (
+        <>
+          {editable && <DataSourcesSelect />}
+
+          <SingleDataSourceContent
+            dataRecordsQuery={dataRecordsQuery}
+            editable={editable}
+            colorScheme={colorScheme}
+          />
+        </>
+      )
+    );
+  }
+
+  // Multiple data sources - use tabs
+  const defaultTabId = activeDataSourceId || markerDataSourceIds[0];
+
+  const onTabChange = (id: string) => {
+    setActiveDataSourceId(id);
+    if (!publicFilters[id]) {
+      setPublicFilters({ ...publicFilters, [id]: [] });
+    }
+  };
+
+  return (
+    <Tabs value={defaultTabId} onValueChange={onTabChange} className="min-h-0">
+      <div className="flex items-center gap-2 px-4">
+        <TabsList
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: `repeat(${markerDataSourceIds.length}, 1fr)`,
+          }}
+        >
+          {markerDataSourceIds.map((id) => {
+            const dsc = publicMap.dataSourceConfigs.find(
+              (c) => c.dataSourceId === id,
+            );
+            return (
+              <TabsTrigger value={id} key={id}>
+                {dsc?.dataSourceLabel ?? id}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+        {editable && <DataSourcesSelect />}
+      </div>
+
+      {markerDataSourceIds.map((id) => {
+        const dataRecordsQuery = dataRecordsQueries[id];
+        return (
+          dataRecordsQuery && (
+            <TabsContent value={id} key={id} className="flex flex-col min-h-0">
+              <SingleDataSourceContent
+                dataRecordsQuery={dataRecordsQuery}
+                editable={editable}
+                colorScheme={colorScheme}
+              />
+            </TabsContent>
+          )
+        );
+      })}
+    </Tabs>
+  );
+}
+
+interface SingleDataSourceContentProps {
+  dataRecordsQuery: {
+    data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+    isPending: boolean;
+  };
+  editable: boolean;
+  colorScheme: PublicMapColorScheme;
+}
+
+function SingleDataSourceContent({
+  dataRecordsQuery,
+  editable,
+  colorScheme,
+}: SingleDataSourceContentProps) {
+  const filteredRecords = useFilteredRecords();
+  const publicFilters = usePublicFilters();
+  const setPublicFilters = useSetPublicFilters();
+  const publicMap = usePublicMapValue();
+
+  const dataSourceId = dataRecordsQuery.data?.id;
+  const activeFilters = getActiveFilters(
+    dataSourceId ? publicFilters[dataSourceId] : [],
+  );
+
+  const config = publicMap?.dataSourceConfigs.find(
+    (c) => c.dataSourceId === dataSourceId,
+  );
+
+  const getListingsLabel = () => {
+    if (dataRecordsQuery.isPending) {
+      return "";
+    }
+
+    if (!filteredRecords?.length) {
+      return "No matching listings";
+    }
+
+    return `${filteredRecords.length} ${filteredRecords.length === 1 ? "listing" : "listings"}`;
+  };
+
+  const resetFilters = () => {
+    if (dataSourceId) {
+      setPublicFilters({
+        ...publicFilters,
+        [dataSourceId]: [],
+      });
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col text-sm overflow-auto",
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
+      )}
+    >
+      <div className="md:sticky top-0 py-2 border-b bg-white">
+        <div className="flex justify-between items-center gap-4 px-2">
+          <Filters />
+
+          {activeFilters?.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => resetFilters()}
+            >
+              Reset
+            </Button>
+          )}
+        </div>
+
+        <FiltersList />
+        <h2 className="px-4 mt-2 text-xs">{getListingsLabel()}</h2>
+      </div>
+
+      <DataRecordsList
+        dataRecordsQuery={dataRecordsQuery}
+        colorScheme={colorScheme}
+      />
+
+      {config && config.formUrl && config.allowUserSubmit && (
+        <div className="sticky bottom-0 left-0 p-4 / bg-white">
+          <Button asChild={true} className="w-full">
+            <a href={config.formUrl} target="_blank">
+              {config.formButtonText || "Add a listing"}
+            </a>
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

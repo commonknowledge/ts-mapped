@@ -4,24 +4,24 @@ import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { getDataSourceIds } from "../utils/map";
-import { usePublicMapValue } from "../view/[viewIdOrHost]/publish/hooks/usePublicMap";
+import {
+  useIsPublicMapRoute,
+  usePublicDataSourceIds,
+} from "@/app/map/[id]/publish/hooks/usePublicMap";
+import { getMarkerDataSourceIds } from "@/utils/map";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 
 export function useMarkerQueries() {
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
-  const publicMap = usePublicMapValue();
+  const isPublicMapRoute = useIsPublicMapRoute();
+  const publicDataSourceIds = usePublicDataSourceIds();
 
   const dataSourceIds = useMemo(() => {
-    if (!publicMap) {
-      return getDataSourceIds(mapConfig);
-    }
-    // If a public map is being displayed, don't fetch markers that aren't included
-    return getDataSourceIds(mapConfig).filter((id) =>
-      publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
-    );
-  }, [mapConfig, publicMap]);
+    return isPublicMapRoute
+      ? publicDataSourceIds
+      : getMarkerDataSourceIds(mapConfig);
+  }, [mapConfig, isPublicMapRoute, publicDataSourceIds]);
 
   // Using the `combine` option in this useQueries call makes `markerQueries`
   // only update when the data updates. This prevents infinite loops
