@@ -42,7 +42,9 @@ export default function CreatePublicMapDialog({
   );
 
   const validDataSources = dataSources?.filter(
-    (ds) => ds.recordType !== DataSourceRecordType.Data,
+    (ds) =>
+      ds.recordType !== DataSourceRecordType.Data &&
+      ds.organisationId === organisationId,
   );
 
   const options: ComboboxOption[] = (validDataSources ?? []).map((ds) => ({

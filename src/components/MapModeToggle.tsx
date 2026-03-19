@@ -32,9 +32,15 @@ export default function MapModeToggle({ mode }: MapModeToggleProps) {
   );
 
   return (
-    <div className="inline-flex h-8 items-center rounded-lg bg-neutral-100 p-0.5">
+    <div
+      role="tablist"
+      aria-label="Map mode"
+      className="inline-flex h-8 items-center rounded-lg bg-neutral-100 p-0.5"
+    >
       <button
+        role="tab"
         type="button"
+        aria-selected={mode === "private"}
         onClick={() => onToggle("private")}
         className={cn(
           "inline-flex h-7 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
@@ -46,7 +52,9 @@ export default function MapModeToggle({ mode }: MapModeToggleProps) {
         Explore
       </button>
       <button
+        role="tab"
         type="button"
+        aria-selected={mode === "public"}
         onClick={() => onToggle("public")}
         className={cn(
           "inline-flex h-7 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",

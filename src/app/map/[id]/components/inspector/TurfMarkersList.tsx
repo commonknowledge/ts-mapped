@@ -6,7 +6,6 @@ import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useInspectorState } from "@/app/map/[id]/hooks/useInspectorState";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { buildName } from "@/utils/dataRecord";
@@ -79,17 +78,17 @@ export default function TurfMarkersList() {
   const members = useMemo(
     () =>
       data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
+        (item) => item?.dataSource?.id === mapConfig.membersDataSourceId,
       ),
-    [data],
+    [data, mapConfig.membersDataSourceId],
   );
 
   const markers = useMemo(
     () =>
       data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+        (item) => item?.dataSource?.id !== mapConfig.membersDataSourceId,
       ),
-    [data],
+    [data, mapConfig.membersDataSourceId],
   );
 
   const turfFeature = useMemo(() => {
