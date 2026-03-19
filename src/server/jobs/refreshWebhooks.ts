@@ -1,10 +1,10 @@
+import { DataSourceType, airtableConfigSchema } from "@/models/DataSource";
 import { AirtableAdaptor } from "@/server/adaptors/airtable";
 import {
   findDataSourceById,
   findDataSourcesByType,
 } from "@/server/repositories/DataSource";
 import { getDataSourceAdaptor } from "../adaptors";
-import { DataSourceType, airtableConfigSchema } from "../models/DataSource";
 import logger from "../services/logger";
 
 const refreshWebhooks = async (args: object | null): Promise<boolean> => {

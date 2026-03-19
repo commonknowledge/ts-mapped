@@ -3,7 +3,7 @@ import {
   resolveColumnMetadata,
   resolveColumnMetadataEntry,
 } from "@/utils/resolveColumnMetadata";
-import type { ColumnMetadata } from "@/server/models/DataSource";
+import type { ColumnMetadata } from "@/models/DataSource";
 
 const base: ColumnMetadata[] = [
   { name: "age", description: "Age of person", valueLabels: {} },

@@ -1,0 +1,186 @@
+import { Layer, Source } from "react-map-gl/mapbox";
+import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
+import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { MapType } from "@/models/MapView";
+import { mapColors } from "../../styles";
+import { getMapStyle } from "../../utils/map";
+import {
+  useChoroplethFeatureStatesEffect,
+  useChoroplethFillColor,
+} from "./useChoroplethColors";
+
+export default function Choropleth() {
+  const { viewConfig } = useMapViews();
+  const {
+    choroplethLayerConfig: {
+      mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
+    },
+  } = useChoropleth();
+  const choroplethTopLayerId = "choropleth-top";
+
+  // Custom hooks for effects
+  const fillColor = useChoroplethFillColor();
+
+  const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
+
+  const interactionSourceId = `${sourceId}-interaction`;
+  const interactionSourceKey = `${layerId}-interaction`;
+
+  useChoroplethFeatureStatesEffect();
+
+  return (
+    <>
+      {/* Position layer */}
+      <Source
+        id={choroplethTopLayerId}
+        key={choroplethTopLayerId}
+        type="geojson"
+        data={{ type: "FeatureCollection", features: [] }}
+      >
+        <Layer
+          id={choroplethTopLayerId}
+          source={choroplethTopLayerId}
+          type="circle"
+        />
+        <Layer
+          id={`${choroplethTopLayerId}-line`}
+          source={choroplethTopLayerId}
+          type="circle"
+        />
+      </Source>
+      {viewConfig.areaSetGroupCode && (
+        <Source
+          id={sourceId}
+          key={layerId}
+          promoteId={featureCodeProperty}
+          type="vector"
+          url={`mapbox://${sourceId}`}
+        >
+          {/* Fill Layer - only show for choropleth */}
+          <Layer
+            id={`${sourceId}-fill`}
+            beforeId={choroplethTopLayerId}
+            source={sourceId}
+            source-layer={layerId}
+            type="fill"
+            paint={{
+              "fill-color": fillColor,
+              "fill-opacity": viewConfig.showChoropleth ? opacity : 0,
+            }}
+          />
+
+          {/* Symbol Layer (Labels) */}
+          {viewConfig.mapType !== MapType.Hex && viewConfig.showLabels && (
+            <Layer
+              id={`${sourceId}-labels`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="symbol"
+              layout={{
+                "symbol-placement": "point",
+                "text-field": ["get", featureNameProperty],
+                "text-size": 14,
+                "text-anchor": "center",
+                "text-allow-overlap": false,
+                "symbol-spacing": 100,
+                "text-max-width": 8,
+                "text-padding": 30,
+                "text-transform": "uppercase",
+                "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              }}
+              paint={{
+                "text-color": getMapStyle(viewConfig).textColor,
+                "text-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  8,
+                  0.8,
+                  10,
+                  0.8,
+                ],
+                "text-halo-color": getMapStyle(viewConfig).textHaloColor,
+                "text-halo-width": 1.5,
+              }}
+            />
+          )}
+        </Source>
+      )}
+      {/* Separate the selected/hover state into a separate source for much better performance */}
+      {/* Mapbox is very slow at updating feature state when all features have state, e.g. in the case of a choropleth */}
+      {viewConfig.areaSetGroupCode && (
+        <Source
+          id={interactionSourceId}
+          key={interactionSourceKey}
+          promoteId={featureCodeProperty}
+          type="vector"
+          url={`mapbox://${sourceId}`}
+        >
+          {/* Line Layer - show for both boundary-only and choropleth */}
+          <Layer
+            id={`${sourceId}-line`}
+            beforeId={`${choroplethTopLayerId}-line`}
+            source={interactionSourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": [
+                "case",
+                // Blue-green for both selected and active
+                [
+                  "all",
+                  ["==", ["feature-state", "active"], true],
+                  ["==", ["feature-state", "selected"], true],
+                ],
+                "#3693B1",
+                // Blue for active (inspecting)
+                ["==", ["feature-state", "active"], true],
+                "#3b82f6",
+                // Green for selected (comparing)
+                ["==", ["feature-state", "selected"], true],
+                mapColors.geography.color,
+                "#999",
+              ],
+              "line-width": [
+                "case",
+                [
+                  "any",
+                  ["==", ["feature-state", "active"], true],
+                  ["==", ["feature-state", "selected"], true],
+                ],
+                3,
+                1,
+              ],
+              "line-opacity": 1,
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
+          <Layer
+            id={`${sourceId}-hover-overlay`}
+            beforeId={choroplethTopLayerId}
+            source={interactionSourceId}
+            source-layer={layerId}
+            type="fill"
+            paint={{
+              "fill-color": "#000000",
+              "fill-opacity": viewConfig.showChoropleth
+                ? [
+                    "case",
+                    ["boolean", ["feature-state", "hover"], false],
+                    // When hovering, apply darkness
+                    0.25,
+                    // Otherwise completely transparent
+                    0,
+                  ]
+                : 0,
+            }}
+          />
+        </Source>
+      )}
+    </>
+  );
+}

@@ -1,15 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
-import importDataSource from "@/server/jobs/importDataSource";
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 
 import {
   ColumnType,
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
-import { CalculationType, FilterType } from "@/server/models/MapView";
+} from "@/models/DataSource";
+import { CalculationType, FilterType } from "@/models/MapView";
+import importDataSource from "@/server/jobs/importDataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,

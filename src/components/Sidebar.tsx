@@ -36,7 +36,7 @@ export default function Sidebar() {
     ? [
         {
           label: "Private maps",
-          href: "/dashboard",
+          href: "/maps",
           icon: <LockIcon className="w-4 h-4" />,
         },
         {
@@ -53,7 +53,7 @@ export default function Sidebar() {
     : [
         {
           label: "Recent maps",
-          href: "/dashboard",
+          href: "/maps",
           icon: <Clock2 className="w-4 h-4" />,
         },
         {
@@ -83,7 +83,7 @@ export default function Sidebar() {
     <div className="w-64 h-screen bg-primary-foreground border-r border-neutral-200 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-neutral-200 flex justify-between items-center gap-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/maps" className="flex items-center gap-2">
           <Image
             src="/logo-full-lock-up.svg"
             alt="Mapped"

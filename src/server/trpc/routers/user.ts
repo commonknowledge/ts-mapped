@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { passwordSchema, userSchema } from "@/server/models/User";
+import { passwordSchema, userSchema } from "@/models/User";
 import { listUsers, updateUser } from "@/server/repositories/User";
 import { verifyPassword } from "@/server/utils/auth";
 import { protectedProcedure, router, superadminProcedure } from "../index";

@@ -5,8 +5,8 @@ import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord"
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { canReadDataSource } from "@/server/utils/auth";
 import { buildName } from "@/utils/dataRecord";
-import type { DataRecord } from "@/server/models/DataRecord";
-import type { RecordFilterInput } from "@/server/models/MapView";
+import type { DataRecord } from "@/models/DataRecord";
+import type { RecordFilterInput } from "@/models/MapView";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 import type { NextRequest } from "next/server";
 

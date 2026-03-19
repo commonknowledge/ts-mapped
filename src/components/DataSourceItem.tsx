@@ -2,7 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Database, RefreshCw } from "lucide-react";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { cn } from "@/shadcn/utils";
-import type { DataSourceType } from "@/server/models/DataSource";
+import type { DataSourceType } from "@/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export type DataSourceWithImportInfo = NonNullable<

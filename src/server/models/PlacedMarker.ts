@@ -1,18 +1,6 @@
-import z from "zod";
-import { pointSchema } from "./shared";
+import type { PlacedMarker } from "@/models/PlacedMarker";
 import type { Generated, Insertable, Updateable } from "kysely";
 
-export const placedMarkerSchema = z.object({
-  id: z.string(),
-  mapId: z.string(),
-  label: z.string(),
-  notes: z.string(),
-  point: pointSchema,
-  folderId: z.string().nullish(),
-  position: z.number(),
-});
-
-export type PlacedMarker = z.infer<typeof placedMarkerSchema>;
 export type PlacedMarkerTable = PlacedMarker & {
   id: Generated<string>;
 };

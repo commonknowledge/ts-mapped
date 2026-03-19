@@ -1,5 +1,5 @@
 import { File } from "lucide-react";
-import { DataSourceType } from "@/server/models/DataSource";
+import { DataSourceType } from "@/models/DataSource";
 
 const AirtableIconSVG = () => {
   return (

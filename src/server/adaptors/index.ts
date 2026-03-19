@@ -1,11 +1,11 @@
+import { DataSourceType } from "@/models/DataSource";
 import logger from "@/server/services/logger";
-import { DataSourceType } from "../models/DataSource";
 import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
 import { MailchimpAdaptor } from "./mailchimp";
-import type { DataSourceConfig } from "../models/DataSource";
+import type { DataSourceConfig } from "@/models/DataSource";
 
 export const getDataSourceAdaptor = (dataSource: {
   id: string;

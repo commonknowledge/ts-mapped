@@ -1,7 +1,7 @@
 import { describe, expect, inject, test } from "vitest";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
+import { ColumnType } from "@/models/DataSource";
 import { MailchimpAdaptor } from "@/server/adaptors/mailchimp";
-import { ColumnType } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { sleep } from "@/utils/async";

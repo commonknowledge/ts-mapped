@@ -2,11 +2,6 @@ import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { ENRICHMENT_COLUMN_PREFIX, GE_DATA_SOURCE_NAME } from "@/constants";
-import { getDataSourceAdaptor } from "@/server/adaptors";
-import {
-  getEnrichedColumn,
-  removeEnrichmentColumnsFromDataSource,
-} from "@/server/mapping/enrich";
 import {
   ColumnType,
   DataSourceType,
@@ -14,8 +9,13 @@ import {
   GeocodingType,
   columnMetadataSchema,
   dataSourceSchema,
-} from "@/server/models/DataSource";
-import { dataSourceViewSchema } from "@/server/models/MapView";
+} from "@/models/DataSource";
+import { dataSourceViewSchema } from "@/models/MapView";
+import { getDataSourceAdaptor } from "@/server/adaptors";
+import {
+  getEnrichedColumn,
+  removeEnrichmentColumnsFromDataSource,
+} from "@/server/mapping/enrich";
 import {
   findColumnMetadataOverridesByOrg,
   upsertColumnMetadataOverride,
@@ -49,8 +49,9 @@ import {
   protectedProcedure,
   router,
 } from "../index";
+import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
-import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
+import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
   listForMapView: mapReadProcedure

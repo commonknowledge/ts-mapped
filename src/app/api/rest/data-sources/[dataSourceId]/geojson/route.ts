@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import z from "zod";
-import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
+import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
 import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
-import type { DataRecord } from "@/server/models/DataRecord";
+import type { DataRecord } from "@/models/DataRecord";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import type { NextRequest } from "next/server";
 

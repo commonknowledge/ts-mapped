@@ -1,5 +1,5 @@
 import z from "zod";
-import { folderSchema } from "@/server/models/Folder";
+import { folderSchema } from "@/models/Folder";
 import { deleteFolder, upsertFolder } from "@/server/repositories/Folder";
 import { deletePlacedMarkersByFolderId } from "@/server/repositories/PlacedMarker";
 import { deleteTurfsByFolderId } from "@/server/repositories/Turf";

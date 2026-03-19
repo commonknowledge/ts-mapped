@@ -8,7 +8,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "../models/DataRecord";
+import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface MergeField {

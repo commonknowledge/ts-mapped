@@ -3,7 +3,7 @@ import {
   DATA_RECORDS_JOB_BATCH_SIZE,
   ENRICHMENT_COLUMN_PREFIX,
 } from "@/constants";
-import { ColumnType } from "@/server/models/DataSource";
+import { ColumnType } from "@/models/DataSource";
 import {
   findAirtableWebhookById,
   upsertAirtableWebhook,
@@ -12,7 +12,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "../models/DataRecord";
+import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {

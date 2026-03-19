@@ -1,0 +1,102 @@
+"use client";
+
+import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
+import { cn } from "@/shadcn/utils";
+import {
+  useColorScheme,
+  useEditable,
+  usePublicMapValue,
+  useSetSearchLocation,
+} from "../hooks/usePublicMap";
+import DataRecordSidebar from "./DataRecordSidebar";
+import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
+import PublicMapDescriptionDialog from "./PublicMapDescriptionDialog";
+import PublicMapGeocoder from "./PublicMapGeocoder";
+import { PublicMapListings } from "./PublicMapListings";
+
+export default function PublicMapSidebar() {
+  const publicMap = usePublicMapValue();
+  const editable = useEditable();
+  const setSearchLocation = useSetSearchLocation();
+  const colorScheme = useColorScheme();
+
+  // Convert string colorScheme to actual color scheme object
+  const activeColorScheme =
+    publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
+
+  // Should never happen
+  if (!publicMap) {
+    return;
+  }
+
+  return (
+    <div
+      className={cn(
+        "absolute top-0 left-0 bottom-0 z-100 bg-white flex md:top-[var(--navbar-height)] w-full md:w-auto",
+      )}
+    >
+      <div className="flex flex-col h-full w-full md:w-[300px] border-r border-neutral-200">
+        {/* Header */}
+        <div className="hidden md:flex flex-col gap-2 border-b border-neutral-200">
+          <div
+            style={{
+              backgroundColor:
+                activeColorScheme.secondaryMuted ||
+                activeColorScheme.primaryMuted,
+            }}
+            className="p-4 flex flex-col items-start gap-4"
+          >
+            <div className="flex flex-col w-full items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <EditablePublicMapProperty
+                  property="name"
+                  placeholder="Map name"
+                >
+                  <h1 className="text-2xl font-medium leading-tight text-balance tracking-tight">
+                    {publicMap.name}
+                  </h1>
+                </EditablePublicMapProperty>
+              </div>
+            </div>
+            {editable ? (
+              <div className="flex flex-col gap-1">
+                <EditablePublicMapProperty
+                  property="description"
+                  placeholder="Map description"
+                >
+                  <p>
+                    {publicMap.description || (
+                      <span className="text-sm text-neutral-500 italic">
+                        Add a description to your map
+                      </span>
+                    )}
+                  </p>
+                </EditablePublicMapProperty>
+              </div>
+            ) : publicMap.description ? (
+              <p className="text-sm">{publicMap.description}</p>
+            ) : (
+              <></>
+            )}
+
+            {(Boolean(publicMap.descriptionLong) ||
+              Boolean(publicMap.descriptionLink)) && (
+              <PublicMapDescriptionDialog
+                contactLink={publicMap.descriptionLink}
+                description={publicMap.descriptionLong}
+              />
+            )}
+
+            <PublicMapGeocoder
+              onGeocode={(p) => setSearchLocation(p)}
+              colorScheme={activeColorScheme}
+            />
+          </div>
+        </div>
+        <PublicMapListings />
+      </div>
+
+      <DataRecordSidebar />
+    </div>
+  );
+}

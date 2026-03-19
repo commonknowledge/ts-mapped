@@ -9,8 +9,8 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import type { ColumnDef } from "@/server/models/DataSource";
-import type { DataSource } from "@/server/models/DataSource";
+import type { ColumnDef } from "@/models/DataSource";
+import type { DataSource } from "@/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
 const enrichDataSource = async (args: object | null): Promise<boolean> => {

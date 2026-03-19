@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
+import { organisationSchema } from "@/models/Organisation";
 import Invite from "@/server/emails/Invite";
 import InviteExistingUser from "@/server/emails/InviteExistingUser";
-import { organisationSchema } from "@/server/models/Organisation";
 import {
   createInvitation,
   findAndUseInvitation,

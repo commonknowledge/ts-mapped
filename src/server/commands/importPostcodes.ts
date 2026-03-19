@@ -1,7 +1,7 @@
 import fs from "fs";
 import { join } from "path";
 import { sql } from "kysely";
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 import {
   createAreaSet,
   findAreaSetByCode,

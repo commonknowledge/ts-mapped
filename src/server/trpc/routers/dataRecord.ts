@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { AreaSetCode } from "@/server/models/AreaSet";
-import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
-import { pointSchema } from "@/server/models/shared";
+import { AreaSetCode } from "@/models/AreaSet";
+import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
+import { pointSchema } from "@/models/shared";
 import {
   findAreaByCode,
   findAreasByPoint,

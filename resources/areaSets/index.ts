@@ -1,4 +1,4 @@
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 
 export interface AreaSetMetadata {
   code: AreaSetCode;

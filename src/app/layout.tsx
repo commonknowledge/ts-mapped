@@ -11,7 +11,7 @@ import { TRPCReactProvider } from "@/services/trpc/react";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
 import { getAbsoluteUrl } from "@/utils/appUrl";
-import type { Organisation } from "@/server/models/Organisation";
+import type { Organisation } from "@/models/Organisation";
 import type { Metadata, Viewport } from "next";
 import "nprogress/nprogress.css";
 import "./global.css";

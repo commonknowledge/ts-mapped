@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { decodeJWT } from "./auth/jwt";
-import { DEV_NEXT_PUBLIC_BASE_URL } from "./constants";
+import { DEFAULT_AUTH_REDIRECT, DEV_NEXT_PUBLIC_BASE_URL } from "./constants";
 import type { NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
@@ -20,9 +20,9 @@ export async function proxy(request: NextRequest) {
     }
 
     const jwt = await decodeJWT();
-    // Redirect to dashboard if user is authenticated
+    // Redirect from / to dashboard (/maps at time of writing) if user is authenticated
     if (typeof jwt?.decoded === "object" && jwt?.decoded && jwt.decoded.id) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL(DEFAULT_AUTH_REDIRECT, request.url));
     }
   }
 

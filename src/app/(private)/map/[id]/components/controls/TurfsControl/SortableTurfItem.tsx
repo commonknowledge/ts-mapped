@@ -1,0 +1,243 @@
+"use client";
+
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import * as turfLib from "@turf/turf";
+import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import { Button } from "@/shadcn/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/shadcn/ui/context-menu";
+import { Input } from "@/shadcn/ui/input";
+import { LayerType } from "@/types";
+import { useMapConfig } from "../../../hooks/useMapConfig";
+import { useShowControls } from "../../../hooks/useMapControls";
+import { useMapRef } from "../../../hooks/useMapCore";
+import { useTurfMutations } from "../../../hooks/useTurfMutations";
+import { useTurfState } from "../../../hooks/useTurfState";
+import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
+import ControlEditForm from "../ControlEditForm";
+import ControlWrapper from "../ControlWrapper";
+import type { Turf } from "@/models/Turf";
+
+export default function SortableTurfItem({
+  turf,
+  activeId,
+  setKeyboardCapture,
+}: {
+  turf: Turf;
+  activeId: string | null;
+  setKeyboardCapture: (captured: boolean) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `item-${turf.id}` });
+
+  const mapRef = useMapRef();
+  const showControls = useShowControls();
+  const { getTurfVisibility, setTurfVisibility } = useTurfState();
+  const { updateTurf, deleteTurf } = useTurfMutations();
+
+  const [isEditing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(turf.label);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { mapConfig } = useMapConfig();
+
+  // Check if this turf is the one being dragged
+  const isCurrentlyDragging = isDragging || activeId === `item-${turf.id}`;
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isCurrentlyDragging ? 0.3 : 1,
+  };
+
+  const currentColor =
+    turf.color ?? mapConfig.turfColor ?? mapColors.areas.color;
+
+  const handleColorChange = (color: string) => {
+    updateTurf({ ...turf, color });
+  };
+
+  const handleFlyTo = (turf: Turf) => {
+    const map = mapRef?.current;
+    if (!map || isCurrentlyDragging || isEditing) return;
+
+    // the bounding box of the polygon
+    const bbox = turfLib.bbox(turf.polygon);
+    const padding = 20;
+
+    map.fitBounds(
+      [
+        [bbox[0], bbox[1]], // southwest corner
+        [bbox[2], bbox[3]], // northeast corner
+      ],
+      {
+        padding: {
+          left: showControls ? CONTROL_PANEL_WIDTH + padding : padding,
+          top: padding,
+          right: padding,
+          bottom: padding,
+        },
+        duration: 1000,
+      },
+    );
+  };
+
+  const isVisible = getTurfVisibility(turf.id);
+
+  // Update editText when turf.label changes
+  useEffect(() => {
+    setEditText(turf.label);
+  }, [turf.label]);
+
+  const onEdit = () => {
+    setEditText(turf.label);
+    setEditing(true);
+    setKeyboardCapture(true);
+  };
+
+  const onSubmit = () => {
+    if (editText.trim() && editText !== turf.label) {
+      updateTurf({ ...turf, label: editText.trim() });
+      toast.success("Area renamed successfully");
+    }
+    setEditing(false);
+    setKeyboardCapture(false);
+  };
+
+  const handleDelete = () => {
+    deleteTurf(turf.id);
+    setShowDeleteDialog(false);
+    toast.success("Area deleted successfully");
+  };
+
+  return (
+    <>
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing w-full"
+      >
+        <ControlWrapper
+          name={turf.label}
+          layerType={LayerType.Turf}
+          isVisible={isVisible}
+          onVisibilityToggle={() => setTurfVisibility(turf.id, !isVisible)}
+          color={currentColor}
+        >
+          {isEditing ? (
+            <ControlEditForm
+              initialValue={editText}
+              onChange={setEditText}
+              onSubmit={onSubmit}
+            />
+          ) : (
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                  onClick={() => handleFlyTo(turf)}
+                  onContextMenu={(e) => {
+                    if (isCurrentlyDragging) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                </button>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={onEdit}>
+                  <PencilIcon size={12} />
+                  Rename
+                </ContextMenuItem>
+                <ContextMenuItem
+                  onClick={() => setTurfVisibility(turf.id, !isVisible)}
+                >
+                  {isVisible ? (
+                    <>
+                      <EyeOffIcon size={12} />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <EyeIcon size={12} />
+                      Show
+                    </>
+                  )}
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                    Area colour
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0 relative"
+                      style={{ backgroundColor: currentColor }}
+                    >
+                      <input
+                        type="color"
+                        value={currentColor}
+                        onChange={(e) => handleColorChange(e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        title="Choose area colour"
+                      />
+                    </div>
+                    <Input
+                      type="text"
+                      value={currentColor}
+                      onChange={(e) => handleColorChange(e.target.value)}
+                      className="h-6 w-24 text-xs"
+                      placeholder={mapColors.areas.color}
+                    />
+                  </div>
+                  {turf.color && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full text-xs h-7"
+                      onClick={() => updateTurf({ ...turf, color: null })}
+                    >
+                      Reset to default
+                    </Button>
+                  )}
+                </div>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <TrashIcon size={12} />
+                  Delete
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          )}
+        </ControlWrapper>
+      </div>
+
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        description={`This action cannot be undone. This will permanently delete the area "${turf.label || `Area: ${turf.area?.toFixed(2)}m²`}".`}
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+}

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { DataSourceRecordType } from "@/server/models/DataSource";
-import { publicMapDraftSchema } from "@/server/models/PublicMap";
+import { DataSourceRecordType } from "@/models/DataSource";
+import { publicMapDraftSchema } from "@/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { createMap, updateMap } from "@/server/repositories/Map";
 import {

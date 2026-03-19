@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Link } from "@/components/Link";
+import { DEFAULT_AUTH_REDIRECT } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -29,7 +30,7 @@ export default function InvitePage() {
     trpc.auth.confirmInvite.mutationOptions({
       onSuccess: () => {
         // eslint-disable-next-line react-hooks/immutability
-        window.location.href = "/dashboard";
+        window.location.href = DEFAULT_AUTH_REDIRECT;
       },
       onError: (error) => {
         setError(error.message);

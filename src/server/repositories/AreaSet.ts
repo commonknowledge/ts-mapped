@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { AreaSetCode } from "@/models/AreaSet";
 import type { NewAreaSet } from "@/server/models/AreaSet";
 
 export async function findAreaSetByCode(code: AreaSetCode) {

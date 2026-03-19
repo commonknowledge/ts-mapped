@@ -4,9 +4,9 @@ import { JWTExpired } from "jose/errors";
 import { NoResultError } from "kysely";
 import { cookies } from "next/headers";
 import z from "zod";
+import { passwordSchema } from "@/models/User";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/ForgotPassword";
-import { passwordSchema } from "@/server/models/User";
 import {
   findAndUseInvitation,
   updateInvitation,

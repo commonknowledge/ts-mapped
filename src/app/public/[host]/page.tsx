@@ -1,7 +1,7 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
-import MapJotaiProvider from "@/app/map/[id]/providers/MapJotaiProvider";
-import PublicMapOverlay from "@/app/map/[id]/publish/components/PublicMapOverlay";
+import MapJotaiProvider from "@/app/(private)/map/[id]/providers/MapJotaiProvider";
+import PublicMapOverlay from "@/app/(private)/map/[id]/publish/components/PublicMapOverlay";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import type { Metadata } from "next";
 

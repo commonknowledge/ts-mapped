@@ -9,7 +9,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { batchAsync } from "../utils";
 import { enrichBatch } from "./enrichDataSource";
-import type { ColumnDef } from "@/server/models/DataSource";
+import type { ColumnDef } from "@/models/DataSource";
 
 const enrichDataRecords = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {

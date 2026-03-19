@@ -1,12 +1,12 @@
 import { stringify } from "csv-stringify/sync";
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
+import { DataSourceType } from "@/models/DataSource";
 import { getEnrichedColumn } from "@/server/mapping/enrich";
-import { DataSourceType } from "@/server/models/DataSource";
 import { streamOrderedDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
-import type { DataRecord } from "@/server/models/DataRecord";
+import type { DataRecord } from "@/models/DataRecord";
 import type { NextRequest } from "next/server";
 
 function sanitizeFilenameForHeader(filename: string): {

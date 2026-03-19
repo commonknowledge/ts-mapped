@@ -1,10 +1,10 @@
 import { describe, expect, inject, test } from "vitest";
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 import {
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
+} from "@/models/DataSource";
 import {
   findDataRecordsByDataSource,
   markDataRecordsAsDirty,

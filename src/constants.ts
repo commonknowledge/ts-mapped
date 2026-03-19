@@ -10,6 +10,8 @@ export const DATA_SOURCE_JOB_BATCH_SIZE = 100;
 // importDataRecords / enrichDataRecords code (no pagination)
 export const DATA_RECORDS_JOB_BATCH_SIZE = 100;
 
+export const DEFAULT_AUTH_REDIRECT = "/maps";
+
 export const DEFAULT_ZOOM = 5;
 
 export const DEFAULT_CUSTOM_COLOR = "#3b82f6";

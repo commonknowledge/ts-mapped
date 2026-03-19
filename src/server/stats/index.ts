@@ -1,13 +1,13 @@
 import { sql } from "kysely";
 import { MAX_COLUMN_KEY } from "@/constants";
+import { ColumnType } from "@/models/DataSource";
+import { CalculationType } from "@/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { ColumnType } from "../models/DataSource";
-import { CalculationType } from "../models/MapView";
-import type { AreaStat, BoundingBox } from "../models/Area";
-import type { AreaSetCode } from "../models/AreaSet";
-import type { DataSource } from "../models/DataSource";
+import type { AreaStat, BoundingBox } from "@/models/Area";
+import type { AreaSetCode } from "@/models/AreaSet";
+import type { DataSource } from "@/models/DataSource";
 import type { Database } from "@/server/services/database";
 import type { CaseBuilder, CaseWhenBuilder } from "kysely";
 
