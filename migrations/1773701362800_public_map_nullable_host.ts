@@ -31,7 +31,7 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropIndex("public_map_host_key").execute();
 
   // Convert NULLs back to empty strings
-  await sql`UPDATE "publicMap" SET "host" = '' WHERE "host" IS NULL`.execute(
+  await sql`UPDATE "public_map" SET "host" = '' WHERE "host" IS NULL`.execute(
     db,
   );
 
