@@ -16,6 +16,7 @@ import {
   saveDraft,
   unpublishPublicMap,
 } from "@/server/repositories/PublicMap";
+import { canReadDataSource } from "@/server/utils/auth";
 import {
   mapWriteProcedure,
   organisationProcedure,
@@ -28,11 +29,19 @@ export const publicMapRouter = router({
   list: organisationProcedure.query(async ({ ctx }) => {
     return findPublicMapsByOrganisationId(ctx.organisation.id);
   }),
+  // TODO: verify that the user has access to the provided data source
   create: organisationProcedure
     .input(z.object({ dataSourceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const dataSource = await findDataSourceById(input.dataSourceId);
       if (!dataSource) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Data source not found",
+        });
+      }
+      const canRead = await canReadDataSource(dataSource, ctx.user.id);
+      if (!canRead) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Data source not found",
