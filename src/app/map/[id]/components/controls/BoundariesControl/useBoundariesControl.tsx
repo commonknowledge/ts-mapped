@@ -19,7 +19,8 @@ export function useBoundariesControl() {
   const { data: allDataSources } = useDataSources();
 
   const voteShareDataSource = useMemo(
-    () => allDataSources?.find((ds) => ds.name === "2024 GE Results"),
+    () =>
+      allDataSources?.find((ds) => ds.name === "2024 General Election Results"),
     [allDataSources],
   );
 

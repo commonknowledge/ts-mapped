@@ -18,7 +18,7 @@ export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 
 export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";
 
-export const GE_DATA_SOURCE_NAME = "2024 GE Results";
+export const GE_DATA_SOURCE_NAME = "2024 General Election Results";
 
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";

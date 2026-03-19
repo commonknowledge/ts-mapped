@@ -36,7 +36,7 @@ const MEMBERS_DATA_SOURCE_NAME = "Sample Members";
 /**
  * Ensures that a map called "Sample Map" exists for
  * the provided organisation, with the choropleth visualisation set
- * to display the 2024 GE results.
+ * to display the 2024 General Election Results.
  *
  * This file also includes the logic to ensure the data source exists,
  * and should be revisited when work on the movement library begins.
