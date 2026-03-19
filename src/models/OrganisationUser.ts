@@ -1,4 +1,5 @@
 import z from "zod";
+
 export const organisationUserSchema = z.object({
   id: z.number(),
   organisationId: z.string(),

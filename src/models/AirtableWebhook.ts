@@ -1,4 +1,5 @@
 import z from "zod";
+
 export const airtableWebhookSchema = z.object({
   id: z.string(),
   cursor: z.number(),

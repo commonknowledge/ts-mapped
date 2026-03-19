@@ -1,4 +1,5 @@
 import z from "zod";
+
 export enum MarkerDisplayMode {
   Clusters = "clusters",
   Heatmap = "heatmap",

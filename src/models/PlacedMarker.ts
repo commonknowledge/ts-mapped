@@ -1,5 +1,6 @@
 import z from "zod";
 import { pointSchema } from "./shared";
+
 export const placedMarkerSchema = z.object({
   id: z.string(),
   mapId: z.string(),

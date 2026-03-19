@@ -1,4 +1,5 @@
 import { cn } from "@/shadcn/utils";
+
 export default function Prose({
   children,
   className,

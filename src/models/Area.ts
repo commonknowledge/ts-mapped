@@ -1,4 +1,5 @@
 import z from "zod";
+
 export const areaGeographySchema = z.union([
   z.object({
     type: z.literal("Polygon"),

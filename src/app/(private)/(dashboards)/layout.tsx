@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Mapped - Dashboard",
 };
 
-export default async function PrivateLayout({
+export default function PrivateLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

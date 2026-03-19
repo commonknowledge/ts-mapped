@@ -2,6 +2,7 @@ import z from "zod";
 import { pointSchema } from "./shared";
 import type { ColumnDef } from "./DataSource";
 import type { ExternalRecord } from "@/types";
+
 export interface EnrichedRecord {
   externalRecord: ExternalRecord;
   columns: {

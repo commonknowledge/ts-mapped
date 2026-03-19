@@ -34,6 +34,7 @@ const eslintConfig = defineConfig([
           ],
         },
       ],
+      "import/newline-after-import": "error",
       "import/no-unresolved": "off",
       "react-hooks/set-state-in-effect": "off",
       "sort-imports": [

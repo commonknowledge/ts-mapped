@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 export const invitationSchema = z.object({
   id: z.string(),
   email: z.string().email().trim().toLowerCase(),

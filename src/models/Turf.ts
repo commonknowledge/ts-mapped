@@ -1,4 +1,5 @@
 import z from "zod";
+
 export const polygonSchema = z.object({
   bbox: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   type: z.literal("Polygon"),

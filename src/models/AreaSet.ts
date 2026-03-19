@@ -1,4 +1,5 @@
 import z from "zod";
+
 export enum AreaSetCode {
   PC = "PC",
   WMC24 = "WMC24",
