@@ -1,5 +1,3 @@
-import { getServerSession } from "@/auth";
-import { redirectToLogin } from "@/auth/redirectToLogin";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import Sidebar from "@/components/Sidebar";
 import type { Metadata } from "next";
@@ -13,10 +11,6 @@ export default async function PrivateLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const serverSession = await getServerSession();
-  if (!serverSession.currentUser) {
-    await redirectToLogin();
-  }
   return (
     <DesktopOnly>
       <div className="flex h-screen">

@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
     }
 
     const jwt = await decodeJWT();
-    // Redirect to dashboard if user is authenticated
+    // Redirect from / to dashboard (/maps at time of writing) if user is authenticated
     if (typeof jwt?.decoded === "object" && jwt?.decoded && jwt.decoded.id) {
       return NextResponse.redirect(new URL(DEFAULT_AUTH_REDIRECT, request.url));
     }
