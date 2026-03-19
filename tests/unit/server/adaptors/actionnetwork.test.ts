@@ -1,7 +1,7 @@
 import { expect, inject, test } from "vitest";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
+import { ColumnType } from "@/models/DataSource";
 import { ActionNetworkAdaptor } from "@/server/adaptors/actionnetwork";
-import { ColumnType } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
 const credentials = inject("credentials");

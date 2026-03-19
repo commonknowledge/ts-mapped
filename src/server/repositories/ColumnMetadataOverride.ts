@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { ColumnMetadata } from "@/server/models/DataSource";
+import type { ColumnMetadata } from "@/models/DataSource";
 
 export async function findColumnMetadataOverride(
   organisationId: string,

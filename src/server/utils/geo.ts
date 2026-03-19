@@ -1,4 +1,4 @@
-import type { Point } from "../models/shared";
+import type { Point } from "@/models/shared";
 
 export const geojsonPointToPoint = (
   geojson: string | undefined,

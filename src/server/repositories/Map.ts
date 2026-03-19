@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { MapConfig } from "@/server/models/Map";
+import type { MapConfig } from "@/models/Map";
 import type { MapUpdate } from "@/server/models/Map";
 
 const createBlankConfig = (): MapConfig => {

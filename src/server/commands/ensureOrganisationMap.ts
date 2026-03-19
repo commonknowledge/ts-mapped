@@ -1,10 +1,16 @@
 import { ADMIN_ORGANISATION_NAME, GE_DATA_SOURCE_NAME } from "@/constants";
-import importDataSource from "@/server/jobs/importDataSource";
+import { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
 import {
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
+} from "@/models/DataSource";
+import {
+  ColorScheme,
+  DEFAULT_CALCULATION_TYPE,
+  MapStyleName,
+} from "@/models/MapView";
+import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,
   findCSVDataSourceByUrlAndOrg,
@@ -19,16 +25,10 @@ import {
   upsertMapView,
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { AreaSetCode, AreaSetGroupCode } from "../models/AreaSet";
-import {
-  ColorScheme,
-  DEFAULT_CALCULATION_TYPE,
-  MapStyleName,
-} from "../models/MapView";
 import { countDataRecordsForDataSource } from "../repositories/DataRecord";
-import type { MapView } from "../models/MapView";
-import type { DataSource } from "@/server/models/DataSource";
-import type { Map } from "@/server/models/Map";
+import type { DataSource } from "@/models/DataSource";
+import type { Map } from "@/models/Map";
+import type { MapView } from "@/models/MapView";
 
 const MAP_NAME = "Sample Map";
 const MEMBERS_DATA_SOURCE_NAME = "Sample Members";

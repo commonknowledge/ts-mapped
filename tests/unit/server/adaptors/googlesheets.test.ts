@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, inject, test } from "vitest";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
+import { ColumnType } from "@/models/DataSource";
 import {
   GoogleSheetsAdaptor,
   escapeSheetNameForFormula,
 } from "@/server/adaptors/googlesheets";
-import { ColumnType } from "@/server/models/DataSource";
 import { getPublicUrl } from "@/server/services/urls";
 
 const credentials = inject("credentials");

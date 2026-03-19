@@ -1,5 +1,5 @@
 import z from "zod";
-import { turfSchema } from "@/server/models/Turf";
+import { turfSchema } from "@/models/Turf";
 import { deleteTurf, upsertTurf } from "@/server/repositories/Turf";
 import { mapWriteProcedure, router } from "..";
 

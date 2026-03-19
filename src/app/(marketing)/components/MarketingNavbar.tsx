@@ -92,9 +92,9 @@ export const MarketingNavbar = ({
         </div>
 
         {currentUser ? (
-          <Link href="/dashboard" className="hidden md:block">
+          <Link href="/maps" className="hidden md:block">
             <Button size="sm" className="text-xs md:text-sm">
-              Dashboard
+              Maps
             </Button>
           </Link>
         ) : (

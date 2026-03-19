@@ -1,9 +1,9 @@
 import { type SqlBool, type TraversedJSONPathBuilder, sql } from "kysely";
 
 import { db } from "@/server/services/database";
-import type { MapConfig } from "@/server/models/Map";
-import type { MapViewConfig } from "@/server/models/MapView";
-import type { PublicMapDraft } from "@/server/models/PublicMap";
+import type { MapConfig } from "@/models/Map";
+import type { MapViewConfig } from "@/models/MapView";
+import type { PublicMapDraft } from "@/models/PublicMap";
 
 export function findPublicMapByHost(host: string) {
   if (!host) return Promise.resolve(undefined);

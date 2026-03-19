@@ -5,7 +5,7 @@ import {
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
+} from "@/models/DataSource";
 import {
   createDataSource,
   deleteDataSource,

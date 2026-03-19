@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { cn } from "@/shadcn/utils";
-import type { ColumnDef } from "@/server/models/DataSource";
+import type { ColumnDef } from "@/models/DataSource";
 
 export default function ColumnsMultiSelect({
   buttonClassName,

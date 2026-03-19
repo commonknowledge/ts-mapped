@@ -5,11 +5,12 @@ import {
   SORT_BY_LOCATION,
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
-import { FilterOperator, FilterType } from "@/server/models/MapView";
+import { FilterOperator, FilterType } from "@/models/MapView";
 import { db } from "@/server/services/database";
-import type { Point } from "../models/shared";
-import type { EnrichedRecord, NewDataRecord } from "@/server/models/DataRecord";
-import type { RecordFilterInput, SortInput } from "@/server/models/MapView";
+import type { EnrichedRecord } from "@/models/DataRecord";
+import type { RecordFilterInput, SortInput } from "@/models/MapView";
+import type { Point } from "@/models/shared";
+import type { NewDataRecord } from "@/server/models/DataRecord";
 import type { Database } from "@/server/services/database";
 import type {
   AliasableExpression,

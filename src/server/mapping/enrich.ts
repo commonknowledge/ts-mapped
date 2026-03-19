@@ -1,4 +1,4 @@
-import { ColumnType } from "@/server/models/DataSource";
+import { ColumnType } from "@/models/DataSource";
 import { findAreaByCode } from "@/server/repositories/Area";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
@@ -8,8 +8,7 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { geocodeRecord } from "./geocode";
-import type { EnrichedRecord } from "../models/DataRecord";
-import type { GeocodeResult } from "../models/shared";
+import type { EnrichedRecord } from "@/models/DataRecord";
 import type {
   AreaEnrichment,
   ColumnDef,
@@ -17,7 +16,8 @@ import type {
   DataSourceEnrichment,
   DataSourceUpdate,
   Enrichment,
-} from "@/server/models/DataSource";
+} from "@/models/DataSource";
+import type { GeocodeResult } from "@/models/shared";
 import type { ExternalRecord } from "@/types";
 
 export const enrichRecord = async (

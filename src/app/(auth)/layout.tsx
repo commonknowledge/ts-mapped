@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
+import { DEFAULT_AUTH_REDIRECT } from "@/constants";
 import type * as React from "react";
 
 export default async function Layout({
@@ -12,7 +13,7 @@ export default async function Layout({
 }) {
   const serverSession = await getServerSession();
   if (serverSession.currentUser) {
-    return redirect("/dashboard");
+    return redirect(DEFAULT_AUTH_REDIRECT);
   }
 
   return (

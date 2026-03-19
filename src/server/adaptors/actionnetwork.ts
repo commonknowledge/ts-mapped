@@ -5,7 +5,7 @@ import {
 } from "@/constants";
 import logger from "@/server/services/logger";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "../models/DataRecord";
+import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 const ActionNetworkWebhookPayload = z.array(

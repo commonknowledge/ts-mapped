@@ -1,12 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
-import importDataSource from "@/server/jobs/importDataSource";
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 import {
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
+} from "@/models/DataSource";
+import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,
   deleteDataSource,

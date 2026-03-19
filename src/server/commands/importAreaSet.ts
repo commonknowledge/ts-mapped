@@ -12,7 +12,7 @@ import {
   type AreaSetMetadata,
   areaSetsMetadata,
 } from "../../../resources/areaSets/index";
-import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { AreaSetCode } from "@/models/AreaSet";
 
 const loadAreaSetMetadata = (
   areaSetCode: AreaSetCode,

@@ -1,7 +1,7 @@
 // Human friendly labels for enums
 
-import { FilterType } from "./server/models/MapView";
-import type { AreaSetCode, AreaSetGroupCode } from "./server/models/AreaSet";
+import { FilterType } from "@/models/MapView";
+import type { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
 import type {
   DataSourceRecordType,
   EnrichmentSourceType,
@@ -11,9 +11,9 @@ import type {
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
-} from "./server/models/DataSource";
-import type { columnFilterTypes } from "./server/models/MapView";
-import type { DataSourceType } from "@/server/models/DataSource";
+} from "@/models/DataSource";
+import type { DataSourceType } from "@/models/DataSource";
+import type { columnFilterTypes } from "@/models/MapView";
 import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {

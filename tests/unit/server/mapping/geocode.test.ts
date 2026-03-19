@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
+import { AreaSetCode } from "@/models/AreaSet";
+import { GeocodingType } from "@/models/DataSource";
 import { geocodeRecord } from "@/server/mapping/geocode";
-import { AreaSetCode } from "@/server/models/AreaSet";
-import { GeocodingType } from "@/server/models/DataSource";
 
 describe("geocode", () => {
   test("geocodeRecord by address with multiple columns where one is blank and the other is a postcode", async () => {

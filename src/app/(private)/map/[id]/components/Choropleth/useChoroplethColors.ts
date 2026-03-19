@@ -1,0 +1,120 @@
+import { useEffect, useRef } from "react";
+import { useFillColor } from "@/app/(private)/map/[id]/colors";
+import { useAreaStats } from "@/app/(private)/map/[id]/data";
+import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
+import {
+  useLastLoadedSourceId,
+  useMapRef,
+} from "@/app/(private)/map/[id]/hooks/useMapCore";
+import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+
+export function useChoroplethFillColor() {
+  const { selectedBivariateBucket } = useChoropleth();
+
+  const { viewConfig } = useMapViews();
+  const areaStatsQuery = useAreaStats();
+  const areaStats = areaStatsQuery.data;
+
+  // Get fill color
+  const fillColor = useFillColor({
+    areaStats,
+    viewConfig,
+    selectedBivariateBucket,
+  });
+
+  return fillColor;
+}
+
+export function useChoroplethFeatureStatesEffect() {
+  const mapRef = useMapRef();
+  const { choroplethLayerConfig } = useChoropleth();
+  const lastLoadedSourceId = useLastLoadedSourceId();
+  const {
+    mapbox: { sourceId, layerId },
+  } = choroplethLayerConfig;
+
+  const areaStatsQuery = useAreaStats();
+  const areaStats = areaStatsQuery.data;
+
+  // Keep track of area codes that have feature state, to clean if necessary
+  const areaCodesToClean = useRef<Record<string, boolean>>({});
+  // Track previous values to avoid re-setting feature state for unchanged areas
+  const prevAreaStatValues = useRef<
+    Map<string, { primary: unknown; secondary: unknown }>
+  >(new Map());
+  // Track previous lastLoadedSourceId for full repaint
+  const prevLastLoadedSourceId = useRef(lastLoadedSourceId);
+
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!areaStats || !map) {
+      prevAreaStatValues.current = new Map();
+      return;
+    }
+
+    // Check if the source exists before proceeding
+    const source = map.getSource(sourceId);
+    if (!source) {
+      return;
+    }
+
+    const nextAreaCodesToClean: Record<string, boolean> = {};
+    const nextStatValues = new Map<
+      string,
+      { primary: unknown; secondary: unknown }
+    >();
+
+    // Only set feature state when the values actually change to avoid expensive re-renders
+    areaStats.stats.forEach((stat) => {
+      const key = stat.areaCode;
+      const prev = prevAreaStatValues.current.get(key);
+      const next = {
+        primary:
+          stat.primary !== null && stat.primary !== undefined
+            ? stat.primary
+            : null,
+        secondary:
+          stat.secondary !== null && stat.secondary !== undefined
+            ? stat.secondary
+            : null,
+      };
+      nextStatValues.set(key, next);
+
+      if (
+        prevLastLoadedSourceId.current !== lastLoadedSourceId ||
+        !prev ||
+        prev.primary !== next.primary ||
+        prev.secondary !== next.secondary
+      ) {
+        map.setFeatureState(
+          {
+            source: sourceId,
+            sourceLayer: layerId,
+            id: stat.areaCode,
+          },
+          { value: stat.primary, secondaryValue: stat.secondary },
+        );
+      }
+
+      nextAreaCodesToClean[stat.areaCode] = true;
+    });
+
+    // Remove lingering feature states for areas no longer present
+    for (const areaCode of Object.keys(areaCodesToClean.current)) {
+      if (!nextAreaCodesToClean[areaCode]) {
+        map.setFeatureState(
+          {
+            source: sourceId,
+            sourceLayer: layerId,
+            id: areaCode,
+          },
+          { value: null, secondaryValue: null },
+        );
+      }
+    }
+
+    areaCodesToClean.current = nextAreaCodesToClean;
+    prevAreaStatValues.current = nextStatValues;
+    prevLastLoadedSourceId.current = lastLoadedSourceId;
+  }, [areaStats, lastLoadedSourceId, layerId, mapRef, sourceId]);
+}

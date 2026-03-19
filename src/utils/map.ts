@@ -1,6 +1,6 @@
-import type { MapConfig } from "@/server/models/Map";
-import type { MapView } from "@/server/models/MapView";
-import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
+import type { MapConfig } from "@/models/Map";
+import type { MapView } from "@/models/MapView";
+import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
 
 export const getMarkerDataSourceIds = (mapConfig: MapConfig) => {
   return new Set(

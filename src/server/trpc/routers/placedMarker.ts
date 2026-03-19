@@ -1,5 +1,5 @@
 import z from "zod";
-import { placedMarkerSchema } from "@/server/models/PlacedMarker";
+import { placedMarkerSchema } from "@/models/PlacedMarker";
 import {
   deletePlacedMarker,
   upsertPlacedMarker,

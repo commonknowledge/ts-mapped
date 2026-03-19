@@ -1,4 +1,4 @@
-import type { EnrichedRecord } from "../models/DataRecord";
+import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 export interface DataSourceAdaptor {

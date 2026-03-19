@@ -1,4 +1,4 @@
-import { DataSourceType } from "./server/models/DataSource";
+import { DataSourceType } from "@/models/DataSource";
 
 export const DataSourceFeatures: Record<
   DataSourceType,

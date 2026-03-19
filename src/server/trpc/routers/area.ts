@@ -1,7 +1,7 @@
 import z from "zod";
-import { boundingBoxSchema } from "@/server/models/Area";
-import { AreaSetCode } from "@/server/models/AreaSet";
-import { CalculationType } from "@/server/models/MapView";
+import { boundingBoxSchema } from "@/models/Area";
+import { AreaSetCode } from "@/models/AreaSet";
+import { CalculationType } from "@/models/MapView";
 import {
   findAreaByCodeWithGeometry,
   searchAreas,

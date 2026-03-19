@@ -1,11 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, inject, test } from "vitest";
-import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
-import enrichDataRecords from "@/server/jobs/enrichDataRecords";
-import enrichDataSource from "@/server/jobs/enrichDataSource";
-import importDataSource from "@/server/jobs/importDataSource";
-import removeEnrichmentColumns from "@/server/jobs/removeEnrichmentColumns";
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 import {
   AreaPropertyType,
   ColumnType,
@@ -13,8 +8,13 @@ import {
   DataSourceType,
   EnrichmentSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
-import { FilterType } from "@/server/models/MapView";
+} from "@/models/DataSource";
+import { FilterType } from "@/models/MapView";
+import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
+import enrichDataRecords from "@/server/jobs/enrichDataRecords";
+import enrichDataSource from "@/server/jobs/enrichDataSource";
+import importDataSource from "@/server/jobs/importDataSource";
+import removeEnrichmentColumns from "@/server/jobs/removeEnrichmentColumns";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,

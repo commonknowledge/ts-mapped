@@ -1,7 +1,7 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
+import { ColumnType } from "@/models/DataSource";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
-import { ColumnType } from "@/server/models/DataSource";
 import {
   deleteByDataSourceId,
   upsertDataRecords,
@@ -13,8 +13,8 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import type { ColumnDef } from "@/server/models/DataSource";
-import type { DataSource } from "@/server/models/DataSource";
+import type { ColumnDef } from "@/models/DataSource";
+import type { DataSource } from "@/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
 const importDataSource = async (args: object | null): Promise<boolean> => {

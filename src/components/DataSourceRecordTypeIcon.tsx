@@ -6,7 +6,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
-import { DataSourceRecordType } from "@/server/models/DataSource";
+import { DataSourceRecordType } from "@/models/DataSource";
 
 export const dataSourceRecordTypeColors: Record<DataSourceRecordType, string> =
   {

@@ -1,5 +1,5 @@
 import { parse } from "date-fns";
-import type { DataSource } from "@/server/models/DataSource";
+import type { DataSource } from "@/models/DataSource";
 
 export function buildName(
   dataSource: DataSource | null | undefined,

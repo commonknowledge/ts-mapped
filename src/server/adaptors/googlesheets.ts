@@ -2,15 +2,15 @@ import {
   DATA_RECORDS_JOB_BATCH_SIZE,
   ENRICHMENT_COLUMN_PREFIX,
 } from "@/constants";
+import { DataSourceType } from "@/models/DataSource";
 import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { DataSourceType } from "../models/DataSource";
 import { enqueue } from "../services/queue";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "../models/DataRecord";
-import type { googleOAuthCredentialsSchema } from "../models/DataSource";
+import type { EnrichedRecord } from "@/models/DataRecord";
+import type { googleOAuthCredentialsSchema } from "@/models/DataSource";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 import type z from "zod";
 

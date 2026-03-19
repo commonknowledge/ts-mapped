@@ -1,8 +1,8 @@
 import { sql } from "kysely";
-import { AreaSetCode } from "@/server/models/AreaSet";
+import { AreaSetCode } from "@/models/AreaSet";
 import { db, dbRead } from "@/server/services/database";
-import type { Point } from "../models/shared";
-import type { Area } from "@/server/models/Area";
+import type { Area } from "@/models/Area";
+import type { Point } from "@/models/shared";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
 

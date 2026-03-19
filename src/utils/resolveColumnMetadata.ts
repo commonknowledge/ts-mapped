@@ -1,4 +1,4 @@
-import type { ColumnMetadata } from "@/server/models/DataSource";
+import type { ColumnMetadata } from "@/models/DataSource";
 
 /**
  * Resolve effective column metadata by merging org-specific overrides on top of

@@ -3,7 +3,7 @@
 import { getDefaultStore } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { organisationIdAtom } from "@/atoms/organisationAtoms";
-import type { Organisation } from "@/server/models/Organisation";
+import type { Organisation } from "@/models/Organisation";
 import type { ReactNode } from "react";
 
 function getInitialOrganisationId(

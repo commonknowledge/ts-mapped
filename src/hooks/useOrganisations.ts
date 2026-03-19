@@ -7,7 +7,7 @@ import {
 } from "@/atoms/organisationAtoms";
 import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
-import type { Organisation } from "@/server/models/Organisation";
+import type { Organisation } from "@/models/Organisation";
 
 export function useOrganisations() {
   const trpc = useTRPC();

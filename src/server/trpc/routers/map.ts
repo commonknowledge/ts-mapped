@@ -1,13 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { AreaSetGroupCode } from "@/server/models/AreaSet";
-import { DataSourceRecordType } from "@/server/models/DataSource";
-import { mapConfigSchema, mapSchema } from "@/server/models/Map";
-import {
-  CalculationType,
-  MapStyleName,
-  mapViewSchema,
-} from "@/server/models/MapView";
+import { AreaSetGroupCode } from "@/models/AreaSet";
+import { DataSourceRecordType } from "@/models/DataSource";
+import { mapConfigSchema, mapSchema } from "@/models/Map";
+import { CalculationType, MapStyleName, mapViewSchema } from "@/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {

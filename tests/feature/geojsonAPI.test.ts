@@ -7,7 +7,7 @@ import {
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
-} from "@/server/models/DataSource";
+} from "@/models/DataSource";
 import { upsertDataRecords } from "@/server/repositories/DataRecord";
 import { createDataSource } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";

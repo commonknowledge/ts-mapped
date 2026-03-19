@@ -1,6 +1,6 @@
 import { OperationNodeTransformer } from "kysely";
 import logger from "../../../services/logger"; // Relative import required for Kysely CLI
-import type { Point } from "@/server/models/shared";
+import type { Point } from "@/models/shared";
 import type { MultiPolygon, Polygon } from "geojson";
 import type {
   KyselyPlugin,
