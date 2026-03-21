@@ -47,72 +47,29 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
-    const minioDomain = process.env.MINIO_DOMAIN;
-
-    const buildCsp = (frameAncestors: string) =>
-      [
-        "default-src 'self'",
-        // unsafe-inline required by Next.js hydration; unsafe-eval by some deps
-        // gstatic.com: Google Cast SDK loaded by Mux player for Chromecast support
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com",
-        "style-src 'self' 'unsafe-inline'",
-        // next/font/google self-hosts fonts — no external font CDN needed
-        "font-src 'self'",
-        [
-          "img-src 'self' data: blob: https://cdn.sanity.io https://image.mux.com",
-          minioDomain ? `https://${minioDomain}` : null,
-        ]
-          .filter(Boolean)
-          .join(" "),
-        [
-          // PostHog proxied via /ingest/*, Sentry proxied via /monitoring — both hit 'self'
-          // Mapbox tiles + events, Postcodes.io, Google Sheets/OAuth, MinIO
-          [
-            "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://api.postcodes.io https://sheets.googleapis.com https://oauth2.googleapis.com https://*.mux.com https://inferred.litix.io https://www.gstatic.com https://cast.google.com",
-            // Next.js HMR uses WebSockets in dev
-            !isProd ? "ws://localhost:* wss://localhost:*" : null,
-          ]
-            .filter(Boolean)
-            .join(" "),
-          minioDomain ? `https://${minioDomain}` : null,
-        ]
-          .filter(Boolean)
-          .join(" "),
-        "frame-src https://www.youtube.com https://youtube.com",
-        "media-src blob: https://*.mux.com",
-        // Mapbox GL uses blob: workers
-        "worker-src blob:",
-        `frame-ancestors ${frameAncestors}`,
-      ].join("; ");
-
-    const commonHeaders = [
-      { key: "X-Content-Type-Options", value: "nosniff" },
-      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-      // Only set HSTS in production — localhost doesn't need it and browsers
-      // don't enforce HSTS on localhost anyway, but this keeps it explicit
-      ...(isProd
-        ? [
-            {
-              key: "Strict-Transport-Security",
-              value: "max-age=63072000; includeSubDomains",
-            },
-          ]
-        : []),
-    ];
-
     return [
       {
-        // Default: only same-origin framing — prevents clickjacking on authenticated pages
-        source: "/((?!public/).*)",
+        source: "/(.*)",
         headers: [
-          ...commonHeaders,
-          { key: "Content-Security-Policy", value: buildCsp("'self'") },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Only set HSTS in production — localhost doesn't need it and browsers
+          // don't enforce HSTS on localhost anyway, but this keeps it explicit
+          ...(isProd
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains",
+                },
+              ]
+            : []),
+          // NOTE: Content-Security-Policy is intentionally NOT set here.
+          // It is set per-request in src/proxy.ts (middleware), because public maps
+          // are served via subdomain rewrites (e.g. test.mapped.tools/ → /public/test.mapped.tools).
+          // next.config headers() evaluates against the pre-rewrite path, so it cannot
+          // distinguish subdomain requests from regular app requests at this stage.
+          // Public map routes need frame-ancestors *, all others get frame-ancestors 'self'.
         ],
-      },
-      {
-        // Public maps are embeddable on third-party sites — override frame-ancestors
-        source: "/public/(.*)",
-        headers: [{ key: "Content-Security-Policy", value: buildCsp("*") }],
       },
     ];
   },
