@@ -103,7 +103,7 @@ const nextConfig: NextConfig = {
     return [
       {
         // Default: only same-origin framing — prevents clickjacking on authenticated pages
-        source: "/(.*)",
+        source: "/((?!public/).*)",
         headers: [
           ...commonHeaders,
           { key: "Content-Security-Policy", value: buildCsp("'self'") },

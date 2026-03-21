@@ -6,7 +6,7 @@ export const uploadFile = async (file: File | null): Promise<string> => {
     throw new Error("Invalid file");
   }
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error("File size must be 500MB or less");
+    throw new Error("File size must be 500MiB or less");
   }
   const body = new FormData();
   body.set("file", file);
