@@ -45,6 +45,64 @@ const nextConfig: NextConfig = {
   },
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  async headers() {
+    const isProd = process.env.NODE_ENV === "production";
+    const minioDomain = process.env.MINIO_DOMAIN;
+
+    const cspDirectives = [
+      "default-src 'self'",
+      // unsafe-inline required by Next.js hydration; unsafe-eval by some deps
+      // gstatic.com: Google Cast SDK loaded by Mux player for Chromecast support
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com",
+      "style-src 'self' 'unsafe-inline'",
+      // next/font/google self-hosts fonts — no external font CDN needed
+      "font-src 'self'",
+      [
+        "img-src 'self' data: blob: https://cdn.sanity.io https://image.mux.com",
+        minioDomain ? `https://${minioDomain}` : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      [
+        // PostHog proxied via /ingest/*, Sentry proxied via /monitoring — both hit 'self'
+        // Mapbox tiles + events, Postcodes.io, Google Sheets/OAuth, MinIO
+        "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://api.postcodes.io https://sheets.googleapis.com https://oauth2.googleapis.com https://*.mux.com https://inferred.litix.io https://www.gstatic.com https://cast.google.com",
+        minioDomain ? `https://${minioDomain}` : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      "frame-src https://www.youtube.com https://youtube.com",
+      "media-src blob: https://*.mux.com",
+      // Mapbox GL uses blob: workers
+      "worker-src blob:",
+      // Maps are embeddable on third-party sites
+      "frame-ancestors *",
+    ];
+
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Only set HSTS in production — localhost doesn't need it and browsers
+          // don't enforce HSTS on localhost anyway, but this keeps it explicit
+          ...(isProd
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains",
+                },
+              ]
+            : []),
+          {
+            key: "Content-Security-Policy",
+            value: cspDirectives.join("; "),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
