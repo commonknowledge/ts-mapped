@@ -112,9 +112,7 @@ const nextConfig: NextConfig = {
       {
         // Public maps are embeddable on third-party sites — override frame-ancestors
         source: "/public/(.*)",
-        headers: [
-          { key: "Content-Security-Policy", value: buildCsp("*") },
-        ],
+        headers: [{ key: "Content-Security-Policy", value: buildCsp("*") }],
       },
     ];
   },

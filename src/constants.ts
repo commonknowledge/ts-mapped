@@ -29,6 +29,8 @@ export const MARKER_MATCHED_COLUMN = "mappedMatched";
 
 export const MAX_COLUMN_KEY = "__maxColumn";
 
+export const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MiB
+
 export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 
 export const ORGANISATION_COOKIE_NAME = "MappedOrgId";
