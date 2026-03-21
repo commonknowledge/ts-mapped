@@ -20,6 +20,7 @@ import { listUsers, upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
+import { getClient as getMinioClient } from "@/server/services/minio";
 import { getPubSub } from "@/server/services/pubsub";
 import { boss } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
@@ -199,6 +200,46 @@ program
   .option("--id <id>", "The data source ID")
   .action(async (options) => {
     await removeDevWebhooks(options.id);
+  });
+
+program
+  .command("largestMinioFiles")
+  .description("Find the N largest files in the MinIO ts-mapped bucket")
+  .option("-n <n>", "Number of files to return", "10")
+  .action(async (options) => {
+    const n = parseInt(options.n, 10);
+    const client = getMinioClient();
+    const stream = client.listObjects("ts-mapped", "", true);
+    const files: { name: string; size: number }[] = [];
+    await new Promise<void>((resolve, reject) => {
+      stream.on("data", (obj) => {
+        if (obj.name && obj.size !== undefined) {
+          files.push({ name: obj.name, size: obj.size });
+        }
+      });
+      stream.on("end", resolve);
+      stream.on("error", reject);
+    });
+    if (!files.length) {
+      logger.info("No files found in bucket.");
+      return;
+    }
+    const toHuman = (size: number) => {
+      const units = ["B", "KB", "MB", "GB", "TB"];
+      let value = size;
+      let unit = units[0];
+      for (let i = 1; i < units.length && value >= 1024; i++) {
+        value /= 1024;
+        unit = units[i];
+      }
+      return `${value.toFixed(2)} ${unit}`;
+    };
+    files
+      .sort((a, b) => b.size - a.size)
+      .slice(0, n)
+      .forEach(({ name, size }, i) => {
+        logger.info(`${i + 1}. ${name} (${toHuman(size)})`);
+      });
   });
 
 program
