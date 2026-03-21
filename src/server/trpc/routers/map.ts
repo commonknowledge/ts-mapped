@@ -39,7 +39,8 @@ export const mapRouter = router({
     .input(z.object({ dataSourceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const dataSource = await findDataSourceById(input.dataSourceId);
-      if (!dataSource) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!dataSource || dataSource.organisationId !== ctx.organisation.id)
+        throw new TRPCError({ code: "NOT_FOUND" });
 
       const map = await createMap(ctx.organisation.id);
 
