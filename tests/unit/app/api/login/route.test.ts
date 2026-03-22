@@ -8,7 +8,7 @@ vi.mock("@/server/utils/ratelimit", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...(actual as object),
-    incrementLoginAttempt: vi.fn(),
+    checkLoginAttempt: vi.fn(),
     rollbackLoginAttempt: vi.fn(),
   };
 });
@@ -26,7 +26,7 @@ import {
   rollbackLoginAttempt,
 } from "@/server/utils/ratelimit";
 
-const mockIncrementLoginAttempt = vi.mocked(checkLoginAttempt);
+const mockCheckLoginAttempt = vi.mocked(checkLoginAttempt);
 const mockRollbackLoginAttempt = vi.mocked(rollbackLoginAttempt);
 const mockFindUser = vi.mocked(findUserByEmailAndPassword);
 
@@ -44,25 +44,25 @@ function makeRequest(
 describe("POST /api/login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockIncrementLoginAttempt.mockResolvedValue(true);
+    mockCheckLoginAttempt.mockResolvedValue(true);
     mockRollbackLoginAttempt.mockResolvedValue(undefined);
     mockFindUser.mockResolvedValue(null);
   });
 
   describe("rate limiting", () => {
     test("allows request when rate limit is not exceeded", async () => {
-      mockIncrementLoginAttempt.mockResolvedValue(true);
+      mockCheckLoginAttempt.mockResolvedValue(true);
       const request = makeRequest(
         { email: "user@example.com", password: "pass" },
         { "x-forwarded-for": "1.2.3.4" },
       );
       const response = await POST(request);
       expect(response.status).not.toBe(429);
-      expect(mockIncrementLoginAttempt).toHaveBeenCalledWith("1.2.3.4");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("1.2.3.4");
     });
 
     test("returns 429 when rate limit is exceeded", async () => {
-      mockIncrementLoginAttempt.mockResolvedValue(false);
+      mockCheckLoginAttempt.mockResolvedValue(false);
       const request = makeRequest(
         { email: "user@example.com", password: "pass" },
         { "x-forwarded-for": "1.2.3.4" },
@@ -79,7 +79,7 @@ describe("POST /api/login", () => {
         { "x-forwarded-for": "10.0.0.1, 10.0.0.2, 10.0.0.3" },
       );
       await POST(request);
-      expect(mockIncrementLoginAttempt).toHaveBeenCalledWith("10.0.0.1");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("10.0.0.1");
     });
 
     test("trims whitespace from the first IP in x-forwarded-for", async () => {
@@ -88,7 +88,7 @@ describe("POST /api/login", () => {
         { "x-forwarded-for": "  192.168.1.1  , 10.0.0.1" },
       );
       await POST(request);
-      expect(mockIncrementLoginAttempt).toHaveBeenCalledWith("192.168.1.1");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("192.168.1.1");
     });
 
     test("falls back to x-real-ip when x-forwarded-for is absent", async () => {
@@ -97,7 +97,7 @@ describe("POST /api/login", () => {
         { "x-real-ip": "5.6.7.8" },
       );
       await POST(request);
-      expect(mockIncrementLoginAttempt).toHaveBeenCalledWith("5.6.7.8");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("5.6.7.8");
     });
 
     test('uses "unknown" when no IP header is present', async () => {
@@ -106,7 +106,7 @@ describe("POST /api/login", () => {
         password: "pass",
       });
       await POST(request);
-      expect(mockIncrementLoginAttempt).toHaveBeenCalledWith("unknown");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("unknown");
     });
 
     test("rolls back the attempt on successful login", async () => {
