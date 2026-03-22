@@ -3,7 +3,11 @@ import z from "zod";
 import { setJWT } from "@/auth/jwt";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
-import { checkLoginRateLimit, getClientIp } from "@/server/utils/ratelimit";
+import {
+  checkLoginRateLimit,
+  getClientIp,
+  recordFailedLoginAttempt,
+} from "@/server/utils/ratelimit";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
 
     const user = await findUserByEmailAndPassword(result.data);
     if (!user) {
+      await recordFailedLoginAttempt(ip);
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 },

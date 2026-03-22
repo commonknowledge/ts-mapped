@@ -6,7 +6,11 @@ vi.mock("@/server/repositories/User", () => ({
 }));
 vi.mock("@/server/utils/ratelimit", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...(actual as object), checkLoginRateLimit: vi.fn() };
+  return {
+    ...(actual as object),
+    checkLoginRateLimit: vi.fn(),
+    recordFailedLoginAttempt: vi.fn(),
+  };
 });
 vi.mock("@/auth/jwt", () => ({
   setJWT: vi.fn(),
@@ -17,9 +21,13 @@ vi.mock("@/server/services/logger", () => ({
 
 import { POST } from "@/app/api/login/route";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
-import { checkLoginRateLimit } from "@/server/utils/ratelimit";
+import {
+  checkLoginRateLimit,
+  recordFailedLoginAttempt,
+} from "@/server/utils/ratelimit";
 
 const mockCheckLoginRateLimit = vi.mocked(checkLoginRateLimit);
+const mockRecordFailedLoginAttempt = vi.mocked(recordFailedLoginAttempt);
 const mockFindUser = vi.mocked(findUserByEmailAndPassword);
 
 function makeRequest(
@@ -37,6 +45,7 @@ describe("POST /api/login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckLoginRateLimit.mockResolvedValue(true);
+    mockRecordFailedLoginAttempt.mockResolvedValue(undefined);
     mockFindUser.mockResolvedValue(null);
   });
 
@@ -98,6 +107,41 @@ describe("POST /api/login", () => {
       });
       await POST(request);
       expect(mockCheckLoginRateLimit).toHaveBeenCalledWith("unknown");
+    });
+
+    test("does not record a failed attempt on successful login", async () => {
+      mockFindUser.mockResolvedValue({
+        id: "1",
+        email: "user@example.com",
+        name: "User",
+        createdAt: new Date(),
+        passwordHash: "",
+        avatarUrl: undefined,
+      });
+      const request = makeRequest(
+        { email: "user@example.com", password: "correctpassword" },
+        { "x-forwarded-for": "1.2.3.4" },
+      );
+      await POST(request);
+      expect(mockRecordFailedLoginAttempt).not.toHaveBeenCalled();
+    });
+
+    test("records a failed attempt on invalid credentials", async () => {
+      mockFindUser.mockResolvedValue(null);
+      const request = makeRequest(
+        { email: "user@example.com", password: "wrongpassword" },
+        { "x-forwarded-for": "1.2.3.4" },
+      );
+      const response = await POST(request);
+      expect(response.status).toBe(401);
+      expect(mockRecordFailedLoginAttempt).toHaveBeenCalledWith("1.2.3.4");
+    });
+
+    test("does not record a failed attempt on invalid request body", async () => {
+      const request = makeRequest({ email: "not-an-email", password: "" });
+      const response = await POST(request);
+      expect(response.status).toBe(400);
+      expect(mockRecordFailedLoginAttempt).not.toHaveBeenCalled();
     });
   });
 

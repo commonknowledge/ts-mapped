@@ -13,22 +13,36 @@ const WINDOW_SECONDS = 15 * 60; // 15 minutes
 const LOGIN_MAX_ATTEMPTS = 5;
 const FORGOT_PASSWORD_MAX_ATTEMPTS = 5;
 
-async function checkRateLimit(
-  key: string,
-  maxAttempts: number,
-): Promise<boolean> {
+async function checkOnly(key: string, maxAttempts: number): Promise<boolean> {
+  const redis = getClient();
+  const count = await redis.get(key);
+  return (count === null ? 0 : parseInt(count, 10)) < maxAttempts;
+}
+
+async function recordAttempt(key: string): Promise<number> {
   const redis = getClient();
   const results = await redis
     .multi()
     .incr(key)
     .expire(key, WINDOW_SECONDS)
     .exec();
-  const count = results && results[0] ? (results[0][1] as number) : 0;
+  return results && results[0] ? (results[0][1] as number) : 0;
+}
+
+async function checkRateLimit(
+  key: string,
+  maxAttempts: number,
+): Promise<boolean> {
+  const count = await recordAttempt(key);
   return count <= maxAttempts;
 }
 
 export async function checkLoginRateLimit(ip: string): Promise<boolean> {
-  return checkRateLimit(`rate_limit:login:${ip}`, LOGIN_MAX_ATTEMPTS);
+  return checkOnly(`rate_limit:login:${ip}`, LOGIN_MAX_ATTEMPTS);
+}
+
+export async function recordFailedLoginAttempt(ip: string): Promise<void> {
+  await recordAttempt(`rate_limit:login:${ip}`);
 }
 
 export async function checkForgotPasswordRateLimit(
