@@ -13,7 +13,7 @@ describe("buildCsp", () => {
     });
   });
 
-  describe("HSTS / WebSocket directives", () => {
+  describe("WebSocket connect-src directives", () => {
     test("includes WebSocket origins in connect-src in dev", () => {
       const csp = buildCsp({ frameAncestors: "'self'", isProd: false });
       expect(csp).toContain("ws://localhost:*");
