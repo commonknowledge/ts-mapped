@@ -144,7 +144,7 @@ export default function DataRecordSidebar() {
                   {dataSourceConfig?.nameLabel || "Name"}
                 </span>
               </EditablePublicMapProperty>
-              <span className="text-lg font-semibold break-all">
+              <span className="text-lg font-semibold">
                 {recordGroup.name}
               </span>
             </div>
