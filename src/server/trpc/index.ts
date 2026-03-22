@@ -4,6 +4,7 @@ import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { canReadDataSource } from "@/server/utils/auth";
+import { getClientIp } from "@/server/utils/ratelimit";
 import {
   hasPasswordHashSerializer,
   serverDataSourceSerializer,
@@ -14,13 +15,14 @@ import { findOrganisationForUser } from "../repositories/Organisation";
 import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
 
-export async function createContext() {
+export async function createContext(opts?: { req?: Request }) {
   const session = await getServerSession();
   let user = null;
   if (session.currentUser) {
     user = await findUserById(session.currentUser.id);
   }
-  return { user };
+  const ip = opts?.req ? getClientIp(opts.req) : "unknown";
+  return { user, ip };
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;

@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 vi.mock("@/server/repositories/User", () => ({
   findUserByEmailAndPassword: vi.fn(),
 }));
-vi.mock("@/server/utils/ratelimit", () => ({
-  checkLoginRateLimit: vi.fn(),
-}));
+vi.mock("@/server/utils/ratelimit", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...(actual as object), checkLoginRateLimit: vi.fn() };
+});
 vi.mock("@/auth/jwt", () => ({
   setJWT: vi.fn(),
 }));

@@ -3,7 +3,7 @@ import z from "zod";
 import { setJWT } from "@/auth/jwt";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
-import { checkLoginRateLimit } from "@/server/utils/ratelimit";
+import { checkLoginRateLimit, getClientIp } from "@/server/utils/ratelimit";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -11,11 +11,7 @@ const loginSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const ip =
-    (forwarded ? forwarded.split(",")[0].trim() : null) ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
+  const ip = getClientIp(request);
   logger.info(`Login request from ${ip}`);
 
   const allowed = await checkLoginRateLimit(ip);
