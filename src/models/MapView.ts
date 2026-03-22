@@ -1,6 +1,6 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
-import { columnVisualisationSchema } from "./DataSource";
+import { inspectorColumnSchema } from "./DataSource";
 import { pointSchema } from "./shared";
 
 export enum FilterOperator {
@@ -168,7 +168,7 @@ export const inspectorDataSourceConfigSchema = z.object({
   dataSourceId: z.string(),
   name: z.string(),
   columns: z.array(z.string()),
-  columnVisualisations: z.array(columnVisualisationSchema).optional(),
+  inspectorColumns: z.array(inspectorColumnSchema).optional(),
 });
 
 export type InspectorDataSourceConfig = z.infer<

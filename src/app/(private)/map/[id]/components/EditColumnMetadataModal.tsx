@@ -279,7 +279,7 @@ export default function EditColumnMetadataModal() {
                         id: 0,
                         organisationId: organisationId ?? "",
                         dataSourceId: variables.dataSourceId,
-                        columnVisualisations: [],
+                        inspectorColumns: [],
                       }),
                       columnMetadata: variables.columnMetadata,
                     },
@@ -333,8 +333,8 @@ export default function EditColumnMetadataModal() {
         organisationId,
         dataSourceId: dataSource.id,
         columnMetadata: updated,
-        columnVisualisations:
-          dataSource.organisationOverride?.columnVisualisations ?? [],
+        inspectorColumns:
+          dataSource.organisationOverride?.inspectorColumns ?? [],
       });
     }
   }, [

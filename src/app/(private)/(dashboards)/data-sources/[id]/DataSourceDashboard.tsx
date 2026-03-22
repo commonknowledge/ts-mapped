@@ -35,6 +35,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import ColumnMetadataTable from "./components/ColumnMetadataTable";
+import ColumnVisualisationPanel from "./components/ColumnVisualisationPanel";
 import ConfigurationForm from "./components/ConfigurationForm";
 import EnrichmentTable from "./components/EnrichmentTable";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -156,7 +157,7 @@ export function DataSourceDashboard({
   );
 
   return (
-    <div className="p-4 mx-auto max-w-5xl w-full">
+    <div className="flex flex-col h-full p-4 mx-auto max-w-5xl w-full">
       <div className="flex gap-12">
         <div className="grow">
           <Breadcrumb className="mb-4">
@@ -230,10 +231,11 @@ export function DataSourceDashboard({
         </Alert>
       )}
 
-      <Tabs defaultValue="settings" className="gap-6">
+      <Tabs defaultValue="settings" className="flex-1 min-h-0 gap-6">
         <TabsList>
           <TabsTrigger value="settings">Configuration</TabsTrigger>
           <TabsTrigger value="columns">Column metadata</TabsTrigger>
+          <TabsTrigger value="inspector">Map inspector</TabsTrigger>
           {showEnrichment && (
             <TabsTrigger value="enrichment">Enrichment</TabsTrigger>
           )}
@@ -276,6 +278,10 @@ export function DataSourceDashboard({
 
         <TabsContent value="columns">
           <ColumnMetadataTable dataSource={dataSource} />
+        </TabsContent>
+
+        <TabsContent value="inspector" className="flex flex-col min-h-0">
+          <ColumnVisualisationPanel dataSource={dataSource} />
         </TabsContent>
 
         {showEnrichment && (

@@ -128,7 +128,7 @@ export interface DataSource {
   config: object; // jsonb, UNIQUE, NOT NULL, DEFAULT {}
   geocodingConfig: object; // jsonb, NOT NULL, DEFAULT {}
   columnDefs: unknown[]; // jsonb, NOT NULL, DEFAULT []
-  columnVisualisations: unknown[]; // jsonb, NOT NULL, DEFAULT []
+  inspectorColumns: unknown[]; // jsonb, NOT NULL, DEFAULT []
   columnRoles: object; // jsonb, NOT NULL, DEFAULT {} (renamed from columnsConfig)
   enrichments: unknown[]; // jsonb, NOT NULL, DEFAULT [] (renamed from enrichmentConfig)
   organisationId: string; // uuid, NOT NULL

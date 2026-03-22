@@ -234,16 +234,16 @@ export const columnMetadataSchema = z.object({
   description: z.string(),
   valueLabels: z.record(z.string(), z.string()),
   semanticType: z.nativeEnum(ColumnSemanticType).optional(),
+  colorMappings: z.record(z.string(), z.string()).optional(),
 });
 
-export const columnVisualisationSchema = z.object({
+export const inspectorColumnSchema = z.object({
   name: z.string(),
   displayFormat: z.nativeEnum(ColumnDisplayFormat).optional(),
-  colourMappings: z.record(z.string(), z.string()).optional(),
-  visible: z.boolean().optional(),
+  hidden: z.boolean().optional(),
 });
 
-export type ColumnVisualisation = z.infer<typeof columnVisualisationSchema>;
+export type InspectorColumn = z.infer<typeof inspectorColumnSchema>;
 
 export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
 
@@ -274,7 +274,7 @@ export const dataSourceSchema = z.object({
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
   columnMetadata: z.array(columnMetadataSchema),
-  columnVisualisations: z.array(columnVisualisationSchema),
+  inspectorColumns: z.array(inspectorColumnSchema),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,

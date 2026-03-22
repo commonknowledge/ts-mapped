@@ -8,8 +8,8 @@ import {
   EnrichmentSourceType,
   GeocodingType,
   columnMetadataSchema,
-  columnVisualisationSchema,
   dataSourceSchema,
+  inspectorColumnSchema,
 } from "@/models/DataSource";
 import { dataSourceViewSchema } from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -352,7 +352,7 @@ export const dataSourceRouter = router({
         public: false,
         columnDefs,
         columnMetadata: [],
-        columnVisualisations: [],
+        inspectorColumns: [],
         columnRoles: { nameColumns: [] },
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
@@ -394,7 +394,7 @@ export const dataSourceRouter = router({
         name: input.name,
         columnRoles: input.columnRoles,
         columnMetadata: input.columnMetadata,
-        columnVisualisations: input.columnVisualisations,
+        inspectorColumns: input.inspectorColumns,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
         dateFormat: input.dateFormat,
@@ -599,7 +599,7 @@ export const dataSourceRouter = router({
       z.object({
         dataSourceId: z.string(),
         columnMetadata: z.array(columnMetadataSchema),
-        columnVisualisations: z.array(columnVisualisationSchema),
+        inspectorColumns: z.array(inspectorColumnSchema),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -607,7 +607,7 @@ export const dataSourceRouter = router({
         ctx.organisation.id,
         input.dataSourceId,
         input.columnMetadata,
-        input.columnVisualisations,
+        input.inspectorColumns,
       );
       return true;
     }),

@@ -23,7 +23,7 @@ test("server data source serializer", async () => {
     },
     columnDefs: [],
     columnMetadata: [],
-    columnVisualisations: [],
+    inspectorColumns: [],
     columnRoles: { nameColumns: [] },
     enrichments: [],
     geocodingConfig: {

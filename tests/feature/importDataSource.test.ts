@@ -41,7 +41,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-      columnVisualisations: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -240,7 +240,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-      columnVisualisations: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -331,7 +331,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-      columnVisualisations: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -404,7 +404,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-      columnVisualisations: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -473,7 +473,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-      columnVisualisations: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -531,7 +531,7 @@ describe("importDataSource tests", () => {
           semanticType: ColumnSemanticType.Percentage0100,
         },
       ],
-      columnVisualisations: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

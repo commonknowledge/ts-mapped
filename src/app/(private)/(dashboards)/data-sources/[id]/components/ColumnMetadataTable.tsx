@@ -164,6 +164,121 @@ function ColumnValueLabelsCell({
   );
 }
 
+function ColumnColorMappingsCell({
+  dataSourceId,
+  columnName,
+  columnType,
+  nullIsZero,
+  currentMappings,
+  onSave,
+}: {
+  dataSourceId: string;
+  columnName: string;
+  columnType: ColumnType;
+  nullIsZero: boolean | undefined;
+  currentMappings: Record<string, string>;
+  onSave: (mappings: Record<string, string>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [localMappings, setLocalMappings] =
+    useState<Record<string, string>>(currentMappings);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trpc = useTRPC();
+
+  const { data: rawColumnValues } = useQuery(
+    trpc.dataSource.uniqueColumnValues.queryOptions(
+      { dataSourceId, column: columnName },
+      { enabled: open },
+    ),
+  );
+
+  const columnValues = useMemo(() => {
+    if (rawColumnValues == null) return rawColumnValues;
+    if (!nullIsZero || columnType !== ColumnType.Number) {
+      return rawColumnValues;
+    }
+    const blankValues = new Set(["", "null", "undefined"]);
+    const hasBlankOrZero =
+      rawColumnValues.some((v) => blankValues.has(v)) ||
+      rawColumnValues.includes("0");
+    if (!hasBlankOrZero) return rawColumnValues;
+    const filtered = rawColumnValues.filter((v) => !blankValues.has(v));
+    if (!filtered.includes("0")) {
+      filtered.push("0");
+    }
+    return filtered;
+  }, [rawColumnValues, nullIsZero, columnType]);
+
+  const sortedValues = useMemo(() => {
+    if (!columnValues) return columnValues;
+    return columnValues.toSorted((a, b) => {
+      if (columnType === ColumnType.Number) {
+        const numA = Number(a);
+        const numB = Number(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      }
+      return a.localeCompare(b);
+    });
+  }, [columnValues, columnType]);
+
+  const handleMappingChange = useCallback(
+    (value: string, color: string) => {
+      const updated = { ...localMappings, [value]: color };
+      setLocalMappings(updated);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        onSave(updated);
+      }, 300);
+    },
+    [localMappings, onSave],
+  );
+
+  const mappingCount = Object.keys(currentMappings).length;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="text-xs">
+          {mappingCount > 0
+            ? `${mappingCount} colour${mappingCount !== 1 ? "s" : ""}`
+            : "Configure colours"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-0" align="start">
+        <div className="max-h-64 overflow-y-auto">
+          {sortedValues === undefined ? (
+            <p className="text-sm text-muted-foreground p-3">Loading values…</p>
+          ) : sortedValues === null ? (
+            <p className="text-sm text-muted-foreground p-3">
+              Too many unique values to configure colours.
+            </p>
+          ) : sortedValues.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-3">
+              No values found.
+            </p>
+          ) : (
+            <div className="p-2 flex flex-col gap-1">
+              {sortedValues.map((value) => (
+                <div key={value} className="flex items-center gap-2">
+                  <Input
+                    type="color"
+                    value={localMappings[value] ?? "#000000"}
+                    onChange={(e) => handleMappingChange(value, e.target.value)}
+                    className="h-7 w-10 p-0.5 cursor-pointer shrink-0"
+                  />
+                  <span className="font-mono text-xs text-muted-foreground truncate">
+                    {value || "(blank)"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function ColumnMetadataTable({
   dataSource,
 }: {
@@ -178,6 +293,7 @@ export default function ColumnMetadataTable({
       valueLabels: existing.get(col.name)?.valueLabels ?? {},
       description: existing.get(col.name)?.description ?? "",
       semanticType: existing.get(col.name)?.semanticType,
+      colorMappings: existing.get(col.name)?.colorMappings,
     }));
   }, [dataSource.columnDefs, dataSource.columnMetadata]);
 
@@ -250,6 +366,17 @@ export default function ColumnMetadataTable({
     [metadata, save],
   );
 
+  const handleColorMappingsChange = useCallback(
+    (index: number, colorMappings: Record<string, string>) => {
+      const updated = metadata.map((m, i) =>
+        i === index ? { ...m, colorMappings } : m,
+      );
+      setMetadata(updated);
+      save(updated);
+    },
+    [metadata, save],
+  );
+
   const importStatus = dataSource.importInfo?.status;
   const importInProgress =
     importStatus === JobStatus.Running || importStatus === JobStatus.Pending;
@@ -270,8 +397,8 @@ export default function ColumnMetadataTable({
   return (
     <div className="space-y-4">
       <p className="text-sm">
-        Add descriptions to columns, set up numeric columns, and configure
-        display labels for specific values.
+        Add descriptions to columns, mark numeric columns as percentages, and
+        configure display labels for specific values.
       </p>
       <Table>
         <TableHeader>
@@ -280,6 +407,7 @@ export default function ColumnMetadataTable({
             <TableHead>Description</TableHead>
             <TableHead>Data type</TableHead>
             <TableHead>Value labels</TableHead>
+            <TableHead>Colour mappings</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -343,6 +471,18 @@ export default function ColumnMetadataTable({
                     nullIsZero={dataSource.nullIsZero}
                     currentLabels={col.valueLabels}
                     onSave={(labels) => handleValueLabelsChange(index, labels)}
+                  />
+                </TableCell>
+                <TableCell className="align-top">
+                  <ColumnColorMappingsCell
+                    dataSourceId={dataSource.id}
+                    columnName={col.name}
+                    columnType={colDef?.type ?? ColumnType.Unknown}
+                    nullIsZero={dataSource.nullIsZero}
+                    currentMappings={col.colorMappings ?? {}}
+                    onSave={(mappings) =>
+                      handleColorMappingsChange(index, mappings)
+                    }
                   />
                 </TableCell>
               </TableRow>

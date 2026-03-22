@@ -124,6 +124,47 @@ describe("resolveColumnMetadata", () => {
     ];
     expect(resolveColumnMetadata([], overrides)).toEqual([]);
   });
+
+  test("merges colorMappings from override on top of base", () => {
+    const baseWithColors: ColumnMetadata[] = [
+      {
+        name: "status",
+        description: "",
+        valueLabels: {},
+        colorMappings: { Active: "#00ff00", Inactive: "#ff0000" },
+      },
+    ];
+    const overrides: ColumnMetadata[] = [
+      {
+        name: "status",
+        description: "",
+        valueLabels: {},
+        colorMappings: { Inactive: "#aaaaaa", Pending: "#0000ff" },
+      },
+    ];
+    const result = resolveColumnMetadata(baseWithColors, overrides);
+    expect(result[0]?.colorMappings).toEqual({
+      Active: "#00ff00",
+      Inactive: "#aaaaaa",
+      Pending: "#0000ff",
+    });
+  });
+
+  test("keeps base colorMappings when override has none", () => {
+    const baseWithColors: ColumnMetadata[] = [
+      {
+        name: "status",
+        description: "",
+        valueLabels: {},
+        colorMappings: { Active: "#00ff00" },
+      },
+    ];
+    const overrides: ColumnMetadata[] = [
+      { name: "status", description: "New desc", valueLabels: {} },
+    ];
+    const result = resolveColumnMetadata(baseWithColors, overrides);
+    expect(result[0]?.colorMappings).toEqual({ Active: "#00ff00" });
+  });
 });
 
 describe("resolveColumnMetadataEntry", () => {

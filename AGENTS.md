@@ -87,6 +87,11 @@ Use tRPC as the bridge between client components and server logic:
 
 - Do not use `!!x` to cast to `boolean`. Use `Boolean(x)`.
 
+## English Dialect
+
+- Use American spellings for code, British spellings for user-facing text.
+- Use British spellings in code if there is precedent (e.g. "visualisation") for consistency.
+
 ## Database
 
 ### Kysely ORM
