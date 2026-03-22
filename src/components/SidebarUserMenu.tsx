@@ -43,7 +43,8 @@ export default function SidebarUserMenu() {
     try {
       await fetch("/api/logout", { method: "POST" });
     } catch {
-      // Server unavailable — proceed anyway; HttpOnly cookie will expire naturally
+      // Server unavailable so JWT cookie may not be removed - set client side LoggedOut cookie
+      document.cookie = "LoggedOut=1; path=/; SameSite=lax";
     }
     location.href = "/";
   };
