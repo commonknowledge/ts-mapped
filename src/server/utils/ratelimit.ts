@@ -1,7 +1,6 @@
 import { getClient } from "@/server/services/redis";
-import type { NextRequest } from "next/server";
 
-export function getClientIp(req: Request | NextRequest): string {
+export function getClientIp(req: Request): string {
   const forwarded = req.headers.get("x-forwarded-for");
   return (
     (forwarded ? forwarded.split(",")[0].trim() : null) ??
