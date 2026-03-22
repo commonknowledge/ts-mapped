@@ -49,6 +49,7 @@ export const mapRouter = router({
         dataSource.recordType !== DataSourceRecordType.Data
       ) {
         return updateMap(map.id, {
+          name: dataSource.name,
           config:
             dataSource.recordType === DataSourceRecordType.Members
               ? {
@@ -61,6 +62,7 @@ export const mapRouter = router({
                 },
         });
       } else {
+        await updateMap(map.id, { name: dataSource.name });
         await upsertMapView({
           mapId: map.id,
           name: "Default View",

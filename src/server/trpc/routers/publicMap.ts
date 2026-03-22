@@ -57,7 +57,7 @@ export const publicMapRouter = router({
       // 2. Set data source on map config
       if (!isData) {
         await updateMap(map.id, {
-          name: "My Public Map",
+          name: dataSource.name,
           config: isMembers
             ? {
                 membersDataSourceId: input.dataSourceId,

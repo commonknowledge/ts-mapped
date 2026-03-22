@@ -36,7 +36,7 @@ export function PublicMapListings() {
       />
 
       {loadingSources && (
-        <div className="p-4 pt-0">
+        <div className="p-4 mx-auto">
           <LoaderPinwheel className="animate-spin" />
         </div>
       )}
