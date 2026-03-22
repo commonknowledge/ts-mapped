@@ -3,6 +3,7 @@ import { writeFile } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
+import { MAX_FILE_SIZE } from "@/constants";
 import logger from "@/server/services/logger";
 import { uploadFile } from "@/server/services/minio";
 import { getBaseDir } from "@/server/utils";
@@ -21,6 +22,10 @@ export async function POST(
   const file: unknown = data.get("file");
   if (!(file instanceof File)) {
     return new NextResponse("Bad Request", { status: 400 });
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    return new NextResponse("File too large", { status: 413 });
   }
 
   const filenameParts = file.name.split(".");

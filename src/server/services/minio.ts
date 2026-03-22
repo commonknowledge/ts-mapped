@@ -1,7 +1,7 @@
 import * as Minio from "minio";
 import logger from "./logger";
 
-const getClient = () => {
+export const getClient = () => {
   return new Minio.Client({
     endPoint: process.env.MINIO_DOMAIN || "",
     port: 443,

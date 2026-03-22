@@ -45,6 +45,34 @@ const nextConfig: NextConfig = {
   },
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  async headers() {
+    const isProd = process.env.NODE_ENV === "production";
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Only set HSTS in production — localhost doesn't need it and browsers
+          // don't enforce HSTS on localhost anyway, but this keeps it explicit
+          ...(isProd
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains",
+                },
+              ]
+            : []),
+          // NOTE: Content-Security-Policy is intentionally NOT set here.
+          // It is set per-request in src/proxy.ts (middleware), because public maps
+          // are served via subdomain rewrites (e.g. test.mapped.tools/ → /public/test.mapped.tools).
+          // next.config headers() evaluates against the pre-rewrite path, so it cannot
+          // distinguish subdomain requests from regular app requests at this stage.
+          // Public map routes need frame-ancestors *, all others get frame-ancestors 'self'.
+        ],
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

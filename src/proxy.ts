@@ -2,7 +2,11 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { decodeJWT } from "./auth/jwt";
 import { DEFAULT_AUTH_REDIRECT, DEV_NEXT_PUBLIC_BASE_URL } from "./constants";
+import { buildCsp } from "./csp";
 import type { NextRequest } from "next/server";
+
+const isProd = process.env.NODE_ENV === "production";
+const minioDomain = process.env.MINIO_DOMAIN;
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -16,7 +20,15 @@ export async function proxy(request: NextRequest) {
     );
 
     if (host && host !== mainHost.host) {
-      return NextResponse.rewrite(new URL(`/public/${host}`, request.url));
+      // Public map served via subdomain rewrite — allow embedding on any site
+      const response = NextResponse.rewrite(
+        new URL(`/public/${host}`, request.url),
+      );
+      response.headers.set(
+        "Content-Security-Policy",
+        buildCsp({ frameAncestors: "*", isProd, minioDomain }),
+      );
+      return response;
     }
 
     const jwt = await decodeJWT();
@@ -28,6 +40,10 @@ export async function proxy(request: NextRequest) {
 
   const response = NextResponse.next();
   response.headers.set("x-pathname", pathname);
+  response.headers.set(
+    "Content-Security-Policy",
+    buildCsp({ frameAncestors: "'self'", isProd, minioDomain }),
+  );
   return response;
 }
 
