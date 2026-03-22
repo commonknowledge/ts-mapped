@@ -39,7 +39,9 @@ export async function rollbackLoginAttempt(ip: string): Promise<void> {
     .exec();
 
   const newCount =
-    results && results[0] && Array.isArray(results[0]) ? (results[0][1] as number) : 0;
+    results && results[0] && Array.isArray(results[0])
+      ? (results[0][1] as number)
+      : 0;
 
   if (newCount <= 0) {
     await redis.del(key);
