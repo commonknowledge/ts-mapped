@@ -25,7 +25,7 @@ export function buildCsp({
       // PostHog proxied via /ingest/*, Sentry proxied via /monitoring — both hit 'self'
       // Mapbox tiles + events, Postcodes.io, Google Sheets/OAuth, MinIO, Mux, Google Cast
       [
-        "connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://api.postcodes.io https://sheets.googleapis.com https://oauth2.googleapis.com https://*.mux.com https://inferred.litix.io https://www.gstatic.com https://cast.google.com",
+        "connect-src 'self' data: https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com https://api.postcodes.io https://sheets.googleapis.com https://oauth2.googleapis.com https://*.mux.com https://inferred.litix.io https://www.gstatic.com https://cast.google.com",
         // Next.js HMR uses WebSockets in dev
         !isProd ? "ws://localhost:* wss://localhost:*" : null,
       ]
@@ -37,8 +37,9 @@ export function buildCsp({
       .join(" "),
     "frame-src https://www.youtube.com https://youtube.com",
     "media-src blob: https://*.mux.com",
-    // Mapbox GL uses blob: workers
+    // Mapbox GL uses blob: workers and iframes
     "worker-src blob:",
+    "child-src blob:",
     `frame-ancestors ${frameAncestors}`,
   ].join("; ");
 }
