@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("@/server/utils/ratelimit", () => ({
-  checkForgotPasswordRateLimit: vi.fn(),
+  checkForgotPasswordAttempt: vi.fn(),
 }));
 vi.mock("@/server/repositories/User", () => ({
   findUserByEmail: vi.fn(),
@@ -15,9 +15,9 @@ vi.mock("@/server/services/logger", () => ({
 
 import { findUserByEmail } from "@/server/repositories/User";
 import { authRouter } from "@/server/trpc/routers/auth";
-import { checkForgotPasswordRateLimit } from "@/server/utils/ratelimit";
+import { checkForgotPasswordAttempt } from "@/server/utils/ratelimit";
 
-const mockCheckRateLimit = vi.mocked(checkForgotPasswordRateLimit);
+const mockCheckForgotPasswordAttempt = vi.mocked(checkForgotPasswordAttempt);
 const mockFindUserByEmail = vi.mocked(findUserByEmail);
 
 function makeCaller(ip = "1.2.3.4") {
@@ -27,22 +27,22 @@ function makeCaller(ip = "1.2.3.4") {
 describe("auth.forgotPassword", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckRateLimit.mockResolvedValue(true);
+    mockCheckForgotPasswordAttempt.mockResolvedValue(true);
     mockFindUserByEmail.mockResolvedValue(undefined);
   });
 
   describe("rate limiting", () => {
     test("allows request when rate limit is not exceeded", async () => {
-      mockCheckRateLimit.mockResolvedValue(true);
+      mockCheckForgotPasswordAttempt.mockResolvedValue(true);
       const caller = makeCaller("1.2.3.4");
       await expect(
         caller.forgotPassword({ email: "user@example.com" }),
       ).resolves.toBe(true);
-      expect(mockCheckRateLimit).toHaveBeenCalledWith("1.2.3.4");
+      expect(mockCheckForgotPasswordAttempt).toHaveBeenCalledWith("1.2.3.4");
     });
 
     test("throws TOO_MANY_REQUESTS when rate limit is exceeded", async () => {
-      mockCheckRateLimit.mockResolvedValue(false);
+      mockCheckForgotPasswordAttempt.mockResolvedValue(false);
       const caller = makeCaller("1.2.3.4");
       await expect(
         caller.forgotPassword({ email: "user@example.com" }),
@@ -52,11 +52,11 @@ describe("auth.forgotPassword", () => {
     test("passes the caller IP to the rate limiter", async () => {
       const caller = makeCaller("9.8.7.6");
       await caller.forgotPassword({ email: "user@example.com" });
-      expect(mockCheckRateLimit).toHaveBeenCalledWith("9.8.7.6");
+      expect(mockCheckForgotPasswordAttempt).toHaveBeenCalledWith("9.8.7.6");
     });
 
     test("does not look up user when rate limit is exceeded", async () => {
-      mockCheckRateLimit.mockResolvedValue(false);
+      mockCheckForgotPasswordAttempt.mockResolvedValue(false);
       const caller = makeCaller();
       await expect(
         caller.forgotPassword({ email: "user@example.com" }),

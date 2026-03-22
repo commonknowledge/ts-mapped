@@ -6,7 +6,11 @@ vi.mock("@/server/repositories/User", () => ({
 }));
 vi.mock("@/server/utils/ratelimit", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...(actual as object), checkLoginRateLimit: vi.fn() };
+  return {
+    ...(actual as object),
+    checkLoginAttempt: vi.fn(),
+    rollbackLoginAttempt: vi.fn(),
+  };
 });
 vi.mock("@/auth/jwt", () => ({
   setJWT: vi.fn(),
@@ -17,9 +21,13 @@ vi.mock("@/server/services/logger", () => ({
 
 import { POST } from "@/app/api/login/route";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
-import { checkLoginRateLimit } from "@/server/utils/ratelimit";
+import {
+  checkLoginAttempt,
+  rollbackLoginAttempt,
+} from "@/server/utils/ratelimit";
 
-const mockCheckLoginRateLimit = vi.mocked(checkLoginRateLimit);
+const mockCheckLoginAttempt = vi.mocked(checkLoginAttempt);
+const mockRollbackLoginAttempt = vi.mocked(rollbackLoginAttempt);
 const mockFindUser = vi.mocked(findUserByEmailAndPassword);
 
 function makeRequest(
@@ -36,24 +44,25 @@ function makeRequest(
 describe("POST /api/login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckLoginRateLimit.mockResolvedValue(true);
+    mockCheckLoginAttempt.mockResolvedValue(true);
+    mockRollbackLoginAttempt.mockResolvedValue(undefined);
     mockFindUser.mockResolvedValue(null);
   });
 
   describe("rate limiting", () => {
     test("allows request when rate limit is not exceeded", async () => {
-      mockCheckLoginRateLimit.mockResolvedValue(true);
+      mockCheckLoginAttempt.mockResolvedValue(true);
       const request = makeRequest(
         { email: "user@example.com", password: "pass" },
         { "x-forwarded-for": "1.2.3.4" },
       );
       const response = await POST(request);
       expect(response.status).not.toBe(429);
-      expect(mockCheckLoginRateLimit).toHaveBeenCalledWith("1.2.3.4");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("1.2.3.4");
     });
 
     test("returns 429 when rate limit is exceeded", async () => {
-      mockCheckLoginRateLimit.mockResolvedValue(false);
+      mockCheckLoginAttempt.mockResolvedValue(false);
       const request = makeRequest(
         { email: "user@example.com", password: "pass" },
         { "x-forwarded-for": "1.2.3.4" },
@@ -70,7 +79,7 @@ describe("POST /api/login", () => {
         { "x-forwarded-for": "10.0.0.1, 10.0.0.2, 10.0.0.3" },
       );
       await POST(request);
-      expect(mockCheckLoginRateLimit).toHaveBeenCalledWith("10.0.0.1");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("10.0.0.1");
     });
 
     test("trims whitespace from the first IP in x-forwarded-for", async () => {
@@ -79,7 +88,7 @@ describe("POST /api/login", () => {
         { "x-forwarded-for": "  192.168.1.1  , 10.0.0.1" },
       );
       await POST(request);
-      expect(mockCheckLoginRateLimit).toHaveBeenCalledWith("192.168.1.1");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("192.168.1.1");
     });
 
     test("falls back to x-real-ip when x-forwarded-for is absent", async () => {
@@ -88,7 +97,7 @@ describe("POST /api/login", () => {
         { "x-real-ip": "5.6.7.8" },
       );
       await POST(request);
-      expect(mockCheckLoginRateLimit).toHaveBeenCalledWith("5.6.7.8");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("5.6.7.8");
     });
 
     test('uses "unknown" when no IP header is present', async () => {
@@ -97,7 +106,53 @@ describe("POST /api/login", () => {
         password: "pass",
       });
       await POST(request);
-      expect(mockCheckLoginRateLimit).toHaveBeenCalledWith("unknown");
+      expect(mockCheckLoginAttempt).toHaveBeenCalledWith("unknown");
+    });
+
+    test("rolls back the attempt on successful login", async () => {
+      mockFindUser.mockResolvedValue({
+        id: "1",
+        email: "user@example.com",
+        name: "User",
+        createdAt: new Date(),
+        passwordHash: "",
+        avatarUrl: undefined,
+      });
+      const request = makeRequest(
+        { email: "user@example.com", password: "correctpassword" },
+        { "x-forwarded-for": "1.2.3.4" },
+      );
+      await POST(request);
+      expect(mockRollbackLoginAttempt).toHaveBeenCalledWith("1.2.3.4");
+    });
+
+    test("does not roll back on invalid credentials", async () => {
+      mockFindUser.mockResolvedValue(null);
+      const request = makeRequest(
+        { email: "user@example.com", password: "wrongpassword" },
+        { "x-forwarded-for": "1.2.3.4" },
+      );
+      const response = await POST(request);
+      expect(response.status).toBe(401);
+      expect(mockRollbackLoginAttempt).not.toHaveBeenCalled();
+    });
+
+    test("rolls back the attempt on invalid request body", async () => {
+      const request = makeRequest({ email: "not-an-email", password: "" });
+      const response = await POST(request);
+      expect(response.status).toBe(400);
+      expect(mockRollbackLoginAttempt).toHaveBeenCalledWith("unknown");
+    });
+
+    test("rolls back the attempt on unexpected server error", async () => {
+      mockFindUser.mockRejectedValue(new Error("db failure"));
+      const request = makeRequest(
+        { email: "user@example.com", password: "pass" },
+        { "x-forwarded-for": "1.2.3.4" },
+      );
+      const response = await POST(request);
+      expect(response.status).toBe(500);
+      expect(mockRollbackLoginAttempt).toHaveBeenCalledWith("1.2.3.4");
     });
   });
 
