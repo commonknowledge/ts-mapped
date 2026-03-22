@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { columnMetadataSchema, inspectorColumnSchema } from "./DataSource";
 
+/**
+ * Allows organisations to override column metadata and default
+ * inspector views for data sources they do not own.
+ */
+
 export const dataSourceOrganisationOverrideSchema = z.object({
   id: z.number(),
   organisationId: z.string(),

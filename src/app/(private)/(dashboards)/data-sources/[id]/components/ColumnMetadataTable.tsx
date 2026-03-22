@@ -398,7 +398,7 @@ export default function ColumnMetadataTable({
     <div className="space-y-4">
       <p className="text-sm">
         Add descriptions to columns, mark numeric columns as percentages, and
-        configure display labels for specific values.
+        configure display labels and colours for specific values.
       </p>
       <Table>
         <TableHeader>
