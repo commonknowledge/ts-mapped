@@ -1,4 +1,3 @@
-import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("@/server/utils/ratelimit", () => ({
@@ -14,9 +13,9 @@ vi.mock("@/server/services/logger", () => ({
   default: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-import { checkForgotPasswordRateLimit } from "@/server/utils/ratelimit";
 import { findUserByEmail } from "@/server/repositories/User";
 import { authRouter } from "@/server/trpc/routers/auth";
+import { checkForgotPasswordRateLimit } from "@/server/utils/ratelimit";
 
 const mockCheckRateLimit = vi.mocked(checkForgotPasswordRateLimit);
 const mockFindUserByEmail = vi.mocked(findUserByEmail);
@@ -29,7 +28,7 @@ describe("auth.forgotPassword", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue(true);
-    mockFindUserByEmail.mockResolvedValue(null);
+    mockFindUserByEmail.mockResolvedValue(undefined);
   });
 
   describe("rate limiting", () => {
