@@ -23,11 +23,6 @@ async function recordAttempt(key: string): Promise<number> {
   return results && results[0] ? (results[0][1] as number) : 0;
 }
 
-// INCR is atomic — concurrent requests get strictly increasing counts,
-// eliminating any TOCTOU race. If rollbackLoginAttempt is later called after
-// the key has expired, Redis creates it at -1, which is harmless: the next
-// INCR produces 0 with a fresh TTL.
-
 export async function checkLoginAttempt(ip: string): Promise<boolean> {
   const count = await recordAttempt(`rate_limit:login:${ip}`);
   return count <= LOGIN_MAX_ATTEMPTS;
@@ -35,7 +30,20 @@ export async function checkLoginAttempt(ip: string): Promise<boolean> {
 
 export async function rollbackLoginAttempt(ip: string): Promise<void> {
   const redis = getClient();
-  await redis.decr(`rate_limit:login:${ip}`);
+  const key = `rate_limit:login:${ip}`;
+
+  const results = await redis
+    .multi()
+    .decr(key)
+    .expire(key, WINDOW_SECONDS)
+    .exec();
+
+  const newCount =
+    results && results[0] && Array.isArray(results[0]) ? (results[0][1] as number) : 0;
+
+  if (newCount <= 0) {
+    await redis.del(key);
+  }
 }
 
 export async function checkForgotPasswordAttempt(ip: string): Promise<boolean> {
