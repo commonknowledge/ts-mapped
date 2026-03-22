@@ -24,6 +24,8 @@ export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";
 
 export const GE_DATA_SOURCE_NAME = "2024 General Election Results";
 
+export const JWT_LIFETIME_SECONDS = 24 * 60 * 60;
+
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 

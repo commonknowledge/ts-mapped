@@ -2,8 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { SignJWT, jwtVerify } from "jose";
 import { JWTExpired } from "jose/errors";
 import { NoResultError } from "kysely";
-import { cookies } from "next/headers";
 import z from "zod";
+import { setJWT } from "@/auth/jwt";
 import { passwordSchema } from "@/models/User";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/ForgotPassword";
@@ -58,16 +58,7 @@ export const authRouter = router({
         await ensureOrganisationMap(invitation.organisationId);
 
         // Set JWT cookie and log user in
-        const cookieToken = await new SignJWT({
-          id: user.id,
-          email: user.email,
-        })
-          .setProtectedHeader({ alg: "HS256" })
-          .setExpirationTime("24h")
-          .sign(secret);
-
-        const cookieStore = await cookies();
-        cookieStore.set("JWT", cookieToken);
+        await setJWT(user.id, user.email);
         return user;
       } catch (error) {
         if (error instanceof JWTExpired) {
