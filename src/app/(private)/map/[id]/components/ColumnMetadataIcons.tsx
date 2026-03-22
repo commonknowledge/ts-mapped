@@ -4,6 +4,7 @@ import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
 import type { EditColumnMetadataFields } from "../atoms/editColumnMetadataAtom";
 import type { ColumnMetadata } from "@/models/DataSource";
+import type { DataSourceOrganisationOverride } from "@/models/DataSourceOrganisationOverride";
 
 function ColumnMetadataIcons({
   dataSource,
@@ -15,7 +16,7 @@ function ColumnMetadataIcons({
     | {
         id: string;
         columnMetadata: ColumnMetadata[];
-        columnMetadataOverride?: ColumnMetadata[] | null;
+        organisationOverride?: DataSourceOrganisationOverride | null;
       }
     | null
     | undefined;
@@ -31,7 +32,7 @@ function ColumnMetadataIcons({
 
   const description = resolveColumnMetadataEntry(
     dataSource.columnMetadata,
-    dataSource.columnMetadataOverride,
+    dataSource.organisationOverride?.columnMetadata,
     column,
   )?.description;
 

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { type InspectorBoundaryConfig } from "@/models/MapView";
+import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { useDataSources } from "../../hooks/useDataSources";
 import { useMapViews } from "../../hooks/useMapViews";
 import DataSourceSelectButton from "../DataSourceSelectButton";
@@ -10,7 +10,7 @@ export default function InspectorConfigTab() {
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
 
-  const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
+  const dataSourcesConfig = view?.inspectorConfig?.dataSources || [];
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -19,20 +19,20 @@ export default function InspectorConfigTab() {
       }
 
       const dataSource = getDataSourceById(dataSourceId);
-      const newBoundaryConfig: InspectorBoundaryConfig = {
+      const newDataSourceConfig: InspectorDataSourceConfig = {
         id: uuidv4(),
         dataSourceId,
-        name: dataSource?.name || "Boundary Data",
+        name: dataSource?.name || "Data Source",
         columns: [],
       };
 
-      const prevBoundaries = view.inspectorConfig?.boundaries || [];
+      const prevDataSources = view.inspectorConfig?.dataSources || [];
 
       updateView({
         ...view,
         inspectorConfig: {
           ...view.inspectorConfig,
-          boundaries: [...prevBoundaries, newBoundaryConfig],
+          dataSources: [...prevDataSources, newDataSourceConfig],
         },
       });
     },
@@ -41,33 +41,32 @@ export default function InspectorConfigTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      {boundaryStatsConfig.map((boundaryConfig, index) => (
+      {dataSourcesConfig.map((dataSourceConfig, index) => (
         <BoundaryConfigItem
-          key={boundaryConfig.id}
-          boundaryConfig={boundaryConfig}
+          key={dataSourceConfig.id}
+          boundaryConfig={dataSourceConfig}
           index={index}
           onClickRemove={() => {
             if (!view) return;
-            const updatedBoundaries = view.inspectorConfig?.boundaries?.filter(
-              (_, i) => i !== index,
-            );
+            const updatedDataSources =
+              view.inspectorConfig?.dataSources?.filter((_, i) => i !== index);
             updateView({
               ...view,
               inspectorConfig: {
                 ...view.inspectorConfig,
-                boundaries: updatedBoundaries,
+                dataSources: updatedDataSources,
               },
             });
           }}
           onUpdate={(updatedConfig) => {
             if (!view) return;
-            const updatedBoundaries = [...boundaryStatsConfig];
-            updatedBoundaries[index] = updatedConfig;
+            const updatedDataSources = [...dataSourcesConfig];
+            updatedDataSources[index] = updatedConfig;
             updateView({
               ...view,
               inspectorConfig: {
                 ...view.inspectorConfig,
-                boundaries: updatedBoundaries,
+                dataSources: updatedDataSources,
               },
             });
           }}

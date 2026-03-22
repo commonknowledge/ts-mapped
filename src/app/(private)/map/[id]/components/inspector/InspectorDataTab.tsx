@@ -58,9 +58,9 @@ export default function InspectorDataTab({
     ),
   );
 
-  const boundaryConfigs = useMemo(
-    () => view?.inspectorConfig?.boundaries || [],
-    [view?.inspectorConfig?.boundaries],
+  const dataSourceConfigs = useMemo(
+    () => view?.inspectorConfig?.dataSources || [],
+    [view?.inspectorConfig?.dataSources],
   );
 
   const isBoundary = type === LayerType.Boundary;
@@ -122,7 +122,7 @@ export default function InspectorDataTab({
             const hasProperties =
               properties.length ||
               Object.keys(recordData?.json || {}).length ||
-              boundaryConfigs.length;
+              dataSourceConfigs.length;
 
             if (!hasProperties) {
               return (
@@ -147,7 +147,7 @@ export default function InspectorDataTab({
         </>
       )}
 
-      {boundaryConfigs.map((config, index) => (
+      {dataSourceConfigs.map((config, index) => (
         <BoundaryDataPanel
           key={config.id}
           config={config}

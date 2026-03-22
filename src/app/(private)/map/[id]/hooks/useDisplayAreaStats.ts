@@ -52,7 +52,7 @@ export const useDisplayAreaStats = <
     () =>
       resolveColumnMetadata(
         choroplethDataSource?.columnMetadata ?? [],
-        choroplethDataSource?.columnMetadataOverride,
+        choroplethDataSource?.organisationOverride?.columnMetadata,
       ),
     [choroplethDataSource],
   );

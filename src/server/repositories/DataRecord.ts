@@ -434,3 +434,25 @@ export const deleteByDataSourceId = async (dataSourceId: string) =>
     .deleteFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .execute();
+
+export async function getNumericColumnRange(
+  dataSourceId: string,
+  columnName: string,
+): Promise<{ min: number | null; max: number | null; hasDecimals: boolean }> {
+  const result = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .select([
+      sql<number | null>`MIN((json->>${columnName})::float)`.as("min"),
+      sql<number | null>`MAX((json->>${columnName})::float)`.as("max"),
+      sql<boolean>`BOOL_OR((json->>${columnName})::float > 0 AND (json->>${columnName})::float < 1)`.as(
+        "hasDecimals",
+      ),
+    ])
+    .executeTakeFirst();
+  return {
+    min: result?.min ?? null,
+    max: result?.max ?? null,
+    hasDecimals: result?.hasDecimals ?? false,
+  };
+}

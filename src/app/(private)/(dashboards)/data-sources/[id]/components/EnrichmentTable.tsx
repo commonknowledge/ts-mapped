@@ -22,9 +22,9 @@ import {
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import EnrichmentColumnDialog from "../components/EnrichmentColumnDialog";
+import EnrichmentColumnDialog from "./EnrichmentColumnDialog";
 
-export function DataSourceEnrichmentDashboard({
+export default function EnrichmentTable({
   dataSource,
 }: {
   dataSource: RouterOutputs["dataSource"]["byId"];
@@ -138,11 +138,6 @@ export function DataSourceEnrichmentDashboard({
               queryKey: trpc.dataRecord.list.queryKey({
                 dataSourceId: dataSource.id,
                 page: 0,
-              }),
-            });
-            queryClient.invalidateQueries({
-              queryKey: trpc.dataSource.byId.queryKey({
-                dataSourceId: dataSource.id,
               }),
             });
           }

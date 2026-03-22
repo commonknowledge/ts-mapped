@@ -1,5 +1,6 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
+import { columnVisualisationSchema } from "./DataSource";
 import { pointSchema } from "./shared";
 
 export enum FilterOperator {
@@ -157,30 +158,29 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 // for different aspects (boundaries, markers, members, etc.)
 
 /**
- * Configuration for a single boundary data source in the inspector
+ * Configuration for a single data source in the inspector
  * - dataSourceId: Reference to the data source
  * - name: User-friendly name for this inspector config
- * - type: The type of inspector display (currently only "simple")
  * - columns: Array of column names to display from this data source
  */
-export const inspectorBoundaryConfigSchema = z.object({
+export const inspectorDataSourceConfigSchema = z.object({
   id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
   columns: z.array(z.string()),
+  columnVisualisations: z.array(columnVisualisationSchema).optional(),
 });
 
-export type InspectorBoundaryConfig = z.infer<
-  typeof inspectorBoundaryConfigSchema
+export type InspectorDataSourceConfig = z.infer<
+  typeof inspectorDataSourceConfigSchema
 >;
 
 /**
- * Complete inspector configuration for a map view
- * Organized by aspect (boundaries, markers, members, etc.)
+ * Complete inspector configuration for a map view.
+ * - dataSources: Data to display for all visualisation types (boundaries, markers, etc.)
  */
 export const inspectorConfigSchema = z.object({
-  boundaries: z.array(inspectorBoundaryConfigSchema).optional(),
-  // Future: markers, members, etc.
+  dataSources: z.array(inspectorDataSourceConfigSchema).optional(),
 });
 
 export type InspectorConfig = z.infer<typeof inspectorConfigSchema>;

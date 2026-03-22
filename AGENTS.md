@@ -83,6 +83,10 @@ Use tRPC as the bridge between client components and server logic:
 - **Server components**: call the server-side tRPC caller from `src/services/trpc/server.tsx`
 - **API routes**: use for streaming responses or bulk data that would be impractical over tRPC
 
+## Code Style
+
+- Do not use `!!x` to cast to `boolean`. Use `Boolean(x)`.
+
 ## Database
 
 ### Kysely ORM

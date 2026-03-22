@@ -38,6 +38,7 @@ describe("getAreaStats tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

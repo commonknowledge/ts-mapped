@@ -69,6 +69,7 @@ describe("GeoJSON REST API", () => {
           { name: "address", type: ColumnType.String },
         ],
         columnMetadata: [],
+        columnVisualisations: [],
         columnRoles: { nameColumns: ["name"] },
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],

@@ -45,6 +45,7 @@ async function createGoogleSheetsDataSource(
     },
     columnDefs: [],
     columnMetadata: [],
+    columnVisualisations: [],
     columnRoles: { nameColumns: [] },
     enrichments,
     geocodingConfig: {

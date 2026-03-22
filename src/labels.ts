@@ -3,6 +3,7 @@
 import { FilterType } from "@/models/MapView";
 import type { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
 import type {
+  ColumnSemanticType,
   DataSourceRecordType,
   EnrichmentSourceType,
   GeocodingType,
@@ -138,6 +139,12 @@ export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
   Coordinates: "Latitude & Longitude coordinates",
   Postcode: "UK Postcode", // Front-end only
   None: "Disabled",
+};
+
+export const ColumnSemanticTypeLabels: Record<ColumnSemanticType, string> = {
+  Auto: "Number",
+  Percentage01: "Percentage (0–1)",
+  Percentage0100: "Percentage (0–100)",
 };
 
 export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =

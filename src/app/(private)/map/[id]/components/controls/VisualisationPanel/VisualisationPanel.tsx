@@ -378,7 +378,7 @@ export default function VisualisationPanel({
                       label: `${col.name} (${col.type})`,
                       hint: resolveColumnMetadataEntry(
                         dataSource?.columnMetadata || [],
-                        dataSource?.columnMetadataOverride,
+                        dataSource?.organisationOverride?.columnMetadata,
                         col.name,
                       )?.description,
                     })) || []),
@@ -419,7 +419,7 @@ export default function VisualisationPanel({
                         label: `${col.name} (${col.type})`,
                         hint: resolveColumnMetadataEntry(
                           dataSource?.columnMetadata || [],
-                          dataSource?.columnMetadataOverride,
+                          dataSource?.organisationOverride?.columnMetadata,
                           col.name,
                         )?.description,
                       })) || []),

@@ -85,7 +85,7 @@ export default function EditColumnMetadataModal() {
     if (!dataSource) return undefined;
     return resolveColumnMetadataEntry(
       dataSource.columnMetadata,
-      dataSource.columnMetadataOverride,
+      dataSource.organisationOverride?.columnMetadata,
       columnName,
     );
   }, [dataSource, columnName]);
@@ -263,7 +263,7 @@ export default function EditColumnMetadataModal() {
 
   // Mutation for non-owners: save as org-specific override
   const { mutate: updateOverride } = useMutation(
-    trpc.dataSource.updateColumnMetadataOverride.mutationOptions({
+    trpc.dataSource.updateOrganisationOverride.mutationOptions({
       onSuccess: (_data, variables) => {
         client.setQueryData(
           trpc.dataSource.listReadable.queryKey({
@@ -272,7 +272,18 @@ export default function EditColumnMetadataModal() {
           (old) =>
             old?.map((ds) =>
               ds.id === variables.dataSourceId
-                ? { ...ds, columnMetadataOverride: variables.columnMetadata }
+                ? {
+                    ...ds,
+                    organisationOverride: {
+                      ...(ds.organisationOverride ?? {
+                        id: 0,
+                        organisationId: organisationId ?? "",
+                        dataSourceId: variables.dataSourceId,
+                        columnVisualisations: [],
+                      }),
+                      columnMetadata: variables.columnMetadata,
+                    },
+                  }
                 : ds,
             ),
         );
@@ -288,7 +299,7 @@ export default function EditColumnMetadataModal() {
 
     const sourceMetadata = isOwner
       ? dataSource.columnMetadata
-      : (dataSource.columnMetadataOverride ?? []);
+      : (dataSource.organisationOverride?.columnMetadata ?? []);
 
     const existingMetadata: ColumnMetadata[] = dataSource.columnDefs.map(
       (col) => {
@@ -322,6 +333,8 @@ export default function EditColumnMetadataModal() {
         organisationId,
         dataSourceId: dataSource.id,
         columnMetadata: updated,
+        columnVisualisations:
+          dataSource.organisationOverride?.columnVisualisations ?? [],
       });
     }
   }, [

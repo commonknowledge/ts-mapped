@@ -1,12 +1,12 @@
 import { db } from "@/server/services/database";
-import type { ColumnMetadata } from "@/models/DataSource";
+import type { ColumnMetadata, ColumnVisualisation } from "@/models/DataSource";
 
-export async function findColumnMetadataOverride(
+export async function findDataSourceOrganisationOverride(
   organisationId: string,
   dataSourceId: string,
 ) {
   const row = await db
-    .selectFrom("columnMetadataOverride")
+    .selectFrom("dataSourceOrganisationOverride")
     .where("organisationId", "=", organisationId)
     .where("dataSourceId", "=", dataSourceId)
     .selectAll()
@@ -14,31 +14,37 @@ export async function findColumnMetadataOverride(
   return row ?? null;
 }
 
-export async function findColumnMetadataOverridesByOrg(
+export async function findDataSourceOrganisationOverridesByOrg(
   organisationId: string,
   dataSourceIds: string[],
 ) {
   if (!dataSourceIds.length) return [];
   return db
-    .selectFrom("columnMetadataOverride")
+    .selectFrom("dataSourceOrganisationOverride")
     .where("organisationId", "=", organisationId)
     .where("dataSourceId", "in", dataSourceIds)
     .selectAll()
     .execute();
 }
 
-export async function upsertColumnMetadataOverride(
+export async function upsertDataSourceOrganisationOverride(
   organisationId: string,
   dataSourceId: string,
   columnMetadata: ColumnMetadata[],
+  columnVisualisations: ColumnVisualisation[],
 ) {
   return db
-    .insertInto("columnMetadataOverride")
-    .values({ organisationId, dataSourceId, columnMetadata })
+    .insertInto("dataSourceOrganisationOverride")
+    .values({
+      organisationId,
+      dataSourceId,
+      columnMetadata,
+      columnVisualisations,
+    })
     .onConflict((oc) =>
       oc
         .columns(["organisationId", "dataSourceId"])
-        .doUpdateSet({ columnMetadata }),
+        .doUpdateSet({ columnMetadata, columnVisualisations }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();

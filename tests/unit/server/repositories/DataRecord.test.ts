@@ -38,6 +38,7 @@ describe("webhook route tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

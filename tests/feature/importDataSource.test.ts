@@ -3,6 +3,7 @@ import { afterAll, describe, expect, test } from "vitest";
 import { AreaSetCode } from "@/models/AreaSet";
 
 import {
+  ColumnSemanticType,
   ColumnType,
   DataSourceRecordType,
   DataSourceType,
@@ -40,6 +41,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -238,6 +240,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -328,6 +331,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -400,6 +404,7 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -450,6 +455,104 @@ describe("importDataSource tests", () => {
 
     // Clean up immediately
     await deleteDataSource(dataSource.id);
+  });
+
+  test("importDataSource infers semantic types for percentage columns", async () => {
+    const org = await upsertOrganisation({
+      name: "Test Semantic Type Org",
+    });
+
+    const dataSource = await createDataSource({
+      name: "Test Semantic Type CSV Source",
+      autoEnrich: false,
+      autoImport: false,
+      recordType: DataSourceRecordType.Data,
+      config: {
+        type: DataSourceType.CSV,
+        url: `file://tests/resources/percentages.csv?${uuidv4()}`,
+      },
+      columnDefs: [],
+      columnMetadata: [],
+      columnVisualisations: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: {
+        type: GeocodingType.Code,
+        column: "Code",
+        areaSetCode: AreaSetCode.WMC24,
+      },
+      organisationId: org.id,
+      public: false,
+    });
+
+    toRemove.push(dataSource.id);
+
+    await importDataSource({ dataSourceId: dataSource.id });
+
+    const imported = await findDataSourceById(dataSource.id);
+    const metadata = imported?.columnMetadata ?? [];
+
+    const semanticTypeByName = Object.fromEntries(
+      metadata.map((m) => [m.name, m.semanticType ?? null]),
+    );
+
+    expect(semanticTypeByName["pct_share"]).toBe(
+      ColumnSemanticType.Percentage01,
+    );
+    expect(semanticTypeByName["turnout_pct"]).toBe(
+      ColumnSemanticType.Percentage0100,
+    );
+    expect(semanticTypeByName["share"]).toBe(ColumnSemanticType.Percentage01);
+    expect(semanticTypeByName["count"]).toBeUndefined();
+    expect(semanticTypeByName["binary"]).toBeUndefined();
+  });
+
+  test("importDataSource does not overwrite a manually set semantic type on re-import", async () => {
+    const org = await upsertOrganisation({
+      name: "Test Preserve Semantic Type Org",
+    });
+
+    const dataSource = await createDataSource({
+      name: "Test Preserve Semantic Type CSV Source",
+      autoEnrich: false,
+      autoImport: false,
+      recordType: DataSourceRecordType.Data,
+      config: {
+        type: DataSourceType.CSV,
+        url: `file://tests/resources/percentages.csv?${uuidv4()}`,
+      },
+      columnDefs: [],
+      // Pre-set a semantic type for pct_share as if the user manually chose it
+      columnMetadata: [
+        {
+          name: "pct_share",
+          description: "",
+          valueLabels: {},
+          semanticType: ColumnSemanticType.Percentage0100,
+        },
+      ],
+      columnVisualisations: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: {
+        type: GeocodingType.Code,
+        column: "Code",
+        areaSetCode: AreaSetCode.WMC24,
+      },
+      organisationId: org.id,
+      public: false,
+    });
+
+    toRemove.push(dataSource.id);
+
+    await importDataSource({ dataSourceId: dataSource.id });
+
+    const imported = await findDataSourceById(dataSource.id);
+    const metadata = imported?.columnMetadata ?? [];
+    const pctShare = metadata.find((m) => m.name === "pct_share");
+
+    // The manually set Percentage0100 must not be overwritten to Percentage01
+    expect(pctShare?.semanticType).toBe(ColumnSemanticType.Percentage0100);
   });
 
   afterAll(async () => {

@@ -2,7 +2,7 @@ import { Database, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
-import { type InspectorBoundaryConfig } from "@/models/MapView";
+import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -17,10 +17,10 @@ export function BoundaryConfigItem({
   onClickRemove,
   onUpdate,
 }: {
-  boundaryConfig: InspectorBoundaryConfig;
+  boundaryConfig: InspectorDataSourceConfig;
   index: number;
   onClickRemove: () => void;
-  onUpdate: (config: InspectorBoundaryConfig) => void;
+  onUpdate: (config: InspectorDataSourceConfig) => void;
 }) {
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(boundaryConfig.dataSourceId);

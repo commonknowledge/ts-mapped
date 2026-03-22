@@ -10,7 +10,7 @@ import { useDataSources } from "../../hooks/useDataSources";
 import DataSourcePropertiesList from "./DataSourcePropertiesList";
 import type { SelectedBoundary } from "../../types/inspector";
 import type { DataSource } from "@/models/DataSource";
-import type { InspectorBoundaryConfig } from "@/models/MapView";
+import type { InspectorDataSourceConfig } from "@/models/MapView";
 import type { Point } from "@/models/shared";
 
 export function BoundaryDataPanel({
@@ -19,7 +19,7 @@ export function BoundaryDataPanel({
   markerPoint,
   defaultExpanded,
 }: {
-  config: InspectorBoundaryConfig;
+  config: InspectorDataSourceConfig;
   selectedBoundary?: SelectedBoundary | null | undefined;
   markerPoint?: Point | null | undefined;
   defaultExpanded: boolean;

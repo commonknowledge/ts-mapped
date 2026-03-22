@@ -128,6 +128,7 @@ const ensureMembersDataSource = async (orgId: string): Promise<DataSource> => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       public: false,
       recordType: DataSourceRecordType.Members,
     });
@@ -161,6 +162,7 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
       },
       columnDefs: [],
       columnMetadata: [],
+      columnVisualisations: [],
       public: true,
       recordType: DataSourceRecordType.Data,
     });

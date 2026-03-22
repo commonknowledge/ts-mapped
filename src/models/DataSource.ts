@@ -198,6 +198,28 @@ export enum ColumnType {
 }
 export const columnTypes = Object.values(ColumnType);
 
+export enum ColumnSemanticType {
+  Auto = "Auto",
+  Percentage01 = "Percentage01",
+  Percentage0100 = "Percentage0100",
+}
+export const columnSemanticTypes = Object.values(ColumnSemanticType);
+export const numericColumnSemanticTypes = [
+  ColumnSemanticType.Auto,
+  ColumnSemanticType.Percentage01,
+  ColumnSemanticType.Percentage0100,
+];
+
+export enum ColumnDisplayFormat {
+  Auto = "Auto",
+  Bar = "Bar",
+}
+export const columnDisplayFormats = Object.values(ColumnDisplayFormat);
+export const percentageColumnDisplayFormats = [
+  ColumnDisplayFormat.Auto,
+  ColumnDisplayFormat.Bar,
+];
+
 export const columnDefSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(ColumnType),
@@ -211,7 +233,17 @@ export const columnMetadataSchema = z.object({
   name: z.string(),
   description: z.string(),
   valueLabels: z.record(z.string(), z.string()),
+  semanticType: z.nativeEnum(ColumnSemanticType).optional(),
 });
+
+export const columnVisualisationSchema = z.object({
+  name: z.string(),
+  displayFormat: z.nativeEnum(ColumnDisplayFormat).optional(),
+  colourMappings: z.record(z.string(), z.string()).optional(),
+  visible: z.boolean().optional(),
+});
+
+export type ColumnVisualisation = z.infer<typeof columnVisualisationSchema>;
 
 export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
 
@@ -242,6 +274,7 @@ export const dataSourceSchema = z.object({
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
   columnMetadata: z.array(columnMetadataSchema),
+  columnVisualisations: z.array(columnVisualisationSchema),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,
