@@ -35,7 +35,20 @@ export async function checkLoginAttempt(ip: string): Promise<boolean> {
 
 export async function rollbackLoginAttempt(ip: string): Promise<void> {
   const redis = getClient();
-  await redis.decr(`rate_limit:login:${ip}`);
+  const key = `rate_limit:login:${ip}`;
+
+  const results = await redis
+    .multi()
+    .decr(key)
+    .expire(key, WINDOW_SECONDS)
+    .exec();
+
+  const newCount =
+    results && results[0] && Array.isArray(results[0]) ? (results[0][1] as number) : 0;
+
+  if (newCount <= 0) {
+    await redis.del(key);
+  }
 }
 
 export async function checkForgotPasswordAttempt(ip: string): Promise<boolean> {
