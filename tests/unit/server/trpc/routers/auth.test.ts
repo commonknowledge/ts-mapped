@@ -47,13 +47,7 @@ describe("auth.forgotPassword", () => {
       const caller = makeCaller("1.2.3.4");
       await expect(
         caller.forgotPassword({ email: "user@example.com" }),
-      ).rejects.toThrow(TRPCError);
-      try {
-        await caller.forgotPassword({ email: "user@example.com" });
-      } catch (err) {
-        expect(err).toBeInstanceOf(TRPCError);
-        expect((err as TRPCError).code).toBe("TOO_MANY_REQUESTS");
-      }
+      ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
     });
 
     test("passes the caller IP to the rate limiter", async () => {
