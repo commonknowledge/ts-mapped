@@ -67,7 +67,12 @@ export const authRouter = router({
           .sign(secret);
 
         const cookieStore = await cookies();
-        cookieStore.set("JWT", cookieToken);
+        cookieStore.set("JWT", cookieToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          path: "/",
+        });
         return user;
       } catch (error) {
         if (error instanceof JWTExpired) {

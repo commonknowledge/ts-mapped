@@ -38,9 +38,13 @@ export default function SidebarUserMenu() {
     currentOrganisation,
   } = useOrganisations();
 
-  const onSubmitLogout = (e: SyntheticEvent<HTMLFormElement>) => {
+  const onSubmitLogout = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    document.cookie = "JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    try {
+      await fetch("/api/logout", { method: "POST" });
+    } catch {
+      // Server unavailable — proceed anyway; HttpOnly cookie will expire naturally
+    }
     location.href = "/";
   };
 
