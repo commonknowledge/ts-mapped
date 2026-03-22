@@ -20,6 +20,7 @@ import {
 } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
+import { checkForgotPasswordRateLimit } from "@/server/utils/ratelimit";
 import { publicProcedure, router } from "../index";
 
 export const authRouter = router({
@@ -82,7 +83,15 @@ export const authRouter = router({
     }),
   forgotPassword: publicProcedure
     .input(z.object({ email: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const allowed = await checkForgotPasswordRateLimit(ctx.ip);
+      if (!allowed) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many requests, please try again later",
+        });
+      }
+
       const { email } = input;
       const user = await findUserByEmail(email);
       if (!user) return true;
