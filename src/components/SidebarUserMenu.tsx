@@ -7,6 +7,7 @@ import {
   LogOutIcon,
   SettingsIcon,
 } from "lucide-react";
+import { JWT_LIFETIME_SECONDS } from "@/constants";
 import { useCurrentUser } from "@/hooks";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
@@ -23,7 +24,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-
 import { cn } from "@/shadcn/utils";
 import { getInitials } from "@/utils/text";
 import { Link } from "./Link";
@@ -44,7 +44,7 @@ export default function SidebarUserMenu() {
       await fetch("/api/logout", { method: "POST" });
     } catch {
       // Server unavailable so JWT cookie may not be removed - set client side LoggedOut cookie
-      document.cookie = "LoggedOut=1; path=/; SameSite=lax";
+      document.cookie = `LoggedOut=1; path=/; SameSite=lax; max-age=${JWT_LIFETIME_SECONDS}`;
     }
     location.href = "/";
   };

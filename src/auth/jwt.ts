@@ -1,11 +1,14 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { JWT_LIFETIME_SECONDS } from "@/constants";
 
 export async function setJWT(id: string, email: string) {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+  const expireAtUnixTimestamp =
+    Math.floor(Date.now() / 1000) + JWT_LIFETIME_SECONDS;
   const token = await new SignJWT({ id, email })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("24h")
+    .setExpirationTime(expireAtUnixTimestamp)
     .sign(secret);
   const cookieStore = await cookies();
   cookieStore.set("JWT", token, {
