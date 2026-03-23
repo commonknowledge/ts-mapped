@@ -31,6 +31,7 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import {
+  findDataSourceOrganisationOverride,
   findDataSourceOrganisationOverridesByOrg,
   upsertDataSourceOrganisationOverride,
 } from "@/server/repositories/DataSourceOrganisationOverride";
@@ -610,6 +611,71 @@ export const dataSourceRouter = router({
         input.inspectorColumns,
       );
       return true;
+    }),
+
+  patchColumnMetadata: dataSourceOwnerProcedure
+    .input(
+      z.object({
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = ctx.dataSource.columnMetadata ?? [];
+      const hasEntry = existing.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existing.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existing,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await updateDataSource(ctx.dataSource.id, { columnMetadata: updated });
+      return { columnMetadata: updated };
+    }),
+
+  patchColumnMetadataOverride: organisationProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await findDataSourceOrganisationOverride(
+        ctx.organisation.id,
+        input.dataSourceId,
+      );
+      const existingMetadata = existing?.columnMetadata ?? [];
+      const inspectorColumns = existing?.inspectorColumns ?? [];
+      const hasEntry = existingMetadata.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existingMetadata.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existingMetadata,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await upsertDataSourceOrganisationOverride(
+        ctx.organisation.id,
+        input.dataSourceId,
+        updated,
+        inspectorColumns,
+      );
+      return { columnMetadata: updated };
     }),
 
   events: dataSourceOwnerProcedure.subscription(async function* ({

@@ -1,4 +1,5 @@
 import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
+import { useMemo } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
@@ -24,9 +25,19 @@ export default function Legend() {
   const areaStats = areaStatsQuery?.data;
   const isLoading = areaStatsQuery?.isFetching;
 
+  const resolvedColorMappings = useMemo(() => {
+    if (!dataSource || !viewConfig.areaDataColumn) return undefined;
+    return resolveColumnMetadataEntry(
+      dataSource.columnMetadata,
+      dataSource.organisationOverride?.columnMetadata,
+      viewConfig.areaDataColumn,
+    )?.colorMappings;
+  }, [dataSource, viewConfig.areaDataColumn]);
+
   const colorScheme = useColorScheme({
     areaStats,
     viewConfig,
+    resolvedColorMappings,
   });
 
   const isLayerVisible = viewConfig.showChoropleth !== false;
@@ -69,7 +80,7 @@ export default function Legend() {
           fields={{
             description: true,
             valueLabels: true,
-            categoryColors: colorScheme?.colorSchemeType === "categoric",
+            colorMappings: colorScheme?.colorSchemeType === "categoric",
           }}
         />
       </div>

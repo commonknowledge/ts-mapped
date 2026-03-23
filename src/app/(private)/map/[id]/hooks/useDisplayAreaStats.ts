@@ -29,25 +29,6 @@ export const useDisplayAreaStats = <
   const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
-  const fillColor = useFillColor({
-    areaStats,
-    viewConfig,
-    selectedBivariateBucket: null,
-  });
-
-  const { result, value: fillColorExpression } = expression.createExpression([
-    "to-rgba",
-    fillColor,
-  ]);
-
-  if (result !== "success") {
-    console.error(
-      "Attempted to parse invalid MapboxGL expression",
-      JSON.stringify(fillColor),
-      fillColorExpression,
-    );
-  }
-
   const resolvedMetadata = useMemo(
     () =>
       resolveColumnMetadata(
@@ -64,6 +45,26 @@ export const useDisplayAreaStats = <
   const secondaryColumnMetadata = resolvedMetadata.find(
     (c) => c.name === areaStats?.secondary?.column,
   );
+
+  const fillColor = useFillColor({
+    areaStats,
+    viewConfig,
+    selectedBivariateBucket: null,
+    resolvedColorMappings: columnMetadata?.colorMappings,
+  });
+
+  const { result, value: fillColorExpression } = expression.createExpression([
+    "to-rgba",
+    fillColor,
+  ]);
+
+  if (result !== "success") {
+    console.error(
+      "Attempted to parse invalid MapboxGL expression",
+      JSON.stringify(fillColor),
+      fillColorExpression,
+    );
+  }
 
   const areasToDisplay = useMemo((): (T & DisplayAreaStat)[] => {
     return areas.map((area) => {

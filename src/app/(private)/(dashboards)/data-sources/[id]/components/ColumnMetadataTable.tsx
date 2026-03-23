@@ -1,8 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import ColorMappingsEditor from "@/components/ColorMappingsEditor";
+import ValueLabelsEditor from "@/components/ValueLabelsEditor";
+import { useColumnValues } from "@/hooks/useColumnValues";
 import { ColumnSemanticTypeLabels } from "@/labels";
 import {
   type ColumnMetadata,
@@ -14,7 +17,6 @@ import {
 import { useTRPC } from "@/services/trpc/react";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
-import { Input } from "@/shadcn/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
   Select,
@@ -55,43 +57,18 @@ function ColumnValueLabelsCell({
   const [localLabels, setLocalLabels] =
     useState<Record<string, string>>(currentLabels);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const trpc = useTRPC();
 
-  const { data: rawColumnValues } = useQuery(
-    trpc.dataSource.uniqueColumnValues.queryOptions(
-      { dataSourceId, column: columnName },
-      { enabled: open },
-    ),
-  );
+  useEffect(() => {
+    if (!open) setLocalLabels(currentLabels);
+  }, [currentLabels, open]);
 
-  const columnValues = useMemo(() => {
-    if (rawColumnValues == null) return rawColumnValues;
-    if (!nullIsZero || columnType !== ColumnType.Number) {
-      return rawColumnValues;
-    }
-    const blankValues = new Set(["", "null", "undefined"]);
-    const hasBlankOrZero =
-      rawColumnValues.some((v) => blankValues.has(v)) ||
-      rawColumnValues.includes("0");
-    if (!hasBlankOrZero) return rawColumnValues;
-    const filtered = rawColumnValues.filter((v) => !blankValues.has(v));
-    if (!filtered.includes("0")) {
-      filtered.push("0");
-    }
-    return filtered;
-  }, [rawColumnValues, nullIsZero, columnType]);
-
-  const sortedValues = useMemo(() => {
-    if (!columnValues) return columnValues;
-    return columnValues.toSorted((a, b) => {
-      if (columnType === ColumnType.Number) {
-        const numA = Number(a);
-        const numB = Number(b);
-        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      }
-      return a.localeCompare(b);
-    });
-  }, [columnValues, columnType]);
+  const sortedValues = useColumnValues({
+    dataSourceId,
+    column: columnName,
+    columnType,
+    nullIsZero,
+    enabled: open,
+  });
 
   const handleLabelChange = useCallback(
     (value: string, label: string) => {
@@ -119,46 +96,12 @@ function ColumnValueLabelsCell({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0" align="start">
-        <div className="max-h-64 overflow-y-auto">
-          {sortedValues === undefined ? (
-            <p className="text-sm text-muted-foreground p-3">Loading values…</p>
-          ) : sortedValues === null ? (
-            <p className="text-sm text-muted-foreground p-3">
-              Too many unique values to configure labels.
-            </p>
-          ) : sortedValues.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-3">
-              No values found.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-1/2 text-xs">Value</TableHead>
-                  <TableHead className="w-1/2 text-xs">Label</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedValues.map((value) => (
-                  <TableRow key={value}>
-                    <TableCell className="font-mono text-xs text-muted-foreground whitespace-normal py-1.5">
-                      {value || "(blank)"}
-                    </TableCell>
-                    <TableCell className="py-1.5">
-                      <Input
-                        value={localLabels[value] ?? ""}
-                        onChange={(e) =>
-                          handleLabelChange(value, e.target.value)
-                        }
-                        className="h-7 text-xs"
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+        <ValueLabelsEditor
+          values={sortedValues}
+          columnType={columnType}
+          valueLabels={localLabels}
+          onChange={handleLabelChange}
+        />
       </PopoverContent>
     </Popover>
   );
@@ -183,45 +126,20 @@ function ColumnColorMappingsCell({
   const [localMappings, setLocalMappings] =
     useState<Record<string, string>>(currentMappings);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const trpc = useTRPC();
 
-  const { data: rawColumnValues } = useQuery(
-    trpc.dataSource.uniqueColumnValues.queryOptions(
-      { dataSourceId, column: columnName },
-      { enabled: open },
-    ),
-  );
+  useEffect(() => {
+    if (!open) setLocalMappings(currentMappings);
+  }, [currentMappings, open]);
 
-  const columnValues = useMemo(() => {
-    if (rawColumnValues == null) return rawColumnValues;
-    if (!nullIsZero || columnType !== ColumnType.Number) {
-      return rawColumnValues;
-    }
-    const blankValues = new Set(["", "null", "undefined"]);
-    const hasBlankOrZero =
-      rawColumnValues.some((v) => blankValues.has(v)) ||
-      rawColumnValues.includes("0");
-    if (!hasBlankOrZero) return rawColumnValues;
-    const filtered = rawColumnValues.filter((v) => !blankValues.has(v));
-    if (!filtered.includes("0")) {
-      filtered.push("0");
-    }
-    return filtered;
-  }, [rawColumnValues, nullIsZero, columnType]);
+  const sortedValues = useColumnValues({
+    dataSourceId,
+    column: columnName,
+    columnType,
+    nullIsZero,
+    enabled: open,
+  });
 
-  const sortedValues = useMemo(() => {
-    if (!columnValues) return columnValues;
-    return columnValues.toSorted((a, b) => {
-      if (columnType === ColumnType.Number) {
-        const numA = Number(a);
-        const numB = Number(b);
-        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      }
-      return a.localeCompare(b);
-    });
-  }, [columnValues, columnType]);
-
-  const handleMappingChange = useCallback(
+  const handleChange = useCallback(
     (value: string, color: string) => {
       const updated = { ...localMappings, [value]: color };
       setLocalMappings(updated);
@@ -232,6 +150,23 @@ function ColumnColorMappingsCell({
     },
     [localMappings, onSave],
   );
+
+  const handleReset = useCallback(
+    (value: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [value]: _removed, ...rest } = localMappings;
+      setLocalMappings(rest);
+      onSave(rest);
+    },
+    [localMappings, onSave],
+  );
+
+  const handleResetAll = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setLocalMappings({});
+    onSave({});
+  }, [onSave]);
 
   const mappingCount = Object.keys(currentMappings).length;
 
@@ -246,33 +181,13 @@ function ColumnColorMappingsCell({
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <div className="max-h-64 overflow-y-auto">
-          {sortedValues === undefined ? (
-            <p className="text-sm text-muted-foreground p-3">Loading values…</p>
-          ) : sortedValues === null ? (
-            <p className="text-sm text-muted-foreground p-3">
-              Too many unique values to configure colours.
-            </p>
-          ) : sortedValues.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-3">
-              No values found.
-            </p>
-          ) : (
-            <div className="p-2 flex flex-col gap-1">
-              {sortedValues.map((value) => (
-                <div key={value} className="flex items-center gap-2">
-                  <Input
-                    type="color"
-                    value={localMappings[value] ?? "#000000"}
-                    onChange={(e) => handleMappingChange(value, e.target.value)}
-                    className="h-7 w-10 p-0.5 cursor-pointer shrink-0"
-                  />
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {value || "(blank)"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+          <ColorMappingsEditor
+            values={sortedValues}
+            colorMappings={localMappings}
+            onChange={handleChange}
+            onReset={handleReset}
+            onResetAll={handleResetAll}
+          />
         </div>
       </PopoverContent>
     </Popover>

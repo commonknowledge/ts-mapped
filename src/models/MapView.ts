@@ -140,7 +140,7 @@ export const mapViewConfigSchema = z.object({
   calculationType: z.nativeEnum(CalculationType).nullish(),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
-  categoryColors: z.record(z.string(), z.string()).optional(),
+  colorMappings: z.record(z.string(), z.string()).optional(),
   colorScaleType: z.nativeEnum(ColorScaleType).optional(),
   steppedColorStepsByKey: z
     .record(z.string(), z.array(steppedColorStepSchema))

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import DataSourcePropertiesList from "@/app/(private)/map/[id]/components/inspector/DataSourcePropertiesList";
+import DataSourcePropertiesList from "@/app/(private)/map/[id]/components/InspectorPanel/DataSourcePropertiesList";
 import { ColumnDisplayFormatLabels } from "@/labels";
 import {
   ColumnDisplayFormat,

@@ -27,7 +27,7 @@ import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import ControlPanel from "./controls/ControlPanel";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
-import EditColumnMetadataModal from "./EditColumnMetadataModal";
+import EditColumnMetadataModal from "./EditColumnMetadataModal/EditColumnMetadataModal";
 import Loading from "./Loading";
 import MapInfoPopup from "./MapInfoPopup";
 import PrivateMapControls from "./PrivateMapControls";

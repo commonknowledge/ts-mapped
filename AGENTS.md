@@ -86,10 +86,17 @@ Use tRPC as the bridge between client components and server logic:
 ## Code Style
 
 - Do not use `!!x` to cast to `boolean`. Use `Boolean(x)`.
+- Functions with more than 2 parameters should use the destructured input pattern,
+  e.g. `const sum = ({ a, b, c }: { a: int, b: int, c: int }) => a + b + c`
+- Constants should either go in a `constants/` directory or a `constants.ts` file.
+- Utils (pure functions) should go in a `utils/` directory ot a `utils.ts` file.
+- Functions with side effects, or async functions, should go in a `services/` directory, or somewhere more specific.
+- Complex components that require their own directory should be in a file with the same name as the directory,
+  e.g. `Choropleth/Choropleth.tsx`.
 
 ## English Dialect
 
-- Use American spellings for code, British spellings for user-facing text.
+- Use American spellings for code, British spellings for user-facing text, comments, and documentation.
 - Use British spellings in code if there is precedent (e.g. "visualisation") for consistency.
 
 ## Database

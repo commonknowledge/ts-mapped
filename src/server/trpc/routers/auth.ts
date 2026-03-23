@@ -20,7 +20,7 @@ import {
 } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
-import { checkForgotPasswordAttempt } from "@/server/utils/ratelimit";
+import { checkForgotPasswordAttempt } from "@/server/services/ratelimit";
 import { publicProcedure, router } from "../index";
 
 export const authRouter = router({
