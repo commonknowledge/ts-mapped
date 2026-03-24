@@ -17,8 +17,9 @@ export const areaRouter = router({
         code: z.string(),
       }),
     )
-    .query(({ input: { code, areaSetCode } }) => {
-      return findAreaByCodeWithGeometry(code, areaSetCode);
+    .query(async ({ input: { code, areaSetCode } }) => {
+      const area = await findAreaByCodeWithGeometry(code, areaSetCode);
+      return area ?? null;
     }),
   search: protectedProcedure
     .input(
