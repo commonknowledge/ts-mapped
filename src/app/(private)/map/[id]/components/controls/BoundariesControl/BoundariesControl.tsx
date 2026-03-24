@@ -25,7 +25,9 @@ export default function BoundariesControl() {
         {hasDataSource && (
           <IconButtonWithTooltip
             tooltip={
-              boundariesPanelOpen ? "Close style settings" : "Open style settings"
+              boundariesPanelOpen
+                ? "Close style settings"
+                : "Open style settings"
             }
             onClick={() => setBoundariesPanelOpen(!boundariesPanelOpen)}
           >

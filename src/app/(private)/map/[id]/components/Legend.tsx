@@ -6,7 +6,10 @@ import {
   LoaderPinwheel,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useChoroplethDataSource, useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
+import {
+  useChoroplethDataSource,
+  useDataSources,
+} from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
@@ -32,12 +35,12 @@ import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
+import BivariateLegend from "./BivariateLagend";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
 import { getChoroplethDataKey } from "./Choropleth/utils";
 import { DataSourceSelectModal } from "./DataSourceSelectButton";
-import BivariateLegend from "./BivariateLagend";
-import type { AreaSetGroupCode } from "@/models/AreaSet";
 import type { NumericColorScheme } from "../colors";
+import type { AreaSetGroupCode } from "@/models/AreaSet";
 
 export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -45,7 +48,9 @@ export default function Legend() {
   const { data: dataSources, getDataSourceById } = useDataSources();
 
   const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false);
-  const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(null);
+  const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
+    null,
+  );
   const [bivariatePickerOpen, setBivariatePickerOpen] = useState(false);
 
   const areaStatsQuery = useAreaStats();
@@ -371,21 +376,21 @@ export default function Legend() {
             const positionStyle =
               i === 0
                 ? {
-                  left: 0,
-                  transform: "translateX(0%)",
-                  width: `${100 / (denom + 1)}%`,
-                }
-                : i === numTicks - 1
-                  ? {
-                    left: "100%",
-                    transform: "translateX(-100%)",
+                    left: 0,
+                    transform: "translateX(0%)",
                     width: `${100 / (denom + 1)}%`,
                   }
+                : i === numTicks - 1
+                  ? {
+                      left: "100%",
+                      transform: "translateX(-100%)",
+                      width: `${100 / (denom + 1)}%`,
+                    }
                   : {
-                    left: `${t * 100}%`,
-                    transform: "translateX(-50%)",
-                    width: `${100 / (denom + 1)}%`,
-                  };
+                      left: `${t * 100}%`,
+                      transform: "translateX(-50%)",
+                      width: `${100 / (denom + 1)}%`,
+                    };
             const alignClass =
               i === 0
                 ? "items-start"
@@ -427,7 +432,9 @@ export default function Legend() {
     <div className="group flex flex-col rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
       {/* Data source + column */}
       <div className="flex flex-col gap-2 p-2">
-        <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">Data source</p>
+        <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
+          Data source
+        </p>
 
         <button
           type="button"
@@ -566,7 +573,6 @@ export default function Legend() {
         )}
       </div>
 
-
       {/* Colour bars */}
       {isLoading ? (
         <div className="flex items-center justify-center px-3 py-4">
@@ -581,7 +587,9 @@ export default function Legend() {
       ) : null}
 
       <div className="border-t border-neutral-100 px-3 py-3">
-        <p className="text-xs text-muted-foreground font-mono font-medium uppercase  mb-1">Boundaries</p>
+        <p className="text-xs text-muted-foreground font-mono font-medium uppercase  mb-1">
+          Boundaries
+        </p>
         <Select
           value={viewConfig.areaSetGroupCode || NULL_UUID}
           onValueChange={(value) =>

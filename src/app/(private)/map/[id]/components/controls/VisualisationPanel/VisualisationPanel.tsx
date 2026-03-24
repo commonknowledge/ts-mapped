@@ -39,9 +39,7 @@ import { cn } from "@/shadcn/utils";
 import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
-import {
-  dataRecordsWillAggregate,
-} from "../../Choropleth/areas";
+import { dataRecordsWillAggregate } from "../../Choropleth/areas";
 import SteppedColorEditor from "./SteppedColorEditor";
 import type { DataSource } from "@/models/DataSource";
 
@@ -309,7 +307,9 @@ export default function VisualisationPanel({
                       size="icon"
                       className="h-9 w-9 flex-shrink-0"
                       onClick={() => {
-                        updateViewConfig({ areaDataSecondaryColumn: undefined });
+                        updateViewConfig({
+                          areaDataSecondaryColumn: undefined,
+                        });
                       }}
                       title="Remove column 2"
                     >
@@ -324,7 +324,9 @@ export default function VisualisationPanel({
                         size="sm"
                         className="h-7 text-xs w-full justify-start"
                         onClick={() => {
-                          updateViewConfig({ areaDataSecondaryColumn: undefined });
+                          updateViewConfig({
+                            areaDataSecondaryColumn: undefined,
+                          });
                         }}
                       >
                         <X className="h-3 w-3 mr-1" />
@@ -358,7 +360,9 @@ export default function VisualisationPanel({
                       <SelectValue placeholder="Choose an aggregation..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={CalculationType.Avg}>Average</SelectItem>
+                      <SelectItem value={CalculationType.Avg}>
+                        Average
+                      </SelectItem>
                       <SelectItem value={CalculationType.Mode}>
                         Most common
                       </SelectItem>
@@ -409,7 +413,9 @@ export default function VisualisationPanel({
                     </Label>
 
                     <Select
-                      value={viewConfig.colorScaleType || ColorScaleType.Gradient}
+                      value={
+                        viewConfig.colorScaleType || ColorScaleType.Gradient
+                      }
                       onValueChange={(value) =>
                         updateViewConfig({
                           colorScaleType: value as ColorScaleType,
@@ -417,7 +423,10 @@ export default function VisualisationPanel({
                       }
                     >
                       <SelectTrigger
-                        className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
+                        className={cn(
+                          "w-full min-w-0",
+                          SELECT_TO_BUTTON_CLASSES,
+                        )}
                         id="color-scale-type-select"
                       >
                         <SelectValue placeholder="Choose color scale...">
@@ -511,7 +520,8 @@ export default function VisualisationPanel({
                           </SelectTrigger>
                           <SelectContent>
                             {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
-                              const isCustom = option.value === ColorScheme.Custom;
+                              const isCustom =
+                                option.value === ColorScheme.Custom;
                               const customColorValue = isCustom
                                 ? viewConfig.customColor || "#3b82f6"
                                 : undefined;
@@ -533,7 +543,9 @@ export default function VisualisationPanel({
                                       className={`w-4 h-4 rounded ${option.color}`}
                                     />
                                   )}
-                                  <span className="truncate">{option.label}</span>
+                                  <span className="truncate">
+                                    {option.label}
+                                  </span>
                                 </SelectItem>
                               );
                             })}
@@ -553,14 +565,16 @@ export default function VisualisationPanel({
                                 className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
                                 style={{
                                   backgroundColor:
-                                    viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
+                                    viewConfig.customColor ||
+                                    DEFAULT_CUSTOM_COLOR,
                                 }}
                               >
                                 <input
                                   type="color"
                                   id="custom-color-picker"
                                   value={
-                                    viewConfig.customColor || DEFAULT_CUSTOM_COLOR
+                                    viewConfig.customColor ||
+                                    DEFAULT_CUSTOM_COLOR
                                   }
                                   onChange={(e) =>
                                     updateViewConfig({
@@ -577,7 +591,9 @@ export default function VisualisationPanel({
                                   viewConfig.customColor || DEFAULT_CUSTOM_COLOR
                                 }
                                 onChange={(e) =>
-                                  updateViewConfig({ customColor: e.target.value })
+                                  updateViewConfig({
+                                    customColor: e.target.value,
+                                  })
                                 }
                                 className="flex-1"
                                 placeholder={DEFAULT_CUSTOM_COLOR}
@@ -601,7 +617,8 @@ export default function VisualisationPanel({
                           }
                         />
 
-                        {viewConfig.colorScaleType === ColorScaleType.Stepped && (
+                        {viewConfig.colorScaleType ===
+                          ColorScaleType.Stepped && (
                           <>
                             <Label className="text-sm text-muted-foreground font-normal">
                               Color steps
