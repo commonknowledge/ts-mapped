@@ -25,7 +25,7 @@ export function useChoroplethFillColor() {
       dataSource.columnMetadata,
       dataSource.organisationOverride?.columnMetadata,
     );
-    return resolved.find((m) => m.name === primaryColumn)?.colorMappings;
+    return resolved.find((m) => m.name === primaryColumn)?.valueColors;
   }, [dataSource, primaryColumn]);
 
   // Get fill color

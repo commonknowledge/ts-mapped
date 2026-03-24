@@ -254,7 +254,7 @@ export default function EditColumnMetadataModal() {
                   }}
                 />
               )}
-              {editColumnMetadata.fields.colorMappings && (
+              {editColumnMetadata.fields.valueColors && (
                 <ColorMappingsSection
                   dataSourceId={dataSourceId}
                   columnName={columnName}
@@ -277,7 +277,7 @@ const fieldsToDescription = (fields: EditColumnMetadataFields): string => {
   const labels: Record<keyof EditColumnMetadataFields, string> = {
     description: "description",
     valueLabels: "display values",
-    colorMappings: "colours",
+    valueColors: "colours",
   };
   const keys = Object.keys(fields) as (keyof EditColumnMetadataFields)[];
   const parts = keys.filter((f) => fields[f]).map((f) => labels[f]);

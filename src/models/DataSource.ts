@@ -234,7 +234,7 @@ export const columnMetadataSchema = z.object({
   description: z.string(),
   valueLabels: z.record(z.string(), z.string()),
   semanticType: z.nativeEnum(ColumnSemanticType).optional(),
-  colorMappings: z.record(z.string(), z.string()).optional(),
+  valueColors: z.record(z.string(), z.string()).optional(),
 });
 
 export const inspectorColumnSchema = z.object({

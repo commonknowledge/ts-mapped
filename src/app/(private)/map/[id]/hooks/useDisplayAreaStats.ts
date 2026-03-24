@@ -50,7 +50,7 @@ export const useDisplayAreaStats = <
     areaStats,
     viewConfig,
     selectedBivariateBucket: null,
-    resolvedColorMappings: columnMetadata?.colorMappings,
+    resolvedColorMappings: columnMetadata?.valueColors,
   });
 
   const { result, value: fillColorExpression } = expression.createExpression([

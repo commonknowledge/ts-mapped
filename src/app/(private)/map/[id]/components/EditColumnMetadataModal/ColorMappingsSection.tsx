@@ -117,11 +117,11 @@ export default function ColorMappingsSection({
   const hasSourceColors =
     !isOwner &&
     Boolean(dataSourceId) &&
-    Object.keys(ownerMeta?.colorMappings ?? {}).length > 0;
+    Object.keys(ownerMeta?.valueColors ?? {}).length > 0;
 
   const handleUseSourceColors = useCallback(() => {
     if (!dataSourceId) return;
-    const sourceColors = ownerMeta?.colorMappings ?? {};
+    const sourceColors = ownerMeta?.valueColors ?? {};
     const columnPrefix = getCategoryColorsKey(dataSourceId, columnName, "");
     // Remove existing map-view overrides for this column, then apply source colors
     const withoutThisColumn = Object.fromEntries(
@@ -149,21 +149,21 @@ export default function ColorMappingsSection({
   const handleSaveAsDefaults = useCallback(() => {
     if (!dataSourceId) return;
     const mergedColorMappings = {
-      ...(existingMeta?.colorMappings ?? {}),
+      ...(existingMeta?.valueColors ?? {}),
       ...mapViewColorMappings,
     };
     if (isOwner) {
       patchColumnMetadata({
         dataSourceId,
         column: columnName,
-        patch: { colorMappings: mergedColorMappings },
+        patch: { valueColors: mergedColorMappings },
       });
     } else if (organisationId) {
       patchColumnMetadataOverride({
         organisationId,
         dataSourceId,
         column: columnName,
-        patch: { colorMappings: mergedColorMappings },
+        patch: { valueColors: mergedColorMappings },
       });
     }
     clearMapViewColors();
@@ -186,7 +186,7 @@ export default function ColorMappingsSection({
         <ColorMappingsEditor
           values={mergedValues}
           colorMappings={mapViewColorMappings}
-          fallbackColors={existingMeta?.colorMappings}
+          fallbackColors={existingMeta?.valueColors}
           onChange={handleColorChangeDebounced}
           onReset={handleResetColor}
           onResetAll={handleResetAllColors}

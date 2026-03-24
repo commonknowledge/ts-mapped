@@ -31,7 +31,7 @@ export default function Legend() {
       dataSource.columnMetadata,
       dataSource.organisationOverride?.columnMetadata,
       viewConfig.areaDataColumn,
-    )?.colorMappings;
+    )?.valueColors;
   }, [dataSource, viewConfig.areaDataColumn]);
 
   const colorScheme = useColorScheme({
@@ -80,7 +80,7 @@ export default function Legend() {
           fields={{
             description: true,
             valueLabels: true,
-            colorMappings: colorScheme?.colorSchemeType === "categoric",
+            valueColors: colorScheme?.colorSchemeType === "categoric",
           }}
         />
       </div>

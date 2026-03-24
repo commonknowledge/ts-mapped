@@ -148,7 +148,7 @@ function SetCategoryColorsButton() {
             column: viewConfig.areaDataColumn,
             fields: {
               valueLabels: true,
-              colorMappings: true,
+              valueColors: true,
             },
           });
         }

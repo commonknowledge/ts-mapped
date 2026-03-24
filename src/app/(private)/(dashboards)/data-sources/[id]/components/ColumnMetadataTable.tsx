@@ -208,7 +208,7 @@ export default function ColumnMetadataTable({
       valueLabels: existing.get(col.name)?.valueLabels ?? {},
       description: existing.get(col.name)?.description ?? "",
       semanticType: existing.get(col.name)?.semanticType,
-      colorMappings: existing.get(col.name)?.colorMappings,
+      valueColors: existing.get(col.name)?.valueColors,
     }));
   }, [dataSource.columnDefs, dataSource.columnMetadata]);
 
@@ -282,9 +282,9 @@ export default function ColumnMetadataTable({
   );
 
   const handleColorMappingsChange = useCallback(
-    (index: number, colorMappings: Record<string, string>) => {
+    (index: number, valueColors: Record<string, string>) => {
       const updated = metadata.map((m, i) =>
-        i === index ? { ...m, colorMappings } : m,
+        i === index ? { ...m, valueColors } : m,
       );
       setMetadata(updated);
       save(updated);
@@ -394,7 +394,7 @@ export default function ColumnMetadataTable({
                     columnName={col.name}
                     columnType={colDef?.type ?? ColumnType.Unknown}
                     nullIsZero={dataSource.nullIsZero}
-                    currentMappings={col.colorMappings ?? {}}
+                    currentMappings={col.valueColors ?? {}}
                     onSave={(mappings) =>
                       handleColorMappingsChange(index, mappings)
                     }
