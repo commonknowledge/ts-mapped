@@ -1,24 +1,52 @@
-import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
-import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
-import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
+import {
+  ChevronDown,
+  CornerDownRight,
+  Database,
+  Layers2,
+  LoaderPinwheel,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useChoroplethDataSource, useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { MAX_COLUMN_KEY } from "@/constants";
+import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import { CalculationType, ColorScaleType } from "@/models/MapView";
+import { Button } from "@/shadcn/ui/button";
+import { Combobox } from "@/shadcn/ui/combobox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
 import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
-import BivariateLegend from "./BivariateLagend";
+import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
 import { getChoroplethDataKey } from "./Choropleth/utils";
-import ColumnMetadataIcons from "./ColumnMetadataIcons";
+import { DataSourceSelectModal } from "./DataSourceSelectButton";
+import BivariateLegend from "./BivariateLagend";
+import type { AreaSetGroupCode } from "@/models/AreaSet";
 import type { NumericColorScheme } from "../colors";
 
 export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
-  const { setBoundariesPanelOpen } = useChoropleth();
+  const { data: dataSources, getDataSourceById } = useDataSources();
+
+  const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false);
+  const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(null);
+  const [bivariatePickerOpen, setBivariatePickerOpen] = useState(false);
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -28,12 +56,6 @@ export default function Legend() {
     areaStats,
     viewConfig,
   });
-
-  const isLayerVisible = viewConfig.showChoropleth !== false;
-
-  const toggleLayerVisibility = () => {
-    updateViewConfig({ showChoropleth: !isLayerVisible });
-  };
 
   const hasDataSource = Boolean(viewConfig.areaDataSourceId);
   const hasColumn = Boolean(
@@ -45,58 +67,93 @@ export default function Legend() {
     viewConfig.areaDataColumn &&
     viewConfig.areaDataSecondaryColumn;
 
-  if (!hasDataSource) {
-    return null;
-  }
+  const isCount = viewConfig.calculationType === CalculationType.Count;
+  const canSelectColumn = !isCount && hasDataSource;
 
-  const getColumnLabel = () => {
-    if (!hasColumn) {
-      return <p>No column selected</p>;
+  const columnOneIsNumber =
+    Boolean(viewConfig.areaDataColumn) &&
+    dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
+      ?.type === ColumnType.Number;
+  const canSelectSecondaryColumn =
+    !isCount && Boolean(viewConfig.areaDataColumn) && columnOneIsNumber;
+
+  const showSecondColumnRow =
+    canSelectSecondaryColumn &&
+    (Boolean(viewConfig.areaDataSecondaryColumn) || bivariatePickerOpen);
+
+  useEffect(() => {
+    if (!dataSource || !viewConfig.areaDataColumn) return;
+    const primaryIsNumber =
+      dataSource.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
+        ?.type === ColumnType.Number;
+    if (!primaryIsNumber) {
+      if (viewConfig.areaDataSecondaryColumn) {
+        updateViewConfig({ areaDataSecondaryColumn: undefined });
+      }
+      setBivariatePickerOpen(false);
     }
-    if (viewConfig.areaDataColumn === MAX_COLUMN_KEY) {
-      return <p>Highest-value column</p>;
+  }, [
+    dataSource,
+    viewConfig.areaDataColumn,
+    viewConfig.areaDataSecondaryColumn,
+    updateViewConfig,
+  ]);
+
+  const secondaryColumnComboboxOptions = [
+    { value: NULL_UUID, label: "None" },
+    ...(dataSources
+      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+      ?.columnDefs.filter(
+        (col) =>
+          col.type === ColumnType.Number &&
+          col.name !== viewConfig.areaDataColumn,
+      )
+      .map((col) => ({
+        value: col.name,
+        label: `${col.name} (${col.type})`,
+        hint: resolveColumnMetadataEntry(
+          dataSource?.columnMetadata || [],
+          dataSource?.columnMetadataOverride,
+          col.name,
+        )?.description,
+      })) || []),
+  ];
+
+  const handleDataSourceSelect = (dataSourceId: string) => {
+    const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
+    if (!selectedAreaSetGroup) {
+      updateViewConfig({
+        areaDataSourceId: dataSourceId,
+        areaDataSecondaryColumn: undefined,
+      });
+      setIsDataSourceModalOpen(false);
+      return;
     }
-    if (viewConfig.calculationType === CalculationType.Count) {
-      return <p>Count</p>;
+    const ds = getDataSourceById(dataSourceId);
+    const validAreaSetGroups = getValidAreaSetGroupCodes(ds?.geocodingConfig);
+    if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
+      updateViewConfig({
+        areaDataSourceId: dataSourceId,
+        areaDataSecondaryColumn: undefined,
+      });
+      setIsDataSourceModalOpen(false);
+      return;
     }
+    setIsDataSourceModalOpen(false);
+    setInvalidDataSourceId(dataSourceId);
+  };
 
-    const primaryLabel = (
-      <div>
-        {viewConfig.areaDataColumn}
-        <ColumnMetadataIcons
-          dataSource={dataSource}
-          column={viewConfig.areaDataColumn}
-          fields={{
-            description: true,
-            valueLabels: true,
-            categoryColors: colorScheme?.colorSchemeType === "categoric",
-          }}
-        />
-      </div>
-    );
-
-    if (!viewConfig.areaDataSecondaryColumn) {
-      return primaryLabel;
+  const toggleBivariatePicker = () => {
+    if (viewConfig.areaDataSecondaryColumn) {
+      updateViewConfig({ areaDataSecondaryColumn: undefined });
+      setBivariatePickerOpen(false);
+      return;
     }
-
-    const secondaryLabel = (
-      <div>
-        {viewConfig.areaDataSecondaryColumn}
-        <ColumnMetadataIcons
-          dataSource={dataSource}
-          column={viewConfig.areaDataSecondaryColumn}
-          fields={{ description: true, valueLabels: true }}
-        />
-      </div>
-    );
-
-    return (
-      <div>
-        {primaryLabel}
-        <span>vs</span>
-        {secondaryLabel}
-      </div>
-    );
+    if (bivariatePickerOpen) {
+      setBivariatePickerOpen(false);
+      return;
+    }
+    setBivariatePickerOpen(true);
   };
 
   const makeBars = () => {
@@ -132,7 +189,7 @@ export default function Legend() {
         )?.valueLabels || {};
 
       return (
-        <div className="flex flex-col gap-1.5 w-full py-1">
+        <div className="flex max-h-[min(35vh,14rem)] min-h-0 w-full flex-col gap-1.5 overflow-y-auto py-1 pr-0.5">
           {Object.keys(colorScheme.colorMap)
             .filter((key) => categoriesInData.has(key))
             .toSorted((a, b) => {
@@ -314,21 +371,21 @@ export default function Legend() {
             const positionStyle =
               i === 0
                 ? {
-                    left: 0,
-                    transform: "translateX(0%)",
-                    width: `${100 / (denom + 1)}%`,
-                  }
+                  left: 0,
+                  transform: "translateX(0%)",
+                  width: `${100 / (denom + 1)}%`,
+                }
                 : i === numTicks - 1
                   ? {
-                      left: "100%",
-                      transform: "translateX(-100%)",
-                      width: `${100 / (denom + 1)}%`,
-                    }
+                    left: "100%",
+                    transform: "translateX(-100%)",
+                    width: `${100 / (denom + 1)}%`,
+                  }
                   : {
-                      left: `${t * 100}%`,
-                      transform: "translateX(-50%)",
-                      width: `${100 / (denom + 1)}%`,
-                    };
+                    left: `${t * 100}%`,
+                    transform: "translateX(-50%)",
+                    width: `${100 / (denom + 1)}%`,
+                  };
             const alignClass =
               i === 0
                 ? "items-start"
@@ -367,78 +424,255 @@ export default function Legend() {
   };
 
   return (
-    <div className="group flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setBoundariesPanelOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setBoundariesPanelOpen(true);
-          }
-        }}
-        className="flex items-start justify-between hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
-      >
-        <div className="flex flex-col flex-1 py-1">
-          <div className="flex items-center justify-between pr-2">
-            <div className="flex gap-x-1 pb-2 px-2 items-center text-sm flex-wrap">
-              <p className="flex items-center font-medium">
-                {dataSource?.name}
-              </p>
-              <ChevronRight className="w-4 h-4" />
-              <div className="flex items-center gap-0.5">
-                {getColumnLabel()}
+    <div className="group flex flex-col rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
+      {/* Data source + column */}
+      <div className="flex flex-col gap-2 p-2">
+        <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">Data source</p>
+
+        <button
+          type="button"
+          className={cn(
+            "flex w-full min-w-0 items-center gap-2 rounded-md border border-input bg-background px-3 h-8 text-xs font-normal shadow-xs outline-none transition-[color,box-shadow,border]",
+            "hover:bg-accent/60 hover:border-action-hover",
+            "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+          )}
+          onClick={() => setIsDataSourceModalOpen(true)}
+        >
+          <Database
+            className="size-3.5 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
+          <span className="min-w-0 flex-1 truncate text-left">
+            {dataSource?.name ?? "Select data source…"}
+          </span>
+          <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />
+        </button>
+
+        {hasDataSource && canSelectColumn && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <CornerDownRight
+                className="size-4 shrink-0 text-muted-foreground"
+                strokeWidth={2}
+                aria-hidden
+              />
+              <div className="min-w-0 flex-1">
+                <Combobox
+                  size="sm"
+                  triggerClassName="text-xs font-normal hover:border-action-hover"
+                  options={[
+                    { value: NULL_UUID, label: "None" },
+                    {
+                      value: MAX_COLUMN_KEY,
+                      label: "Highest-value column (String)",
+                    },
+                    ...(dataSources
+                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                      ?.columnDefs.map((col) => ({
+                        value: col.name,
+                        label: `${col.name} (${col.type})`,
+                        hint: resolveColumnMetadataEntry(
+                          dataSource?.columnMetadata || [],
+                          dataSource?.columnMetadataOverride,
+                          col.name,
+                        )?.description,
+                      })) || []),
+                  ]}
+                  value={viewConfig.areaDataColumn || NULL_UUID}
+                  onValueChange={(value) => {
+                    const col = value === NULL_UUID ? "" : value;
+                    const primaryIsNumber =
+                      Boolean(col) &&
+                      dataSource?.columnDefs.find((c) => c.name === col)
+                        ?.type === ColumnType.Number;
+                    updateViewConfig({
+                      areaDataColumn: col,
+                      ...(col === viewConfig.areaDataSecondaryColumn
+                        ? { areaDataSecondaryColumn: undefined }
+                        : {}),
+                      ...(!primaryIsNumber
+                        ? { areaDataSecondaryColumn: undefined }
+                        : {}),
+                    });
+                    if (!primaryIsNumber) {
+                      setBivariatePickerOpen(false);
+                    }
+                  }}
+                  placeholder="Column…"
+                  searchPlaceholder="Search columns…"
+                />
               </div>
+              {canSelectSecondaryColumn && (
+                <Button
+                  type="button"
+                  variant={
+                    viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
+                      ? "secondary"
+                      : "outline"
+                  }
+                  size="icon"
+                  className="h-8 w-8 shrink-0 shadow-xs"
+                  title={
+                    viewConfig.areaDataSecondaryColumn
+                      ? "Remove second column"
+                      : bivariatePickerOpen
+                        ? "Cancel second column"
+                        : "Add second column (bivariate)"
+                  }
+                  aria-label={
+                    viewConfig.areaDataSecondaryColumn
+                      ? "Remove second column"
+                      : bivariatePickerOpen
+                        ? "Cancel second column"
+                        : "Add second column for bivariate visualization"
+                  }
+                  onClick={toggleBivariatePicker}
+                >
+                  <Layers2 className="size-4" />
+                </Button>
+              )}
             </div>
-            <VisibilityToggle
-              isLayerVisible={isLayerVisible}
-              toggleLayerVisibility={toggleLayerVisibility}
-            />
+
+            {showSecondColumnRow && (
+              <div className="flex items-center gap-2">
+                <CornerDownRight
+                  className="size-4 shrink-0 text-muted-foreground invisible"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1">
+                  <Combobox
+                    size="sm"
+                    triggerClassName="text-xs font-normal hover:border-action-hover"
+                    options={secondaryColumnComboboxOptions}
+                    value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
+                    onValueChange={(value) => {
+                      updateViewConfig({
+                        areaDataSecondaryColumn:
+                          value === NULL_UUID ? undefined : value,
+                      });
+                      if (value === NULL_UUID) {
+                        setBivariatePickerOpen(false);
+                      }
+                    }}
+                    placeholder="Column 2…"
+                    searchPlaceholder="Search columns…"
+                  />
+                </div>
+                <div className="h-8 w-8 shrink-0" aria-hidden />
+              </div>
+            )}
           </div>
-          {isLoading ? (
-            <div className="flex items-center justify-center px-2 py-4">
-              <LoaderPinwheel className="w-5 h-5 animate-spin text-neutral-400" />
-            </div>
-          ) : isBivariate ? (
-            <div className="px-2" onClick={(e) => e.stopPropagation()}>
-              <BivariateLegend />
-            </div>
-          ) : hasColumn && colorScheme ? (
-            <div className="flex px-2">{makeBars()}</div>
-          ) : null}
-        </div>
+        )}
       </div>
+
+
+      {/* Colour bars */}
+      {isLoading ? (
+        <div className="flex items-center justify-center px-3 py-4">
+          <LoaderPinwheel className="w-5 h-5 animate-spin text-neutral-400" />
+        </div>
+      ) : isBivariate ? (
+        <div className="px-3 pb-2">
+          <BivariateLegend />
+        </div>
+      ) : hasColumn && colorScheme ? (
+        <div className="flex px-3 pb-2">{makeBars()}</div>
+      ) : null}
+
+      <div className="border-t border-neutral-100 px-3 py-3">
+        <p className="text-xs text-muted-foreground font-mono font-medium uppercase  mb-1">Boundaries</p>
+        <Select
+          value={viewConfig.areaSetGroupCode || NULL_UUID}
+          onValueChange={(value) =>
+            updateViewConfig({
+              areaSetGroupCode:
+                value === NULL_UUID ? null : (value as AreaSetGroupCode),
+            })
+          }
+        >
+          <SelectTrigger
+            size="sm"
+            className="h-8 w-full text-xs font-normal shadow-xs hover:border-action-hover"
+          >
+            <SelectValue placeholder="Boundaries…">
+              {viewConfig.areaSetGroupCode
+                ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+                : "No locality"}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NULL_UUID}>No locality</SelectItem>
+            {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
+              (code) => (
+                <SelectItem key={code} value={code}>
+                  <div className="flex flex-col">
+                    <span>
+                      {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                    </span>
+                    <span
+                      className="text-xs text-muted-foreground"
+                      dangerouslySetInnerHTML={{
+                        __html: AreaSetGroupCodeYears[code as AreaSetGroupCode],
+                      }}
+                    />
+                  </div>
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      {/* Data source modal */}
+      <DataSourceSelectModal
+        isModalOpen={isDataSourceModalOpen}
+        setIsModalOpen={setIsDataSourceModalOpen}
+        onSelect={handleDataSourceSelect}
+      />
+
+      {/* Invalid boundary dialog */}
+      <Dialog
+        open={Boolean(invalidDataSourceId)}
+        onOpenChange={(o) => {
+          if (!o) setInvalidDataSourceId(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Select new boundaries</DialogTitle>
+          </DialogHeader>
+          <p>
+            The data source you have selected does not fit into your selected
+            boundaries (
+            {viewConfig.areaSetGroupCode
+              ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+              : "unknown"}
+            ). Please select alternative boundaries, or cancel.
+          </p>
+          <Select
+            onValueChange={(value) => {
+              updateViewConfig({
+                areaSetGroupCode: value as AreaSetGroupCode,
+                areaDataSourceId: invalidDataSourceId || "",
+              });
+              setInvalidDataSourceId(null);
+            }}
+          >
+            <SelectTrigger className="w-full min-w-0">
+              <SelectValue placeholder="Choose boundaries…" />
+            </SelectTrigger>
+            <SelectContent>
+              {getValidAreaSetGroupCodes(
+                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
+              ).map((code) => (
+                <SelectItem key={code} value={code}>
+                  {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-
-const VisibilityToggle = ({
-  isLayerVisible,
-  toggleLayerVisibility,
-}: {
-  isLayerVisible: boolean;
-  toggleLayerVisibility: () => void;
-}) => (
-  <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
-    <div
-      role="button"
-      tabIndex={0}
-      className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
-      aria-label={isLayerVisible ? "Hide layer" : "Show layer"}
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleLayerVisibility();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleLayerVisibility();
-        }
-      }}
-    >
-      {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
-    </div>
-  </div>
-);

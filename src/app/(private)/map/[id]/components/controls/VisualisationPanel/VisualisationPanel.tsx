@@ -1,4 +1,4 @@
-import { CircleAlert, Database, Palette, PieChart, X } from "lucide-react";
+import { Palette, PieChart, X } from "lucide-react";
 import { useState } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import {
@@ -7,7 +7,6 @@ import {
 } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
-import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import {
   CalculationType,
@@ -42,11 +41,8 @@ import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
 import {
   dataRecordsWillAggregate,
-  getValidAreaSetGroupCodes,
 } from "../../Choropleth/areas";
-import DataSourceSelectButton from "../../DataSourceSelectButton";
 import SteppedColorEditor from "./SteppedColorEditor";
-import type { AreaSetGroupCode } from "@/models/AreaSet";
 import type { DataSource } from "@/models/DataSource";
 
 const SELECT_TO_BUTTON_CLASSES =
@@ -166,12 +162,8 @@ export default function VisualisationPanel({
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
-  const { data: dataSources, getDataSourceById } = useDataSources();
+  const { data: dataSources } = useDataSources();
   const dataSource = useChoroplethDataSource();
-
-  const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
-    null,
-  );
 
   if (!boundariesPanelOpen) return null;
 
@@ -186,7 +178,6 @@ export default function VisualisationPanel({
     viewConfig.colorScaleType === ColorScaleType.Categorical ||
     columnOneIsNotNumber;
 
-  const canSelectColumn = !isCount && viewConfig.areaDataSourceId;
   const canSelectSecondaryColumn = !isCount && columnOneIsNumber;
   const canSelectAggregation =
     !isCount &&
@@ -200,6 +191,8 @@ export default function VisualisationPanel({
   const canSelectColorScheme = canSelectColorScale && !isCategorical;
   const canSetCategoryColors = isCategorical;
 
+  const hasDataSource = Boolean(viewConfig.areaDataSourceId);
+
   return (
     <div
       className={cn(
@@ -211,7 +204,7 @@ export default function VisualisationPanel({
       }}
     >
       <div className="flex justify-between items-start gap-6 / text-sm">
-        <h3 className="mt-2 font-medium">Create visualisation</h3>
+        <h3 className="mt-2 font-medium">Style settings</h3>
         <button
           aria-label="Close visualisation panel"
           className="text-muted-foreground hover:text-primary cursor-pointer"
@@ -223,654 +216,464 @@ export default function VisualisationPanel({
 
       <Separator />
 
-      {/* Data Source Selection */}
-      <div className="space-y-2 mb-4 group">
-        <Label className="text-sm">
-          <Database className="w-4 h-4 text-muted-foreground" /> Data source
-        </Label>
-        <DataSourceSelectButton
-          className="w-full"
-          dataSource={dataSource}
-          onClickRemove={() =>
-            updateViewConfig({
-              areaDataSourceId: "",
-              areaDataColumn: "",
-              calculationType: undefined,
-            })
-          }
-          onSelect={(dataSourceId) => {
-            const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
-            if (!selectedAreaSetGroup) {
-              updateViewConfig({
-                areaDataSourceId: dataSourceId,
-                areaDataSecondaryColumn: undefined,
-              });
-              return;
-            }
-            const dataSource = getDataSourceById(dataSourceId);
-            const validAreaSetGroups = getValidAreaSetGroupCodes(
-              dataSource?.geocodingConfig,
-            );
-            if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
-              updateViewConfig({
-                areaDataSourceId: dataSourceId,
-                areaDataSecondaryColumn: undefined,
-              });
-              return;
-            }
-            setInvalidDataSourceId(dataSourceId);
-          }}
-        />
-      </div>
-
-      <div className="space-y-2 mb-4">
-        <p className="flex gap-2 items-center text-sm font-medium">
-          <PieChart className="w-4 h-4 text-muted-foreground" />
-          Visualisation
+      {!hasDataSource ? (
+        <p className="text-xs text-muted-foreground">
+          Select a data source and column from the legend panel to configure
+          style options.
         </p>
+      ) : (
+        <>
+          <div className="space-y-2 mb-4">
+            <p className="flex gap-2 items-center text-sm font-medium">
+              <PieChart className="w-4 h-4 text-muted-foreground" />
+              Visualisation
+            </p>
 
-        <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
-          <Label
-            htmlFor="choropleth-boundary-select"
-            className="text-sm text-muted-foreground font-normal"
-          >
-            Boundaries
-          </Label>
-
-          <Select
-            value={viewConfig.areaSetGroupCode || NULL_UUID}
-            onValueChange={(value) =>
-              updateViewConfig({
-                areaSetGroupCode:
-                  value === NULL_UUID ? null : (value as AreaSetGroupCode),
-              })
-            }
-          >
-            <SelectTrigger
-              className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-              id="choropleth-boundary-select"
-            >
-              <SelectValue placeholder="Choose boundaries...">
-                {viewConfig.areaSetGroupCode
-                  ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
-                  : "No locality"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NULL_UUID}>No locality</SelectItem>
-              {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
-                (code) => (
-                  <SelectItem key={code} value={code}>
-                    <div className="flex flex-col">
-                      <span className="">
-                        {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
-                      </span>
-                      <span
-                        className="text-sm text-muted-foreground"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            AreaSetGroupCodeYears[code as AreaSetGroupCode],
-                        }}
-                      />
-                    </div>
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-
-          <Label
-            htmlFor="choropleth-calculation-select"
-            className="text-sm text-muted-foreground font-normal"
-          >
-            Display
-          </Label>
-
-          <Select
-            value={
-              viewConfig.calculationType === CalculationType.Count
-                ? "counts"
-                : "values"
-            }
-            onValueChange={(value) =>
-              updateViewConfig({
-                calculationType:
-                  value === "counts"
-                    ? CalculationType.Count
-                    : DEFAULT_CALCULATION_TYPE,
-              })
-            }
-          >
-            <SelectTrigger
-              className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-              id="choropleth-calculation-select"
-            >
-              <SelectValue placeholder="Choose calculation..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="counts">Count by area</SelectItem>
-              <SelectItem value="values">Data values</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {canSelectColumn && (
-            <>
+            <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
               <Label
-                htmlFor="choropleth-column-1-select"
+                htmlFor="choropleth-calculation-select"
                 className="text-sm text-muted-foreground font-normal"
               >
-                {viewConfig.areaDataSecondaryColumn !== undefined &&
-                viewConfig.areaDataSecondaryColumn !== ""
-                  ? "Column 1"
-                  : "Column"}
+                Display
               </Label>
-              <Combobox
-                options={[
-                  { value: NULL_UUID, label: "None" },
-                  {
-                    value: MAX_COLUMN_KEY,
-                    label: "Highest-value column (String)",
-                  },
-                  ...(dataSources
-                    ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                    ?.columnDefs.map((col) => ({
-                      value: col.name,
-                      label: `${col.name} (${col.type})`,
-                      hint: resolveColumnMetadataEntry(
-                        dataSource?.columnMetadata || [],
-                        dataSource?.columnMetadataOverride,
-                        col.name,
-                      )?.description,
-                    })) || []),
-                ]}
-                value={viewConfig.areaDataColumn || NULL_UUID}
-                onValueChange={(value) =>
-                  updateViewConfig({
-                    areaDataColumn: value === NULL_UUID ? "" : value,
-                  })
-                }
-                placeholder="Choose a column..."
-                searchPlaceholder="Search columns..."
-              />
-            </>
-          )}
 
-          {canSelectSecondaryColumn && (
-            <>
-              <Label
-                htmlFor="choropleth-column-2-select"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Column 2
-              </Label>
-              <div className="flex items-center gap-2">
-                <Combobox
-                  options={[
-                    { value: NULL_UUID, label: "None" },
-                    ...(dataSources
-                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.filter(
-                        (col) =>
-                          col.type === ColumnType.Number &&
-                          col.name !== viewConfig.areaDataColumn,
-                      )
-                      .map((col) => ({
-                        value: col.name,
-                        label: `${col.name} (${col.type})`,
-                        hint: resolveColumnMetadataEntry(
-                          dataSource?.columnMetadata || [],
-                          dataSource?.columnMetadataOverride,
-                          col.name,
-                        )?.description,
-                      })) || []),
-                  ]}
-                  value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
-                  onValueChange={(value) =>
-                    updateViewConfig({
-                      areaDataSecondaryColumn:
-                        value === NULL_UUID ? undefined : value,
-                    })
-                  }
-                  placeholder="Choose a column..."
-                  searchPlaceholder="Search columns..."
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 flex-shrink-0"
-                  onClick={() => {
-                    updateViewConfig({ areaDataSecondaryColumn: undefined });
-                  }}
-                  title="Remove column 2"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              {viewConfig.areaDataSecondaryColumn && (
-                <div className="col-span-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs w-full justify-start"
-                    onClick={() => {
-                      updateViewConfig({ areaDataSecondaryColumn: undefined });
-                    }}
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Remove bivariate visualization
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-
-          {canSelectAggregation && (
-            <>
-              <Label
-                htmlFor="choropleth-aggregation-select"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Aggregation
-              </Label>
               <Select
-                value={viewConfig.calculationType || ""}
+                value={
+                  viewConfig.calculationType === CalculationType.Count
+                    ? "counts"
+                    : "values"
+                }
                 onValueChange={(value) =>
                   updateViewConfig({
-                    calculationType: value as CalculationType,
+                    calculationType:
+                      value === "counts"
+                        ? CalculationType.Count
+                        : DEFAULT_CALCULATION_TYPE,
                   })
                 }
               >
                 <SelectTrigger
                   className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-                  id="choropleth-aggregation-select"
+                  id="choropleth-calculation-select"
                 >
-                  <SelectValue placeholder="Choose an aggregation..." />
+                  <SelectValue placeholder="Choose calculation..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={CalculationType.Avg}>Average</SelectItem>
-                  <SelectItem value={CalculationType.Mode}>
-                    Most common
-                  </SelectItem>
-                  <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
+                  <SelectItem value="counts">Count by area</SelectItem>
+                  <SelectItem value="values">Data values</SelectItem>
                 </SelectContent>
               </Select>
-            </>
-          )}
-        </div>
-        {!viewConfig.areaDataSourceId && (
-          <div className="flex items-center gap-2">
-            <CircleAlert className="w-4 h-4 text-yellow-500" />
-            <p className="text-xs text-gray-500">
-              No data source selected. Please select a data source to create a
-              choropleth.
-            </p>
-          </div>
-        )}
-        {viewConfig.areaDataSourceId && !viewConfig.areaSetGroupCode && (
-          <div className="flex items-center gap-2">
-            <CircleAlert className="w-4 h-4 text-yellow-500" />
-            <p className="text-xs text-gray-500">
-              No locality shapes selected. Please select a locality set to
-              render the filled map.
-            </p>
-          </div>
-        )}
 
-        {/* Include Columns Modal - only show when MAX_COLUMN_KEY is selected */}
-        {viewConfig.areaDataColumn === MAX_COLUMN_KEY && dataSource && (
-          <IncludeColumnsModal
-            dataSource={dataSource}
-            selectedColumns={
-              viewConfig.includeColumnsString
-                ? viewConfig.includeColumnsString
-                    .split(",")
-                    .map((v) => v.trim())
-                    .filter(Boolean)
-                : []
-            }
-            onColumnsChange={(columns) => {
-              updateViewConfig({
-                includeColumnsString:
-                  columns.length > 0 ? columns.join(",") : undefined,
-              });
-            }}
-          />
-        )}
-      </div>
-
-      {showStyle && (
-        <div className="space-y-2 mb-4">
-          {/* Color Scheme Selection */}
-
-          <p className="flex gap-2 items-center text-sm font-medium">
-            <Palette className="w-4 h-4 text-muted-foreground" />
-            Style
-          </p>
-
-          <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
-            {canSelectColorScale && (
-              <>
-                <Label
-                  htmlFor="color-scale-type-select"
-                  className="text-sm text-muted-foreground font-normal"
-                >
-                  Color scale
-                </Label>
-
-                <Select
-                  value={viewConfig.colorScaleType || ColorScaleType.Gradient}
-                  onValueChange={(value) =>
-                    updateViewConfig({
-                      colorScaleType: value as ColorScaleType,
-                    })
-                  }
-                >
-                  <SelectTrigger
-                    className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-                    id="color-scale-type-select"
+              {canSelectSecondaryColumn && (
+                <>
+                  <Label
+                    htmlFor="choropleth-column-2-select"
+                    className="text-sm text-muted-foreground font-normal"
                   >
-                    <SelectValue placeholder="Choose color scale...">
-                      {viewConfig.colorScaleType || ColorScaleType.Gradient}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ColorScaleType.Gradient}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-16 h-3 rounded border border-neutral-300"
-                          style={{
-                            background:
-                              "linear-gradient(to right, #3b82f6, #60a5fa, #93c5fd, #dbeafe)",
-                          }}
-                        />
-                        <span>Gradient</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={ColorScaleType.Stepped}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
-                          <div
-                            className="h-full flex-1 border-r border-neutral-400"
-                            style={{ backgroundColor: "#3b82f6" }}
-                          />
-                          <div
-                            className="h-full flex-1 border-r border-neutral-400"
-                            style={{ backgroundColor: "#60a5fa" }}
-                          />
-                          <div
-                            className="h-full flex-1 border-r border-neutral-400"
-                            style={{ backgroundColor: "#93c5fd" }}
-                          />
-                          <div
-                            className="h-full flex-1"
-                            style={{ backgroundColor: "#dbeafe" }}
-                          />
-                        </div>
-                        <span>Stepped</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={ColorScaleType.Categorical}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
-                          <div
-                            className="h-full flex-1 border-r border-neutral-400"
-                            style={{ backgroundColor: "#1f77b4" }}
-                          />
-                          <div
-                            className="h-full flex-1 border-r border-neutral-400"
-                            style={{ backgroundColor: "#ff7f0e" }}
-                          />
-                          <div
-                            className="h-full flex-1 border-r border-neutral-400"
-                            style={{ backgroundColor: "#2ca02c" }}
-                          />
-                          <div
-                            className="h-full flex-1"
-                            style={{ backgroundColor: "#d62728" }}
-                          />
-                        </div>
-                        <span>Categorical</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                    Column 2
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Combobox
+                      options={[
+                        { value: NULL_UUID, label: "None" },
+                        ...(dataSources
+                          ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                          ?.columnDefs.filter(
+                            (col) =>
+                              col.type === ColumnType.Number &&
+                              col.name !== viewConfig.areaDataColumn,
+                          )
+                          .map((col) => ({
+                            value: col.name,
+                            label: `${col.name} (${col.type})`,
+                            hint: resolveColumnMetadataEntry(
+                              dataSource?.columnMetadata || [],
+                              dataSource?.columnMetadataOverride,
+                              col.name,
+                            )?.description,
+                          })) || []),
+                      ]}
+                      value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
+                      onValueChange={(value) =>
+                        updateViewConfig({
+                          areaDataSecondaryColumn:
+                            value === NULL_UUID ? undefined : value,
+                        })
+                      }
+                      placeholder="Choose a column..."
+                      searchPlaceholder="Search columns..."
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 flex-shrink-0"
+                      onClick={() => {
+                        updateViewConfig({ areaDataSecondaryColumn: undefined });
+                      }}
+                      title="Remove column 2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {viewConfig.areaDataSecondaryColumn && (
+                    <div className="col-span-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs w-full justify-start"
+                        onClick={() => {
+                          updateViewConfig({ areaDataSecondaryColumn: undefined });
+                        }}
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Remove bivariate visualization
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
 
-                {canSelectColorScheme && (
+              {canSelectAggregation && (
+                <>
+                  <Label
+                    htmlFor="choropleth-aggregation-select"
+                    className="text-sm text-muted-foreground font-normal"
+                  >
+                    Aggregation
+                  </Label>
+                  <Select
+                    value={viewConfig.calculationType || ""}
+                    onValueChange={(value) =>
+                      updateViewConfig({
+                        calculationType: value as CalculationType,
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
+                      id="choropleth-aggregation-select"
+                    >
+                      <SelectValue placeholder="Choose an aggregation..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={CalculationType.Avg}>Average</SelectItem>
+                      <SelectItem value={CalculationType.Mode}>
+                        Most common
+                      </SelectItem>
+                      <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+
+            {/* Include Columns Modal - only show when MAX_COLUMN_KEY is selected */}
+            {viewConfig.areaDataColumn === MAX_COLUMN_KEY && dataSource && (
+              <IncludeColumnsModal
+                dataSource={dataSource}
+                selectedColumns={
+                  viewConfig.includeColumnsString
+                    ? viewConfig.includeColumnsString
+                        .split(",")
+                        .map((v) => v.trim())
+                        .filter(Boolean)
+                    : []
+                }
+                onColumnsChange={(columns) => {
+                  updateViewConfig({
+                    includeColumnsString:
+                      columns.length > 0 ? columns.join(",") : undefined,
+                  });
+                }}
+              />
+            )}
+          </div>
+
+          {showStyle && (
+            <div className="space-y-2 mb-4">
+              <p className="flex gap-2 items-center text-sm font-medium">
+                <Palette className="w-4 h-4 text-muted-foreground" />
+                Style
+              </p>
+
+              <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
+                {canSelectColorScale && (
                   <>
                     <Label
-                      htmlFor="choropleth-color-scheme-select"
+                      htmlFor="color-scale-type-select"
                       className="text-sm text-muted-foreground font-normal"
                     >
-                      Colour scheme
+                      Color scale
                     </Label>
 
                     <Select
-                      value={viewConfig.colorScheme || ColorScheme.RedBlue}
+                      value={viewConfig.colorScaleType || ColorScaleType.Gradient}
                       onValueChange={(value) =>
                         updateViewConfig({
-                          colorScheme: value as ColorScheme,
+                          colorScaleType: value as ColorScaleType,
                         })
                       }
                     >
                       <SelectTrigger
-                        className="w-full min-w-0"
-                        id="choropleth-color-scheme-select"
+                        className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
+                        id="color-scale-type-select"
                       >
-                        <SelectValue placeholder="Choose colour scheme..." />
+                        <SelectValue placeholder="Choose color scale...">
+                          {viewConfig.colorScaleType || ColorScaleType.Gradient}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
-                          const isCustom = option.value === ColorScheme.Custom;
-                          const customColorValue = isCustom
-                            ? viewConfig.customColor || "#3b82f6"
-                            : undefined;
-                          return (
-                            <SelectItem
-                              key={index}
-                              value={option.value}
-                              className="flex items-center gap-2"
-                            >
-                              {isCustom && customColorValue ? (
-                                <div
-                                  className="w-4 h-4 rounded"
-                                  style={{
-                                    background: `linear-gradient(to right, white, ${customColorValue})`,
-                                  }}
-                                />
-                              ) : (
-                                <div
-                                  className={`w-4 h-4 rounded ${option.color}`}
-                                />
-                              )}
-                              <span className="truncate">{option.label}</span>
-                            </SelectItem>
-                          );
-                        })}
+                        <SelectItem value={ColorScaleType.Gradient}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-16 h-3 rounded border border-neutral-300"
+                              style={{
+                                background:
+                                  "linear-gradient(to right, #3b82f6, #60a5fa, #93c5fd, #dbeafe)",
+                              }}
+                            />
+                            <span>Gradient</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value={ColorScaleType.Stepped}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
+                              <div
+                                className="h-full flex-1 border-r border-neutral-400"
+                                style={{ backgroundColor: "#3b82f6" }}
+                              />
+                              <div
+                                className="h-full flex-1 border-r border-neutral-400"
+                                style={{ backgroundColor: "#60a5fa" }}
+                              />
+                              <div
+                                className="h-full flex-1 border-r border-neutral-400"
+                                style={{ backgroundColor: "#93c5fd" }}
+                              />
+                              <div
+                                className="h-full flex-1"
+                                style={{ backgroundColor: "#dbeafe" }}
+                              />
+                            </div>
+                            <span>Stepped</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value={ColorScaleType.Categorical}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
+                              <div
+                                className="h-full flex-1 border-r border-neutral-400"
+                                style={{ backgroundColor: "#1f77b4" }}
+                              />
+                              <div
+                                className="h-full flex-1 border-r border-neutral-400"
+                                style={{ backgroundColor: "#ff7f0e" }}
+                              />
+                              <div
+                                className="h-full flex-1 border-r border-neutral-400"
+                                style={{ backgroundColor: "#2ca02c" }}
+                              />
+                              <div
+                                className="h-full flex-1"
+                                style={{ backgroundColor: "#d62728" }}
+                              />
+                            </div>
+                            <span>Categorical</span>
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
 
-                    {viewConfig.colorScheme === ColorScheme.Custom && (
+                    {canSelectColorScheme && (
                       <>
                         <Label
-                          htmlFor="custom-color-picker"
+                          htmlFor="choropleth-color-scheme-select"
                           className="text-sm text-muted-foreground font-normal"
                         >
-                          Max color
+                          Colour scheme
                         </Label>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
-                            style={{
-                              backgroundColor:
-                                viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
-                            }}
+
+                        <Select
+                          value={viewConfig.colorScheme || ColorScheme.RedBlue}
+                          onValueChange={(value) =>
+                            updateViewConfig({
+                              colorScheme: value as ColorScheme,
+                            })
+                          }
+                        >
+                          <SelectTrigger
+                            className="w-full min-w-0"
+                            id="choropleth-color-scheme-select"
                           >
-                            <input
-                              type="color"
-                              id="custom-color-picker"
-                              value={
-                                viewConfig.customColor || DEFAULT_CUSTOM_COLOR
-                              }
-                              onChange={(e) =>
-                                updateViewConfig({
-                                  customColor: e.target.value,
-                                })
-                              }
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              title="Choose color for max value"
-                            />
-                          </div>
-                          <Input
-                            type="text"
-                            value={
-                              viewConfig.customColor || DEFAULT_CUSTOM_COLOR
-                            }
-                            onChange={(e) =>
-                              updateViewConfig({ customColor: e.target.value })
-                            }
-                            className="flex-1"
-                            placeholder={DEFAULT_CUSTOM_COLOR}
-                          />
-                        </div>
-                      </>
-                    )}
+                            <SelectValue placeholder="Choose colour scheme..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
+                              const isCustom = option.value === ColorScheme.Custom;
+                              const customColorValue = isCustom
+                                ? viewConfig.customColor || "#3b82f6"
+                                : undefined;
+                              return (
+                                <SelectItem
+                                  key={index}
+                                  value={option.value}
+                                  className="flex items-center gap-2"
+                                >
+                                  {isCustom && customColorValue ? (
+                                    <div
+                                      className="w-4 h-4 rounded"
+                                      style={{
+                                        background: `linear-gradient(to right, white, ${customColorValue})`,
+                                      }}
+                                    />
+                                  ) : (
+                                    <div
+                                      className={`w-4 h-4 rounded ${option.color}`}
+                                    />
+                                  )}
+                                  <span className="truncate">{option.label}</span>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
 
-                    <Label
-                      htmlFor="choropleth-color-scheme-switch"
-                      className="text-sm text-muted-foreground font-normal"
-                    >
-                      Reverse
-                    </Label>
+                        {viewConfig.colorScheme === ColorScheme.Custom && (
+                          <>
+                            <Label
+                              htmlFor="custom-color-picker"
+                              className="text-sm text-muted-foreground font-normal"
+                            >
+                              Max color
+                            </Label>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                                style={{
+                                  backgroundColor:
+                                    viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
+                                }}
+                              >
+                                <input
+                                  type="color"
+                                  id="custom-color-picker"
+                                  value={
+                                    viewConfig.customColor || DEFAULT_CUSTOM_COLOR
+                                  }
+                                  onChange={(e) =>
+                                    updateViewConfig({
+                                      customColor: e.target.value,
+                                    })
+                                  }
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  title="Choose color for max value"
+                                />
+                              </div>
+                              <Input
+                                type="text"
+                                value={
+                                  viewConfig.customColor || DEFAULT_CUSTOM_COLOR
+                                }
+                                onChange={(e) =>
+                                  updateViewConfig({ customColor: e.target.value })
+                                }
+                                className="flex-1"
+                                placeholder={DEFAULT_CUSTOM_COLOR}
+                              />
+                            </div>
+                          </>
+                        )}
 
-                    <Switch
-                      id="choropleth-color-scheme-switch"
-                      checked={Boolean(viewConfig.reverseColorScheme)}
-                      onCheckedChange={(v) =>
-                        updateViewConfig({ reverseColorScheme: v })
-                      }
-                    />
-
-                    {viewConfig.colorScaleType === ColorScaleType.Stepped && (
-                      <>
-                        <Label className="text-sm text-muted-foreground font-normal">
-                          Color steps
+                        <Label
+                          htmlFor="choropleth-color-scheme-switch"
+                          className="text-sm text-muted-foreground font-normal"
+                        >
+                          Reverse
                         </Label>
-                        <div>
-                          <SteppedColorEditor />
-                        </div>
+
+                        <Switch
+                          id="choropleth-color-scheme-switch"
+                          checked={Boolean(viewConfig.reverseColorScheme)}
+                          onCheckedChange={(v) =>
+                            updateViewConfig({ reverseColorScheme: v })
+                          }
+                        />
+
+                        {viewConfig.colorScaleType === ColorScaleType.Stepped && (
+                          <>
+                            <Label className="text-sm text-muted-foreground font-normal">
+                              Color steps
+                            </Label>
+                            <div>
+                              <SteppedColorEditor />
+                            </div>
+                          </>
+                        )}
                       </>
                     )}
                   </>
                 )}
-              </>
-            )}
-            {canSetCategoryColors && (
-              <>
-                <Label className="text-sm text-muted-foreground font-normal">
-                  Category colors
+                {canSetCategoryColors && (
+                  <>
+                    <Label className="text-sm text-muted-foreground font-normal">
+                      Category colors
+                    </Label>
+                    <div>
+                      <SetCategoryColorsButton />
+                    </div>
+                  </>
+                )}
+                <Label
+                  htmlFor="choropleth-opacity"
+                  className="text-sm text-muted-foreground font-normal"
+                >
+                  Opacity (%)
                 </Label>
-                <div>
-                  <SetCategoryColorsButton />
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 relative">
+                    <input
+                      type="range"
+                      id="choropleth-opacity"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={viewConfig.choroplethOpacityPct ?? 80}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        const choroplethOpacityPct = isNaN(v)
+                          ? 80
+                          : Math.max(0, Math.min(v, 100));
+                        updateViewConfig({ choroplethOpacityPct });
+                      }}
+                      className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
+                      style={{
+                        background: `linear-gradient(to right, #737373 0%, #737373 ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb 100%)`,
+                      }}
+                    />
+                  </div>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={viewConfig.choroplethOpacityPct ?? 80}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      const choroplethOpacityPct = isNaN(v)
+                        ? 80
+                        : Math.max(0, Math.min(v, 100));
+                      updateViewConfig({ choroplethOpacityPct });
+                    }}
+                    className="w-16"
+                  />
                 </div>
-              </>
-            )}
-            <Label
-              htmlFor="choropleth-opacity"
-              className="text-sm text-muted-foreground font-normal"
-            >
-              Opacity (%)
-            </Label>
-
-            <div className="flex items-center gap-3">
-              <div className="flex-1 relative">
-                <input
-                  type="range"
-                  id="choropleth-opacity"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={viewConfig.choroplethOpacityPct ?? 80}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    const choroplethOpacityPct = isNaN(v)
-                      ? 80
-                      : Math.max(0, Math.min(v, 100));
-                    updateViewConfig({ choroplethOpacityPct });
-                  }}
-                  className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
-                  style={{
-                    background: `linear-gradient(to right, #737373 0%, #737373 ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb 100%)`,
-                  }}
-                />
               </div>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={viewConfig.choroplethOpacityPct ?? 80}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  const choroplethOpacityPct = isNaN(v)
-                    ? 80
-                    : Math.max(0, Math.min(v, 100));
-                  updateViewConfig({ choroplethOpacityPct });
-                }}
-                className="w-16"
-              />
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
-
-      {/* Modal for handling invalid data source / boundary combination */}
-      <Dialog
-        open={Boolean(invalidDataSourceId)}
-        onOpenChange={(o) => {
-          if (!o) {
-            setInvalidDataSourceId(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>Select new boundaries</DialogTitle>
-          </DialogHeader>
-
-          <p>
-            The data source you have selected does not fit into your selected
-            boundaries (
-            {viewConfig.areaSetGroupCode
-              ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
-              : "unknown"}
-            ). Please select alternative boundaries, or cancel.
-          </p>
-
-          <Select
-            onValueChange={(value) => {
-              updateViewConfig({
-                areaSetGroupCode: value as AreaSetGroupCode,
-                areaDataSourceId: invalidDataSourceId || "",
-              });
-              setInvalidDataSourceId(null);
-            }}
-          >
-            <SelectTrigger className="w-full min-w-0">
-              <SelectValue placeholder="Choose boundaries..." />
-            </SelectTrigger>
-            <SelectContent>
-              {getValidAreaSetGroupCodes(
-                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
-              ).map((code) => (
-                <SelectItem key={code} value={code}>
-                  {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

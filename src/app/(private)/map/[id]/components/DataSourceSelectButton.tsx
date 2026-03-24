@@ -117,7 +117,7 @@ function DataSourceSelectButtonModalTrigger({
   );
 }
 
-function DataSourceSelectModal({
+export function DataSourceSelectModal({
   isModalOpen,
   setIsModalOpen,
   onSelect,
