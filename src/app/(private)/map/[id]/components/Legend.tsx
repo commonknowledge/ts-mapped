@@ -375,21 +375,21 @@ export default function Legend() {
             const positionStyle =
               i === 0
                 ? {
-                  left: 0,
-                  transform: "translateX(0%)",
-                  width: `${100 / (denom + 1)}%`,
-                }
-                : i === numTicks - 1
-                  ? {
-                    left: "100%",
-                    transform: "translateX(-100%)",
+                    left: 0,
+                    transform: "translateX(0%)",
                     width: `${100 / (denom + 1)}%`,
                   }
+                : i === numTicks - 1
+                  ? {
+                      left: "100%",
+                      transform: "translateX(-100%)",
+                      width: `${100 / (denom + 1)}%`,
+                    }
                   : {
-                    left: `${t * 100}%`,
-                    transform: "translateX(-50%)",
-                    width: `${100 / (denom + 1)}%`,
-                  };
+                      left: `${t * 100}%`,
+                      transform: "translateX(-50%)",
+                      width: `${100 / (denom + 1)}%`,
+                    };
             const alignClass =
               i === 0
                 ? "items-start"
