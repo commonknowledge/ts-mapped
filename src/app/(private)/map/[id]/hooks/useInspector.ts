@@ -5,7 +5,7 @@ import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import { useInspectorState } from "./useInspectorState";
-import type { PropertiesListItem } from "../components/inspector/SimplePropertiesList";
+import type { PropertiesListItem } from "../components/InspectorPanel/SimplePropertiesList";
 import type { DataSource } from "@/models/DataSource";
 
 export function useInspectorContent() {

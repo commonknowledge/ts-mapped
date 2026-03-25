@@ -1,4 +1,4 @@
-import { scaleLinear, scaleOrdinal, scaleSequential } from "d3-scale";
+import { scaleLinear, scaleSequential } from "d3-scale";
 import {
   interpolateBlues,
   interpolateBrBG,
@@ -7,7 +7,6 @@ import {
   interpolateRdBu,
   interpolateRdYlGn,
   interpolateViridis,
-  schemeCategory10,
 } from "d3-scale-chromatic";
 import { useMemo } from "react";
 import { DEFAULT_CUSTOM_COLOR } from "@/constants";
@@ -18,8 +17,9 @@ import {
   ColorScheme,
   type SteppedColorStep,
 } from "@/models/MapView";
+import { getCategoryColorScale } from "@/utils/colors";
 import { getChoroplethDataKey } from "./components/Choropleth/utils";
-import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
+import { DEFAULT_FILL_COLOR } from "./constants";
 import type { CombinedAreaStats } from "./data";
 import type { MapViewConfig } from "@/models/MapView";
 import type { ScaleSequential } from "d3-scale";
@@ -149,25 +149,30 @@ export const getInterpolator = (
 export const useColorScheme = ({
   areaStats,
   viewConfig,
+  resolvedColorMappings,
 }: {
   areaStats: CombinedAreaStats | null;
   viewConfig: MapViewConfig;
+  resolvedColorMappings?: Record<string, string>;
 }): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
     return getColorScheme({
       areaStats,
       viewConfig,
+      resolvedColorMappings,
     });
-  }, [areaStats, viewConfig]);
+  }, [areaStats, viewConfig, resolvedColorMappings]);
 };
 
 const getColorScheme = ({
   areaStats,
   viewConfig,
+  resolvedColorMappings,
 }: {
   areaStats: CombinedAreaStats | null;
   viewConfig: MapViewConfig;
+  resolvedColorMappings?: Record<string, string>;
 }): CategoricColorScheme | NumericColorScheme | null => {
   if (!areaStats || !areaStats.stats.length) {
     return null;
@@ -188,6 +193,7 @@ const getColorScheme = ({
       viewConfig,
       areaStats.dataSourceId,
       areaStats.primary?.column,
+      resolvedColorMappings,
     );
     return {
       colorSchemeType: "categoric",
@@ -246,20 +252,16 @@ export const makeColorMap = (
   viewConfig: MapViewConfig,
   dataSourceId: string | undefined,
   column: string | undefined,
+  resolvedColorMappings?: Record<string, string>,
 ) => {
   const colorMap: Record<string, string> = {};
-  const colorScale = scaleOrdinal(schemeCategory10).domain(values);
+  const defaultColor = getCategoryColorScale(values);
   values.forEach((v) => {
-    const categoryColorsKey = getCategoryColorsKey(dataSourceId, column, v);
-    // Use custom color if provided, otherwise use default
-    // Try the color set specifically for this column, if exists
-    // Fallback to the color set for this value
-    // Fallback again to D3 color generation
-    const defaultColor = PARTY_COLORS[v.toLowerCase()] ?? colorScale(v);
+    const mapViewKey = getCategoryColorsKey(dataSourceId, column, v);
     colorMap[v] =
-      viewConfig.colorMappings?.[categoryColorsKey] ??
-      viewConfig.colorMappings?.[v] ??
-      defaultColor;
+      viewConfig.colorMappings?.[mapViewKey] ??
+      resolvedColorMappings?.[v] ??
+      defaultColor(v);
   });
   return colorMap;
 };
@@ -268,10 +270,12 @@ export const useFillColor = ({
   areaStats,
   viewConfig,
   selectedBivariateBucket,
+  resolvedColorMappings,
 }: {
   areaStats: CombinedAreaStats | null;
   viewConfig: MapViewConfig;
   selectedBivariateBucket: string | null;
+  resolvedColorMappings?: Record<string, string>;
 }): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
   const fillColor = useMemo(() => {
@@ -283,6 +287,7 @@ export const useFillColor = ({
     const colorScheme = getColorScheme({
       areaStats,
       viewConfig,
+      resolvedColorMappings,
     });
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
@@ -352,7 +357,7 @@ export const useFillColor = ({
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [areaStats, viewConfig, selectedBivariateBucket]);
+  }, [areaStats, viewConfig, selectedBivariateBucket, resolvedColorMappings]);
 
   return [
     "case",

@@ -10,7 +10,7 @@ export default function InspectorConfigTab() {
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
 
-  const boundaryStatsConfig = view?.inspectorConfig?.dataSources || [];
+  const dataSourcesConfig = view?.inspectorConfig?.dataSources || [];
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -19,36 +19,20 @@ export default function InspectorConfigTab() {
       }
 
       const dataSource = getDataSourceById(dataSourceId);
-      const defaults = dataSource?.defaultInspectorConfig;
-      const newBoundaryConfig: InspectorDataSourceConfig = {
+      const newDataSourceConfig: InspectorDataSourceConfig = {
         id: uuidv4(),
         dataSourceId,
-        name: defaults?.name ?? dataSource?.name ?? "Boundary Data",
-        columns: defaults?.columns ?? [],
-        ...(defaults?.columnOrder != null && {
-          columnOrder: defaults.columnOrder,
-        }),
-        ...(defaults?.columnItems != null && {
-          columnItems: defaults.columnItems,
-        }),
-        ...(defaults?.columnMetadata != null && {
-          columnMetadata: defaults.columnMetadata,
-        }),
-        ...(defaults?.columnGroups != null && {
-          columnGroups: defaults.columnGroups,
-        }),
-        ...(defaults?.layout != null && { layout: defaults.layout }),
-        ...(defaults?.icon != null && { icon: defaults.icon }),
-        ...(defaults?.color != null && { color: defaults.color }),
+        name: dataSource?.name || "Data Source",
+        columns: [],
       };
 
-      const prevBoundaries = view.inspectorConfig?.dataSources || [];
+      const prevDataSources = view.inspectorConfig?.dataSources || [];
 
       updateView({
         ...view,
         inspectorConfig: {
           ...view.inspectorConfig,
-          dataSources: [...prevBoundaries, newBoundaryConfig],
+          dataSources: [...prevDataSources, newDataSourceConfig],
         },
       });
     },
@@ -57,33 +41,32 @@ export default function InspectorConfigTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      {boundaryStatsConfig.map((boundaryConfig, index) => (
+      {dataSourcesConfig.map((dataSourceConfig, index) => (
         <BoundaryConfigItem
-          key={boundaryConfig.id}
-          boundaryConfig={boundaryConfig}
+          key={dataSourceConfig.id}
+          boundaryConfig={dataSourceConfig}
           index={index}
           onClickRemove={() => {
             if (!view) return;
-            const updatedBoundaries = view.inspectorConfig?.dataSources?.filter(
-              (_, i) => i !== index,
-            );
+            const updatedDataSources =
+              view.inspectorConfig?.dataSources?.filter((_, i) => i !== index);
             updateView({
               ...view,
               inspectorConfig: {
                 ...view.inspectorConfig,
-                dataSources: updatedBoundaries,
+                dataSources: updatedDataSources,
               },
             });
           }}
           onUpdate={(updatedConfig) => {
             if (!view) return;
-            const updatedBoundaries = [...boundaryStatsConfig];
-            updatedBoundaries[index] = updatedConfig;
+            const updatedDataSources = [...dataSourcesConfig];
+            updatedDataSources[index] = updatedConfig;
             updateView({
               ...view,
               inspectorConfig: {
                 ...view.inspectorConfig,
-                dataSources: updatedBoundaries,
+                dataSources: updatedDataSources,
               },
             });
           }}

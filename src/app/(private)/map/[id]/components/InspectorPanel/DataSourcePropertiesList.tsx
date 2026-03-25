@@ -4,6 +4,7 @@ import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { getDisplayValue } from "../../utils/stats";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import type { ColumnMetadata, ColumnType } from "@/models/DataSource";
+import type { DataSourceOrganisationOverride } from "@/models/DataSourceOrganisationOverride";
 
 export default function DataSourcePropertiesList({
   dataSource,
@@ -13,7 +14,7 @@ export default function DataSourcePropertiesList({
   dataSource:
     | {
         columnMetadata: ColumnMetadata[];
-        organisationOverride?: { columnMetadata: ColumnMetadata[] } | null;
+        organisationOverride?: DataSourceOrganisationOverride | null;
         columnDefs?: { name: string; type: ColumnType }[];
         id: string;
       }
@@ -29,7 +30,10 @@ export default function DataSourcePropertiesList({
         dataSource?.columnMetadata || [],
         dataSource?.organisationOverride?.columnMetadata,
       ),
-    [dataSource?.columnMetadata, dataSource?.organisationOverride],
+    [
+      dataSource?.columnMetadata,
+      dataSource?.organisationOverride?.columnMetadata,
+    ],
   );
   const properties = useMemo(() => {
     const filtered: { column: string; value: string }[] = [];

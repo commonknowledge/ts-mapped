@@ -1,3 +1,5 @@
+export * from "./colors";
+
 export const ADMIN_ORGANISATION_NAME = "Common Knowledge";
 export const ADMIN_USER_EMAIL = "hello@commonknowledge.coop";
 

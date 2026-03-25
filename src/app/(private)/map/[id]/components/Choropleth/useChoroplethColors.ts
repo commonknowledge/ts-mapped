@@ -1,12 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFillColor } from "@/app/(private)/map/[id]/colors";
 import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
+import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import {
   useLastLoadedSourceId,
   useMapRef,
 } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 
 export function useChoroplethFillColor() {
   const { selectedBivariateBucket } = useChoropleth();
@@ -14,12 +16,24 @@ export function useChoroplethFillColor() {
   const { viewConfig } = useMapViews();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
+  const dataSource = useChoroplethDataSource();
+  const primaryColumn = areaStats?.primary?.column;
+
+  const resolvedColorMappings = useMemo(() => {
+    if (!dataSource || !primaryColumn) return undefined;
+    const resolved = resolveColumnMetadata(
+      dataSource.columnMetadata,
+      dataSource.organisationOverride?.columnMetadata,
+    );
+    return resolved.find((m) => m.name === primaryColumn)?.valueColors;
+  }, [dataSource, primaryColumn]);
 
   // Get fill color
   const fillColor = useFillColor({
     areaStats,
     viewConfig,
     selectedBivariateBucket,
+    resolvedColorMappings,
   });
 
   return fillColor;

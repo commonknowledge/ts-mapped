@@ -35,6 +35,7 @@ describe("dataRecord router tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
+      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

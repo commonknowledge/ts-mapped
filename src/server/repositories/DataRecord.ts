@@ -435,47 +435,24 @@ export const deleteByDataSourceId = async (dataSourceId: string) =>
     .where("dataSourceId", "=", dataSourceId)
     .execute();
 
-export async function getColumnStat(
+export async function getNumericColumnRange(
   dataSourceId: string,
   columnName: string,
-  stat: "average" | "median" | "min" | "max",
-): Promise<number | null> {
-  const expr = sql<string>`(json->>${sql.lit(columnName)})::numeric`;
-  let value: number | null = null;
-
-  if (stat === "average") {
-    const row = await db
-      .selectFrom("dataRecord")
-      .where("dataSourceId", "=", dataSourceId)
-      .select(sql<string>`avg(${expr})`.as("val"))
-      .executeTakeFirst();
-    value = row?.val != null ? Number(row.val) : null;
-  } else if (stat === "min") {
-    const row = await db
-      .selectFrom("dataRecord")
-      .where("dataSourceId", "=", dataSourceId)
-      .select(sql<string>`min(${expr})`.as("val"))
-      .executeTakeFirst();
-    value = row?.val != null ? Number(row.val) : null;
-  } else if (stat === "max") {
-    const row = await db
-      .selectFrom("dataRecord")
-      .where("dataSourceId", "=", dataSourceId)
-      .select(sql<string>`max(${expr})`.as("val"))
-      .executeTakeFirst();
-    value = row?.val != null ? Number(row.val) : null;
-  } else if (stat === "median") {
-    const row = await db
-      .selectFrom("dataRecord")
-      .where("dataSourceId", "=", dataSourceId)
-      .select(
-        sql<string>`percentile_cont(0.5) WITHIN GROUP (ORDER BY ${expr})`.as(
-          "val",
-        ),
-      )
-      .executeTakeFirst();
-    value = row?.val != null ? Number(row.val) : null;
-  }
-
-  return value != null && !Number.isNaN(value) ? value : null;
+): Promise<{ min: number | null; max: number | null; hasDecimals: boolean }> {
+  const result = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .select([
+      sql<number | null>`MIN((json->>${columnName})::float)`.as("min"),
+      sql<number | null>`MAX((json->>${columnName})::float)`.as("max"),
+      sql<boolean>`BOOL_OR((json->>${columnName})::float > 0 AND (json->>${columnName})::float < 1)`.as(
+        "hasDecimals",
+      ),
+    ])
+    .executeTakeFirst();
+  return {
+    min: result?.min ?? null,
+    max: result?.max ?? null,
+    hasDecimals: result?.hasDecimals ?? false,
+  };
 }

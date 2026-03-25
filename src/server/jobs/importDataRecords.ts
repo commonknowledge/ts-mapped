@@ -7,7 +7,7 @@ import {
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { batchAsync } from "../utils";
-import { importBatch } from "./importDataSource";
+import { importBatch, inferColumnSemanticTypes } from "./importDataSource";
 
 const importDataRecords = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
@@ -94,6 +94,11 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
 
   await updateDataSource(dataSourceId, {
     recordCount: Number(totalRecordCount?.count ?? 0),
+  });
+
+  await inferColumnSemanticTypes({
+    ...dataSource,
+    columnDefs: columnDefsAccumulator,
   });
 
   return true;

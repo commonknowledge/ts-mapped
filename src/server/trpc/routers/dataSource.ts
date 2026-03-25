@@ -11,7 +11,6 @@ import {
   dataSourceSchema,
   inspectorColumnSchema,
 } from "@/models/DataSource";
-import { defaultInspectorDataSourceConfigSchema } from "@/models/MapView";
 import { dataSourceViewSchema } from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
@@ -27,13 +26,12 @@ import {
   createDataSource,
   deleteDataSource,
   findDataSourcesByIds,
-  findPublicDataSources,
   getJobInfo,
   getUniqueColumnValues,
   updateDataSource,
-  updateDataSourceDefaultInspectorConfig,
 } from "@/server/repositories/DataSource";
 import {
+  findDataSourceOrganisationOverride,
   findDataSourceOrganisationOverridesByOrg,
   upsertDataSourceOrganisationOverride,
 } from "@/server/repositories/DataSourceOrganisationOverride";
@@ -52,7 +50,6 @@ import {
   organisationProcedure,
   protectedProcedure,
   router,
-  superadminProcedure,
 } from "../index";
 import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
@@ -127,15 +124,7 @@ export const dataSourceRouter = router({
             )
           : [];
 
-      const overrideMap = new Map(
-        overrides.map((o) => [
-          o.dataSourceId,
-          {
-            columnMetadata: o.columnMetadata,
-            inspectorColumns: o.inspectorColumns,
-          },
-        ]),
-      );
+      const overrideMap = new Map(overrides.map((o) => [o.dataSourceId, o]));
 
       const withImportInfo = await addImportInfo(filteredDataSources);
       return withImportInfo.map((ds) => ({
@@ -606,7 +595,7 @@ export const dataSourceRouter = router({
     return true;
   }),
 
-  updateColumnMetadataOverride: organisationProcedure
+  updateOrganisationOverride: organisationProcedure
     .input(
       z.object({
         dataSourceId: z.string(),
@@ -624,24 +613,69 @@ export const dataSourceRouter = router({
       return true;
     }),
 
-  listPublic: superadminProcedure.query(async () => {
-    const dataSources = await findPublicDataSources();
-    return addImportInfo(dataSources);
-  }),
+  patchColumnMetadata: dataSourceOwnerProcedure
+    .input(
+      z.object({
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = ctx.dataSource.columnMetadata ?? [];
+      const hasEntry = existing.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existing.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existing,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await updateDataSource(ctx.dataSource.id, { columnMetadata: updated });
+      return { columnMetadata: updated };
+    }),
 
-  updateDefaultInspectorConfig: superadminProcedure
+  patchColumnMetadataOverride: organisationProcedure
     .input(
       z.object({
         dataSourceId: z.string(),
-        config: defaultInspectorDataSourceConfigSchema.nullable(),
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
       }),
     )
-    .mutation(async ({ input }) => {
-      await updateDataSourceDefaultInspectorConfig(
+    .mutation(async ({ ctx, input }) => {
+      const existing = await findDataSourceOrganisationOverride(
+        ctx.organisation.id,
         input.dataSourceId,
-        input.config,
       );
-      return true;
+      const existingMetadata = existing?.columnMetadata ?? [];
+      const inspectorColumns = existing?.inspectorColumns ?? [];
+      const hasEntry = existingMetadata.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existingMetadata.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existingMetadata,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await upsertDataSourceOrganisationOverride(
+        ctx.organisation.id,
+        input.dataSourceId,
+        updated,
+        inspectorColumns,
+      );
+      return { columnMetadata: updated };
     }),
 
   events: dataSourceOwnerProcedure.subscription(async function* ({

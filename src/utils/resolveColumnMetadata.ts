@@ -26,6 +26,9 @@ export function resolveColumnMetadata(
         Object.keys(override.valueLabels).length > 0
           ? { ...base.valueLabels, ...override.valueLabels }
           : base.valueLabels,
+      valueColors: override.valueColors
+        ? { ...base.valueColors, ...override.valueColors }
+        : base.valueColors,
     };
   });
 }
