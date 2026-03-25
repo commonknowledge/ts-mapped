@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import {
   INSPECTOR_ICON_OPTIONS,
   InspectorPanelIcon,
-} from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
+} from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";

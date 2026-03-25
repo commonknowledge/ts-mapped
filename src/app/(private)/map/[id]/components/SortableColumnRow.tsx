@@ -20,7 +20,7 @@ import {
   INSPECTOR_BAR_COLOR_OPTIONS,
   SMART_MATCH_BAR_COLOR_VALUE,
   getSmartMatchInfo,
-} from "./inspector/inspectorPanelOptions";
+} from "./InspectorPanel/inspectorPanelOptions";
 import type {
   InspectorColumnFormat,
   InspectorComparisonStat,

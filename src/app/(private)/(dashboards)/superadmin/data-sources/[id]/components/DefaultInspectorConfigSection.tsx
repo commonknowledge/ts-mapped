@@ -8,13 +8,13 @@ import {
   getAllColumnsSorted,
   getColumnOrderState,
   normalizeInspectorDataSourceConfig,
-} from "@/app/(private)/map/[id]/components/inspector/inspectorColumnOrder";
-import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
-import { ColumnsSection } from "@/app/(private)/map/[id]/components/inspector/InspectorSettingsModal/ColumnsSection";
+} from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorColumnOrder";
+import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import { ColumnsSection } from "@/app/(private)/map/[id]/components/InspectorPanel/InspectorSettingsModal/ColumnsSection";
 import {
   DEFAULT_SELECT_VALUE,
   inferFormat,
-} from "@/app/(private)/map/[id]/components/inspector/InspectorSettingsModal/constants";
+} from "@/app/(private)/map/[id]/components/InspectorPanel/InspectorSettingsModal/constants";
 import {
   type DefaultInspectorDataSourceConfig,
   type InspectorDataSourceConfig,
@@ -31,7 +31,7 @@ import {
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
-import type { InspectorLayout } from "@/app/(private)/map/[id]/components/inspector/InspectorSettingsModal/constants";
+import type { InspectorLayout } from "@/app/(private)/map/[id]/components/InspectorPanel/InspectorSettingsModal/constants";
 import type { DataSource } from "@/models/DataSource";
 
 const PLACEHOLDER_ID = "__default_inspector_edit__";

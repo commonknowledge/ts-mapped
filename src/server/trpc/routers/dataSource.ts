@@ -11,7 +11,10 @@ import {
   dataSourceSchema,
   inspectorColumnSchema,
 } from "@/models/DataSource";
-import { dataSourceViewSchema } from "@/models/MapView";
+import {
+  dataSourceViewSchema,
+  defaultInspectorDataSourceConfigSchema,
+} from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   getEnrichedColumn,
@@ -26,9 +29,11 @@ import {
   createDataSource,
   deleteDataSource,
   findDataSourcesByIds,
+  findPublicDataSources,
   getJobInfo,
   getUniqueColumnValues,
   updateDataSource,
+  updateDataSourceDefaultInspectorConfig,
 } from "@/server/repositories/DataSource";
 import {
   findDataSourceOrganisationOverride,
@@ -50,12 +55,28 @@ import {
   organisationProcedure,
   protectedProcedure,
   router,
+  superadminProcedure,
 } from "../index";
 import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
 import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
+  listPublic: superadminProcedure.query(() => findPublicDataSources()),
+  updateDefaultInspectorConfig: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        config: defaultInspectorDataSourceConfigSchema.nullish(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await updateDataSourceDefaultInspectorConfig(
+        input.dataSourceId,
+        input.config,
+      );
+      return true;
+    }),
   listForMapView: mapReadProcedure
     .input(z.object({ viewId: z.string() }))
     .query(async ({ ctx: { map }, input }) => {

@@ -212,6 +212,11 @@ export enum ColumnSemanticType {
 }
 export const columnSemanticTypes = Object.values(ColumnSemanticType);
 
+export const numericColumnSemanticTypes = [
+  ColumnSemanticType.Percentage01,
+  ColumnSemanticType.Percentage0100,
+] as const;
+
 export { ColumnDisplayFormat, columnDisplayFormats, inspectorColumnSchema };
 export type { InspectorColumn };
 

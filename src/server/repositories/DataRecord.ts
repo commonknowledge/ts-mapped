@@ -47,6 +47,35 @@ export async function countDataRecordsForDataSource(
   };
 }
 
+export async function getColumnStat(
+  dataSourceId: string,
+  columnName: string,
+  stat: "average" | "median" | "min" | "max",
+): Promise<number | null> {
+  const numericRowFilter = sql<boolean>`
+    (json->>${columnName}) ~ '^-?\\d+(\\.\\d+)?$'
+  `;
+
+  const agg =
+    stat === "average"
+      ? sql<number>`AVG((json->>${columnName})::double precision)`
+      : stat === "min"
+        ? sql<number>`MIN((json->>${columnName})::double precision)`
+        : stat === "max"
+          ? sql<number>`MAX((json->>${columnName})::double precision)`
+          : sql<number>`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (json->>${columnName})::double precision)`;
+
+  const row = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where(numericRowFilter)
+    .select(agg.as("value"))
+    .executeTakeFirst();
+
+  const value = row?.value;
+  return typeof value === "number" && !Number.isNaN(value) ? value : null;
+}
+
 export function getFirstDataRecord(dataSourceId: string) {
   return db
     .selectFrom("dataRecord")

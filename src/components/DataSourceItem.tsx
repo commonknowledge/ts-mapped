@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Database, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
+import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { cn } from "@/shadcn/utils";
 import type { DataSourceType } from "@/models/DataSource";

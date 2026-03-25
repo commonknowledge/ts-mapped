@@ -13,7 +13,6 @@ import {
   ColumnType,
   type InspectorColumn,
   JobStatus,
-  percentageColumnDisplayFormats,
 } from "@/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Badge } from "@/shadcn/ui/badge";
@@ -29,6 +28,8 @@ import {
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource = NonNullable<RouterOutputs["dataSource"]["byId"]>;
+
+const DISPLAY_FORMAT_OPTIONS = Object.values(ColumnDisplayFormat);
 
 export default function ColumnVisualisationPanel({
   dataSource,
@@ -283,7 +284,7 @@ function ColumnConfig({
               <SelectValue placeholder="Percentage" />
             </SelectTrigger>
             <SelectContent>
-              {percentageColumnDisplayFormats.map((fmt) => (
+              {DISPLAY_FORMAT_OPTIONS.map((fmt) => (
                 <SelectItem key={fmt} value={fmt}>
                   {fmt === ColumnDisplayFormat.Auto
                     ? "Percentage"
