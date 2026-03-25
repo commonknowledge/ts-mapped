@@ -158,7 +158,7 @@ export async function updateDataSourceDefaultInspectorConfig(
 ) {
   await db
     .updateTable("dataSource")
-    .set({ defaultInspectorConfig: config })
+    .set({ defaultInspectorConfig: config as never })
     .where("id", "=", id)
     .execute();
 }

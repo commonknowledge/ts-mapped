@@ -76,7 +76,7 @@ function BarColorSelect({
 
   const triggerSwatchColor =
     value === DEFAULT_BAR_COLOR_VALUE
-      ? "hsl(var(--primary))"
+      ? "var(--primary)"
       : value === SMART_MATCH_BAR_COLOR_VALUE
         ? smartMatch.color
         : null;

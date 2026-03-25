@@ -65,8 +65,7 @@ export function DefaultInspectorPreview({
       (config.columns ?? [])
         .filter(
           (col) =>
-            config.columnMetadata?.[col]?.format === "numberWithComparison" &&
-            config.columnMetadata?.[col]?.comparisonStat,
+            config.columnMetadata?.[col]?.format === "numberWithComparison",
         )
         .map((col) => ({
           col,
@@ -136,9 +135,10 @@ export function DefaultInspectorPreview({
           description: m?.description,
           ...(m?.format === "numberWithComparison" && {
             comparisonBaseline: comparisonBaselines[item] ?? null,
-            comparisonStat: m.comparisonStat
-              ? (COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat)
-              : undefined,
+            comparisonStat:
+              COMPARISON_STAT_LABEL[m.comparisonStat ?? "average"] ??
+              m.comparisonStat ??
+              "Average",
             comparisonBaselineLoading: comparisonBaselineLoading[item] === true,
           }),
         });

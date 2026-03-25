@@ -1,5 +1,6 @@
 "use client";
 
+import { PARTY_COLORS } from "@/app/(private)/map/[id]/constants";
 import {
   Activity,
   Anchor,
@@ -133,28 +134,22 @@ export const INSPECTOR_BAR_COLOR_OPTIONS: BarColorOption[] = [
   { value: "#6b7280", label: "Gray", hex: "#6b7280" },
 ];
 
-// Colour heuristics keyed on words in column names
-const SMART_COLOR_RULES: { keywords: string[]; color: string; label: string }[] =
-  [
-    { keywords: ["labour", "labor"], color: "#ef4444", label: "Labour red" },
-    { keywords: ["conservative", "tory"], color: "#3b82f6", label: "Conservative blue" },
-    { keywords: ["liberal", "lib dem", "libdem"], color: "#f59e0b", label: "Lib Dem amber" },
-    { keywords: ["green"], color: "#22c55e", label: "Green" },
-    { keywords: ["snp", "plaid"], color: "#f59e0b", label: "SNP/Plaid amber" },
-    { keywords: ["reform"], color: "#14b8a6", label: "Reform teal" },
-  ];
-
 export function getSmartMatchInfo(
   displayName: string,
   columnName: string,
 ): { color: string; matchLabel: string } {
-  const combined = `${displayName} ${columnName}`.toLowerCase();
-  for (const rule of SMART_COLOR_RULES) {
-    if (rule.keywords.some((k) => combined.includes(k))) {
-      return { color: rule.color, matchLabel: rule.label };
+  const combined = `${displayName} ${columnName}`.toLowerCase().trim();
+  // Exact match first (e.g. column named "ruk" or "lab")
+  if (PARTY_COLORS[combined]) {
+    return { color: PARTY_COLORS[combined], matchLabel: combined };
+  }
+  // Substring match against all known party names/codes
+  for (const [key, color] of Object.entries(PARTY_COLORS)) {
+    if (combined.includes(key)) {
+      return { color, matchLabel: key };
     }
   }
-  return { color: "hsl(var(--primary))", matchLabel: "default" };
+  return { color: "var(--primary)", matchLabel: "default" };
 }
 
 export function getBarColorForLabel(
@@ -163,10 +158,11 @@ export function getBarColorForLabel(
   _index: number,
   barColor?: string | null,
 ): string {
-  if (barColor === DEFAULT_BAR_COLOR_VALUE || !barColor) {
-    return "hsl(var(--primary))";
-  }
-  if (barColor === SMART_MATCH_BAR_COLOR_VALUE) {
+  if (
+    !barColor ||
+    barColor === DEFAULT_BAR_COLOR_VALUE ||
+    barColor === SMART_MATCH_BAR_COLOR_VALUE
+  ) {
     return getSmartMatchInfo(displayName, columnName).color;
   }
   return barColor;

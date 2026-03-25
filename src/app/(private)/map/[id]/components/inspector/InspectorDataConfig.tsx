@@ -19,11 +19,27 @@ export default function InspectorConfigTab() {
       }
 
       const dataSource = getDataSourceById(dataSourceId);
+      const defaults = dataSource?.defaultInspectorConfig;
       const newBoundaryConfig: InspectorBoundaryConfig = {
         id: uuidv4(),
         dataSourceId,
-        name: dataSource?.name || "Boundary Data",
-        columns: [],
+        name: defaults?.name ?? dataSource?.name ?? "Boundary Data",
+        columns: defaults?.columns ?? [],
+        ...(defaults?.columnOrder != null && {
+          columnOrder: defaults.columnOrder,
+        }),
+        ...(defaults?.columnItems != null && {
+          columnItems: defaults.columnItems,
+        }),
+        ...(defaults?.columnMetadata != null && {
+          columnMetadata: defaults.columnMetadata,
+        }),
+        ...(defaults?.columnGroups != null && {
+          columnGroups: defaults.columnGroups,
+        }),
+        ...(defaults?.layout != null && { layout: defaults.layout }),
+        ...(defaults?.icon != null && { icon: defaults.icon }),
+        ...(defaults?.color != null && { color: defaults.color }),
       };
 
       const prevBoundaries = view.inspectorConfig?.boundaries || [];

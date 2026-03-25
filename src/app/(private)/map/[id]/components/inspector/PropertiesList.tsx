@@ -41,7 +41,7 @@ function parseNumeric(value: unknown): number | null {
 }
 
 function barFill(barColor?: string): string {
-  return barColor?.trim() ? barColor : "hsl(var(--primary))";
+  return barColor?.trim() ? barColor : "var(--primary)";
 }
 
 function variancePercent(value: number, baseline: number): number | null {
@@ -198,17 +198,17 @@ export default function PropertiesList({
 }) {
   const entries: PropertyEntry[] = entriesProp
     ? entriesProp.filter(
-        (e) =>
-          e.isDivider ||
-          (e.value !== undefined && e.value !== null && String(e.value) !== ""),
-      )
+      (e) =>
+        e.isDivider ||
+        (e.value !== undefined && e.value !== null && String(e.value) !== ""),
+    )
     : properties && Object.keys(properties).length
       ? Object.entries(properties).map(([key, value]) => ({
-          key,
-          label: key,
-          value,
-          description: columnMetadata?.find((c) => c.name === key)?.description,
-        }))
+        key,
+        label: key,
+        value,
+        description: columnMetadata?.find((c) => c.name === key)?.description,
+      }))
       : [];
 
   if (!entries.length) return <></>;
@@ -268,9 +268,9 @@ export default function PropertiesList({
   return (
     <dl
       className={cn(
-        "flex flex-col gap-3",
+        "flex flex-col gap-3 px-3",
         isTwoColumn &&
-          "grid grid-cols-2 gap-x-4 gap-y-3 relative before:content-[''] before:absolute before:left-1/2 before:top-0 before:bottom-0 before:w-px before:bg-neutral-200 before:-translate-x-px",
+        "grid grid-cols-2 gap-x-4 gap-y-3 relative before:content-[''] before:absolute before:left-1/2 before:top-0 before:bottom-0 before:w-px before:bg-neutral-200 before:-translate-x-px",
       )}
     >
       {byGroup.map((block, i) => (
