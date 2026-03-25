@@ -4,8 +4,8 @@ import type { Kysely } from "kysely";
 
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
-    UPDATE "dataSource"
-    SET "columnMetadata" = (
+    UPDATE "data_source"
+    SET "column_metadata" = (
       SELECT jsonb_agg(
         CASE
           WHEN col ? 'colorMappings'
@@ -13,16 +13,16 @@ export async function up(db: Kysely<any>): Promise<void> {
           ELSE col
         END
       )
-      FROM jsonb_array_elements("columnMetadata") AS col
+      FROM jsonb_array_elements("column_metadata") AS col
     )
     WHERE EXISTS (
-      SELECT 1 FROM jsonb_array_elements("columnMetadata") AS col WHERE col ? 'colorMappings'
+      SELECT 1 FROM jsonb_array_elements("column_metadata") AS col WHERE col ? 'colorMappings'
     )
   `.execute(db);
 
   await sql`
-    UPDATE "dataSourceOrganisationOverride"
-    SET "columnMetadata" = (
+    UPDATE "data_source_organisation_override"
+    SET "column_metadata" = (
       SELECT jsonb_agg(
         CASE
           WHEN col ? 'colorMappings'
@@ -30,18 +30,18 @@ export async function up(db: Kysely<any>): Promise<void> {
           ELSE col
         END
       )
-      FROM jsonb_array_elements("columnMetadata") AS col
+      FROM jsonb_array_elements("column_metadata") AS col
     )
     WHERE EXISTS (
-      SELECT 1 FROM jsonb_array_elements("columnMetadata") AS col WHERE col ? 'colorMappings'
+      SELECT 1 FROM jsonb_array_elements("column_metadata") AS col WHERE col ? 'colorMappings'
     )
   `.execute(db);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
   await sql`
-    UPDATE "dataSource"
-    SET "columnMetadata" = (
+    UPDATE "data_source"
+    SET "column_metadata" = (
       SELECT jsonb_agg(
         CASE
           WHEN col ? 'valueColors'
@@ -49,16 +49,16 @@ export async function down(db: Kysely<any>): Promise<void> {
           ELSE col
         END
       )
-      FROM jsonb_array_elements("columnMetadata") AS col
+      FROM jsonb_array_elements("column_metadata") AS col
     )
     WHERE EXISTS (
-      SELECT 1 FROM jsonb_array_elements("columnMetadata") AS col WHERE col ? 'valueColors'
+      SELECT 1 FROM jsonb_array_elements("column_metadata") AS col WHERE col ? 'valueColors'
     )
   `.execute(db);
 
   await sql`
-    UPDATE "dataSourceOrganisationOverride"
-    SET "columnMetadata" = (
+    UPDATE "data_source_organisation_override"
+    SET "column_metadata" = (
       SELECT jsonb_agg(
         CASE
           WHEN col ? 'valueColors'
@@ -66,10 +66,10 @@ export async function down(db: Kysely<any>): Promise<void> {
           ELSE col
         END
       )
-      FROM jsonb_array_elements("columnMetadata") AS col
+      FROM jsonb_array_elements("column_metadata") AS col
     )
     WHERE EXISTS (
-      SELECT 1 FROM jsonb_array_elements("columnMetadata") AS col WHERE col ? 'valueColors'
+      SELECT 1 FROM jsonb_array_elements("column_metadata") AS col WHERE col ? 'valueColors'
     )
   `.execute(db);
 }
