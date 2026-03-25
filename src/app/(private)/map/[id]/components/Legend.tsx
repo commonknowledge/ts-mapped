@@ -13,7 +13,7 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
-import { CalculationType, ColorScaleType } from "@/models/MapView";
+import { CalculationType, ColorScaleType, MapType } from "@/models/MapView";
 import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
@@ -588,51 +588,54 @@ export default function Legend() {
         <div className="flex px-3 pb-2">{makeBars()}</div>
       ) : null}
 
-      <div className="border-t border-neutral-100 px-3 py-3">
-        <p className="text-xs text-muted-foreground font-mono font-medium uppercase  mb-1">
-          Boundaries
-        </p>
-        <Select
-          value={viewConfig.areaSetGroupCode || NULL_UUID}
-          onValueChange={(value) =>
-            updateViewConfig({
-              areaSetGroupCode:
-                value === NULL_UUID ? null : (value as AreaSetGroupCode),
-            })
-          }
-        >
-          <SelectTrigger
-            size="sm"
-            className="h-8 w-full text-xs font-normal shadow-xs hover:border-action-hover"
+      {viewConfig.mapType !== MapType.Hex && (
+        <div className="border-t border-neutral-100 px-3 py-3">
+          <p className="text-xs text-muted-foreground font-mono font-medium uppercase  mb-1">
+            Boundaries
+          </p>
+          <Select
+            value={viewConfig.areaSetGroupCode || NULL_UUID}
+            onValueChange={(value) =>
+              updateViewConfig({
+                areaSetGroupCode:
+                  value === NULL_UUID ? null : (value as AreaSetGroupCode),
+              })
+            }
           >
-            <SelectValue placeholder="Boundaries…">
-              {viewConfig.areaSetGroupCode
-                ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
-                : "No locality"}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NULL_UUID}>No locality</SelectItem>
-            {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
-              (code) => (
-                <SelectItem key={code} value={code}>
-                  <div className="flex flex-col">
-                    <span>
-                      {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
-                    </span>
-                    <span
-                      className="text-xs text-muted-foreground"
-                      dangerouslySetInnerHTML={{
-                        __html: AreaSetGroupCodeYears[code as AreaSetGroupCode],
-                      }}
-                    />
-                  </div>
-                </SelectItem>
-              ),
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+            <SelectTrigger
+              size="sm"
+              className="h-8 w-full text-xs font-normal shadow-xs hover:border-action-hover"
+            >
+              <SelectValue placeholder="Boundaries…">
+                {viewConfig.areaSetGroupCode
+                  ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+                  : "No locality"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NULL_UUID}>No locality</SelectItem>
+              {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
+                (code) => (
+                  <SelectItem key={code} value={code}>
+                    <div className="flex flex-col">
+                      <span>
+                        {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                      </span>
+                      <span
+                        className="text-xs text-muted-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            AreaSetGroupCodeYears[code as AreaSetGroupCode],
+                        }}
+                      />
+                    </div>
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       {/* Data source modal */}
       <DataSourceSelectModal
         isModalOpen={isDataSourceModalOpen}
