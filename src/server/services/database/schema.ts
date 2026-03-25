@@ -138,6 +138,7 @@ export interface DataSource {
   dateFormat: string; // text, NOT NULL, DEFAULT 'yyyy-MM-dd'
   recordCount: number; // integer, NOT NULL, DEFAULT 0
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
+  defaultInspectorConfig: unknown | null; // jsonb, NULL — DefaultInspectorBoundaryConfig
 
   // FOREIGN KEYS:
   // - organisationId -> organisation.id (CASCADE DELETE, CASCADE UPDATE)

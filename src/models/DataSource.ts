@@ -1,5 +1,6 @@
 import z from "zod";
 import { AreaSetCode } from "./AreaSet";
+import { defaultInspectorBoundaryConfigSchema } from "./MapView";
 
 export enum JobStatus {
   None = "None",
@@ -252,6 +253,7 @@ export const dataSourceSchema = z.object({
   dateFormat: z.string(),
   naIsNull: z.boolean().optional(),
   nullIsZero: z.boolean().optional(),
+  defaultInspectorConfig: defaultInspectorBoundaryConfigSchema.nullish(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;

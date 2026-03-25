@@ -10,6 +10,7 @@ import {
   columnMetadataSchema,
   dataSourceSchema,
 } from "@/models/DataSource";
+import { defaultInspectorBoundaryConfigSchema } from "@/models/MapView";
 import { dataSourceViewSchema } from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
@@ -29,9 +30,11 @@ import {
   createDataSource,
   deleteDataSource,
   findDataSourcesByIds,
+  findPublicDataSources,
   getJobInfo,
   getUniqueColumnValues,
   updateDataSource,
+  updateDataSourceDefaultInspectorConfig,
 } from "@/server/repositories/DataSource";
 import { findMapViewById } from "@/server/repositories/MapView";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
@@ -48,6 +51,7 @@ import {
   organisationProcedure,
   protectedProcedure,
   router,
+  superadminProcedure,
 } from "../index";
 import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
@@ -605,6 +609,26 @@ export const dataSourceRouter = router({
         ctx.organisation.id,
         input.dataSourceId,
         input.columnMetadata,
+      );
+      return true;
+    }),
+
+  listPublic: superadminProcedure.query(async () => {
+    const dataSources = await findPublicDataSources();
+    return addImportInfo(dataSources);
+  }),
+
+  updateDefaultInspectorConfig: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        config: defaultInspectorBoundaryConfigSchema.nullable(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await updateDataSourceDefaultInspectorConfig(
+        input.dataSourceId,
+        input.config,
       );
       return true;
     }),

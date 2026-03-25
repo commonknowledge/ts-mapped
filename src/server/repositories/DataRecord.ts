@@ -434,3 +434,48 @@ export const deleteByDataSourceId = async (dataSourceId: string) =>
     .deleteFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .execute();
+
+export async function getColumnStat(
+  dataSourceId: string,
+  columnName: string,
+  stat: "average" | "median" | "min" | "max",
+): Promise<number | null> {
+  const expr = sql<string>`(json->>${sql.lit(columnName)})::numeric`;
+  let value: number | null = null;
+
+  if (stat === "average") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .select(sql<string>`avg(${expr})`.as("val"))
+      .executeTakeFirst();
+    value = row?.val != null ? Number(row.val) : null;
+  } else if (stat === "min") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .select(sql<string>`min(${expr})`.as("val"))
+      .executeTakeFirst();
+    value = row?.val != null ? Number(row.val) : null;
+  } else if (stat === "max") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .select(sql<string>`max(${expr})`.as("val"))
+      .executeTakeFirst();
+    value = row?.val != null ? Number(row.val) : null;
+  } else if (stat === "median") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .select(
+        sql<string>`percentile_cont(0.5) WITHIN GROUP (ORDER BY ${expr})`.as(
+          "val",
+        ),
+      )
+      .executeTakeFirst();
+    value = row?.val != null ? Number(row.val) : null;
+  }
+
+  return value != null && !Number.isNaN(value) ? value : null;
+}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Settings } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
@@ -56,6 +57,8 @@ export default function SuperadminPage() {
   const { data: invitations, isPending: invitationsLoading } = useQuery(
     trpc.invitation.list.queryOptions(),
   );
+  const { data: publicDataSources, isPending: publicDataSourcesLoading } =
+    useQuery(trpc.dataSource.listPublic.queryOptions());
 
   const client = useQueryClient();
   const { mutate: createInvitationMutate, isPending } = useMutation(
@@ -110,7 +113,12 @@ export default function SuperadminPage() {
     }
   };
 
-  if (organisationsLoading || usersLoading || invitationsLoading) {
+  if (
+    organisationsLoading ||
+    usersLoading ||
+    invitationsLoading ||
+    publicDataSourcesLoading
+  ) {
     return "Loading...";
   }
 
@@ -122,6 +130,7 @@ export default function SuperadminPage() {
           <TabsList>
             <TabsTrigger value="users">All Users</TabsTrigger>
             <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
+            <TabsTrigger value="public-library">Public Library</TabsTrigger>
           </TabsList>
         </div>
 
@@ -283,6 +292,64 @@ export default function SuperadminPage() {
                       {inv.createdAt
                         ? new Date(inv.createdAt).toLocaleDateString()
                         : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TabsContent>
+        <TabsContent value="public-library" className="mt-6">
+          <h2 className="text-2xl font-medium mb-4">Public Library</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Configure how public data sources appear in the inspector for all
+            users.
+          </p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Record type</TableHead>
+                <TableHead>Records</TableHead>
+                <TableHead>Inspector config</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {publicDataSources?.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-muted-foreground"
+                  >
+                    No public data sources
+                  </TableCell>
+                </TableRow>
+              ) : (
+                publicDataSources?.map((ds) => (
+                  <TableRow key={ds.id}>
+                    <TableCell className="font-medium">{ds.name}</TableCell>
+                    <TableCell>{ds.recordType}</TableCell>
+                    <TableCell>{ds.recordCount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {ds.defaultInspectorConfig ? (
+                        <span className="text-green-700 text-xs font-medium">
+                          Configured
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">
+                          Not configured
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`/superadmin/data-sources/${ds.id}`}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
+                      >
+                        <Settings className="h-3.5 w-3.5" />
+                        Configure
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))
