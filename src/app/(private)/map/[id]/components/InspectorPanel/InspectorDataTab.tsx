@@ -165,11 +165,11 @@ export default function InspectorDataTab({
         Add data
       </Button>
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Data display configuration</DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto min-h-0">
+          <div className="space-y-2 py-4">
             <InspectorDataConfig />
           </div>
         </DialogContent>

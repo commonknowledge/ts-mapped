@@ -1,9 +1,16 @@
 import { TRPCError } from "@trpc/server";
+import fs from "fs";
+import { join } from "path";
 import z from "zod";
 import { AreaSetGroupCode } from "@/models/AreaSet";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { mapConfigSchema, mapSchema } from "@/models/Map";
-import { CalculationType, MapStyleName, mapViewSchema } from "@/models/MapView";
+import {
+  CalculationType,
+  DEFAULT_CALCULATION_TYPE,
+  MapStyleName,
+  mapViewSchema,
+} from "@/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
@@ -19,12 +26,38 @@ import {
 import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import { findTurfsByMapId } from "@/server/repositories/Turf";
 import { deleteFile } from "@/server/services/minio";
+import { getBaseDir } from "@/server/utils";
 import {
   mapReadProcedure,
   mapWriteProcedure,
   organisationProcedure,
   router,
 } from "../index";
+
+function readMovementLibraryMeta(dataSourceId: string): {
+  displayMode?: "counts" | "values";
+  defaultColumn?: string;
+} {
+  const path = join(
+    getBaseDir(),
+    "public",
+    "data-source-previews",
+    `${dataSourceId}.json`,
+  );
+  if (!fs.existsSync(path)) return {};
+  try {
+    const raw = fs.readFileSync(path, "utf8");
+    const parsed = JSON.parse(raw) as {
+      defaultVisualisation?: {
+        displayMode?: "counts" | "values";
+        defaultColumn?: string;
+      };
+    };
+    return parsed.defaultVisualisation ?? {};
+  } catch {
+    return {};
+  }
+}
 
 export const mapRouter = router({
   list: organisationProcedure.query(async ({ ctx }) => {
@@ -63,20 +96,38 @@ export const mapRouter = router({
         });
       } else {
         await updateMap(map.id, { name: dataSource.name });
+
+        const meta = dataSource.public
+          ? readMovementLibraryMeta(input.dataSourceId)
+          : {};
+        const fallbackColumn =
+          dataSource.columnDefs?.find(Boolean)?.name ??
+          dataSource.columnMetadata?.find(Boolean)?.name ??
+          "";
+        const areaDataColumn = meta.defaultColumn?.trim()
+          ? meta.defaultColumn.trim()
+          : fallbackColumn;
+        const calculationType =
+          meta.displayMode === "counts"
+            ? CalculationType.Count
+            : DEFAULT_CALCULATION_TYPE;
+
         await upsertMapView({
           mapId: map.id,
           name: "Default View",
           dataSourceViews: [],
           position: 0,
           config: {
-            areaDataColumn: "",
+            areaDataColumn:
+              calculationType === CalculationType.Count ? "" : areaDataColumn,
             areaDataSourceId: input.dataSourceId,
             areaSetGroupCode: AreaSetGroupCode.WMC24,
-            calculationType: CalculationType.Count,
+            calculationType,
             colorScheme: null,
             mapStyleName: MapStyleName.Light,
             reverseColorScheme: false,
             showBoundaryOutline: true,
+            showChoropleth: true,
             showLabels: true,
             showLocations: true,
             showMembers: true,

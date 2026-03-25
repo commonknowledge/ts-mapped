@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import { join } from "path";
-import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
@@ -25,20 +24,25 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   async getRecordCount() {
-    const fileStream = await this.createReadStream();
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity,
-    });
+    const stream = await this.createReadStream();
+    stream.setEncoding("utf8");
 
     let lineCount = 0;
+    let buffer = "";
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for await (const _ of rl) {
-      lineCount++;
+    for await (const chunk of stream) {
+      buffer += chunk;
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() ?? "";
+      lineCount += lines.length;
     }
 
-    return Math.max(lineCount - 1, 0); // exclude header row
+    if (buffer.trim().length > 0) {
+      lineCount += 1;
+    }
+
+    // exclude header row
+    return Math.max(lineCount - 1, 0);
   }
 
   async createReadStream() {
@@ -46,6 +50,11 @@ export class CSVAdaptor implements DataSourceAdaptor {
       return this.createFileReadStream(this.url);
     }
     const response = await fetch(this.url);
+    if (!response.ok) {
+      throw new Error(
+        `Could not fetch CSV URL ${this.url} (HTTP ${response.status})`,
+      );
+    }
     if (!response.body) {
       throw new Error(`Could not read URL ${this.url}`);
     }

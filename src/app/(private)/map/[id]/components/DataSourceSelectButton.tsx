@@ -21,12 +21,14 @@ export default function DataSourceSelectButton({
   onClickRemove,
   onSelect,
   selectButtonText,
+  modalTitle,
 }: {
   className?: string | null | undefined;
   dataSource?: DataSourceWithImportInfo | null | undefined;
   onClickRemove?: () => void;
   onSelect: (dataSourceId: string) => void;
   selectButtonText?: string | null | undefined;
+  modalTitle?: string | null | undefined;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -43,6 +45,7 @@ export default function DataSourceSelectButton({
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         onSelect={onSelect}
+        title={modalTitle}
       />
     </>
   );
@@ -74,40 +77,26 @@ function DataSourceSelectButtonModalTrigger({
     );
   }
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => {
-          setIsModalOpen(true);
-        }}
-        className={cn(
-          "group-hover:bg-neutral-100 transition-colors cursor-pointer rounded-lg",
-          className,
-        )}
-      >
-        <DataSourceItem className="shadow-xs" dataSource={dataSource} />
-      </button>
-      <div className="flex justify-between gap-2 mt-1">
-        <Button
-          variant="ghost"
-          className="text-xs font-normal text-muted-foreground hover:text-primary"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <span>Change data source</span>
-          <RotateCwIcon className="w-2 h-2" />
-        </Button>
-        {onClickRemove && (
-          <Button
-            variant="ghost"
-            className="text-xs font-normal text-muted-foreground hover:text-destructive"
-            onClick={onClickRemove}
-          >
-            <span>Remove</span>
-            <X className="w-3 h-3" />
-          </Button>
-        )}
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={() => {
+        setIsModalOpen(true);
+      }}
+      className={cn(
+        "group-hover:bg-neutral-100 transition-colors cursor-pointer rounded-lg",
+        className,
+      )}
+    >
+      <DataSourceItem
+        className="shadow-xs"
+        density="compact"
+        showColumnPreview={true}
+        columnPreviewVariant="pills"
+        singleLineColumnPreview={true}
+        maxColumnPills={6}
+        dataSource={dataSource}
+      />
+    </button>
   );
 }
 
@@ -115,10 +104,12 @@ export function DataSourceSelectModal({
   isModalOpen,
   setIsModalOpen,
   onSelect,
+  title,
 }: {
   isModalOpen: boolean;
   setIsModalOpen: (o: boolean) => void;
   onSelect: (dataSourceId: string) => void;
+  title?: string | null | undefined;
 }) {
   const [activeTab, setActiveTab] = useState<"movement" | "user">("user");
   const [searchQuery, setSearchQuery] = useState("");
@@ -252,7 +243,9 @@ export function DataSourceSelectModal({
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogContent className="max-w-2xl h-[80vh] overflow-hidden !flex !flex-col">
         <DialogHeader>
-          <DialogTitle>Select data source for visualisation</DialogTitle>
+          <DialogTitle>
+            {title?.trim() ? title.trim() : "Select data source for visualisation"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col flex-1 min-h-0">
@@ -347,6 +340,7 @@ export function DataSourceSelectModal({
                           : undefined
                       }
                       hideTypeLabel={activeTab === "movement"}
+                      hidePublishedBadge={activeTab === "movement"}
                       dataSource={
                         {
                           ...ds,

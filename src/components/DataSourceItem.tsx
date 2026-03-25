@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { Database, RefreshCw } from "lucide-react";
+import { BookOpen, Calendar, Database, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
@@ -26,6 +26,46 @@ export const getDataSourceType = (
   }
 };
 
+function LastImportedOrDateAddedMeta({
+  lastImportedText,
+  createdAt,
+  compact,
+}: {
+  lastImportedText: string | null;
+  createdAt: string | Date | undefined;
+  compact?: boolean;
+}) {
+  if (lastImportedText) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 whitespace-nowrap text-muted-foreground",
+          compact ? "text-[11px]" : "text-xs",
+        )}
+      >
+        <RefreshCw className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+        {lastImportedText}
+      </span>
+    );
+  }
+  if (createdAt) {
+    const addedRelative = formatDistanceToNow(new Date(createdAt), {
+      addSuffix: true,
+    });
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 whitespace-nowrap text-muted-foreground",
+          compact ? "text-[11px]" : "text-xs",
+        )}
+      >
+        Added {addedRelative}
+      </span>
+    );
+  }
+  return null;
+}
+
 export interface DataSourceItemProps {
   dataSource: DataSourceWithImportInfo;
   className?: string;
@@ -40,6 +80,8 @@ export interface DataSourceItemProps {
   overrideIconName?: string | null | undefined;
   overrideDescription?: string | null | undefined;
   hideTypeLabel?: boolean;
+  /** Hide when every item in context is published (e.g. Movement Data Library). */
+  hidePublishedBadge?: boolean;
 }
 
 export function DataSourceItem({
@@ -56,6 +98,7 @@ export function DataSourceItem({
   overrideIconName,
   overrideDescription,
   hideTypeLabel,
+  hidePublishedBadge = false,
 }: DataSourceItemProps) {
   const dataSourceType = getDataSourceType(dataSource);
   const lastImported = dataSource.importInfo?.lastCompleted;
@@ -170,7 +213,7 @@ export function DataSourceItem({
             )}
           >
             <div className="min-w-0">
-              <h4 className=" font-medium text-neutral-900 truncate leading-tight flex items-center gap-1.5">
+              <h4 className="flex min-w-0 items-center gap-1.5 font-medium leading-tight text-neutral-900">
                 {iconName ? (
                   <InspectorPanelIcon
                     iconName={iconName}
@@ -181,18 +224,23 @@ export function DataSourceItem({
                     <DataSourceIcon type={dataSourceType} />
                   </span>
                 )}
-                <span className="truncate">{displayTitle}</span>
+                {!hideTypeLabel && (
+                  <p className="shrink-0 text-xs font-mono uppercase text-neutral-600">
+                    {dataSourceType}
+                  </p>
+                )}
+                <span className="min-w-0 truncate">{displayTitle}</span>
               </h4>
             </div>
 
             <div className="flex flex-col items-end gap-1 text-xs">
-              {lastImportedText && (
-                <span className="text-[11px] inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 rounded-md px-1.5 py-0.5 whitespace-nowrap">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  {lastImportedText}
+              {dataSource.public && !hidePublishedBadge && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded border border-green-200 bg-green-50 px-1.5 py-0.5 font-medium text-green-700">
+                  <BookOpen className="h-3 w-3 shrink-0" aria-hidden />
+                  Published
                 </span>
               )}
-              <div className="text-neutral-600 whitespace-nowrap">
+              <div className="whitespace-nowrap text-neutral-600">
                 <span className="text-neutral-700">
                   {dataSource.recordCount?.toLocaleString() || "Unknown"}{" "}
                   records
@@ -204,9 +252,19 @@ export function DataSourceItem({
           </div>
 
           {displayDescription && (
-            <p className="mt-1 text-xs text-muted-foreground line-clamp-2 mb-3">
+            <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
               {displayDescription}
             </p>
+          )}
+
+          {(lastImportedText || dataSource.createdAt) && (
+            <div className="mt-1">
+              <LastImportedOrDateAddedMeta
+                lastImportedText={lastImportedText}
+                createdAt={dataSource.createdAt}
+                compact
+              />
+            </div>
           )}
 
           {columnPills.length > 0 && columnPreviewVariant === "pills" && (
@@ -270,8 +328,8 @@ export function DataSourceItem({
             "grid-cols-[minmax(0,1fr)_auto]",
           )}
         >
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 text-neutral-600">
+          <div className="col-span-2 flex items-center justify-between gap-2 text-neutral-600">
+            <div className="flex min-w-0 flex-wrap items-center gap-1">
               {iconName ? (
                 <InspectorPanelIcon
                   iconName={iconName}
@@ -284,18 +342,26 @@ export function DataSourceItem({
                 <p className="text-xs font-mono uppercase">{dataSourceType}</p>
               )}
             </div>
-            <h4 className="mt-0.5 text-sm font-medium text-neutral-900 truncate leading-tight">
+            {dataSource.public && !hidePublishedBadge && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded border border-green-200 bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                <BookOpen className="h-3 w-3 shrink-0" aria-hidden />
+                Published
+              </span>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <h4 className="text-sm font-medium text-neutral-900 truncate leading-tight text-left w-full">
               {displayTitle}
             </h4>
           </div>
 
           <div className="flex flex-col items-end gap-1 text-xs">
-            {lastImportedText && (
-              <span className="text-[11px] inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 rounded-md px-1.5 py-0.5 whitespace-nowrap">
-                <RefreshCw className="w-3.5 h-3.5" />
-                {lastImportedText}
-              </span>
-            )}
+            <LastImportedOrDateAddedMeta
+              lastImportedText={lastImportedText}
+              createdAt={dataSource.createdAt}
+              compact
+            />
             <div className="text-neutral-600 whitespace-nowrap">
               <span className="text-neutral-700">
                 {dataSource.recordCount?.toLocaleString() || "Unknown"} records
@@ -308,12 +374,6 @@ export function DataSourceItem({
           <div
             className={cn("flex items-center gap-2 flex-wrap", "col-span-2")}
           >
-            {dataSource.public && (
-              <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
-                Public
-              </span>
-            )}
-
             {dataSource.autoImport && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
                 <Database className="w-3 h-3" />
@@ -372,14 +432,6 @@ export function DataSourceItem({
     );
   }
 
-  const geocodingConfig = (
-    dataSource as unknown as { geocodingConfig?: { type?: string } }
-  ).geocodingConfig;
-  const geocodingStatus =
-    geocodingConfig?.type && geocodingConfig.type !== "None"
-      ? { status: geocodingConfig.type, color: "text-neutral-500" }
-      : { status: "No geocoding", color: "text-neutral-400" };
-
   return (
     <div
       className={cn(
@@ -388,17 +440,19 @@ export function DataSourceItem({
       )}
     >
       {/* Header: Icon and Name */}
-      <div className="flex justify-between gap-2 text-neutral-600">
-        <div className="flex items-center gap-1">
+      <div className="w-full flex justify-between items-start gap-2 text-neutral-600">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <DataSourceIcon type={dataSourceType} />
           <p className="text-sm font-mono uppercase">{dataSourceType}</p>
         </div>
-        {lastImportedText && (
-          <span className="text-xs inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
-            <RefreshCw className="w-3.5 h-3.5" />
-            {lastImportedText}
-          </span>
-        )}
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {dataSource.public && !hidePublishedBadge && (
+            <span className="inline-flex items-center gap-1 rounded border border-green-200 bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
+              <BookOpen className="h-3 w-3 shrink-0" aria-hidden />
+              Published
+            </span>
+          )}
+        </div>
       </div>
       <h4 className="text-lg font-medium text-neutral-900 truncate leading-tight max-w-full">
         {dataSource.name}
@@ -417,17 +471,12 @@ export function DataSourceItem({
           </span>
         </div>
 
-        {/* Secondary info: Geocoding (muted) and status badges */}
+        {/* Secondary info: last import and status badges */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={cn("text-xs", geocodingStatus.color)}>
-            {geocodingStatus.status}
-          </span>
-
-          {dataSource.public && (
-            <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
-              Public
-            </span>
-          )}
+          <LastImportedOrDateAddedMeta
+            lastImportedText={lastImportedText}
+            createdAt={dataSource.createdAt}
+          />
 
           {dataSource.autoImport && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
@@ -437,6 +486,45 @@ export function DataSourceItem({
           )}
         </div>
       </div>
+
+      {showColumnPreview && columnPreviewVariant === "text" ? (
+        columnPreviewText ? (
+          <p
+            className={cn(
+              "w-full pt-3 mt-1 border-t border-neutral-100 text-xs text-muted-foreground",
+              singleLineColumnPreview ? "truncate" : "",
+            )}
+          >
+            {columnPreviewText}
+          </p>
+        ) : null
+      ) : showColumnPreview && visibleColumnPills.length > 0 ? (
+        <div className="w-full pt-3 mt-1 border-t border-neutral-100 flex flex-wrap gap-1.5">
+          {visibleColumnPills.map((name) => {
+            const isDefault = name === defaultColumnName;
+            return (
+              <span
+                key={name}
+                className={cn(
+                  "px-2 py-0.5 rounded-full border text-xs font-medium",
+                  "shrink-0",
+                  isDefault
+                    ? "bg-blue-50 border-blue-200 text-blue-700"
+                    : "bg-neutral-100 border-neutral-200 text-neutral-700",
+                )}
+                title={isDefault ? `${name} (default)` : name}
+              >
+                {name.length > 18 ? `${name.slice(0, 18)}…` : name}
+              </span>
+            );
+          })}
+          {columnPillsExcess > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-neutral-50 border border-neutral-200 text-xs text-muted-foreground shrink-0">
+              +{columnPillsExcess}
+            </span>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

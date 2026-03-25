@@ -12,6 +12,27 @@ export default function InspectorConfigTab() {
 
   const dataSourcesConfig = view?.inspectorConfig?.dataSources || [];
 
+  const moveDataSourceConfig = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (!view) return;
+      if (toIndex < 0 || toIndex >= dataSourcesConfig.length) return;
+      if (fromIndex === toIndex) return;
+
+      const next = [...dataSourcesConfig];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+
+      updateView({
+        ...view,
+        inspectorConfig: {
+          ...view.inspectorConfig,
+          dataSources: next,
+        },
+      });
+    },
+    [dataSourcesConfig, updateView, view],
+  );
+
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
       if (!view) {
@@ -46,6 +67,10 @@ export default function InspectorConfigTab() {
           key={dataSourceConfig.id}
           boundaryConfig={dataSourceConfig}
           index={index}
+          canMoveUp={index > 0}
+          canMoveDown={index < dataSourcesConfig.length - 1}
+          onMoveUp={() => moveDataSourceConfig(index, index - 1)}
+          onMoveDown={() => moveDataSourceConfig(index, index + 1)}
           onClickRemove={() => {
             if (!view) return;
             const updatedDataSources =
@@ -76,6 +101,7 @@ export default function InspectorConfigTab() {
         className="w-full"
         onSelect={(dataSourceId) => addDataSourceToConfig(dataSourceId)}
         selectButtonText={"Add a data source"}
+        modalTitle="Select data source for inspector"
       />
     </div>
   );
