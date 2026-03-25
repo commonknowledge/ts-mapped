@@ -532,7 +532,7 @@ export default function Legend() {
               >
                 {viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
                   ? "Remove second column"
-                  : "Add another column "}
+                  : "Add another column"}
               </button>
             )}
 
