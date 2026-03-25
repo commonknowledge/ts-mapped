@@ -2,7 +2,6 @@ import {
   ChevronDown,
   CornerDownRight,
   Database,
-  Layers2,
   LoaderPinwheel,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -15,7 +14,6 @@ import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import { CalculationType, ColorScaleType } from "@/models/MapView";
-import { Button } from "@/shadcn/ui/button";
 import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
@@ -38,6 +36,7 @@ import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
 import { getChoroplethDataKey } from "./Choropleth/utils";
+import ColumnMetadataIcons from "./ColumnMetadataIcons";
 import { DataSourceSelectModal } from "./DataSourceSelectButton";
 import type { NumericColorScheme } from "../colors";
 import type { AreaSetGroupCode } from "@/models/AreaSet";
@@ -509,36 +508,33 @@ export default function Legend() {
                   searchPlaceholder="Search columns…"
                 />
               </div>
-              {canSelectSecondaryColumn && (
-                <Button
-                  type="button"
-                  variant={
-                    viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
-                      ? "secondary"
-                      : "outline"
-                  }
-                  size="icon"
-                  className="h-8 w-8 shrink-0 shadow-xs"
-                  title={
-                    viewConfig.areaDataSecondaryColumn
-                      ? "Remove second column"
-                      : bivariatePickerOpen
-                        ? "Cancel second column"
-                        : "Add second column (bivariate)"
-                  }
-                  aria-label={
-                    viewConfig.areaDataSecondaryColumn
-                      ? "Remove second column"
-                      : bivariatePickerOpen
-                        ? "Cancel second column"
-                        : "Add second column for bivariate visualization"
-                  }
-                  onClick={toggleBivariatePicker}
-                >
-                  <Layers2 className="size-4" />
-                </Button>
-              )}
+              {viewConfig.areaDataColumn &&
+                viewConfig.areaDataColumn !== NULL_UUID &&
+                viewConfig.areaDataColumn !== MAX_COLUMN_KEY && (
+                  <ColumnMetadataIcons
+                    dataSource={dataSource}
+                    column={viewConfig.areaDataColumn}
+                    fields={{
+                      description: true,
+                      valueLabels: true,
+                      categoryColors:
+                        colorScheme?.colorSchemeType === "categoric",
+                    }}
+                  />
+                )}
             </div>
+
+            {canSelectSecondaryColumn && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline cursor-pointer text-left pl-6 hover:text-foreground transition-colors"
+                onClick={toggleBivariatePicker}
+              >
+                {viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
+                  ? "Remove second column"
+                  : "Add another column to the visualisation"}
+              </button>
+            )}
 
             {showSecondColumnRow && (
               <div className="flex items-center gap-2">
@@ -566,7 +562,13 @@ export default function Legend() {
                     searchPlaceholder="Search columns…"
                   />
                 </div>
-                <div className="h-8 w-8 shrink-0" aria-hidden />
+                {viewConfig.areaDataSecondaryColumn && (
+                  <ColumnMetadataIcons
+                    dataSource={dataSource}
+                    column={viewConfig.areaDataSecondaryColumn}
+                    fields={{ description: true, valueLabels: true }}
+                  />
+                )}
               </div>
             )}
           </div>

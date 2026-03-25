@@ -1,4 +1,4 @@
-import { SettingsIcon } from "lucide-react";
+import { PaintbrushIcon } from "lucide-react";
 import { useState } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -31,7 +31,7 @@ export default function BoundariesControl() {
             }
             onClick={() => setBoundariesPanelOpen(!boundariesPanelOpen)}
           >
-            <SettingsIcon size={16} />
+            <PaintbrushIcon size={16} />
           </IconButtonWithTooltip>
         )}
       </LayerHeader>

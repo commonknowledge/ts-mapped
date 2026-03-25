@@ -1,12 +1,9 @@
 import { Palette, PieChart, X } from "lucide-react";
 import { useState } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
-import {
-  useChoroplethDataSource,
-  useDataSources,
-} from "@/app/(private)/map/[id]/hooks/useDataSources";
+import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
 import {
   CalculationType,
@@ -16,7 +13,6 @@ import {
 } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
-import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +32,6 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
 import { dataRecordsWillAggregate } from "../../Choropleth/areas";
@@ -160,7 +155,6 @@ export default function VisualisationPanel({
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
-  const { data: dataSources } = useDataSources();
   const dataSource = useChoroplethDataSource();
 
   if (!boundariesPanelOpen) return null;
@@ -176,7 +170,6 @@ export default function VisualisationPanel({
     viewConfig.colorScaleType === ColorScaleType.Categorical ||
     columnOneIsNotNumber;
 
-  const canSelectSecondaryColumn = !isCount && columnOneIsNumber;
   const canSelectAggregation =
     !isCount &&
     columnOneIsNumber &&
@@ -261,81 +254,6 @@ export default function VisualisationPanel({
                   <SelectItem value="values">Data values</SelectItem>
                 </SelectContent>
               </Select>
-
-              {canSelectSecondaryColumn && (
-                <>
-                  <Label
-                    htmlFor="choropleth-column-2-select"
-                    className="text-sm text-muted-foreground font-normal"
-                  >
-                    Column 2
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Combobox
-                      options={[
-                        { value: NULL_UUID, label: "None" },
-                        ...(dataSources
-                          ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                          ?.columnDefs.filter(
-                            (col) =>
-                              col.type === ColumnType.Number &&
-                              col.name !== viewConfig.areaDataColumn,
-                          )
-                          .map((col) => ({
-                            value: col.name,
-                            label: `${col.name} (${col.type})`,
-                            hint: resolveColumnMetadataEntry(
-                              dataSource?.columnMetadata || [],
-                              dataSource?.columnMetadataOverride,
-                              col.name,
-                            )?.description,
-                          })) || []),
-                      ]}
-                      value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
-                      onValueChange={(value) =>
-                        updateViewConfig({
-                          areaDataSecondaryColumn:
-                            value === NULL_UUID ? undefined : value,
-                        })
-                      }
-                      placeholder="Choose a column..."
-                      searchPlaceholder="Search columns..."
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 flex-shrink-0"
-                      onClick={() => {
-                        updateViewConfig({
-                          areaDataSecondaryColumn: undefined,
-                        });
-                      }}
-                      title="Remove column 2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {viewConfig.areaDataSecondaryColumn && (
-                    <div className="col-span-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs w-full justify-start"
-                        onClick={() => {
-                          updateViewConfig({
-                            areaDataSecondaryColumn: undefined,
-                          });
-                        }}
-                      >
-                        <X className="h-3 w-3 mr-1" />
-                        Remove bivariate visualization
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
 
               {canSelectAggregation && (
                 <>
