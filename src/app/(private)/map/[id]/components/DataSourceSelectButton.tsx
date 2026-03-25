@@ -122,9 +122,26 @@ export function DataSourceSelectModal({
 }) {
   const [activeTab, setActiveTab] = useState<"movement" | "user">("user");
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: dataSources } = useDataSources();
+  const {
+    data: dataSources,
+    isPending: dataSourcesPending,
+    isError: dataSourcesIsError,
+    error: dataSourcesError,
+  } = useDataSources();
   const { viewConfig } = useMapViews();
   const prevIsModalOpenRef = useRef(isModalOpen);
+  const [movementMetaById, setMovementMetaById] = useState<
+    Record<
+      string,
+      {
+        defaultColumn?: string;
+        title?: string;
+        icon?: string;
+        description?: string;
+      }
+        | undefined
+    >
+  >({});
 
   useEffect(() => {
     const wasOpen = prevIsModalOpenRef.current;
@@ -161,9 +178,76 @@ export function DataSourceSelectModal({
 
     return sources;
   }, [activeTab, dataSources, searchQuery]);
+
+  const fetchedCount = dataSources?.length ?? 0;
+  const filteredCount = filteredAndSearchedDataSources.length;
+
+  useEffect(() => {
+    if (activeTab !== "movement") return;
+    const ids = filteredAndSearchedDataSources.map((ds) => ds.id);
+    const missing = ids.filter((id) => movementMetaById[id] === undefined);
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+    void (async () => {
+      const entries = await Promise.all(
+        missing.map(async (id) => {
+          try {
+            const res = await fetch(`/api/data-source-previews/${id}/meta`);
+            if (!res.ok)
+              return [
+                id,
+                {
+                  defaultColumn: undefined,
+                  title: undefined,
+                  icon: undefined,
+                  description: undefined,
+                },
+              ] as const;
+            const json = (await res.json()) as {
+              title?: string;
+              description?: string;
+              icon?: string;
+              defaultVisualisation?: { defaultColumn?: string };
+            };
+            return [
+              id,
+              {
+                defaultColumn: json.defaultVisualisation?.defaultColumn,
+                title: json.title,
+                icon: json.icon,
+                description: json.description,
+              },
+            ] as const;
+          } catch {
+            return [
+              id,
+              {
+                defaultColumn: undefined,
+                title: undefined,
+                icon: undefined,
+                description: undefined,
+              },
+            ] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setMovementMetaById((prev) => {
+        const next = { ...prev };
+        for (const [id, meta] of entries) next[id] = meta;
+        return next;
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, filteredAndSearchedDataSources, movementMetaById]);
+
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogContent className="max-w-2xl h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl h-[80vh] overflow-hidden !flex !flex-col">
         <DialogHeader>
           <DialogTitle>Select data source for visualisation</DialogTitle>
         </DialogHeader>
@@ -171,12 +255,7 @@ export function DataSourceSelectModal({
         <div className="flex flex-col flex-1 min-h-0">
           {/* Search and Filter Bar */}
           <div className="flex gap-2 mb-4">
-            <Input
-              placeholder="Search data sources..."
-              className="flex-1"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+
             <Tabs
               value={activeTab}
               onValueChange={(v) => setActiveTab(v as typeof activeTab)}
@@ -190,42 +269,98 @@ export function DataSourceSelectModal({
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+            <Input
+              placeholder="Search data sources..."
+              className="flex-1"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
 
           {/* Data Source Grid */}
-          <div className="flex-1 min-h-0 overflow-auto">
-            <div className="grid grid-cols-1 gap-3">
-              {filteredAndSearchedDataSources.map((ds) => (
-                <button
-                  type="button"
-                  className="text-left"
-                  key={ds.id}
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    onSelect(ds.id);
-                  }}
-                >
-                  <DataSourceItem
-                    className={
-                      viewConfig.areaDataSourceId === ds.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "hover:border-blue-300"
-                    }
-                    density={
-                      activeTab === "user" ? "compact" : "compactPreview"
-                    }
-                    previewImageUrl={
-                      activeTab === "movement"
-                        ? `/data-source-previews/${ds.id}.jpg`
-                        : undefined
-                    }
-                    dataSource={{
-                      ...ds,
+          <div className="flex-1 overflow-auto min-h-[28rem]">
+            {dataSourcesPending ? (
+              <div className="text-sm text-muted-foreground py-6">
+                Loading data sources…
+              </div>
+            ) : dataSourcesIsError ? (
+              <div className="text-sm text-destructive py-6">
+                Failed to load data sources
+                {dataSourcesError instanceof Error
+                  ? `: ${dataSourcesError.message}`
+                  : "."}
+              </div>
+            ) : fetchedCount === 0 ? (
+              <div className="text-sm text-muted-foreground py-6">
+                No data sources available.
+              </div>
+            ) : filteredCount === 0 ? (
+              <div className="text-sm text-muted-foreground py-6">
+                No matches ({fetchedCount} fetched, 0 shown for{" "}
+                {activeTab === "user" ? "User data" : "Movement data library"}).
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {filteredAndSearchedDataSources.map((ds) => (
+                  <button
+                    type="button"
+                    className="text-left"
+                    key={ds.id}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      onSelect(ds.id);
                     }}
-                  />
-                </button>
-              ))}
-            </div>
+                  >
+                    <DataSourceItem
+                      className={
+                        viewConfig.areaDataSourceId === ds.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "hover:border-blue-300"
+                      }
+                      density={
+                        activeTab === "user" ? "compact" : "compactPreview"
+                      }
+                      previewImageUrl={
+                        activeTab === "movement"
+                          ? `/data-source-previews/${ds.id}.jpg`
+                          : undefined
+                      }
+                      showColumnPreview={true}
+                      columnPreviewVariant={
+                        "pills"
+                      }
+                      singleLineColumnPreview={activeTab === "user"}
+                      maxColumnPills={activeTab === "user" ? 6 : 8}
+                      defaultColumnName={
+                        activeTab === "movement"
+                          ? movementMetaById[ds.id]?.defaultColumn
+                          : undefined
+                      }
+                      overrideTitle={
+                        activeTab === "movement"
+                          ? movementMetaById[ds.id]?.title
+                          : undefined
+                      }
+                      overrideIconName={
+                        activeTab === "movement"
+                          ? movementMetaById[ds.id]?.icon
+                          : undefined
+                      }
+                      hideTypeLabel={activeTab === "movement"}
+                      dataSource={{
+                        ...ds,
+                        ...(activeTab === "movement" && {
+                          movementLibraryDescription:
+                            movementMetaById[ds.id]?.description,
+                        }),
+                      } as DataSourceWithImportInfo & {
+                        movementLibraryDescription?: string;
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

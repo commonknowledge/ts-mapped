@@ -2,17 +2,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   getAllColumnsSorted,
   getColumnOrderState,
   normalizeInspectorDataSourceConfig,
 } from "@/app/(private)/map/[id]/components/inspector/inspectorColumnOrder";
-import {
-  INSPECTOR_COLOR_OPTIONS,
-  INSPECTOR_ICON_OPTIONS,
-} from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
+import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
 import { ColumnsSection } from "@/app/(private)/map/[id]/components/inspector/InspectorSettingsModal/ColumnsSection";
 import {
   DEFAULT_SELECT_VALUE,
@@ -24,8 +21,6 @@ import {
   type InspectorDataSourceConfig,
 } from "@/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
-import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -84,8 +79,12 @@ function toDefaultConfig(
 
 export function DefaultInspectorConfigSection({
   dataSource,
+  forcedTitle,
+  forcedIcon,
 }: {
   dataSource: DataSource;
+  forcedTitle?: string | null | undefined;
+  forcedIcon?: string | null | undefined;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -129,37 +128,28 @@ export function DefaultInspectorConfigSection({
     },
   );
 
-  const [isDirty, setIsDirty] = useState(false);
+  // Keep inspector title/icon aligned with the "General" settings.
+  useEffect(() => {
+    const nextName =
+      forcedTitle && forcedTitle.trim().length > 0
+        ? forcedTitle.trim()
+        : dataSource.name;
+    const nextIcon =
+      forcedIcon && forcedIcon.trim().length > 0 ? forcedIcon.trim() : undefined;
+
+    setLocalConfig((prev) => {
+      const changed = prev.name !== nextName || prev.icon !== nextIcon;
+      if (!changed) return prev;
+      return { ...prev, name: nextName, icon: nextIcon };
+    });
+    // Intentionally do not mark dirty; the source of truth is the General section.
+  }, [dataSource.name, forcedIcon, forcedTitle]);
+
   const [isSaving, setIsSaving] = useState(false);
+  const didInitAutoSaveRef = useRef(false);
+  const autoSaveTimeoutRef = useRef<number | null>(null);
 
-  const handleSave = useCallback(async () => {
-    setIsDirty(false);
-    setIsSaving(true);
-    try {
-      await onSave(toDefaultConfig(localConfig));
-    } catch {
-      setIsDirty(true);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [localConfig, onSave]);
-
-  const handleCancel = useCallback(() => {
-    const raw = toEditingConfig(
-      dataSource.id,
-      dataSource.defaultInspectorConfig,
-      dataSource.name,
-    );
-    setLocalConfig(
-      normalizeInspectorDataSourceConfig(raw, allColumnNames) ?? raw,
-    );
-    setIsDirty(false);
-  }, [
-    dataSource.id,
-    dataSource.defaultInspectorConfig,
-    dataSource.name,
-    allColumnNames,
-  ]);
+  // Cancel is no longer exposed; inspector settings auto-save.
 
   const allColumnsSorted = useMemo(
     () => getAllColumnsSorted(allColumnNames),
@@ -185,10 +175,38 @@ export function DefaultInspectorConfigSection({
         const next = updater(prev);
         return normalizeInspectorDataSourceConfig(next, allColumnNames) ?? next;
       });
-      setIsDirty(true);
     },
     [allColumnNames],
   );
+
+  // Auto-save inspector config changes (debounced).
+  useEffect(() => {
+    if (!didInitAutoSaveRef.current) {
+      didInitAutoSaveRef.current = true;
+      return;
+    }
+    if (autoSaveTimeoutRef.current) {
+      window.clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = window.setTimeout(() => {
+      setIsSaving(true);
+      void onSave(toDefaultConfig(localConfig))
+        .catch(() => {
+          // toast handled by mutation onError
+        })
+        .finally(() => {
+          setIsSaving(false);
+        });
+    }, 600);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        window.clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = null;
+      }
+    };
+  }, [localConfig, onSave]);
 
   const handleAddColumn = useCallback(
     (colName: string) => {
@@ -281,7 +299,6 @@ export function DefaultInspectorConfigSection({
 
   const columnMetadata = localConfig.columnMetadata ?? {};
   const layout = (localConfig.layout ?? "single") as InspectorLayout;
-  const panelIcon = localConfig.icon ?? undefined;
   const panelColor = localConfig.color ?? undefined;
   const columns = localConfig.columns ?? [];
 
@@ -298,63 +315,11 @@ export function DefaultInspectorConfigSection({
           </p>
         </div>
 
-        {isDirty && (
-          <div className="flex gap-2">
-            <Button type="button" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving…" : "Save"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isSaving}
-            >
-              Cancel changes
-            </Button>
-          </div>
-        )}
+        <div className="text-sm text-muted-foreground">
+          {isSaving ? "Saving…" : "Autosaved"}
+        </div>
 
-        <div className="grid xl:grid-cols-4 grid-cols-2 gap-4">
-          <div className="space-y-2 w-full min-w-0">
-            <Label className="text-muted-foreground">Display name</Label>
-            <Input
-              value={localConfig.name}
-              onChange={(e) =>
-                updateConfig((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="e.g. Main data"
-              className="max-w-sm"
-            />
-          </div>
-          <div className="space-y-2 w-full min-w-0">
-            <Label className="text-muted-foreground">Icon</Label>
-            <Select
-              value={panelIcon ?? DEFAULT_SELECT_VALUE}
-              onValueChange={(value) =>
-                updateConfig((prev) => ({
-                  ...prev,
-                  icon: value === DEFAULT_SELECT_VALUE ? undefined : value,
-                }))
-              }
-            >
-              <SelectTrigger className="h-9 w-full min-w-0 truncate">
-                <SelectValue placeholder="Default" className="truncate" />
-              </SelectTrigger>
-              <SelectContent>
-                {INSPECTOR_ICON_OPTIONS.map((opt) => (
-                  <SelectItem
-                    key={opt.value || "default"}
-                    value={opt.value || DEFAULT_SELECT_VALUE}
-                  >
-                    <span className="flex items-center gap-2">
-                      <opt.Icon className="h-4 w-4 shrink-0" />
-                      {opt.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Colour</Label>
             <Select

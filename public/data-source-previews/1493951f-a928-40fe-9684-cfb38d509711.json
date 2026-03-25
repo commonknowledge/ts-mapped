@@ -1,0 +1,9 @@
+{
+  "title": "2024 General Election ",
+  "description": "The results of the 2024 General election, with the constituency winner set as the default (First party in the dataset) test",
+  "icon": "check-circle",
+  "defaultVisualisation": {
+    "displayMode": "values",
+    "defaultColumn": "First party"
+  }
+}

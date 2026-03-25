@@ -13,7 +13,12 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
-import { CalculationType, ColorScaleType, MapType } from "@/models/MapView";
+import {
+  CalculationType,
+  ColorScaleType,
+  DEFAULT_CALCULATION_TYPE,
+  MapType,
+} from "@/models/MapView";
 import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
@@ -123,13 +128,39 @@ export default function Legend() {
       })) || []),
   ];
 
-  const handleDataSourceSelect = (dataSourceId: string) => {
+  const handleDataSourceSelect = async (dataSourceId: string) => {
     const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
     if (!selectedAreaSetGroup) {
       updateViewConfig({
         areaDataSourceId: dataSourceId,
         areaDataSecondaryColumn: undefined,
       });
+      const ds = getDataSourceById(dataSourceId);
+      if (ds?.public) {
+        void (async () => {
+          try {
+            const res = await fetch(`/api/data-source-previews/${dataSourceId}/meta`);
+            if (!res.ok) return;
+            const meta = (await res.json()) as {
+              defaultVisualisation?: {
+                displayMode?: "counts" | "values";
+                defaultColumn?: string;
+              };
+            };
+            const displayMode = meta.defaultVisualisation?.displayMode;
+            const defaultColumn = meta.defaultVisualisation?.defaultColumn;
+            updateViewConfig({
+              calculationType:
+                displayMode === "counts"
+                  ? CalculationType.Count
+                  : DEFAULT_CALCULATION_TYPE,
+              ...(defaultColumn ? { areaDataColumn: defaultColumn } : {}),
+            });
+          } catch {
+            // ignore
+          }
+        })();
+      }
       setIsDataSourceModalOpen(false);
       return;
     }
@@ -140,6 +171,31 @@ export default function Legend() {
         areaDataSourceId: dataSourceId,
         areaDataSecondaryColumn: undefined,
       });
+      if (ds?.public) {
+        void (async () => {
+          try {
+            const res = await fetch(`/api/data-source-previews/${dataSourceId}/meta`);
+            if (!res.ok) return;
+            const meta = (await res.json()) as {
+              defaultVisualisation?: {
+                displayMode?: "counts" | "values";
+                defaultColumn?: string;
+              };
+            };
+            const displayMode = meta.defaultVisualisation?.displayMode;
+            const defaultColumn = meta.defaultVisualisation?.defaultColumn;
+            updateViewConfig({
+              calculationType:
+                displayMode === "counts"
+                  ? CalculationType.Count
+                  : DEFAULT_CALCULATION_TYPE,
+              ...(defaultColumn ? { areaDataColumn: defaultColumn } : {}),
+            });
+          } catch {
+            // ignore
+          }
+        })();
+      }
       setIsDataSourceModalOpen(false);
       return;
     }
