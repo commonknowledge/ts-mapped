@@ -339,17 +339,7 @@ export default function Legend() {
                 )}
             </div>
 
-            {canSelectSecondaryColumn && (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground underline cursor-pointer text-left pl-6 hover:text-foreground transition-colors"
-                onClick={toggleBivariatePicker}
-              >
-                {viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
-                  ? "Remove second column"
-                  : "Add another column"}
-              </button>
-            )}
+
 
             {showSecondColumnRow && (
               <div className="flex items-center gap-2">
@@ -385,6 +375,17 @@ export default function Legend() {
                   />
                 )}
               </div>
+            )}
+            {canSelectSecondaryColumn && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline cursor-pointer text-left pl-6 hover:text-foreground transition-colors"
+                onClick={toggleBivariatePicker}
+              >
+                {viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
+                  ? "Remove second column"
+                  : "Add another column"}
+              </button>
             )}
           </div>
         )}
