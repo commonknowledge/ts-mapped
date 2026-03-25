@@ -29,6 +29,9 @@ interface ComboboxProps {
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
+  /** Merged onto the trigger button (e.g. typography to match Select) */
+  triggerClassName?: string;
+  size?: React.ComponentProps<typeof Button>["size"];
 }
 
 /**
@@ -53,6 +56,8 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       placeholder = "Select an option...",
       searchPlaceholder = "Search...",
       emptyMessage = "No options found.",
+      triggerClassName,
+      size = "default",
     },
     ref,
   ) => {
@@ -83,9 +88,10 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
           <Button
             ref={ref}
             variant="outline"
+            size={size}
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className={cn("w-full justify-between", triggerClassName)}
           >
             <span className="truncate">{selectedLabel || placeholder}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
