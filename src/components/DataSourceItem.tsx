@@ -25,48 +25,6 @@ export const getDataSourceType = (
     return "unknown";
   }
 };
-/* 
-// Helper function to get appropriate color and label for data source type
-const getDataSourceStyle = (type: DataSourceType | "unknown") => {
-  switch (type) {
-    case DataSourceType.ActionNetwork:
-      return {
-        bgColor: "from-green-400 to-blue-500",
-        label: "Action Network",
-        description: "Activist and supporter data",
-      };
-    case DataSourceType.Airtable:
-      return {
-        bgColor: "from-orange-400 to-red-500",
-        label: "Airtable",
-        description: "Database and spreadsheet data",
-      };
-    case DataSourceType.CSV:
-      return {
-        bgColor: "from-neutral-400 to-neutral-600",
-        label: "CSV",
-        description: "Comma-separated values data",
-      };
-    case DataSourceType.GoogleSheets:
-      return {
-        bgColor: "from-green-500 to-green-700",
-        label: "Google Sheets",
-        description: "Spreadsheet data from Google",
-      };
-    case DataSourceType.Mailchimp:
-      return {
-        bgColor: "from-yellow-400 to-orange-500",
-        label: "Mailchimp",
-        description: "Email marketing and subscriber data",
-      };
-    default:
-      return {
-        bgColor: "from-blue-400 to-purple-500",
-        label: "Data Source",
-        description: "General data source",
-      };
-  }
-}; */
 
 export interface DataSourceItemProps {
   dataSource: DataSourceWithImportInfo;
