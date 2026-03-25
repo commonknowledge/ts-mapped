@@ -7,7 +7,7 @@ import { PointPlugin } from "./plugins/PointPlugin";
 import type { AirtableWebhookTable } from "@/server/models/AirtableWebhook";
 import type { AreaSearchTable, AreaTable } from "@/server/models/Area";
 import type { AreaSetTable } from "@/server/models/AreaSet";
-import type { ColumnMetadataOverrideTable } from "@/server/models/ColumnMetadataOverride";
+import type { DataSourceOrganisationOverrideTable } from "@/server/models/DataSourceOrganisationOverride";
 import type { DataRecordTable } from "@/server/models/DataRecord";
 import type { DataSourceTable } from "@/server/models/DataSource";
 import type { FolderTable } from "@/server/models/Folder";
@@ -57,7 +57,7 @@ export interface Database {
   area: AreaTable;
   areaSearch: AreaSearchTable;
   areaSet: AreaSetTable;
-  columnMetadataOverride: ColumnMetadataOverrideTable;
+  dataSourceOrganisationOverride: DataSourceOrganisationOverrideTable;
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;
   folder: FolderTable;

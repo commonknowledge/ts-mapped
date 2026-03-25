@@ -128,6 +128,8 @@ export interface DataSource {
   config: object; // jsonb, UNIQUE, NOT NULL, DEFAULT {}
   geocodingConfig: object; // jsonb, NOT NULL, DEFAULT {}
   columnDefs: unknown[]; // jsonb, NOT NULL, DEFAULT []
+  columnMetadata: unknown[]; // jsonb, NOT NULL, DEFAULT [] — ColumnMetadata[]
+  inspectorColumns: unknown[]; // jsonb, NOT NULL, DEFAULT [] — InspectorColumn[]
   columnRoles: object; // jsonb, NOT NULL, DEFAULT {} (renamed from columnsConfig)
   enrichments: unknown[]; // jsonb, NOT NULL, DEFAULT [] (renamed from enrichmentConfig)
   organisationId: string; // uuid, NOT NULL
@@ -138,7 +140,7 @@ export interface DataSource {
   dateFormat: string; // text, NOT NULL, DEFAULT 'yyyy-MM-dd'
   recordCount: number; // integer, NOT NULL, DEFAULT 0
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
-  defaultInspectorConfig: unknown | null; // jsonb, NULL — DefaultInspectorBoundaryConfig
+  defaultInspectorConfig: unknown | null; // jsonb, NULL — DefaultInspectorDataSourceConfig
 
   // FOREIGN KEYS:
   // - organisationId -> organisation.id (CASCADE DELETE, CASCADE UPDATE)
@@ -338,6 +340,18 @@ export interface Turf {
  * airtableWebhook (standalone)
  */
 
+/**
+ * dataSourceOrganisationOverride Table
+ * Per-organisation overrides for data source column metadata and inspector columns
+ */
+export interface DataSourceOrganisationOverride {
+  id: number; // serial, PRIMARY KEY
+  organisationId: string; // uuid, NOT NULL
+  dataSourceId: string; // uuid, NOT NULL
+  columnMetadata: unknown[]; // jsonb, NOT NULL, DEFAULT []
+  inspectorColumns: unknown[]; // jsonb, NOT NULL, DEFAULT []
+}
+
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
@@ -356,6 +370,7 @@ export interface Database {
   // Data Sources & Records
   dataSource: DataSource;
   dataRecord: DataRecord;
+  dataSourceOrganisationOverride: DataSourceOrganisationOverride;
 
   // Webhooks & Integrations
   airtableWebhook: AirtableWebhook;

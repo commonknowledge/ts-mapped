@@ -9,8 +9,9 @@ import {
   GeocodingType,
   columnMetadataSchema,
   dataSourceSchema,
+  inspectorColumnSchema,
 } from "@/models/DataSource";
-import { defaultInspectorBoundaryConfigSchema } from "@/models/MapView";
+import { defaultInspectorDataSourceConfigSchema } from "@/models/MapView";
 import { dataSourceViewSchema } from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
@@ -18,9 +19,9 @@ import {
   removeEnrichmentColumnsFromDataSource,
 } from "@/server/mapping/enrich";
 import {
-  findColumnMetadataOverridesByOrg,
-  upsertColumnMetadataOverride,
-} from "@/server/repositories/ColumnMetadataOverride";
+  findDataSourceOrganisationOverridesByOrg,
+  upsertDataSourceOrganisationOverride,
+} from "@/server/repositories/DataSourceOrganisationOverride";
 import {
   applyFilterAndSearch,
   findDataRecordsByDataSource,
@@ -72,7 +73,7 @@ export const dataSourceRouter = router({
       const withImportInfo = await addImportInfo(dataSources);
       return withImportInfo.map((ds) => ({
         ...ds,
-        columnMetadataOverride: null,
+        organisationOverride: null,
       }));
     }),
   listReadable: protectedProcedure
@@ -120,20 +121,23 @@ export const dataSourceRouter = router({
 
       const overrides =
         orgId && filteredDataSources.length
-          ? await findColumnMetadataOverridesByOrg(
+          ? await findDataSourceOrganisationOverridesByOrg(
               orgId,
               filteredDataSources.map((ds) => ds.id),
             )
           : [];
 
       const overrideMap = new Map(
-        overrides.map((o) => [o.dataSourceId, o.columnMetadata]),
+        overrides.map((o) => [
+          o.dataSourceId,
+          { columnMetadata: o.columnMetadata, inspectorColumns: o.inspectorColumns },
+        ]),
       );
 
       const withImportInfo = await addImportInfo(filteredDataSources);
       return withImportInfo.map((ds) => ({
         ...ds,
-        columnMetadataOverride: overrideMap.get(ds.id) ?? null,
+        organisationOverride: overrideMap.get(ds.id) ?? null,
       }));
     }),
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
@@ -357,6 +361,7 @@ export const dataSourceRouter = router({
         public: false,
         columnDefs,
         columnMetadata: [],
+        inspectorColumns: [],
         columnRoles: { nameColumns: [] },
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
@@ -398,6 +403,7 @@ export const dataSourceRouter = router({
         name: input.name,
         columnRoles: input.columnRoles,
         columnMetadata: input.columnMetadata,
+        inspectorColumns: input.inspectorColumns,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
         dateFormat: input.dateFormat,
@@ -602,13 +608,15 @@ export const dataSourceRouter = router({
       z.object({
         dataSourceId: z.string(),
         columnMetadata: z.array(columnMetadataSchema),
+        inspectorColumns: z.array(inspectorColumnSchema),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await upsertColumnMetadataOverride(
+      await upsertDataSourceOrganisationOverride(
         ctx.organisation.id,
         input.dataSourceId,
         input.columnMetadata,
+        input.inspectorColumns,
       );
       return true;
     }),
@@ -622,7 +630,7 @@ export const dataSourceRouter = router({
     .input(
       z.object({
         dataSourceId: z.string(),
-        config: defaultInspectorBoundaryConfigSchema.nullable(),
+        config: defaultInspectorDataSourceConfigSchema.nullable(),
       }),
     )
     .mutation(async ({ input }) => {

@@ -13,7 +13,7 @@ export default function DataSourcePropertiesList({
   dataSource:
     | {
         columnMetadata: ColumnMetadata[];
-        columnMetadataOverride?: ColumnMetadata[] | null;
+        organisationOverride?: { columnMetadata: ColumnMetadata[] } | null;
         columnDefs?: { name: string; type: ColumnType }[];
         id: string;
       }
@@ -27,9 +27,9 @@ export default function DataSourcePropertiesList({
     () =>
       resolveColumnMetadata(
         dataSource?.columnMetadata || [],
-        dataSource?.columnMetadataOverride,
+        dataSource?.organisationOverride?.columnMetadata,
       ),
-    [dataSource?.columnMetadata, dataSource?.columnMetadataOverride],
+    [dataSource?.columnMetadata, dataSource?.organisationOverride],
   );
   const properties = useMemo(() => {
     const filtered: { column: string; value: string }[] = [];

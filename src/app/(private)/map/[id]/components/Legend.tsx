@@ -69,7 +69,7 @@ export default function Legend() {
           fields={{
             description: true,
             valueLabels: true,
-            categoryColors: colorScheme?.colorSchemeType === "categoric",
+            colorMappings: colorScheme?.colorSchemeType === "categoric",
           }}
         />
       </div>
@@ -127,7 +127,7 @@ export default function Legend() {
       const valueLabels =
         resolveColumnMetadataEntry(
           dataSource?.columnMetadata ?? [],
-          dataSource?.columnMetadataOverride,
+          dataSource?.organisationOverride?.columnMetadata,
           viewConfig.areaDataColumn,
         )?.valueLabels || {};
 
@@ -277,7 +277,7 @@ export default function Legend() {
     const valueLabels =
       resolveColumnMetadataEntry(
         dataSource?.columnMetadata ?? [],
-        dataSource?.columnMetadataOverride,
+        dataSource?.organisationOverride?.columnMetadata,
         viewConfig.areaDataColumn,
       )?.valueLabels || {};
 

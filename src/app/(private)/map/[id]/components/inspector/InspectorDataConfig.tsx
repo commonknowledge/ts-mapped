@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { type InspectorBoundaryConfig } from "@/models/MapView";
+import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { useDataSources } from "../../hooks/useDataSources";
 import { useMapViews } from "../../hooks/useMapViews";
 import DataSourceSelectButton from "../DataSourceSelectButton";
@@ -10,7 +10,7 @@ export default function InspectorConfigTab() {
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
 
-  const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
+  const boundaryStatsConfig = view?.inspectorConfig?.dataSources || [];
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -20,7 +20,7 @@ export default function InspectorConfigTab() {
 
       const dataSource = getDataSourceById(dataSourceId);
       const defaults = dataSource?.defaultInspectorConfig;
-      const newBoundaryConfig: InspectorBoundaryConfig = {
+      const newBoundaryConfig: InspectorDataSourceConfig = {
         id: uuidv4(),
         dataSourceId,
         name: defaults?.name ?? dataSource?.name ?? "Boundary Data",
@@ -42,13 +42,13 @@ export default function InspectorConfigTab() {
         ...(defaults?.color != null && { color: defaults.color }),
       };
 
-      const prevBoundaries = view.inspectorConfig?.boundaries || [];
+      const prevBoundaries = view.inspectorConfig?.dataSources || [];
 
       updateView({
         ...view,
         inspectorConfig: {
           ...view.inspectorConfig,
-          boundaries: [...prevBoundaries, newBoundaryConfig],
+          dataSources: [...prevBoundaries, newBoundaryConfig],
         },
       });
     },
@@ -64,14 +64,14 @@ export default function InspectorConfigTab() {
           index={index}
           onClickRemove={() => {
             if (!view) return;
-            const updatedBoundaries = view.inspectorConfig?.boundaries?.filter(
+            const updatedBoundaries = view.inspectorConfig?.dataSources?.filter(
               (_, i) => i !== index,
             );
             updateView({
               ...view,
               inspectorConfig: {
                 ...view.inspectorConfig,
-                boundaries: updatedBoundaries,
+                dataSources: updatedBoundaries,
               },
             });
           }}
@@ -83,7 +83,7 @@ export default function InspectorConfigTab() {
               ...view,
               inspectorConfig: {
                 ...view.inspectorConfig,
-                boundaries: updatedBoundaries,
+                dataSources: updatedBoundaries,
               },
             });
           }}

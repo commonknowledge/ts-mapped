@@ -1,6 +1,12 @@
 import z from "zod";
 import { AreaSetCode } from "./AreaSet";
-import { defaultInspectorBoundaryConfigSchema } from "./MapView";
+import {
+  ColumnDisplayFormat,
+  InspectorColumn,
+  columnDisplayFormats,
+  inspectorColumnSchema,
+} from "./inspectorColumn";
+import { defaultInspectorDataSourceConfigSchema } from "./MapView";
 
 export enum JobStatus {
   None = "None",
@@ -199,6 +205,16 @@ export enum ColumnType {
 }
 export const columnTypes = Object.values(ColumnType);
 
+export enum ColumnSemanticType {
+  Auto = "Auto",
+  Percentage01 = "Percentage01",
+  Percentage0100 = "Percentage0100",
+}
+export const columnSemanticTypes = Object.values(ColumnSemanticType);
+
+export { ColumnDisplayFormat, columnDisplayFormats, inspectorColumnSchema };
+export type { InspectorColumn };
+
 export const columnDefSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(ColumnType),
@@ -212,6 +228,8 @@ export const columnMetadataSchema = z.object({
   name: z.string(),
   description: z.string(),
   valueLabels: z.record(z.string(), z.string()),
+  semanticType: z.nativeEnum(ColumnSemanticType).optional(),
+  valueColors: z.record(z.string(), z.string()).optional(),
 });
 
 export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
@@ -243,6 +261,7 @@ export const dataSourceSchema = z.object({
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
   columnMetadata: z.array(columnMetadataSchema),
+  inspectorColumns: z.array(inspectorColumnSchema).default([]),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,
@@ -253,7 +272,7 @@ export const dataSourceSchema = z.object({
   dateFormat: z.string(),
   naIsNull: z.boolean().optional(),
   nullIsZero: z.boolean().optional(),
-  defaultInspectorConfig: defaultInspectorBoundaryConfigSchema.nullish(),
+  defaultInspectorConfig: defaultInspectorDataSourceConfigSchema.nullish(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;

@@ -3,7 +3,7 @@ import { atom } from "jotai";
 export interface EditColumnMetadataFields {
   description?: boolean;
   valueLabels?: boolean;
-  categoryColors?: boolean;
+  colorMappings?: boolean;
 }
 
 export const editColumnMetadataAtom = atom<{

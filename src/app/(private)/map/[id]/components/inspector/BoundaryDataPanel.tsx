@@ -20,7 +20,7 @@ import { useDataSources } from "../../hooks/useDataSources";
 import type { PropertyEntry } from "./PropertiesList";
 import type { SelectedBoundary } from "../../types/inspector";
 import type { DataSource } from "@/models/DataSource";
-import type { InspectorBoundaryConfig } from "@/models/MapView";
+import type { InspectorDataSourceConfig } from "@/models/MapView";
 import type { Point } from "@/models/shared";
 
 const COMPARISON_STAT_LABEL: Record<string, string> = {
@@ -41,9 +41,9 @@ function isDivider(
 }
 
 function useEffectiveConfig(
-  config: InspectorBoundaryConfig,
+  config: InspectorDataSourceConfig,
   dataSource: DataSource | null | undefined,
-): InspectorBoundaryConfig {
+): InspectorDataSourceConfig {
   return useMemo(() => {
     const defaults = dataSource?.defaultInspectorConfig;
     if (!defaults) return config;
@@ -76,7 +76,7 @@ export function BoundaryDataPanel({
   markerPoint,
   defaultExpanded,
 }: {
-  config: InspectorBoundaryConfig;
+  config: InspectorDataSourceConfig;
   selectedBoundary?: SelectedBoundary | null | undefined;
   markerPoint?: Point | null | undefined;
   defaultExpanded: boolean;
@@ -237,7 +237,7 @@ function BoundaryDataProperties({
   comparisonBaselineLoading,
 }: {
   json: Record<string, unknown>;
-  effectiveConfig: InspectorBoundaryConfig;
+  effectiveConfig: InspectorDataSourceConfig;
   allColumnNames: string[];
   dataSource: DataSource | null | undefined;
   match: DataRecordMatchType;

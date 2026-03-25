@@ -15,7 +15,7 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
 import type { DataSource } from "@/models/DataSource";
-import type { InspectorBoundaryConfig } from "@/models/MapView";
+import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 function isDivider(
   item: unknown,
@@ -39,7 +39,7 @@ export function DefaultInspectorPreview({
   dataSource,
   className,
 }: {
-  config: InspectorBoundaryConfig;
+  config: InspectorDataSourceConfig;
   dataSource: DataSource;
   className?: string;
 }) {

@@ -59,8 +59,8 @@ export default function InspectorDataTab({
   );
 
   const boundaryConfigs = useMemo(
-    () => view?.inspectorConfig?.boundaries || [],
-    [view?.inspectorConfig?.boundaries],
+    () => view?.inspectorConfig?.dataSources || [],
+    [view?.inspectorConfig?.dataSources],
   );
 
   const isBoundary = type === LayerType.Boundary;

@@ -257,8 +257,8 @@ export const makeColorMap = (
     // Fallback again to D3 color generation
     const defaultColor = PARTY_COLORS[v.toLowerCase()] ?? colorScale(v);
     colorMap[v] =
-      viewConfig.categoryColors?.[categoryColorsKey] ??
-      viewConfig.categoryColors?.[v] ??
+      viewConfig.colorMappings?.[categoryColorsKey] ??
+      viewConfig.colorMappings?.[v] ??
       defaultColor;
   });
   return colorMap;

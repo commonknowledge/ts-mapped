@@ -85,7 +85,7 @@ export default function EditColumnMetadataModal() {
     if (!dataSource) return undefined;
     return resolveColumnMetadataEntry(
       dataSource.columnMetadata,
-      dataSource.columnMetadataOverride,
+      dataSource.organisationOverride?.columnMetadata,
       columnName,
     );
   }, [dataSource, columnName]);
@@ -182,25 +182,25 @@ export default function EditColumnMetadataModal() {
     (value: string) => {
       const key = getCategoryColorsKey(dataSource?.id, columnName, value);
       return Boolean(
-        viewConfig.categoryColors?.[key] ?? viewConfig.categoryColors?.[value],
+        viewConfig.colorMappings?.[key] ?? viewConfig.colorMappings?.[value],
       );
     },
-    [viewConfig.categoryColors, dataSource?.id, columnName],
+    [viewConfig.colorMappings, dataSource?.id, columnName],
   );
 
   const handleColorChange = useCallback(
     (value: string, color: string) => {
       const key = getCategoryColorsKey(dataSource?.id, columnName, value);
-      const currentColors = viewConfig.categoryColors || {};
+      const currentColors = viewConfig.colorMappings || {};
       updateViewConfig({
-        categoryColors: {
+        colorMappings: {
           ...currentColors,
           [value]: color,
           [key]: color,
         },
       });
     },
-    [dataSource?.id, columnName, updateViewConfig, viewConfig.categoryColors],
+    [dataSource?.id, columnName, updateViewConfig, viewConfig.colorMappings],
   );
 
   const handleColorChangeDebounced = useCallback(
@@ -223,16 +223,16 @@ export default function EditColumnMetadataModal() {
         debounceTimers.current[value] = null;
       }
       const key = getCategoryColorsKey(dataSource?.id, columnName, value);
-      const currentColors = viewConfig.categoryColors || {};
+      const currentColors = viewConfig.colorMappings || {};
       const nextColors = Object.fromEntries(
         Object.entries(currentColors).filter(([k]) => k !== value && k !== key),
       );
       updateViewConfig({
-        categoryColors:
+        colorMappings:
           Object.keys(nextColors).length > 0 ? nextColors : undefined,
       });
     },
-    [dataSource?.id, columnName, updateViewConfig, viewConfig.categoryColors],
+    [dataSource?.id, columnName, updateViewConfig, viewConfig.colorMappings],
   );
 
   // Mutation for owners: update the data source directly
@@ -272,7 +272,15 @@ export default function EditColumnMetadataModal() {
           (old) =>
             old?.map((ds) =>
               ds.id === variables.dataSourceId
-                ? { ...ds, columnMetadataOverride: variables.columnMetadata }
+                ? {
+                    ...ds,
+                    organisationOverride: {
+                      ...(ds.organisationOverride ?? {}),
+                      columnMetadata: variables.columnMetadata,
+                      inspectorColumns:
+                        ds.organisationOverride?.inspectorColumns ?? [],
+                    },
+                  }
                 : ds,
             ),
         );
@@ -288,7 +296,7 @@ export default function EditColumnMetadataModal() {
 
     const sourceMetadata = isOwner
       ? dataSource.columnMetadata
-      : (dataSource.columnMetadataOverride ?? []);
+      : (dataSource.organisationOverride?.columnMetadata ?? []);
 
     const existingMetadata: ColumnMetadata[] = dataSource.columnDefs.map(
       (col) => {
@@ -322,6 +330,8 @@ export default function EditColumnMetadataModal() {
         organisationId,
         dataSourceId: dataSource.id,
         columnMetadata: updated,
+        inspectorColumns:
+          dataSource.organisationOverride?.inspectorColumns ?? [],
       });
     }
   }, [
@@ -387,7 +397,7 @@ export default function EditColumnMetadataModal() {
 
   const showTable =
     editColumnMetadata?.fields.valueLabels ||
-    editColumnMetadata?.fields.categoryColors;
+    editColumnMetadata?.fields.colorMappings;
 
   return (
     <Dialog
@@ -461,7 +471,7 @@ export default function EditColumnMetadataModal() {
                               {editColumnMetadata.fields.valueLabels && (
                                 <TableHead>Label</TableHead>
                               )}
-                              {editColumnMetadata.fields.categoryColors && (
+                              {editColumnMetadata.fields.colorMappings && (
                                 <TableHead className="w-16">Color</TableHead>
                               )}
                             </TableRow>
@@ -510,7 +520,7 @@ export default function EditColumnMetadataModal() {
                                       />
                                     </TableCell>
                                   )}
-                                  {editColumnMetadata.fields.categoryColors && (
+                                  {editColumnMetadata.fields.colorMappings && (
                                     <TableCell>
                                       <div className="flex items-center gap-1">
                                         <label className="relative cursor-pointer">
@@ -570,7 +580,7 @@ const fieldsToDescription = (fields: EditColumnMetadataFields): string => {
   const labels: Record<keyof EditColumnMetadataFields, string> = {
     description: "description",
     valueLabels: "display values",
-    categoryColors: "colors",
+    colorMappings: "colors",
   };
   const keys = Object.keys(fields) as (keyof EditColumnMetadataFields)[];
   const parts = keys.filter((f) => fields[f]).map((f) => labels[f]);

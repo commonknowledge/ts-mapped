@@ -10,7 +10,7 @@ import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
 import type {
-  InspectorBoundaryConfig,
+  InspectorDataSourceConfig,
   InspectorColumnMeta,
 } from "@/models/MapView";
 
@@ -24,7 +24,7 @@ export function DroppableSelectedColumns({
   columns: string[];
   columnMetadata?: Record<string, InspectorColumnMeta> | null;
   updateConfig: (
-    updater: (prev: InspectorBoundaryConfig) => InspectorBoundaryConfig,
+    updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
   ) => void;
   onRemoveColumn?: (columnName: string) => void;
   activeId: string | null;

@@ -15,7 +15,7 @@ import { createPortal } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/shadcn/ui/label";
 import type {
-  InspectorBoundaryConfig,
+  InspectorDataSourceConfig,
   InspectorColumnItem,
 } from "@/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -51,7 +51,7 @@ export function ColumnsSection({
   handleRemoveColumn,
   handleRemoveColumnFromRight,
 }: {
-  config: InspectorBoundaryConfig;
+  config: InspectorDataSourceConfig;
   allColumnsInOrder: string[];
   selectedColumnsInOrder: string[];
   selectedItemsInOrder: InspectorColumnItem[];
@@ -60,7 +60,7 @@ export function ColumnsSection({
   columns: string[];
   columnMetadata: Record<string, { displayName?: string }>;
   updateConfig: (
-    updater: (prev: InspectorBoundaryConfig) => InspectorBoundaryConfig,
+    updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
   ) => void;
   handleAddColumn: (colName: string) => void;
   handleRemoveColumn: (colName: string) => void;

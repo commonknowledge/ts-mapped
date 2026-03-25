@@ -1,5 +1,6 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
+import { inspectorColumnSchema } from "./inspectorColumn";
 import { pointSchema } from "./shared";
 
 export enum FilterOperator {
@@ -139,7 +140,7 @@ export const mapViewConfigSchema = z.object({
   calculationType: z.nativeEnum(CalculationType).nullish(),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
-  categoryColors: z.record(z.string(), z.string()).optional(),
+  colorMappings: z.record(z.string(), z.string()).optional(),
   colorScaleType: z.nativeEnum(ColorScaleType).optional(),
   steppedColorStepsByKey: z
     .record(z.string(), z.array(steppedColorStepSchema))
@@ -156,11 +157,11 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 // Configures which data sources and columns are displayed in the inspector panel
 // for different aspects (boundaries, markers, members, etc.)
 
-export enum InspectorBoundaryConfigType {
+export enum InspectorDataSourceConfigType {
   Simple = "simple",
 }
-export const inspectorBoundaryTypes = Object.values(
-  InspectorBoundaryConfigType,
+export const inspectorDataSourceTypes = Object.values(
+  InspectorDataSourceConfigType,
 );
 
 /**
@@ -225,24 +226,25 @@ export const inspectorColumnItemSchema = z.union([
 export type InspectorColumnItem = z.infer<typeof inspectorColumnItemSchema>;
 
 /**
- * Configuration for a single boundary data source in the inspector.
+ * Configuration for a single data source in the inspector.
  * - id / dataSourceId: identity
  * - name: user-friendly label
  * - type: display variant (currently only "simple")
  * - columns: ordered column names to display
  * - columnOrder: full column order (used for Available list order)
  * - columnItems: ordered columns + label dividers
- * - columnMetadata: per-column display settings
+ * - columnMetadata: per-column display settings (InspectorDataSourceConfig-level overrides)
  * - columnGroups: optional column grouping under headings
+ * - inspectorColumns: inspector-only display config per column
  * - layout: "single" (one column) or "twoColumn" grid
  * - icon: optional Lucide icon name
  * - color: optional Tailwind color token (e.g. "blue")
  */
-export const inspectorBoundaryConfigSchema = z.object({
+export const inspectorDataSourceConfigSchema = z.object({
   id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
-  type: z.nativeEnum(InspectorBoundaryConfigType).optional(),
+  type: z.nativeEnum(InspectorDataSourceConfigType).optional(),
   columns: z.array(z.string()),
   columnOrder: z.array(z.string()).optional().nullable(),
   columnItems: z.array(inspectorColumnItemSchema).optional().nullable(),
@@ -251,13 +253,14 @@ export const inspectorBoundaryConfigSchema = z.object({
     .optional()
     .nullable(),
   columnGroups: z.array(inspectorColumnGroupSchema).optional().nullable(),
+  inspectorColumns: z.array(inspectorColumnSchema).optional().nullable(),
   layout: z.enum(["single", "twoColumn"]).optional().nullable(),
   icon: z.string().optional().nullable(),
   color: z.string().optional().nullable(),
 });
 
-export type InspectorBoundaryConfig = z.infer<
-  typeof inspectorBoundaryConfigSchema
+export type InspectorDataSourceConfig = z.infer<
+  typeof inspectorDataSourceConfigSchema
 >;
 
 /**
@@ -265,20 +268,20 @@ export type InspectorBoundaryConfig = z.infer<
  * Applied when adding the data source to a map view's inspector.
  * Omits id and dataSourceId (set at that time).
  */
-export const defaultInspectorBoundaryConfigSchema =
-  inspectorBoundaryConfigSchema.omit({
+export const defaultInspectorDataSourceConfigSchema =
+  inspectorDataSourceConfigSchema.omit({
     id: true,
     dataSourceId: true,
   });
-export type DefaultInspectorBoundaryConfig = z.infer<
-  typeof defaultInspectorBoundaryConfigSchema
+export type DefaultInspectorDataSourceConfig = z.infer<
+  typeof defaultInspectorDataSourceConfigSchema
 >;
 
 /**
  * Complete inspector configuration for a map view.
  */
 export const inspectorConfigSchema = z.object({
-  boundaries: z.array(inspectorBoundaryConfigSchema).optional(),
+  dataSources: z.array(inspectorDataSourceConfigSchema).optional(),
   // Future: markers, members, etc.
 });
 

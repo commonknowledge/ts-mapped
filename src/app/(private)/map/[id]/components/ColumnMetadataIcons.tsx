@@ -15,7 +15,7 @@ function ColumnMetadataIcons({
     | {
         id: string;
         columnMetadata: ColumnMetadata[];
-        columnMetadataOverride?: ColumnMetadata[] | null;
+        organisationOverride?: { columnMetadata: ColumnMetadata[] } | null;
       }
     | null
     | undefined;
@@ -31,7 +31,7 @@ function ColumnMetadataIcons({
 
   const description = resolveColumnMetadataEntry(
     dataSource.columnMetadata,
-    dataSource.columnMetadataOverride,
+    dataSource.organisationOverride?.columnMetadata,
     column,
   )?.description;
 
