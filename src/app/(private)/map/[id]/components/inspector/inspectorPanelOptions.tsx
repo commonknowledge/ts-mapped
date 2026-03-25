@@ -59,8 +59,10 @@ export const INSPECTOR_ICON_OPTIONS: InspectorIconOption[] = [
   { value: "info", label: "Info", Icon: Info },
 ];
 
-const ICON_MAP: Record<string, ComponentType<{ className?: string }>> =
-  Object.fromEntries(INSPECTOR_ICON_OPTIONS.map((o) => [o.value, o.Icon]));
+const ICON_MAP: Record<
+  string,
+  ComponentType<{ className?: string }>
+> = Object.fromEntries(INSPECTOR_ICON_OPTIONS.map((o) => [o.value, o.Icon]));
 
 export function InspectorPanelIcon({
   iconName,

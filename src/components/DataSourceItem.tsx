@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { Database, RefreshCw } from "lucide-react";
+import Image from "next/image";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { cn } from "@/shadcn/utils";
 import type { DataSourceType } from "@/models/DataSource";
@@ -81,9 +82,13 @@ const getGeocodingStatus = (dataSource: DataSourceWithImportInfo) => {
 export function DataSourceItem({
   dataSource,
   className,
+  density = "default",
+  previewImageUrl,
 }: {
   dataSource: DataSourceWithImportInfo;
   className?: string;
+  density?: "default" | "compact" | "compactPreview";
+  previewImageUrl?: string | null | undefined;
 }) {
   const dataSourceType = getDataSourceType(dataSource);
   const geocodingStatus = getGeocodingStatus(dataSource);
@@ -92,6 +97,89 @@ export function DataSourceItem({
   const lastImportedText = lastImported
     ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
     : null;
+
+  if (density === "compact" || density === "compactPreview") {
+    return (
+      <div
+        className={cn(
+          "h-full w-full border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-50 hover:border-neutral-300",
+          "p-2",
+          className,
+        )}
+      >
+        <div
+          className={cn(
+            "grid gap-x-3 gap-y-1 items-start",
+            density === "compactPreview"
+              ? "grid-cols-[auto_minmax(0,1fr)_auto]"
+              : "grid-cols-[minmax(0,1fr)_auto]",
+          )}
+        >
+          {density === "compactPreview" && (
+            <div className="row-span-2">
+              <Image
+                src={previewImageUrl || "/screenshot-placeholder.jpeg"}
+                alt=""
+                width={80}
+                height={48}
+                className="h-12 w-20 rounded-md border border-neutral-200 object-cover bg-neutral-50"
+              />
+            </div>
+          )}
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-1 text-neutral-600">
+              <DataSourceIcon type={dataSourceType} />
+              <p className="text-xs font-mono uppercase">{dataSourceType}</p>
+            </div>
+            <h4 className="mt-0.5 text-sm font-medium text-neutral-900 truncate leading-tight">
+              {dataSource.name}
+            </h4>
+          </div>
+
+          <div className="flex flex-col items-end gap-1 text-xs">
+            {lastImportedText && (
+              <span className="text-[11px] inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 rounded-md px-1.5 py-0.5 whitespace-nowrap">
+                <RefreshCw className="w-3.5 h-3.5" />
+                {lastImportedText}
+              </span>
+            )}
+            <div className="text-neutral-600 whitespace-nowrap">
+              <span className="text-neutral-700">
+                {dataSource.recordCount?.toLocaleString() || "Unknown"} records
+              </span>{" "}
+              <span className="text-neutral-400">•</span>{" "}
+              <span>{dataSource.columnDefs.length} cols</span>
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              "flex items-center gap-2 flex-wrap",
+              density === "compactPreview" ? "col-span-3" : "col-span-2",
+            )}
+          >
+            <span className={cn("text-xs", geocodingStatus.color)}>
+              {geocodingStatus.status}
+            </span>
+
+            {dataSource.public && (
+              <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
+                Public
+              </span>
+            )}
+
+            {dataSource.autoImport && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                <Database className="w-3 h-3" />
+                Auto-import
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

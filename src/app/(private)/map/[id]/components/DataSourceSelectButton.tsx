@@ -1,5 +1,5 @@
 import { PlusIcon, RotateCwIcon, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -9,13 +9,7 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { Input } from "@/shadcn/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shadcn/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import { useDataSources } from "../hooks/useDataSources";
 import { useMapViews } from "../hooks/useMapViews";
@@ -117,7 +111,7 @@ function DataSourceSelectButtonModalTrigger({
   );
 }
 
-function DataSourceSelectModal({
+export function DataSourceSelectModal({
   isModalOpen,
   setIsModalOpen,
   onSelect,
@@ -126,10 +120,25 @@ function DataSourceSelectModal({
   setIsModalOpen: (o: boolean) => void;
   onSelect: (dataSourceId: string) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
+  const [activeTab, setActiveTab] = useState<"movement" | "user">("user");
   const [searchQuery, setSearchQuery] = useState("");
   const { data: dataSources } = useDataSources();
   const { viewConfig } = useMapViews();
+  const prevIsModalOpenRef = useRef(isModalOpen);
+
+  useEffect(() => {
+    const wasOpen = prevIsModalOpenRef.current;
+    prevIsModalOpenRef.current = isModalOpen;
+    if (wasOpen || !isModalOpen) return;
+
+    const activeId = viewConfig.areaDataSourceId;
+    if (!activeId) return;
+
+    const active = dataSources?.find((ds) => ds.id === activeId);
+    if (!active) return;
+
+    setActiveTab(active.public ? "movement" : "user");
+  }, [dataSources, isModalOpen, viewConfig.areaDataSourceId]);
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {
@@ -145,24 +154,21 @@ function DataSourceSelectModal({
       );
     }
 
-    if (activeTab === "public") {
-      // Include only public data sources
-      sources = sources.filter((ds) => ds.public);
-    } else if (activeTab === "user") {
-      // Include only user data sources
-      sources = sources.filter((ds) => !ds.public);
-    }
+    sources =
+      activeTab === "movement"
+        ? sources.filter((ds) => ds.public)
+        : sources.filter((ds) => !ds.public);
 
     return sources;
   }, [activeTab, dataSources, searchQuery]);
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+      <DialogContent className="max-w-2xl h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Select data source for visualisation</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 min-h-0">
           {/* Search and Filter Bar */}
           <div className="flex gap-2 mb-4">
             <Input
@@ -171,25 +177,23 @@ function DataSourceSelectModal({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Select
+            <Tabs
               value={activeTab}
-              onValueChange={(value) =>
-                setActiveTab(value as "all" | "public" | "user")
-              }
+              onValueChange={(v) => setActiveTab(v as typeof activeTab)}
             >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All sources</SelectItem>
-                <SelectItem value="public">Public library</SelectItem>
-                <SelectItem value="user">My data</SelectItem>
-              </SelectContent>
-            </Select>
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="user" className="text-xs">
+                  User data
+                </TabsTrigger>
+                <TabsTrigger value="movement" className="text-xs">
+                  Movement data library
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {/* Data Source Grid */}
-          <div className="flex-1">
+          <div className="flex-1 min-h-0 overflow-auto">
             <div className="grid grid-cols-1 gap-3">
               {filteredAndSearchedDataSources.map((ds) => (
                 <button
@@ -206,6 +210,14 @@ function DataSourceSelectModal({
                       viewConfig.areaDataSourceId === ds.id
                         ? "border-blue-500 bg-blue-50"
                         : "hover:border-blue-300"
+                    }
+                    density={
+                      activeTab === "user" ? "compact" : "compactPreview"
+                    }
+                    previewImageUrl={
+                      activeTab === "movement"
+                        ? `/data-source-previews/${ds.id}.jpg`
+                        : undefined
                     }
                     dataSource={{
                       ...ds,

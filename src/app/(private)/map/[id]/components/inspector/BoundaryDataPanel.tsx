@@ -297,8 +297,7 @@ function BoundaryDataProperties({
               COMPARISON_STAT_LABEL[m.comparisonStat ?? "average"] ??
               m.comparisonStat ??
               "Average",
-            comparisonBaselineLoading:
-              comparisonBaselineLoading[item] === true,
+            comparisonBaselineLoading: comparisonBaselineLoading[item] === true,
           }),
         });
         index += 1;

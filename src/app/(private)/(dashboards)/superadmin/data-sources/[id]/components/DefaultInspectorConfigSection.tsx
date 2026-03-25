@@ -178,7 +178,9 @@ export function DefaultInspectorConfigSection({
   );
 
   const updateConfig = useCallback(
-    (updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig) => {
+    (
+      updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
+    ) => {
       setLocalConfig((prev) => {
         const next = updater(prev);
         return normalizeInspectorDataSourceConfig(next, allColumnNames) ?? next;

@@ -130,7 +130,10 @@ export const dataSourceRouter = router({
       const overrideMap = new Map(
         overrides.map((o) => [
           o.dataSourceId,
-          { columnMetadata: o.columnMetadata, inspectorColumns: o.inspectorColumns },
+          {
+            columnMetadata: o.columnMetadata,
+            inspectorColumns: o.inspectorColumns,
+          },
         ]),
       );
 
