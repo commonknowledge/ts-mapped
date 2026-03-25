@@ -15,17 +15,23 @@ import { Link } from "@/components/Link";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
+import { useOrganisations } from "@/hooks/useOrganisations";
+import { Feature } from "@/models/Organisation";
 import { cn } from "@/shadcn/utils";
 
 export default function Sidebar() {
   const slug = usePathname();
 
   const { currentUser } = useCurrentUser();
+  const { currentOrganisation } = useOrganisations();
   const [mounted, setMounted] = useState(false);
-  const showPublicMaps = useFeatureFlagEnabled("public-maps", currentUser);
+  const showPublicMaps = useFeatureFlagEnabled(
+    Feature.PublicMaps,
+    currentOrganisation?.features,
+  );
   const showMovementDataLibrary = useFeatureFlagEnabled(
-    "movement-data-library",
-    currentUser,
+    Feature.MovementDataLibrary,
+    currentOrganisation?.features,
   );
 
   useEffect(() => setMounted(true), []);
