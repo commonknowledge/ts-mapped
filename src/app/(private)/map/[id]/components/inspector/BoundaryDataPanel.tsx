@@ -9,6 +9,7 @@ import { AreaSetCode } from "@/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
+import { useDataSources } from "../../hooks/useDataSources";
 import { getSelectedItemsOrdered } from "./inspectorColumnOrder";
 import {
   InspectorPanelIcon,
@@ -16,7 +17,6 @@ import {
   getInspectorColorClass,
 } from "./inspectorPanelOptions";
 import PropertiesList from "./PropertiesList";
-import { useDataSources } from "../../hooks/useDataSources";
 import type { PropertyEntry } from "./PropertiesList";
 import type { SelectedBoundary } from "../../types/inspector";
 import type { DataSource } from "@/models/DataSource";

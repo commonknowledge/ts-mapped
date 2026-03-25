@@ -4,10 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Database, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import {
-  InspectorPanelIcon,
-  INSPECTOR_ICON_OPTIONS,
-} from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
+import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { cn } from "@/shadcn/utils";
 import type { DataSourceType } from "@/models/DataSource";
@@ -71,7 +68,7 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
   }
 }; */
 
-export type DataSourceItemProps = {
+export interface DataSourceItemProps {
   dataSource: DataSourceWithImportInfo;
   className?: string;
   density?: "default" | "compact" | "compactPreview";
@@ -85,7 +82,7 @@ export type DataSourceItemProps = {
   overrideIconName?: string | null | undefined;
   overrideDescription?: string | null | undefined;
   hideTypeLabel?: boolean;
-};
+}
 
 export function DataSourceItem({
   dataSource,
@@ -113,7 +110,8 @@ export function DataSourceItem({
     if (previewState === "none") return null;
 
     // If the caller is not using our `/data-source-previews/...` scheme, don't mutate it.
-    if (!previewImageUrl.includes("/data-source-previews/")) return previewImageUrl;
+    if (!previewImageUrl.includes("/data-source-previews/"))
+      return previewImageUrl;
 
     const match = previewImageUrl.match(/^(.*)\.(jpg|png)(\?.*)?$/);
     if (!match) return previewImageUrl;
@@ -125,11 +123,10 @@ export function DataSourceItem({
     ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
     : null;
 
-  const displayTitle = overrideTitle?.trim() ? overrideTitle.trim() : dataSource.name;
+  const displayTitle = overrideTitle?.trim()
+    ? overrideTitle.trim()
+    : dataSource.name;
   const iconName = overrideIconName?.trim() ? overrideIconName.trim() : "";
-  const _iconLabel =
-    iconName &&
-    (INSPECTOR_ICON_OPTIONS.find((o) => o.value === iconName)?.label || iconName);
   const fallbackDescription = (
     dataSource as unknown as { movementLibraryDescription?: string | null }
   ).movementLibraryDescription;
@@ -178,7 +175,12 @@ export function DataSourceItem({
         ? ` +${dataSource.columnDefs.length - maxColumnPills} more`
         : "";
     return `${names.join(" · ")}${more}`;
-  }, [columnNames, dataSource.columnDefs.length, maxColumnPills, showColumnPreview]);
+  }, [
+    columnNames,
+    dataSource.columnDefs.length,
+    maxColumnPills,
+    showColumnPreview,
+  ]);
 
   if (density === "compactPreview") {
     return (
@@ -223,7 +225,6 @@ export function DataSourceItem({
                 )}
                 <span className="truncate">{displayTitle}</span>
               </h4>
-
             </div>
 
             <div className="flex flex-col items-end gap-1 text-xs">
@@ -235,7 +236,8 @@ export function DataSourceItem({
               )}
               <div className="text-neutral-600 whitespace-nowrap">
                 <span className="text-neutral-700">
-                  {dataSource.recordCount?.toLocaleString() || "Unknown"} records
+                  {dataSource.recordCount?.toLocaleString() || "Unknown"}{" "}
+                  records
                 </span>{" "}
                 <span className="text-neutral-400">•</span>{" "}
                 <span>{dataSource.columnDefs.length} cols</span>
@@ -346,10 +348,7 @@ export function DataSourceItem({
           </div>
 
           <div
-            className={cn(
-              "flex items-center gap-2 flex-wrap",
-              "col-span-2",
-            )}
+            className={cn("flex items-center gap-2 flex-wrap", "col-span-2")}
           >
             {dataSource.public && (
               <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
@@ -414,6 +413,14 @@ export function DataSourceItem({
       </div>
     );
   }
+
+  const geocodingConfig = (
+    dataSource as unknown as { geocodingConfig?: { type?: string } }
+  ).geocodingConfig;
+  const geocodingStatus =
+    geocodingConfig?.type && geocodingConfig.type !== "None"
+      ? { status: geocodingConfig.type, color: "text-neutral-500" }
+      : { status: "No geocoding", color: "text-neutral-400" };
 
   return (
     <div

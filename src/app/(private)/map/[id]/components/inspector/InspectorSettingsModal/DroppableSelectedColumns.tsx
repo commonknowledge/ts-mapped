@@ -10,8 +10,8 @@ import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
 import type {
-  InspectorDataSourceConfig,
   InspectorColumnMeta,
+  InspectorDataSourceConfig,
 } from "@/models/MapView";
 
 export function DroppableSelectedColumns({

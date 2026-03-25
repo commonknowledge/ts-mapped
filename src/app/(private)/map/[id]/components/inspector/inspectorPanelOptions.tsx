@@ -1,6 +1,5 @@
 "use client";
 
-import { PARTY_COLORS } from "@/app/(private)/map/[id]/constants";
 import {
   Activity,
   Anchor,
@@ -23,6 +22,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import { PARTY_COLORS } from "@/app/(private)/map/[id]/constants";
 import type { ComponentType } from "react";
 
 // ============================================================================

@@ -133,13 +133,13 @@ export function DataSourceSelectModal({
   const [movementMetaById, setMovementMetaById] = useState<
     Record<
       string,
-      {
-        defaultColumn?: string;
-        title?: string;
-        icon?: string;
-        description?: string;
-      }
-        | undefined
+      | {
+          defaultColumn?: string;
+          title?: string;
+          icon?: string;
+          description?: string;
+        }
+      | undefined
     >
   >({});
 
@@ -147,6 +147,9 @@ export function DataSourceSelectModal({
     const wasOpen = prevIsModalOpenRef.current;
     prevIsModalOpenRef.current = isModalOpen;
     if (wasOpen || !isModalOpen) return;
+
+    // Refresh MDL meta (icon/title/description/defaults) each time the modal opens.
+    setMovementMetaById({});
 
     const activeId = viewConfig.areaDataSourceId;
     if (!activeId) return;
@@ -255,7 +258,6 @@ export function DataSourceSelectModal({
         <div className="flex flex-col flex-1 min-h-0">
           {/* Search and Filter Bar */}
           <div className="flex gap-2 mb-4">
-
             <Tabs
               value={activeTab}
               onValueChange={(v) => setActiveTab(v as typeof activeTab)}
@@ -326,9 +328,7 @@ export function DataSourceSelectModal({
                           : undefined
                       }
                       showColumnPreview={true}
-                      columnPreviewVariant={
-                        "pills"
-                      }
+                      columnPreviewVariant={"pills"}
                       singleLineColumnPreview={activeTab === "user"}
                       maxColumnPills={activeTab === "user" ? 6 : 8}
                       defaultColumnName={
@@ -347,15 +347,17 @@ export function DataSourceSelectModal({
                           : undefined
                       }
                       hideTypeLabel={activeTab === "movement"}
-                      dataSource={{
-                        ...ds,
-                        ...(activeTab === "movement" && {
-                          movementLibraryDescription:
-                            movementMetaById[ds.id]?.description,
-                        }),
-                      } as DataSourceWithImportInfo & {
-                        movementLibraryDescription?: string;
-                      }}
+                      dataSource={
+                        {
+                          ...ds,
+                          ...(activeTab === "movement" && {
+                            movementLibraryDescription:
+                              movementMetaById[ds.id]?.description,
+                          }),
+                        } as DataSourceWithImportInfo & {
+                          movementLibraryDescription?: string;
+                        }
+                      }
                     />
                   </button>
                 ))}

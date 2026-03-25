@@ -1,4 +1,4 @@
-import type { DataSource } from "@/models/DataSource";
+import type { DataSource, InspectorColumn } from "@/models/DataSource";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export type DataSourceTable = DataSource & {
@@ -6,6 +6,7 @@ export type DataSourceTable = DataSource & {
   createdAt: ColumnType<Date, string | undefined, never>;
   dateFormat: Generated<string>;
   recordCount: Generated<number>;
+  inspectorColumns: Generated<InspectorColumn[]>;
 };
 export type NewDataSource = Insertable<DataSourceTable>;
 export type DataSourceUpdate = Updateable<DataSourceTable>;

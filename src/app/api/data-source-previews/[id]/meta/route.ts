@@ -7,13 +7,13 @@ import { ADMIN_USER_EMAIL } from "@/constants";
 import { getBaseDir } from "@/server/utils";
 import type { NextRequest } from "next/server";
 
-type MovementLibraryMeta = {
+interface MovementLibraryMeta {
   description?: string;
   defaultVisualisation?: {
     displayMode?: "counts" | "values";
     defaultColumn?: string;
   };
-};
+}
 
 function metaPath(id: string) {
   return join(getBaseDir(), "public", "data-source-previews", `${id}.json`);
@@ -53,9 +53,9 @@ export async function POST(
   const { id } = await args.params;
   if (!id) return new NextResponse("Bad Request", { status: 400 });
 
-  const body = (await request.json().catch(() => null)) as
-    | MovementLibraryMeta
-    | null;
+  const body = (await request
+    .json()
+    .catch(() => null)) as MovementLibraryMeta | null;
   if (!body || typeof body !== "object") {
     return new NextResponse("Bad Request", { status: 400 });
   }
@@ -67,4 +67,3 @@ export async function POST(
 
   return NextResponse.json({ ok: true });
 }
-

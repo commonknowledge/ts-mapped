@@ -2,11 +2,11 @@ import z from "zod";
 import { AreaSetCode } from "./AreaSet";
 import {
   ColumnDisplayFormat,
-  InspectorColumn,
   columnDisplayFormats,
   inspectorColumnSchema,
 } from "./inspectorColumn";
 import { defaultInspectorDataSourceConfigSchema } from "./MapView";
+import type { InspectorColumn } from "./inspectorColumn";
 
 export enum JobStatus {
   None = "None",

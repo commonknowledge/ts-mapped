@@ -50,4 +50,3 @@ export async function POST(
     url: `/data-source-previews/${id}.${extension}`,
   });
 }
-

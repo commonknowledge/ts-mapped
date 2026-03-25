@@ -9,11 +9,11 @@ import {
   getInspectorColorClass,
 } from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
 import PropertiesList from "@/app/(private)/map/[id]/components/inspector/PropertiesList";
-import type { PropertyEntry } from "@/app/(private)/map/[id]/components/inspector/PropertiesList";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
+import type { PropertyEntry } from "@/app/(private)/map/[id]/components/inspector/PropertiesList";
 import type { DataSource } from "@/models/DataSource";
 import type { InspectorDataSourceConfig } from "@/models/MapView";
 

@@ -6,11 +6,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { cn } from "@/shadcn/utils";
-import type { InspectorColumnItem } from "@/models/MapView";
 import { AvailableColumnRow } from "./AvailableColumnRow";
 import { SELECTED_LEFT_DROPPABLE_ID } from "./constants";
 import { SortableAvailableRow } from "./SortableAvailableRow";
 import { SortableDividerRow } from "./SortableDividerRow";
+import type { InspectorColumnItem } from "@/models/MapView";
 
 export function AvailableListWithDividers({
   selectedItemsInOrder,

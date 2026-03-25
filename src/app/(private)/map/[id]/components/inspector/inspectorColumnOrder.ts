@@ -1,8 +1,8 @@
 "use client";
 
 import type {
-  InspectorDataSourceConfig,
   InspectorColumnItem,
+  InspectorDataSourceConfig,
 } from "@/models/MapView";
 
 function isDivider(

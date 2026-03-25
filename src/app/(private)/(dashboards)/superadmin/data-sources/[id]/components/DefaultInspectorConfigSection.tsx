@@ -16,9 +16,9 @@ import {
   inferFormat,
 } from "@/app/(private)/map/[id]/components/inspector/InspectorSettingsModal/constants";
 import {
-  InspectorDataSourceConfigType,
   type DefaultInspectorDataSourceConfig,
   type InspectorDataSourceConfig,
+  InspectorDataSourceConfigType,
 } from "@/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Label } from "@/shadcn/ui/label";
@@ -135,7 +135,9 @@ export function DefaultInspectorConfigSection({
         ? forcedTitle.trim()
         : dataSource.name;
     const nextIcon =
-      forcedIcon && forcedIcon.trim().length > 0 ? forcedIcon.trim() : undefined;
+      forcedIcon && forcedIcon.trim().length > 0
+        ? forcedIcon.trim()
+        : undefined;
 
     setLocalConfig((prev) => {
       const changed = prev.name !== nextName || prev.icon !== nextIcon;

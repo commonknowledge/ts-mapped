@@ -6,17 +6,16 @@ import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  INSPECTOR_ICON_OPTIONS,
+  InspectorPanelIcon,
+} from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
-import { Textarea } from "@/shadcn/ui/textarea";
-import {
-  InspectorPanelIcon,
-  INSPECTOR_ICON_OPTIONS,
-} from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
 import {
   Select,
   SelectContent,
@@ -24,11 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Textarea } from "@/shadcn/ui/textarea";
 import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
 
 const DEFAULT_ICON_SELECT_VALUE = "__default_icon__";
 
-type MovementLibraryMeta = {
+interface MovementLibraryMeta {
   title?: string;
   description?: string;
   icon?: string;
@@ -36,7 +36,7 @@ type MovementLibraryMeta = {
     displayMode?: "counts" | "values";
     defaultColumn?: string;
   };
-};
+}
 
 const GeneralSection = memo(function GeneralSection({
   dataSourceName,
@@ -47,7 +47,9 @@ const GeneralSection = memo(function GeneralSection({
   dataSourceName: string;
   saved: Pick<MovementLibraryMeta, "title" | "description" | "icon">;
   disabled: boolean;
-  onSave: (next: Pick<MovementLibraryMeta, "title" | "description" | "icon">) => Promise<void>;
+  onSave: (
+    next: Pick<MovementLibraryMeta, "title" | "description" | "icon">,
+  ) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(() => ({
@@ -194,8 +196,8 @@ const GeneralSection = memo(function GeneralSection({
           ) : (
             <p className="text-sm text-muted-foreground">
               {saved.icon?.trim()
-                ? INSPECTOR_ICON_OPTIONS.find((o) => o.value === saved.icon)
-                  ?.label ?? saved.icon
+                ? (INSPECTOR_ICON_OPTIONS.find((o) => o.value === saved.icon)
+                    ?.label ?? saved.icon)
                 : "Default (data source icon)"}
             </p>
           )}
@@ -434,13 +436,9 @@ export default function DataSourceConfigPage() {
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               File path:{" "}
-              <span className="font-mono">
-                /data-source-previews/{id}.jpg
-              </span>{" "}
+              <span className="font-mono">/data-source-previews/{id}.jpg</span>{" "}
               or{" "}
-              <span className="font-mono">
-                /data-source-previews/{id}.png
-              </span>
+              <span className="font-mono">/data-source-previews/{id}.png</span>
             </p>
 
             <div className="mt-4 space-y-2">
@@ -480,7 +478,6 @@ export default function DataSourceConfigPage() {
             </div>
           </div>
 
-
           <div className="lg:w-1/2 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -511,7 +508,9 @@ export default function DataSourceConfigPage() {
                 <Label>Default display</Label>
                 <select
                   className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  value={savedMeta.defaultVisualisation?.displayMode ?? "values"}
+                  value={
+                    savedMeta.defaultVisualisation?.displayMode ?? "values"
+                  }
                   onChange={(e) =>
                     setSavedMeta((prev) => ({
                       ...prev,
@@ -535,7 +534,7 @@ export default function DataSourceConfigPage() {
                   const cols = dataSource.columnDefs.map((c) => c.name);
                   const defaultCol =
                     savedMeta.defaultVisualisation?.defaultColumn &&
-                      cols.includes(savedMeta.defaultVisualisation.defaultColumn)
+                    cols.includes(savedMeta.defaultVisualisation.defaultColumn)
                       ? savedMeta.defaultVisualisation.defaultColumn
                       : null;
                   const ordered = defaultCol
@@ -546,10 +545,11 @@ export default function DataSourceConfigPage() {
                     return (
                       <span
                         key={name}
-                        className={`px-2 py-0.5 rounded-full border text-xs font-medium ${isDefault
-                          ? "bg-blue-50 border-blue-200 text-blue-700"
-                          : "bg-neutral-100 border-neutral-200"
-                          }`}
+                        className={`px-2 py-0.5 rounded-full border text-xs font-medium ${
+                          isDefault
+                            ? "bg-blue-50 border-blue-200 text-blue-700"
+                            : "bg-neutral-100 border-neutral-200"
+                        }`}
                         title={isDefault ? `${name} (default)` : name}
                       >
                         {name.length > 18 ? `${name.slice(0, 18)}…` : name}
@@ -564,8 +564,6 @@ export default function DataSourceConfigPage() {
                 )}
               </div>
             </div>
-
-
           </div>
         </div>
       </div>

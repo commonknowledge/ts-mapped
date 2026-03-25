@@ -14,11 +14,6 @@ import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/shadcn/ui/label";
-import type {
-  InspectorDataSourceConfig,
-  InspectorColumnItem,
-} from "@/models/MapView";
-import type { DragEndEvent } from "@dnd-kit/core";
 import { AvailableListWithDividers } from "./AvailableListWithDividers";
 import {
   SELECTED_DROPPABLE_ID,
@@ -31,6 +26,11 @@ import {
   DividerDragPreview,
 } from "./DragPreviews";
 import { DroppableSelectedColumns } from "./DroppableSelectedColumns";
+import type {
+  InspectorColumnItem,
+  InspectorDataSourceConfig,
+} from "@/models/MapView";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 function isDivider(
   item: InspectorColumnItem,

@@ -1,15 +1,12 @@
-import {
-  ChevronDown,
-  CornerDownRight,
-  Database,
-  LoaderPinwheel,
-} from "lucide-react";
+import { ChevronDown, CornerDownRight, LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   useChoroplethDataSource,
   useDataSources,
 } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/inspector/inspectorPanelOptions";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
@@ -52,10 +49,54 @@ export default function Legend() {
   const { data: dataSources, getDataSourceById } = useDataSources();
 
   const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false);
+  const [movementLibraryMeta, setMovementLibraryMeta] = useState<{
+    title?: string;
+    icon?: string;
+  } | null>(null);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
     null,
   );
   const [bivariatePickerOpen, setBivariatePickerOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const id = viewConfig.areaDataSourceId;
+    if (!id) {
+      setMovementLibraryMeta(null);
+      return;
+    }
+
+    const ds = getDataSourceById(id);
+    if (!ds?.public) {
+      setMovementLibraryMeta(null);
+      return;
+    }
+
+    void (async () => {
+      try {
+        const res = await fetch(`/api/data-source-previews/${id}/meta`, {
+          method: "GET",
+        });
+        if (!res.ok) {
+          if (!cancelled) setMovementLibraryMeta(null);
+          return;
+        }
+        const meta = (await res.json()) as { title?: string; icon?: string };
+        if (!cancelled) {
+          setMovementLibraryMeta({
+            title: meta.title,
+            icon: meta.icon,
+          });
+        }
+      } catch {
+        if (!cancelled) setMovementLibraryMeta(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getDataSourceById, viewConfig.areaDataSourceId]);
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -139,7 +180,9 @@ export default function Legend() {
       if (ds?.public) {
         void (async () => {
           try {
-            const res = await fetch(`/api/data-source-previews/${dataSourceId}/meta`);
+            const res = await fetch(
+              `/api/data-source-previews/${dataSourceId}/meta`,
+            );
             if (!res.ok) return;
             const meta = (await res.json()) as {
               defaultVisualisation?: {
@@ -174,7 +217,9 @@ export default function Legend() {
       if (ds?.public) {
         void (async () => {
           try {
-            const res = await fetch(`/api/data-source-previews/${dataSourceId}/meta`);
+            const res = await fetch(
+              `/api/data-source-previews/${dataSourceId}/meta`,
+            );
             if (!res.ok) return;
             const meta = (await res.json()) as {
               defaultVisualisation?: {
@@ -431,21 +476,21 @@ export default function Legend() {
             const positionStyle =
               i === 0
                 ? {
-                    left: 0,
-                    transform: "translateX(0%)",
-                    width: `${100 / (denom + 1)}%`,
-                  }
+                  left: 0,
+                  transform: "translateX(0%)",
+                  width: `${100 / (denom + 1)}%`,
+                }
                 : i === numTicks - 1
                   ? {
-                      left: "100%",
-                      transform: "translateX(-100%)",
-                      width: `${100 / (denom + 1)}%`,
-                    }
+                    left: "100%",
+                    transform: "translateX(-100%)",
+                    width: `${100 / (denom + 1)}%`,
+                  }
                   : {
-                      left: `${t * 100}%`,
-                      transform: "translateX(-50%)",
-                      width: `${100 / (denom + 1)}%`,
-                    };
+                    left: `${t * 100}%`,
+                    transform: "translateX(-50%)",
+                    width: `${100 / (denom + 1)}%`,
+                  };
             const alignClass =
               i === 0
                 ? "items-start"
@@ -500,12 +545,20 @@ export default function Legend() {
           )}
           onClick={() => setIsDataSourceModalOpen(true)}
         >
-          <Database
-            className="size-3.5 shrink-0 text-muted-foreground"
-            aria-hidden
-          />
-          <span className="min-w-0 flex-1 truncate text-left">
-            {dataSource?.name ?? "Select data source…"}
+          <span className="shrink-0 text-muted-foreground" aria-hidden>
+            {movementLibraryMeta?.icon?.trim() ? (
+              <InspectorPanelIcon
+                iconName={movementLibraryMeta.icon.trim()}
+                className="h-4 w-4"
+              />
+            ) : (
+              <DataSourceIcon type={dataSource?.config?.type ?? "unknown"} />
+            )}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-left font-medium">
+            {movementLibraryMeta?.title?.trim()
+              ? movementLibraryMeta.title.trim()
+              : (dataSource?.name ?? "Select data source…")}
           </span>
           <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />
         </button>
