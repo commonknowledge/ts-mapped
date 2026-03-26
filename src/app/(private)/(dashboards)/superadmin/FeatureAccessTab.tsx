@@ -26,12 +26,27 @@ export function FeatureAccessTab() {
 
   const { mutate: setFeatures } = useMutation(
     trpc.organisation.setFeatures.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
+      onMutate: async ({ organisationId, features }) => {
+        await queryClient.cancelQueries({
           queryKey: trpc.organisation.listAll.queryKey(),
         });
+        const previous = queryClient.getQueryData(
+          trpc.organisation.listAll.queryKey(),
+        );
+        queryClient.setQueryData(trpc.organisation.listAll.queryKey(), (old) =>
+          old?.map((org) =>
+            org.id === organisationId ? { ...org, features } : org,
+          ),
+        );
+        return { previous };
       },
-      onError: (error) => {
+      onError: (error, _variables, context) => {
+        if (context?.previous) {
+          queryClient.setQueryData(
+            trpc.organisation.listAll.queryKey(),
+            context.previous,
+          );
+        }
         toast.error("Failed to update features", {
           description: error.message,
         });
