@@ -15,7 +15,9 @@ import { useMapQuery } from "@/app/(private)/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import MapModeToggle from "@/components/MapModeToggle";
-import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
+import { useFeatureFlagEnabled } from "@/hooks";
+import { useOrganisations } from "@/hooks/useOrganisations";
+import { Feature } from "@/models/Organisation";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
@@ -32,8 +34,11 @@ export default function PrivateMapNavbar() {
   const { view } = useMapViews();
   const openInfoPopup = useOpenInfoPopup();
 
-  const { currentUser } = useCurrentUser();
-  const showPublishButton = useFeatureFlagEnabled("public-maps", currentUser);
+  const { currentOrganisation } = useOrganisations();
+  const showPublishButton = useFeatureFlagEnabled(
+    Feature.PublicMaps,
+    currentOrganisation?.features,
+  );
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(map?.name || "");
 

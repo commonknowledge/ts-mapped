@@ -1,8 +1,8 @@
 import { BookOpen } from "lucide-react";
 
 import DataSourceIcon from "@/components/DataSourceIcon";
-import type { DataSourceType } from "@/models/DataSource";
 import { cn } from "@/shadcn/utils";
+import type { DataSourceType } from "@/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -66,7 +66,9 @@ export function DataSourceItem({
             </span>
           )}
         </div>
-        <h4 className="truncate font-medium text-neutral-900">{dataSource.name}</h4>
+        <h4 className="truncate font-medium text-neutral-900">
+          {dataSource.name}
+        </h4>
       </div>
       {/* Stats */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500 mt-2">

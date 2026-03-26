@@ -13,7 +13,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useCurrentUser } from "@/atoms/sessionAtoms";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
@@ -21,8 +20,10 @@ import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { Link } from "@/components/Link";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceConfigLabels } from "@/labels";
 import { JobStatus } from "@/models/DataSource";
+import { Feature } from "@/models/Organisation";
 import { useTRPC } from "@/services/trpc/react";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import {
@@ -50,10 +51,11 @@ export function DataSourceDashboard({
     dataSource.importInfo?.lastCompleted || null,
   );
 
-  const currentUser = useCurrentUser();
+  const { currentOrganisation } = useOrganisations();
   const features = DataSourceFeatures[dataSource.config.type];
   const showEnrichment =
-    useFeatureFlagEnabled("enrichment", currentUser) && features.enrichment;
+    useFeatureFlagEnabled(Feature.Enrichment, currentOrganisation?.features) &&
+    features.enrichment;
 
   const lastImportedDateReadable = lastImported
     ? format(lastImported, "d MMMM yyyy, h:mm a")

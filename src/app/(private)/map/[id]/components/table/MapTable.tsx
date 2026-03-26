@@ -10,10 +10,12 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { DataSourceFeatures } from "@/features";
-import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
+import { useFeatureFlagEnabled } from "@/hooks";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceTypeLabels } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import { FilterType } from "@/models/MapView";
+import { Feature } from "@/models/Organisation";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
@@ -188,10 +190,10 @@ export default function MapTable() {
     dataSource.organisationId === organisationId,
   );
 
-  const { currentUser } = useCurrentUser();
+  const { currentOrganisation } = useOrganisations();
 
   const enableSyncToCRM =
-    useFeatureFlagEnabled("sync-to-crm", currentUser) &&
+    useFeatureFlagEnabled(Feature.SyncToCrm, currentOrganisation?.features) &&
     isOwner &&
     dataSource &&
     DataSourceFeatures[dataSource.config.type].syncToCrm;

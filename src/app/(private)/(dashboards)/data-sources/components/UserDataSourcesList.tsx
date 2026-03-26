@@ -150,9 +150,7 @@ export default function UserDataSourcesList({
         {/* Other Data Sources Section */}
         <div>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-medium shrink-0">
-              Other data sources
-            </h2>
+            <h2 className="text-lg font-medium shrink-0">Other data sources</h2>
             <div className="w-full sm:ml-auto sm:w-auto sm:max-w-[40ch]">
               <Select
                 value={selectedFilter}

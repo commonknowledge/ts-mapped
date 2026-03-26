@@ -76,8 +76,7 @@ export function DefaultVisualisationSection({
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             File path:{" "}
-            <span className="font-mono">/data-source-previews/{id}.jpg</span>{" "}
-            or{" "}
+            <span className="font-mono">/data-source-previews/{id}.jpg</span> or{" "}
             <span className="font-mono">/data-source-previews/{id}.png</span>
           </p>
 
@@ -150,9 +149,7 @@ export function DefaultVisualisationSection({
               <Label>Default display</Label>
               <select
                 className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={
-                  savedMeta.defaultVisualisation?.displayMode ?? "values"
-                }
+                value={savedMeta.defaultVisualisation?.displayMode ?? "values"}
                 onChange={(e) =>
                   setSavedMeta((prev) => ({
                     ...prev,

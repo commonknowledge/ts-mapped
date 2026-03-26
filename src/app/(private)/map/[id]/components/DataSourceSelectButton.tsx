@@ -1,4 +1,4 @@
-import { PlusIcon, RotateCwIcon, X } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { Button } from "@/shadcn/ui/button";
@@ -18,14 +18,12 @@ import type { DataSourceWithImportInfo } from "@/components/DataSourceItem";
 export default function DataSourceSelectButton({
   className,
   dataSource,
-  onClickRemove,
   onSelect,
   selectButtonText,
   modalTitle,
 }: {
   className?: string | null | undefined;
   dataSource?: DataSourceWithImportInfo | null | undefined;
-  onClickRemove?: () => void;
   onSelect: (dataSourceId: string) => void;
   selectButtonText?: string | null | undefined;
   modalTitle?: string | null | undefined;
@@ -38,7 +36,6 @@ export default function DataSourceSelectButton({
         className={className}
         dataSource={dataSource}
         setIsModalOpen={setIsModalOpen}
-        onClickRemove={onClickRemove}
         selectButtonText={selectButtonText}
       />
       <DataSourceSelectModal
@@ -55,13 +52,11 @@ function DataSourceSelectButtonModalTrigger({
   className,
   dataSource,
   setIsModalOpen,
-  onClickRemove,
   selectButtonText,
 }: {
   className?: string | null | undefined;
   dataSource?: DataSourceWithImportInfo | null | undefined;
   setIsModalOpen: (o: boolean) => void;
-  onClickRemove?: () => void;
   selectButtonText?: string | null | undefined;
 }) {
   if (!dataSource) {
@@ -244,7 +239,9 @@ export function DataSourceSelectModal({
       <DialogContent className="max-w-2xl h-[80vh] overflow-hidden !flex !flex-col">
         <DialogHeader>
           <DialogTitle>
-            {title?.trim() ? title.trim() : "Select data source for visualisation"}
+            {title?.trim()
+              ? title.trim()
+              : "Select data source for visualisation"}
           </DialogTitle>
         </DialogHeader>
 

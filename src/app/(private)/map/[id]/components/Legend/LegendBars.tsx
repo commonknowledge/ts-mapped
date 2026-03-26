@@ -123,7 +123,8 @@ export function GradientBars({
     .map((_, i) => {
       const t = i / numStops;
       const value =
-        colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue);
+        colorScheme.minValue +
+        t * (colorScheme.maxValue - colorScheme.minValue);
       const color = colorScheme.colorScale(value);
       return `${color} ${t * 100}%`;
     })
@@ -133,7 +134,9 @@ export function GradientBars({
   let denom = Math.max(numTicks - 1, 1);
   let values = Array.from({ length: numTicks }).map((_, i) => {
     const t = i / denom;
-    return colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue);
+    return (
+      colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue)
+    );
   });
 
   const valueLabels =

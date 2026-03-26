@@ -48,7 +48,8 @@ function OpacityControl({
   value: number;
   onChange: (v: number) => void;
 }) {
-  const clampValue = (v: number) => (isNaN(v) ? 80 : Math.max(0, Math.min(v, 100)));
+  const clampValue = (v: number) =>
+    isNaN(v) ? 80 : Math.max(0, Math.min(v, 100));
   return (
     <div className="flex items-center gap-3">
       <div className="flex-1 relative">
@@ -604,7 +605,9 @@ export default function VisualisationPanel({
                 </Label>
                 <OpacityControl
                   value={viewConfig.choroplethOpacityPct ?? 80}
-                  onChange={(v) => updateViewConfig({ choroplethOpacityPct: v })}
+                  onChange={(v) =>
+                    updateViewConfig({ choroplethOpacityPct: v })
+                  }
                 />
               </div>
             </div>

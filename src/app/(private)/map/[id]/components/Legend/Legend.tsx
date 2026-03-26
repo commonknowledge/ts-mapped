@@ -57,7 +57,9 @@ async function applyDefaultVisualisationMeta(
     const { displayMode, defaultColumn } = meta.defaultVisualisation ?? {};
     updateViewConfig({
       calculationType:
-        displayMode === "counts" ? CalculationType.Count : DEFAULT_CALCULATION_TYPE,
+        displayMode === "counts"
+          ? CalculationType.Count
+          : DEFAULT_CALCULATION_TYPE,
       ...(defaultColumn ? { areaDataColumn: defaultColumn } : {}),
     });
   } catch {
@@ -338,8 +340,6 @@ export default function Legend() {
                   />
                 )}
             </div>
-
-
 
             {showSecondColumnRow && (
               <div className="flex items-center gap-2">

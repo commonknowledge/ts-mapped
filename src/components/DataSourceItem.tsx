@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { BookOpen, Calendar, Database, RefreshCw } from "lucide-react";
+import { BookOpen, Database, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";

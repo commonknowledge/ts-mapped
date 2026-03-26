@@ -1,7 +1,6 @@
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
-import { getDataSourceType } from "@/components/DataSourceItem";
 import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -43,7 +42,6 @@ export function BoundaryConfigItem({
     description?: string;
   } | null>(null);
 
-  const dataSourceType = dataSource ? getDataSourceType(dataSource) : null;
   const isMovementLibrary = Boolean(dataSource?.public);
 
   const columnOptions = useMemo(() => {
@@ -62,9 +60,12 @@ export function BoundaryConfigItem({
     }
     void (async () => {
       try {
-        const res = await fetch(`/api/data-source-previews/${dataSource.id}/meta`, {
-          method: "GET",
-        });
+        const res = await fetch(
+          `/api/data-source-previews/${dataSource.id}/meta`,
+          {
+            method: "GET",
+          },
+        );
         if (!res.ok) {
           if (!cancelled) setMovementMeta(null);
           return;
@@ -170,7 +171,13 @@ export function BoundaryConfigItem({
         </Button>
       </div>
 
-      <div className={isMovementLibrary ? "min-w-0 flex-1" : "min-w-0 flex-1 border rounded-lg p-3"}>
+      <div
+        className={
+          isMovementLibrary
+            ? "min-w-0 flex-1"
+            : "min-w-0 flex-1 border rounded-lg p-3"
+        }
+      >
         {isMovementLibrary ? (
           <>
             <button

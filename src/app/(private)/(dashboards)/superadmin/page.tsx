@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { FeatureAccessTab } from "./FeatureAccessTab";
 import { UserChart } from "./UserChart";
 
 export default function SuperadminPage() {
@@ -131,6 +132,7 @@ export default function SuperadminPage() {
             <TabsTrigger value="users">All Users</TabsTrigger>
             <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
             <TabsTrigger value="public-library">Public Library</TabsTrigger>
+            <TabsTrigger value="features">Feature Access</TabsTrigger>
           </TabsList>
         </div>
 
@@ -356,6 +358,9 @@ export default function SuperadminPage() {
               )}
             </TableBody>
           </Table>
+        </TabsContent>
+        <TabsContent value="features">
+          <FeatureAccessTab />
         </TabsContent>
       </Tabs>
     </div>

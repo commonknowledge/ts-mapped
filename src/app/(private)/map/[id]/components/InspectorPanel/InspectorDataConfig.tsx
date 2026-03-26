@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { useDataSources } from "../../hooks/useDataSources";
@@ -10,7 +10,10 @@ export default function InspectorConfigTab() {
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
 
-  const dataSourcesConfig = view?.inspectorConfig?.dataSources || [];
+  const dataSourcesConfig = useMemo(
+    () => view?.inspectorConfig?.dataSources || [],
+    [view?.inspectorConfig?.dataSources],
+  );
 
   const moveDataSourceConfig = useCallback(
     (fromIndex: number, toIndex: number) => {

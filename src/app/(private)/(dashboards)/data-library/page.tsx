@@ -11,12 +11,12 @@ import PageHeader from "@/components/PageHeader";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 
-type MovementLibraryMeta = {
+interface MovementLibraryMeta {
   defaultColumn?: string;
   title?: string;
   icon?: string;
   description?: string;
-};
+}
 
 export default function DataLibraryPage() {
   const trpc = useTRPC();

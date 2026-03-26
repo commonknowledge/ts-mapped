@@ -4,6 +4,7 @@ import {
   useCurrentUser as useCurrentUserAtom,
   useSetCurrentUser,
 } from "@/atoms/sessionAtoms";
+import type { Feature } from "@/models/Organisation";
 
 export const useCurrentUser = () => {
   const currentUser = useCurrentUserAtom();
@@ -12,16 +13,11 @@ export const useCurrentUser = () => {
 };
 
 export const useFeatureFlagEnabled = (
-  feature: string,
-  user: { featureFlags: string[] } | null,
+  feature: Feature,
+  organisationFeatures: Feature[] | undefined,
 ) => {
-  const featureFlagsStr = process.env.NEXT_PUBLIC_FEATURE_FLAGS;
-  if (!featureFlagsStr) {
-    return process.env.NODE_ENV === "development";
+  if (process.env.NODE_ENV === "development") {
+    return true;
   }
-  const featureFlags = JSON.parse(featureFlagsStr || "{}") as Record<
-    string,
-    boolean
-  >;
-  return Boolean(featureFlags[feature]) || user?.featureFlags.includes(feature);
+  return Boolean(organisationFeatures?.includes(feature));
 };
