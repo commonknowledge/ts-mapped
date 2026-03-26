@@ -1,8 +1,11 @@
+import { Feature } from "@/models/Organisation";
 import { db } from "@/server/services/database";
 import type {
   NewOrganisation,
   OrganisationUpdate,
 } from "@/server/models/Organisation";
+
+const DEFAULT_FEATURES = [Feature.InviteUsers];
 
 export function findOrganisationById(id: string) {
   return db
@@ -69,7 +72,7 @@ export function listOrganisations() {
 export function upsertOrganisation(organisation: NewOrganisation) {
   return db
     .insertInto("organisation")
-    .values(organisation)
+    .values({ features: DEFAULT_FEATURES, ...organisation })
     .onConflict((oc) =>
       // This is a dummy on conflict statement, because
       // ON CONFLICT DO NOTHING doesn't return anything.

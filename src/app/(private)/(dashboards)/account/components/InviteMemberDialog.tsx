@@ -5,7 +5,9 @@ import { PlusIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { useOrganisations } from "@/hooks/useOrganisations";
+import { Feature } from "@/models/Organisation";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -22,6 +24,10 @@ export default function InviteMemberDialog() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { currentOrganisation } = useOrganisations();
+  const canInviteUsers = useFeatureFlagEnabled(
+    Feature.InviteUsers,
+    currentOrganisation?.features,
+  );
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
@@ -48,7 +54,7 @@ export default function InviteMemberDialog() {
     }),
   );
 
-  if (!currentOrganisation) {
+  if (!currentOrganisation || !canInviteUsers) {
     return null;
   }
 

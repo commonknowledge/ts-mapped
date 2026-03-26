@@ -1,7 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
-import { organisationSchema } from "@/models/Organisation";
+import {
+  Feature,
+  featureSchema,
+  organisationSchema,
+} from "@/models/Organisation";
 import Invite from "@/server/emails/Invite";
 import InviteExistingUser from "@/server/emails/InviteExistingUser";
 import {
@@ -86,6 +90,13 @@ export const organisationRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (!ctx.organisation.features.includes(Feature.InviteUsers)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Your organisation does not have access to this feature",
+        });
+      }
+
       try {
         const email = input.email.toLowerCase().trim();
         const existingUser = await findUserByEmail(email);
@@ -136,5 +147,16 @@ export const organisationRouter = router({
         avatarUrl: input.avatarUrl,
       });
       return organisation;
+    }),
+  setFeatures: superadminProcedure
+    .input(
+      z.object({
+        organisationId: z.string(),
+        features: z.array(featureSchema),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const features = [...new Set(input.features)];
+      return updateOrganisation(input.organisationId, { features });
     }),
 });
