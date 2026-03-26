@@ -35,6 +35,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
     this.z.configure({
       clientId: process.env.ZETKIN_CLIENT_ID ?? "",
       clientSecret: process.env.ZETKIN_CLIENT_SECRET ?? "",
+      scopes: ["level2"]
     });
     this.z.setTokenData(oAuthCredentials);
   }
@@ -76,6 +77,9 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
       const response = await this.z
         .resource(`/orgs/${this.orgId}/people`)
         .get(1, 1);
+
+      console.log('r', response)
+      
 
       const people = response.data?.data as ZetkinPerson[] | undefined;
       if (!people || people.length === 0) return null;

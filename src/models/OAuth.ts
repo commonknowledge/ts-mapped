@@ -15,4 +15,4 @@ export const oAuthStateSchema = z
 
 export type OAuthState = z.infer<typeof oAuthStateSchema>;
 
-export const OAUTH_STATE_KEY = "oauth-state";
+export const OAUTH_STATE_KEY = "mapped:oAuthState";

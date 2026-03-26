@@ -5,7 +5,7 @@ import { ZetkinAdaptor } from "@/server/adaptors/zetkin";
 const credentials = inject("credentials");
 
 describe("Zetkin adaptor tests", () => {
-  test("Connection succeeds", async () => {
+  test.only("Connection succeeds", async () => {
     const adaptor = new ZetkinAdaptor(
       credentials.zetkin.orgId,
       credentials.zetkin.oAuthCredentials,

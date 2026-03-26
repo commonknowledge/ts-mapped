@@ -6,8 +6,19 @@ import { DataSourceType } from "@/models/DataSource";
 import { OAUTH_STATE_KEY, type OAuthState } from "@/models/OAuth";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { Input } from "@/shadcn/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import type { DataSourceRecordType, ZetkinConfig } from "@/models/DataSource";
+
+interface ZetkinOrganisation {
+  id: number;
+  title: string;
+}
 
 export default function ZetkinFields({
   dataSourceName,
@@ -54,6 +65,7 @@ function ZetkinFieldsWithOAuth({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [organisations, setOrganisations] = useState<ZetkinOrganisation[]>([]);
 
   const code = searchParams.get("code");
 
@@ -63,18 +75,46 @@ function ZetkinFieldsWithOAuth({
 
   useEffect(() => {
     const completeOAuth = async () => {
+      if (!code || hasCompletedOAuth.current) return;
+      hasCompletedOAuth.current = true;
+      setError("");
+      setLoading(true);
       try {
-        if (code && !hasCompletedOAuth.current) {
-          hasCompletedOAuth.current = true;
-          setError("");
-          setLoading(true);
-          const oAuthCredentials = await exchangeCode({
+        let oAuthCredentials;
+        try {
+          oAuthCredentials = await exchangeCode({
             redirectSuccessUrl: window.location.href,
           });
-          onChange({ oAuthCredentials });
+        } catch {
+          setError(
+            "Something went wrong connecting to Zetkin. Please try again or contact us if the problem persists.",
+          );
+          return;
         }
-      } catch {
-        setError("Could not authorize with Zetkin.");
+        onChange({ oAuthCredentials });
+
+        const response = await fetch(
+          "https://api.zetk.in/v1/users/me/memberships",
+          {
+            headers: {
+              Authorization: `Bearer ${oAuthCredentials.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          setError(
+            "Could not load your Zetkin organisations. Please check that you are an admin on the Zetkin organisation you want to connect.",
+          );
+          return;
+        }
+        const data = (await response.json()) as {
+          data: { organization: ZetkinOrganisation }[];
+        };
+        const orgs = data.data.map((m) => m.organization);
+        setOrganisations(orgs);
+        if (orgs.length === 1) {
+          onChange({ orgId: String(orgs[0].id) });
+        }
       } finally {
         setLoading(false);
       }
@@ -118,16 +158,22 @@ function ZetkinFieldsWithOAuth({
 
   return (
     <>
-      <FormFieldWrapper label="Organisation ID" id="orgId">
-        <Input
-          type="text"
-          className="w-full"
-          id="orgId"
-          required
-          placeholder="e.g. 1"
+      <FormFieldWrapper label="Organisation" id="orgId">
+        <Select
           value={config.orgId || ""}
-          onChange={(e) => onChange({ orgId: e.target.value })}
-        />
+          onValueChange={(value) => onChange({ orgId: value })}
+        >
+          <SelectTrigger className="w-full" id="orgId">
+            <SelectValue placeholder="Choose an organisation" />
+          </SelectTrigger>
+          <SelectContent>
+            {organisations.map((org) => (
+              <SelectItem key={org.id} value={String(org.id)}>
+                {org.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </FormFieldWrapper>
       {error && <p className="text-xs text-red-500">{error}</p>}
     </>
