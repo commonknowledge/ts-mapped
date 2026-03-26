@@ -15,6 +15,7 @@ import PageHeader from "@/components/PageHeader";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { DataSourceType } from "@/models/DataSource";
+import { OAUTH_STATE_KEY, oAuthStateSchema } from "@/models/OAuth";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
@@ -31,8 +32,9 @@ import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
+import ZetkinFields from "./fields/ZetkinFields";
 
-import { type NewDataSourceConfig, defaultStateSchema } from "./schema";
+import type { NewDataSourceConfig } from "./schema";
 import type {
   DataSourceConfig,
   DataSourceRecordType,
@@ -255,6 +257,15 @@ function ConfigFields({
       );
     case DataSourceType.Mailchimp:
       return <MailchimpFields config={config} onChange={onChange} />;
+    case DataSourceType.Zetkin:
+      return (
+        <ZetkinFields
+          dataSourceName={dataSourceName}
+          recordType={recordType}
+          config={config}
+          onChange={onChange}
+        />
+      );
     default:
       return null;
   }
@@ -273,8 +284,17 @@ const prepareDataSource = async (
 const useOAuthState = () => {
   const searchParams = useSearchParams();
   try {
-    const rawState = JSON.parse(searchParams.get("state") || "{}");
-    return defaultStateSchema.parse(rawState);
+    // Google OAuth passes state as a query param; Zetkin uses sessionStorage
+    const stateParam = searchParams.get("state");
+    if (stateParam) {
+      return oAuthStateSchema.parse(JSON.parse(stateParam));
+    }
+    const stored = sessionStorage.getItem(OAUTH_STATE_KEY);
+    if (stored) {
+      sessionStorage.removeItem(OAUTH_STATE_KEY);
+      return oAuthStateSchema.parse(JSON.parse(stored));
+    }
+    return null;
   } catch {
     return null;
   }

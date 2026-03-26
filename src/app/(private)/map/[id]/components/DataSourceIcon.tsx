@@ -39,6 +39,7 @@ const icons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.CSV]: <div>CSV</div>,
   [DataSourceType.GoogleSheets]: <div>GS</div>,
   [DataSourceType.Mailchimp]: <div>MC</div>,
+  [DataSourceType.Zetkin]: <div>ZK</div>,
 };
 
 const DataSourceIcon = ({ type }: { type: string }) => {

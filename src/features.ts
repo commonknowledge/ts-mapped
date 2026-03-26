@@ -45,4 +45,11 @@ export const DataSourceFeatures: Record<
     enrichment: true,
     syncToCrm: true,
   },
+  [DataSourceType.Zetkin]: {
+    autoEnrich: false,
+    autoImport: false,
+    columnDeletion: false,
+    enrichment: true,
+    syncToCrm: false,
+  },
 };

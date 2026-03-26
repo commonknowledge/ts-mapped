@@ -293,12 +293,36 @@ const ActionNetworkSVG = () => (
   </svg>
 );
 
+const ZetkinIconSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    fill="none"
+  >
+    <circle cx="16" cy="16" r="15" fill="#1B1D36" />
+    <text
+      x="16"
+      y="22"
+      textAnchor="middle"
+      fill="white"
+      fontSize="18"
+      fontWeight="bold"
+      fontFamily="sans-serif"
+    >
+      Z
+    </text>
+  </svg>
+);
+
 const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: <ActionNetworkSVG />,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
   [DataSourceType.CSV]: <File size={16} />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,
+  [DataSourceType.Zetkin]: <ZetkinIconSVG />,
 };
 
 const DataSourceIcon = ({
