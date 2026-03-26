@@ -58,7 +58,7 @@ export default function DataSourcePropertiesList({
   }, [columns, dataSource?.columnDefs, json, metadata]);
 
   if (!properties.length) {
-    return <p className="text-sm">No data available</p>;
+    return <p className="text-sm">No data</p>;
   }
 
   return (

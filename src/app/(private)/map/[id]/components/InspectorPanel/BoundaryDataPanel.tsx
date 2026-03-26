@@ -218,7 +218,7 @@ export function BoundaryDataPanel({
         </ul>
       ) : (
         <div className="py-4 text-center text-muted-foreground">
-          <p className="text-sm">No data available</p>
+          <p className="text-sm">No data</p>
         </div>
       )}
     </TogglePanel>

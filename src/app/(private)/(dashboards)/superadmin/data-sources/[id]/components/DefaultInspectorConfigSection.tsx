@@ -394,15 +394,25 @@ export function DefaultInspectorConfigSection({
                               (m) => m.name === item.name,
                             )?.semanticType
                           }
+                          currentDisplayName={
+                            dataSource.columnMetadata?.find(
+                              (m) => m.name === item.name,
+                            )?.displayName
+                          }
+                          currentDescription={
+                            dataSource.columnMetadata?.find(
+                              (m) => m.name === item.name,
+                            )?.description
+                          }
                           onUpdate={(patch) =>
                             handleUpdateColumnItem(item.name, patch)
                           }
                           onRemove={() => handleRemoveColumn(item.name)}
-                          onPatchSemanticType={(semanticType) =>
+                          onPatchColumnMetadata={(patch) =>
                             patchSemanticType({
                               dataSourceId: dataSource.id,
                               column: item.name,
-                              patch: { semanticType },
+                              patch,
                             })
                           }
                         />
@@ -445,18 +455,24 @@ function ColumnItemRow({
   item,
   columnType,
   currentSemanticType,
+  currentDisplayName,
+  currentDescription,
   onUpdate,
   onRemove,
-  onPatchSemanticType,
+  onPatchColumnMetadata,
 }: {
   item: Extract<InspectorColumnItem, { type: "column" }>;
   columnType: ColumnType | undefined;
   currentSemanticType: ColumnMetadata["semanticType"];
+  currentDisplayName: ColumnMetadata["displayName"];
+  currentDescription: ColumnMetadata["description"] | undefined;
   onUpdate: (
     patch: Partial<Extract<InspectorColumnItem, { type: "column" }>>,
   ) => void;
   onRemove: () => void;
-  onPatchSemanticType: (semanticType: ColumnSemanticType | undefined) => void;
+  onPatchColumnMetadata: (
+    patch: Partial<Omit<ColumnMetadata, "name">>,
+  ) => void;
 }) {
   const isNumeric = columnType === ColumnType.Number;
   const availableFormats = isNumeric
@@ -502,11 +518,11 @@ function ColumnItemRow({
             className="h-6 rounded border border-input bg-background px-1.5 text-xs"
             value={currentSemanticType ?? ""}
             onChange={(e) =>
-              onPatchSemanticType(
-                e.target.value
+              onPatchColumnMetadata({
+                semanticType: e.target.value
                   ? (e.target.value as ColumnSemanticType)
                   : undefined,
-              )
+              })
             }
           >
             <option value="">Infer from values</option>
@@ -557,6 +573,28 @@ function ColumnItemRow({
             ))}
           </select>
         )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <input
+          className="h-6 rounded border border-input bg-background px-1.5 text-xs w-32"
+          placeholder="Display name"
+          value={currentDisplayName ?? ""}
+          onChange={(e) =>
+            onPatchColumnMetadata({
+              displayName: e.target.value || undefined,
+            })
+          }
+        />
+        <input
+          className="h-6 rounded border border-input bg-background px-1.5 text-xs flex-1 min-w-24"
+          placeholder="Description"
+          value={currentDescription ?? ""}
+          onChange={(e) =>
+            onPatchColumnMetadata({
+              description: e.target.value,
+            })
+          }
+        />
       </div>
     </div>
   );

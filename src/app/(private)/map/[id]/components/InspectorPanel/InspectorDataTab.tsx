@@ -127,7 +127,7 @@ export default function InspectorDataTab({
             if (!hasProperties) {
               return (
                 <div className="py-8 text-center text-muted-foreground">
-                  <p className="text-sm">No data available</p>
+                  <p className="text-sm">Not found</p>
                 </div>
               );
             }
