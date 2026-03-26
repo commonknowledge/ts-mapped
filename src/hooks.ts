@@ -4,7 +4,7 @@ import {
   useCurrentUser as useCurrentUserAtom,
   useSetCurrentUser,
 } from "@/atoms/sessionAtoms";
-import type { Feature } from "./models/Organisation";
+import type { Feature } from "@/models/Organisation";
 
 export const useCurrentUser = () => {
   const currentUser = useCurrentUserAtom();
