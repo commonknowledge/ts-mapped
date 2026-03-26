@@ -51,6 +51,11 @@ export function FeatureAccessTab() {
           description: error.message,
         });
       },
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.organisation.listAll.queryKey(),
+        });
+      },
     }),
   );
 
