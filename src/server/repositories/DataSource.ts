@@ -2,7 +2,12 @@ import { sql } from "kysely";
 import { DataSourceType, JobStatus } from "@/models/DataSource";
 import { db } from "@/server/services/database";
 import type { DataSourceUpdate, NewDataSource } from "../models/DataSource";
-import type { ColumnDef, JobInfo } from "@/models/DataSource";
+import type {
+  ColumnDef,
+  DefaultChoroplethConfig,
+  DefaultInspectorConfig,
+  JobInfo,
+} from "@/models/DataSource";
 
 export async function createDataSource(dataSource: NewDataSource) {
   return await db
@@ -152,13 +157,24 @@ export async function updateDataSource(
     .execute();
 }
 
-export async function updateDataSourceDefaultInspectorConfig(
+export async function updateDefaultInspectorConfig(
   id: string,
-  config: unknown,
+  config: DefaultInspectorConfig,
 ) {
   await db
     .updateTable("dataSource")
-    .set({ defaultInspectorConfig: config as never })
+    .set({ defaultInspectorConfig: config })
+    .where("id", "=", id)
+    .execute();
+}
+
+export async function updateDefaultChoroplethConfig(
+  id: string,
+  config: DefaultChoroplethConfig | null,
+) {
+  await db
+    .updateTable("dataSource")
+    .set({ defaultChoroplethConfig: config })
     .where("id", "=", id)
     .execute();
 }

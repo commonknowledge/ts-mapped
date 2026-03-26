@@ -9,12 +9,10 @@ import {
   GeocodingType,
   columnMetadataSchema,
   dataSourceSchema,
-  inspectorColumnSchema,
+  defaultChoroplethConfigSchema,
+  defaultInspectorConfigSchema,
 } from "@/models/DataSource";
-import {
-  dataSourceViewSchema,
-  defaultInspectorDataSourceConfigSchema,
-} from "@/models/MapView";
+import { dataSourceViewSchema } from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   getEnrichedColumn,
@@ -28,12 +26,14 @@ import {
 import {
   createDataSource,
   deleteDataSource,
+  findDataSourceById,
   findDataSourcesByIds,
   findPublicDataSources,
   getJobInfo,
   getUniqueColumnValues,
   updateDataSource,
-  updateDataSourceDefaultInspectorConfig,
+  updateDefaultChoroplethConfig,
+  updateDefaultInspectorConfig,
 } from "@/server/repositories/DataSource";
 import {
   findDataSourceOrganisationOverride,
@@ -67,14 +67,22 @@ export const dataSourceRouter = router({
     .input(
       z.object({
         dataSourceId: z.string(),
-        config: defaultInspectorDataSourceConfigSchema.nullish(),
+        config: defaultInspectorConfigSchema,
       }),
     )
     .mutation(async ({ input }) => {
-      await updateDataSourceDefaultInspectorConfig(
-        input.dataSourceId,
-        input.config,
-      );
+      await updateDefaultInspectorConfig(input.dataSourceId, input.config);
+      return true;
+    }),
+  updateDefaultChoroplethConfig: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        config: defaultChoroplethConfigSchema.nullable(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await updateDefaultChoroplethConfig(input.dataSourceId, input.config);
       return true;
     }),
   listForMapView: mapReadProcedure
@@ -374,7 +382,6 @@ export const dataSourceRouter = router({
         public: false,
         columnDefs,
         columnMetadata: [],
-        inspectorColumns: [],
         columnRoles: { nameColumns: [] },
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
@@ -416,7 +423,6 @@ export const dataSourceRouter = router({
         name: input.name,
         columnRoles: input.columnRoles,
         columnMetadata: input.columnMetadata,
-        inspectorColumns: input.inspectorColumns,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
         dateFormat: input.dateFormat,
@@ -621,7 +627,6 @@ export const dataSourceRouter = router({
       z.object({
         dataSourceId: z.string(),
         columnMetadata: z.array(columnMetadataSchema),
-        inspectorColumns: z.array(inspectorColumnSchema),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -629,7 +634,6 @@ export const dataSourceRouter = router({
         ctx.organisation.id,
         input.dataSourceId,
         input.columnMetadata,
-        input.inspectorColumns,
       );
       return true;
     }),
@@ -661,6 +665,36 @@ export const dataSourceRouter = router({
       return { columnMetadata: updated };
     }),
 
+  patchColumnMetadataSuperadmin: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const dataSource = await findDataSourceById(input.dataSourceId);
+      if (!dataSource) throw new TRPCError({ code: "NOT_FOUND" });
+      const existing = dataSource.columnMetadata ?? [];
+      const hasEntry = existing.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existing.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existing,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await updateDataSource(input.dataSourceId, { columnMetadata: updated });
+      return { columnMetadata: updated };
+    }),
+
   patchColumnMetadataOverride: organisationProcedure
     .input(
       z.object({
@@ -675,7 +709,6 @@ export const dataSourceRouter = router({
         input.dataSourceId,
       );
       const existingMetadata = existing?.columnMetadata ?? [];
-      const inspectorColumns = existing?.inspectorColumns ?? [];
       const hasEntry = existingMetadata.some((m) => m.name === input.column);
       const updated = hasEntry
         ? existingMetadata.map((m) =>
@@ -694,7 +727,6 @@ export const dataSourceRouter = router({
         ctx.organisation.id,
         input.dataSourceId,
         updated,
-        inspectorColumns,
       );
       return { columnMetadata: updated };
     }),

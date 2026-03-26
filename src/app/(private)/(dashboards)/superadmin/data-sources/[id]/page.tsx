@@ -1,10 +1,10 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   INSPECTOR_ICON_OPTIONS,
@@ -13,6 +13,7 @@ import {
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
+import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -24,40 +25,42 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Textarea } from "@/shadcn/ui/textarea";
+import { DefaultChoroplethSection } from "./components/DefaultChoroplethSection";
 import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
-import { DefaultVisualisationSection } from "./components/DefaultVisualisationSection";
-import type { MovementLibraryMeta } from "./components/DefaultVisualisationSection";
+import { ScreenshotSection } from "./components/ScreenshotSection";
+import type {
+  DefaultChoroplethConfig,
+  DefaultInspectorConfig,
+} from "@/models/DataSource";
 
 const DEFAULT_ICON_SELECT_VALUE = "__default_icon__";
 
 const GeneralSection = memo(function GeneralSection({
   dataSourceName,
-  saved,
+  name,
+  description,
+  icon,
   disabled,
-  onSave,
+  onChange,
 }: {
   dataSourceName: string;
-  saved: Pick<MovementLibraryMeta, "title" | "description" | "icon">;
+  name: string;
+  description: string;
+  icon: string;
   disabled: boolean;
-  onSave: (
-    next: Pick<MovementLibraryMeta, "title" | "description" | "icon">,
-  ) => Promise<void>;
+  onChange: (patch: {
+    name?: string;
+    description?: string;
+    icon?: string;
+  }) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState(() => ({
-    title: saved.title ?? "",
-    description: saved.description ?? "",
-    icon: saved.icon ?? "",
-  }));
+  const [draft, setDraft] = useState({ name, description, icon });
 
   useEffect(() => {
     if (isEditing) return;
-    setDraft({
-      title: saved.title ?? "",
-      description: saved.description ?? "",
-      icon: saved.icon ?? "",
-    });
-  }, [isEditing, saved.description, saved.icon, saved.title]);
+    setDraft({ name, description, icon });
+  }, [isEditing, name, description, icon]);
 
   return (
     <div className="rounded-lg border border-neutral-200 p-6 mb-6 space-y-4">
@@ -75,11 +78,11 @@ const GeneralSection = memo(function GeneralSection({
               type="button"
               variant="outline"
               disabled={disabled}
-              onClick={async () => {
-                await onSave({
-                  title: draft.title ?? "",
-                  description: draft.description ?? "",
-                  icon: draft.icon ?? "",
+              onClick={() => {
+                onChange({
+                  name: draft.name,
+                  description: draft.description,
+                  icon: draft.icon,
                 });
                 setIsEditing(false);
               }}
@@ -91,11 +94,7 @@ const GeneralSection = memo(function GeneralSection({
               variant="ghost"
               disabled={disabled}
               onClick={() => {
-                setDraft({
-                  title: saved.title ?? "",
-                  description: saved.description ?? "",
-                  icon: saved.icon ?? "",
-                });
+                setDraft({ name, description, icon });
                 setIsEditing(false);
               }}
             >
@@ -120,16 +119,16 @@ const GeneralSection = memo(function GeneralSection({
           <Label className="text-muted-foreground">Title (override)</Label>
           {isEditing ? (
             <Input
-              value={draft.title ?? ""}
+              value={draft.name}
               placeholder={dataSourceName}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, title: e.target.value }))
+                setDraft((prev) => ({ ...prev, name: e.target.value }))
               }
               disabled={disabled}
             />
           ) : (
             <p className="text-sm text-muted-foreground">
-              {saved.title?.trim() ? saved.title : "—"}
+              {name.trim() ? name : "—"}
             </p>
           )}
         </div>
@@ -138,7 +137,7 @@ const GeneralSection = memo(function GeneralSection({
           <Label className="text-muted-foreground">Description</Label>
           {isEditing ? (
             <Textarea
-              value={draft.description ?? ""}
+              value={draft.description}
               placeholder="Short description shown in the movement data library…"
               onChange={(e) =>
                 setDraft((prev) => ({ ...prev, description: e.target.value }))
@@ -147,7 +146,7 @@ const GeneralSection = memo(function GeneralSection({
             />
           ) : (
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {saved.description?.trim() ? saved.description : "—"}
+              {description.trim() ? description : "—"}
             </p>
           )}
         </div>
@@ -187,9 +186,9 @@ const GeneralSection = memo(function GeneralSection({
             </Select>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {saved.icon?.trim()
-                ? (INSPECTOR_ICON_OPTIONS.find((o) => o.value === saved.icon)
-                    ?.label ?? saved.icon)
+              {icon.trim()
+                ? (INSPECTOR_ICON_OPTIONS.find((o) => o.value === icon)
+                    ?.label ?? icon)
                 : "Default (data source icon)"}
             </p>
           )}
@@ -203,7 +202,7 @@ export default function DataSourceConfigPage() {
   const { currentUser } = useCurrentUser();
   const { id } = useParams<{ id: string }>();
   const trpc = useTRPC();
-  const [cacheBuster, setCacheBuster] = useState(() => Date.now());
+  const queryClient = useQueryClient();
 
   const { data: dataSources, isPending } = useQuery(
     trpc.dataSource.listPublic.queryOptions(),
@@ -212,145 +211,103 @@ export default function DataSourceConfigPage() {
   if (currentUser?.email !== ADMIN_USER_EMAIL) redirect("/");
 
   const dataSource = dataSources?.find((ds) => ds.id === id);
-  const [savedMeta, setSavedMeta] = useState<MovementLibraryMeta>({
-    title: "",
-    description: "",
-    icon: "",
-    defaultVisualisation: { displayMode: "values", defaultColumn: "" },
-  });
-  const [metaLoading, setMetaLoading] = useState(false);
 
+  const [localInspectorConfig, setLocalInspectorConfig] =
+    useState<DefaultInspectorConfig>({ items: [] });
+  const [localChoroplethConfig, setLocalChoroplethConfig] =
+    useState<DefaultChoroplethConfig | null>(null);
+
+  // Initialise local state once the data source loads
+  const didInitRef = useRef(false);
   useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    setMetaLoading(true);
-    fetch(`/api/data-source-previews/${id}/meta`, { method: "GET" })
-      .then(async (r) => {
-        if (!r.ok) return {} as MovementLibraryMeta;
-        return (await r.json()) as MovementLibraryMeta;
-      })
-      .then((data) => {
-        if (cancelled) return;
-        const next = {
-          title: data.title ?? "",
-          description: data.description ?? "",
-          icon: data.icon ?? "",
-          defaultVisualisation: {
-            displayMode: data.defaultVisualisation?.displayMode ?? "values",
-            defaultColumn: data.defaultVisualisation?.defaultColumn ?? "",
-          },
-        } satisfies MovementLibraryMeta;
-        setSavedMeta(next);
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setMetaLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+    if (!dataSource || didInitRef.current) return;
+    didInitRef.current = true;
+    setLocalInspectorConfig(dataSource.defaultInspectorConfig ?? { items: [] });
+    setLocalChoroplethConfig(dataSource.defaultChoroplethConfig ?? null);
+  }, [dataSource]);
 
-  const { mutateAsync: uploadPreview, isPending: isUploading } = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.set("file", file);
-      const res = await fetch(`/api/data-source-previews/${id}`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || "Upload failed");
-      }
-      return (await res.json()) as { url: string };
-    },
-    onSuccess: () => {
-      setCacheBuster(Date.now());
-      toast.success("Screenshot updated");
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    },
-  });
+  const { mutateAsync: saveInspectorConfig, isPending: isSavingInspector } =
+    useMutation(
+      trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({
+        onSuccess: async () => {
+          await queryClient.invalidateQueries(
+            trpc.dataSource.listPublic.queryFilter(),
+          );
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to save inspector settings.");
+        },
+      }),
+    );
 
-  const { mutateAsync: saveMeta, isPending: isSavingMeta } = useMutation({
-    mutationFn: async (body: MovementLibraryMeta) => {
-      const res = await fetch(`/api/data-source-previews/${id}/meta`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || "Save failed");
-      }
-      return (await res.json()) as { ok: true };
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Save failed");
-    },
-  });
-
-  const saveDisabled = isSavingMeta || metaLoading;
-  const autoSaveTimeoutRef = useRef<number | null>(null);
-  const didHydrateMetaRef = useRef(false);
-
-  const metaToPersist = useMemo(
-    () => ({
-      title: savedMeta.title ?? "",
-      description: savedMeta.description ?? "",
-      icon: savedMeta.icon ?? "",
-      defaultVisualisation: {
-        displayMode: savedMeta.defaultVisualisation?.displayMode ?? "values",
-        defaultColumn: savedMeta.defaultVisualisation?.defaultColumn ?? "",
+  const { mutateAsync: saveChoroplethConfig } = useMutation(
+    trpc.dataSource.updateDefaultChoroplethConfig.mutationOptions({
+      onError: (err) => {
+        toast.error(err.message || "Failed to save choropleth settings.");
       },
     }),
-    [savedMeta],
   );
 
-  const handleSaveGeneral = useCallback(
-    async (
-      nextGeneral: Pick<MovementLibraryMeta, "title" | "description" | "icon">,
-    ) => {
-      const next: MovementLibraryMeta = {
-        ...savedMeta,
-        title: nextGeneral.title ?? "",
-        description: nextGeneral.description ?? "",
-        icon: nextGeneral.icon ?? "",
-      };
-      await saveMeta(next);
-      setSavedMeta(next);
-      toast.success("Saved");
-    },
-    [saveMeta, savedMeta],
-  );
-
-  // Auto-save default visualisation settings (and other already-saved meta fields).
+  // Debounced auto-save for inspector config
+  const inspectorAutoSaveRef = useRef<number | null>(null);
+  const didInitInspectorAutoSaveRef = useRef(false);
   useEffect(() => {
-    if (metaLoading) return;
-    if (!didHydrateMetaRef.current) {
-      didHydrateMetaRef.current = true;
+    if (!didInitInspectorAutoSaveRef.current) {
+      didInitInspectorAutoSaveRef.current = true;
       return;
     }
     if (!id) return;
-
-    if (autoSaveTimeoutRef.current) {
-      window.clearTimeout(autoSaveTimeoutRef.current);
-    }
-    autoSaveTimeoutRef.current = window.setTimeout(() => {
-      void saveMeta(metaToPersist).catch(() => {
-        // error toast handled in mutation
+    if (inspectorAutoSaveRef.current)
+      window.clearTimeout(inspectorAutoSaveRef.current);
+    inspectorAutoSaveRef.current = window.setTimeout(() => {
+      void saveInspectorConfig({
+        dataSourceId: id,
+        config: localInspectorConfig,
       });
     }, 600);
-
     return () => {
-      if (autoSaveTimeoutRef.current) {
-        window.clearTimeout(autoSaveTimeoutRef.current);
-        autoSaveTimeoutRef.current = null;
-      }
+      if (inspectorAutoSaveRef.current)
+        window.clearTimeout(inspectorAutoSaveRef.current);
     };
-  }, [id, metaLoading, metaToPersist, saveMeta]);
+  }, [id, localInspectorConfig, saveInspectorConfig]);
+
+  // Debounced auto-save for choropleth config
+  const choroplethAutoSaveRef = useRef<number | null>(null);
+  const didInitChoroplethAutoSaveRef = useRef(false);
+  useEffect(() => {
+    if (!didInitChoroplethAutoSaveRef.current) {
+      didInitChoroplethAutoSaveRef.current = true;
+      return;
+    }
+    if (!id) return;
+    if (choroplethAutoSaveRef.current)
+      window.clearTimeout(choroplethAutoSaveRef.current);
+    choroplethAutoSaveRef.current = window.setTimeout(() => {
+      void saveChoroplethConfig({
+        dataSourceId: id,
+        config: localChoroplethConfig,
+      });
+    }, 600);
+    return () => {
+      if (choroplethAutoSaveRef.current)
+        window.clearTimeout(choroplethAutoSaveRef.current);
+    };
+  }, [id, localChoroplethConfig, saveChoroplethConfig]);
+
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleScreenshotUpload = useCallback(async (file: File) => {
+    setIsUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setLocalInspectorConfig((prev) => ({ ...prev, screenshotUrl: url }));
+      toast.success("Screenshot updated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
 
   if (isPending) {
     return <div className="p-8 text-muted-foreground">Loading…</div>;
@@ -379,33 +336,44 @@ export default function DataSourceConfigPage() {
           Configure default inspector settings for this public data source.
         </p>
       </div>
+
       <GeneralSection
         dataSourceName={dataSource.name}
-        saved={{
-          title: savedMeta.title ?? "",
-          description: savedMeta.description ?? "",
-          icon: savedMeta.icon ?? "",
-        }}
-        disabled={saveDisabled}
-        onSave={handleSaveGeneral}
+        name={localInspectorConfig.name ?? ""}
+        description={localInspectorConfig.description ?? ""}
+        icon={localInspectorConfig.icon ?? ""}
+        disabled={isSavingInspector}
+        onChange={(patch) =>
+          setLocalInspectorConfig((prev) => ({ ...prev, ...patch }))
+        }
       />
 
-      <DefaultVisualisationSection
-        id={id}
-        dataSource={dataSource}
-        savedMeta={savedMeta}
-        setSavedMeta={setSavedMeta}
-        metaLoading={metaLoading}
-        onUpload={uploadPreview}
+      <ScreenshotSection
+        screenshotUrl={localInspectorConfig.screenshotUrl}
+        onUploaded={(url) =>
+          setLocalInspectorConfig((prev) => ({ ...prev, screenshotUrl: url }))
+        }
         isUploading={isUploading}
-        cacheBuster={cacheBuster}
-        onCacheBust={() => setCacheBuster(Date.now())}
+        onUpload={handleScreenshotUpload}
+      />
+
+      <DefaultChoroplethSection
+        dataSource={dataSource}
+        config={localChoroplethConfig}
+        onChange={setLocalChoroplethConfig}
       />
 
       <DefaultInspectorConfigSection
         dataSource={dataSource}
-        forcedTitle={savedMeta.title}
-        forcedIcon={savedMeta.icon}
+        items={localInspectorConfig.items ?? []}
+        layout={localInspectorConfig.layout ?? "single"}
+        color={localInspectorConfig.color ?? null}
+        name={localInspectorConfig.name ?? ""}
+        icon={localInspectorConfig.icon ?? ""}
+        isSaving={isSavingInspector}
+        onChange={(patch) =>
+          setLocalInspectorConfig((prev) => ({ ...prev, ...patch }))
+        }
       />
     </div>
   );

@@ -2,7 +2,6 @@
 
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { getSelectedItemsOrdered } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorColumnOrder";
 import {
   InspectorPanelIcon,
   getBarColorForLabel,
@@ -11,35 +10,63 @@ import {
 import PropertiesList from "@/app/(private)/map/[id]/components/InspectorPanel/PropertiesList";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
 import type { PropertyEntry } from "@/app/(private)/map/[id]/components/InspectorPanel/PropertiesList";
 import type { DataSource } from "@/models/DataSource";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
+import type { InspectorColumnItem } from "@/models/shared";
 
 function isDivider(
-  item: unknown,
+  item: InspectorColumnItem,
 ): item is { type: "divider"; id: string; label: string } {
-  return (
-    typeof item === "object" &&
-    item !== null &&
-    (item as { type?: string }).type === "divider"
-  );
+  return item.type === "divider";
 }
 
-const COMPARISON_STAT_LABEL: Record<string, string> = {
-  average: "Average",
-  median: "Median",
-  min: "Min",
-  max: "Max",
-};
+function toComparisonStatLabel(
+  stat: InspectorComparisonStat | undefined,
+): string {
+  switch (stat) {
+    case InspectorComparisonStat.Median:
+      return "Median";
+    case InspectorComparisonStat.Min:
+      return "Min";
+    case InspectorComparisonStat.Max:
+      return "Max";
+    default:
+      return "Average";
+  }
+}
+
+function toComparisonStatKey(
+  stat: InspectorComparisonStat | undefined,
+): "average" | "median" | "min" | "max" {
+  switch (stat) {
+    case InspectorComparisonStat.Median:
+      return "median";
+    case InspectorComparisonStat.Min:
+      return "min";
+    case InspectorComparisonStat.Max:
+      return "max";
+    default:
+      return "average";
+  }
+}
 
 export function DefaultInspectorPreview({
-  config,
+  items,
+  layout,
+  color,
+  name,
+  icon,
   dataSource,
   className,
 }: {
-  config: InspectorDataSourceConfig;
+  items: InspectorColumnItem[];
+  layout: "single" | "twoColumn" | null;
+  color: string | null;
+  name: string;
+  icon: string;
   dataSource: DataSource;
   className?: string;
 }) {
@@ -55,23 +82,16 @@ export function DefaultInspectorPreview({
     | Record<string, unknown>
     | undefined;
 
-  const allColumnNames = useMemo(
-    () => dataSource.columnDefs.map((c) => c.name),
-    [dataSource.columnDefs],
-  );
-
   const comparisonColumns = useMemo(
     () =>
-      (config.columns ?? [])
+      items
         .filter(
-          (col) =>
-            config.columnMetadata?.[col]?.format === "numberWithComparison",
+          (i): i is Extract<InspectorColumnItem, { type: "column" }> =>
+            i.type === "column" &&
+            i.displayFormat === ColumnDisplayFormat.NumberWithComparison,
         )
-        .map((col) => ({
-          col,
-          stat: config.columnMetadata?.[col]?.comparisonStat ?? "average",
-        })),
-    [config.columns, config.columnMetadata],
+        .map((i) => ({ col: i.name, stat: i.comparisonStat })),
+    [items],
   );
 
   const baselineQueries = useQueries({
@@ -79,7 +99,7 @@ export function DefaultInspectorPreview({
       trpc.dataRecord.columnStat.queryOptions({
         dataSourceId: dataSource.id,
         columnName: col,
-        stat: stat as "average" | "median" | "min" | "max",
+        stat: toComparisonStatKey(stat),
       }),
     ),
   });
@@ -102,8 +122,6 @@ export function DefaultInspectorPreview({
   }, [comparisonColumns, baselineQueries]);
 
   const entries = useMemo((): PropertyEntry[] => {
-    const items = getSelectedItemsOrdered(config, allColumnNames);
-    const meta = config.columnMetadata ?? {};
     const result: PropertyEntry[] = [];
     let index = 0;
     for (const item of items) {
@@ -114,54 +132,50 @@ export function DefaultInspectorPreview({
           isDivider: true,
         });
       } else {
-        const m = meta[item];
-        const raw = sampleRow?.[item];
+        const raw = sampleRow?.[item.name];
         const value =
-          sampleRow && item in sampleRow && raw !== undefined && raw !== null
+          sampleRow &&
+          item.name in sampleRow &&
+          raw !== undefined &&
+          raw !== null
             ? raw
             : "—";
         result.push({
-          key: `col-${index}-${String(item)}`,
-          label: m?.displayName ?? item,
+          key: `col-${index}-${item.name}`,
+          label: item.name,
           value,
-          format: m?.format,
-          scaleMax: m?.scaleMax,
+          format: item.displayFormat,
+          scaleMax: item.scaleMax,
           barColor: getBarColorForLabel(
-            m?.displayName ?? item,
-            item,
+            item.name,
+            item.name,
             index,
-            m?.barColor,
+            item.barColor,
           ),
-          description: m?.description,
-          ...(m?.format === "numberWithComparison" && {
-            comparisonBaseline: comparisonBaselines[item] ?? null,
-            comparisonStat:
-              COMPARISON_STAT_LABEL[m.comparisonStat ?? "average"] ??
-              m.comparisonStat ??
-              "Average",
-            comparisonBaselineLoading: comparisonBaselineLoading[item] === true,
+          ...(item.displayFormat ===
+            ColumnDisplayFormat.NumberWithComparison && {
+            comparisonBaseline: comparisonBaselines[item.name] ?? null,
+            comparisonStat: toComparisonStatLabel(item.comparisonStat),
+            comparisonBaselineLoading:
+              comparisonBaselineLoading[item.name] === true,
           }),
         });
         index += 1;
       }
     }
     return result;
-  }, [
-    config,
-    allColumnNames,
-    sampleRow,
-    comparisonBaselines,
-    comparisonBaselineLoading,
-  ]);
+  }, [items, sampleRow, comparisonBaselines, comparisonBaselineLoading]);
 
   const dataSourceType = dataSource.config?.type ?? "unknown";
-  const panelIcon = config.icon ? (
-    <InspectorPanelIcon iconName={config.icon} className="h-4 w-4 shrink-0" />
+  const panelIcon = icon ? (
+    <InspectorPanelIcon iconName={icon} className="h-4 w-4 shrink-0" />
   ) : (
     <span className="shrink-0">
       <DataSourceIcon type={dataSourceType} />
     </span>
   );
+
+  const selectedCount = items.filter((i) => i.type === "column").length;
 
   return (
     <div
@@ -180,12 +194,12 @@ export function DefaultInspectorPreview({
       </div>
       <div className="flex-1 overflow-y-auto p-3">
         <TogglePanel
-          label={config.name || dataSource.name}
+          label={name || dataSource.name}
           icon={panelIcon}
           defaultExpanded={true}
-          wrapperClassName={getInspectorColorClass(config.color)}
+          wrapperClassName={getInspectorColorClass(color ?? undefined)}
         >
-          {config.columns?.length === 0 ? (
+          {selectedCount === 0 ? (
             <p className="text-sm text-muted-foreground py-2">
               No columns selected
             </p>
@@ -196,8 +210,10 @@ export function DefaultInspectorPreview({
           ) : (
             <PropertiesList
               entries={entries}
-              layout={config.layout ?? "single"}
-              dividerBackgroundClassName={getInspectorColorClass(config.color)}
+              layout={layout ?? "single"}
+              dividerBackgroundClassName={getInspectorColorClass(
+                color ?? undefined,
+              )}
             />
           )}
         </TogglePanel>

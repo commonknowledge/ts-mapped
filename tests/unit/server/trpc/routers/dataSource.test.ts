@@ -46,7 +46,6 @@ describe("dataSource router tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-      inspectorColumns: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: { type: GeocodingType.None },

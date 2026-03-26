@@ -15,11 +15,7 @@ import { createPortal } from "react-dom";
 import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/shadcn/ui/label";
 import { AvailableListWithDividers } from "./AvailableListWithDividers";
-import {
-  SELECTED_DROPPABLE_ID,
-  SELECTED_LEFT_DROPPABLE_ID,
-  inferFormat,
-} from "./constants";
+import { SELECTED_DROPPABLE_ID, SELECTED_LEFT_DROPPABLE_ID } from "./constants";
 import {
   AvailableDragPreview,
   ColumnDragPreview,
@@ -35,30 +31,30 @@ import type { DragEndEvent } from "@dnd-kit/core";
 function isDivider(
   item: InspectorColumnItem,
 ): item is { type: "divider"; id: string; label: string } {
-  return typeof item === "object" && item !== null && item.type === "divider";
+  return item.type === "divider";
+}
+
+function isColumn(
+  item: InspectorColumnItem,
+): item is Extract<InspectorColumnItem, { type: "column" }> {
+  return item.type === "column";
 }
 
 export function ColumnsSection({
-  allColumnsInOrder,
   selectedColumnsInOrder,
   selectedItemsInOrder,
   availableColumns,
   columnIds,
-  columns,
-  columnMetadata,
   updateConfig,
   handleAddColumn,
   handleRemoveColumn,
   handleRemoveColumnFromRight,
 }: {
   config: InspectorDataSourceConfig;
-  allColumnsInOrder: string[];
   selectedColumnsInOrder: string[];
   selectedItemsInOrder: InspectorColumnItem[];
   availableColumns: string[];
   columnIds: string[];
-  columns: string[];
-  columnMetadata: Record<string, { displayName?: string }>;
   updateConfig: (
     updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
   ) => void;
@@ -78,10 +74,15 @@ export function ColumnsSection({
   const selectedSectionIds = useMemo(
     () =>
       selectedItemsInOrder.map((item, i) =>
-        typeof item === "string"
-          ? `left-selected-${i}-${item}`
+        isColumn(item)
+          ? `left-selected-${i}-${item.name}`
           : `divider-${item.id}`,
       ),
+    [selectedItemsInOrder],
+  );
+
+  const columnItems = useMemo(
+    () => selectedItemsInOrder.filter(isColumn),
     [selectedItemsInOrder],
   );
 
@@ -111,19 +112,9 @@ export function ColumnsSection({
         const next = [...selectedItemsInOrder];
         const [removed] = next.splice(oldIndex, 1);
         next.splice(newIndex, 0, removed);
-        const nextColumnOrder = [
-          ...next.filter((i): i is string => typeof i === "string"),
-          ...availableColumns,
-        ];
-        const nextColumnItems = next.some((i) => isDivider(i))
-          ? next
-          : undefined;
         updateConfig((prev) => ({
           ...prev,
-          columnOrder: nextColumnOrder,
-          ...(nextColumnItems !== undefined && {
-            columnItems: nextColumnItems,
-          }),
+          inspectorColumnItems: next,
         }));
         return;
       }
@@ -139,26 +130,25 @@ export function ColumnsSection({
         if (!isSelectedItem(overStr) && overStr !== SELECTED_DROPPABLE_ID)
           return;
         if (newIndex === -1 && overStr !== SELECTED_DROPPABLE_ID) return;
-        const next = [...selectedColumnsInOrder];
-        const [removed] = next.splice(oldIndex, 1);
-        next.splice(newIndex, 0, removed);
-        const newColumnOrder = [
-          ...next,
-          ...allColumnsInOrder.filter((c) => !next.includes(c)),
-        ];
+        const nextColOrder = [...selectedColumnsInOrder];
+        const [removed] = nextColOrder.splice(oldIndex, 1);
+        nextColOrder.splice(newIndex, 0, removed);
         updateConfig((prev) => {
-          const base = {
+          const colItemsMap = new Map(
+            (prev.inspectorColumnItems ?? [])
+              .filter(isColumn)
+              .map((ci) => [ci.name, ci]),
+          );
+          const newColItems = nextColOrder
+            .map((name) => colItemsMap.get(name))
+            .filter((c) => c !== undefined);
+          let colIdx = 0;
+          return {
             ...prev,
-            columns: next,
-            columnOrder: newColumnOrder,
+            inspectorColumnItems: (prev.inspectorColumnItems ?? []).map(
+              (item) => (isColumn(item) ? newColItems[colIdx++] : item),
+            ),
           };
-          if (prev.columnItems?.length && prev.columnItems.some(isDivider)) {
-            let colIdx = 0;
-            base.columnItems = prev.columnItems.map((i) =>
-              isDivider(i) ? i : next[colIdx++],
-            );
-          }
-          return base;
         });
         return;
       }
@@ -167,9 +157,7 @@ export function ColumnsSection({
       columnIds,
       selectedSectionIds,
       selectedItemsInOrder,
-      availableColumns,
       updateConfig,
-      allColumnsInOrder,
       selectedColumnsInOrder,
     ],
   );
@@ -187,25 +175,15 @@ export function ColumnsSection({
           <button
             type="button"
             onClick={() =>
-              updateConfig((prev) => {
-                const nextColumns = [
-                  ...(prev.columns ?? []),
-                  ...availableColumns,
-                ];
-                const nextMeta = { ...(prev.columnMetadata ?? {}) };
-                availableColumns.forEach((col) => {
-                  const inferred = inferFormat(col);
-                  if (inferred && !nextMeta[col]?.format) {
-                    nextMeta[col] = { ...nextMeta[col], format: inferred };
-                  }
-                });
-                return {
-                  ...prev,
-                  columns: nextColumns,
-                  columnOrder: nextColumns,
-                  columnMetadata: nextMeta,
-                };
-              })
+              updateConfig((prev) => ({
+                ...prev,
+                inspectorColumnItems: [
+                  ...(prev.inspectorColumnItems ?? []),
+                  ...availableColumns.map(
+                    (n): InspectorColumnItem => ({ type: "column", name: n }),
+                  ),
+                ],
+              }))
             }
             disabled={availableColumns.length === 0}
             className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
@@ -217,12 +195,12 @@ export function ColumnsSection({
             onClick={() =>
               updateConfig((prev) => ({
                 ...prev,
-                columns: [],
-                columnItems:
-                  prev.columnItems?.filter(isDivider) ?? prev.columnItems,
+                inspectorColumnItems: (prev.inspectorColumnItems ?? []).filter(
+                  isDivider,
+                ),
               }))
             }
-            disabled={columns.length === 0}
+            disabled={selectedColumnsInOrder.length === 0}
             className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
           >
             Remove all
@@ -248,31 +226,28 @@ export function ColumnsSection({
               onAddColumn={handleAddColumn}
               onRemoveColumn={handleRemoveColumn}
               onAddDivider={() =>
-                updateConfig((prev) => {
-                  const items = prev.columnItems ?? prev.columns.map((c) => c);
-                  return {
-                    ...prev,
-                    columnItems: [
-                      ...items,
-                      { type: "divider" as const, id: uuidv4(), label: "" },
-                    ],
-                  };
-                })
+                updateConfig((prev) => ({
+                  ...prev,
+                  inspectorColumnItems: [
+                    ...(prev.inspectorColumnItems ?? []),
+                    { type: "divider" as const, id: uuidv4(), label: "" },
+                  ],
+                }))
               }
               onDividerLabelChange={(id, label) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  columnItems: (prev.columnItems ?? []).map((i) =>
-                    isDivider(i) && i.id === id ? { ...i, label } : i,
+                  inspectorColumnItems: (prev.inspectorColumnItems ?? []).map(
+                    (i) => (isDivider(i) && i.id === id ? { ...i, label } : i),
                   ),
                 }))
               }
               onRemoveDivider={(id) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  columnItems: (prev.columnItems ?? []).filter(
-                    (i) => !(isDivider(i) && i.id === id),
-                  ),
+                  inspectorColumnItems: (
+                    prev.inspectorColumnItems ?? []
+                  ).filter((i) => !(isDivider(i) && i.id === id)),
                 }))
               }
               activeId={activeId}
@@ -292,31 +267,28 @@ export function ColumnsSection({
               onAddColumn={handleAddColumn}
               onRemoveColumn={handleRemoveColumn}
               onAddDivider={() =>
-                updateConfig((prev) => {
-                  const items = prev.columnItems ?? prev.columns.map((c) => c);
-                  return {
-                    ...prev,
-                    columnItems: [
-                      ...items,
-                      { type: "divider" as const, id: uuidv4(), label: "" },
-                    ],
-                  };
-                })
+                updateConfig((prev) => ({
+                  ...prev,
+                  inspectorColumnItems: [
+                    ...(prev.inspectorColumnItems ?? []),
+                    { type: "divider" as const, id: uuidv4(), label: "" },
+                  ],
+                }))
               }
               onDividerLabelChange={(id, label) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  columnItems: (prev.columnItems ?? []).map((i) =>
-                    isDivider(i) && i.id === id ? { ...i, label } : i,
+                  inspectorColumnItems: (prev.inspectorColumnItems ?? []).map(
+                    (i) => (isDivider(i) && i.id === id ? { ...i, label } : i),
                   ),
                 }))
               }
               onRemoveDivider={(id) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  columnItems: (prev.columnItems ?? []).filter(
-                    (i) => !(isDivider(i) && i.id === id),
-                  ),
+                  inspectorColumnItems: (
+                    prev.inspectorColumnItems ?? []
+                  ).filter((i) => !(isDivider(i) && i.id === id)),
                 }))
               }
               activeId={activeId}
@@ -331,7 +303,7 @@ export function ColumnsSection({
             </p>
             <DroppableSelectedColumns
               columns={selectedColumnsInOrder}
-              columnMetadata={columnMetadata}
+              columnItems={columnItems}
               updateConfig={updateConfig}
               onRemoveColumn={handleRemoveColumnFromRight}
               activeId={activeId}
@@ -342,10 +314,7 @@ export function ColumnsSection({
           createPortal(
             <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
               {activeId && String(activeId).startsWith("col-") ? (
-                <ColumnDragPreview
-                  activeId={String(activeId)}
-                  columnMetadata={columnMetadata}
-                />
+                <ColumnDragPreview activeId={String(activeId)} />
               ) : activeId && String(activeId).startsWith("divider-") ? (
                 <DividerDragPreview
                   label={(() => {

@@ -29,6 +29,7 @@ export function resolveColumnMetadata(
       valueColors: override.valueColors
         ? { ...base.valueColors, ...override.valueColors }
         : base.valueColors,
+      semanticType: override.semanticType ?? base.semanticType,
     };
   });
 }

@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { ColumnMetadata, InspectorColumn } from "@/models/DataSource";
+import type { ColumnMetadata } from "@/models/DataSource";
 
 export async function findDataSourceOrganisationOverride(
   organisationId: string,
@@ -31,15 +31,14 @@ export async function upsertDataSourceOrganisationOverride(
   organisationId: string,
   dataSourceId: string,
   columnMetadata: ColumnMetadata[],
-  inspectorColumns: InspectorColumn[],
 ) {
   return db
     .insertInto("dataSourceOrganisationOverride")
-    .values({ organisationId, dataSourceId, columnMetadata, inspectorColumns })
+    .values({ organisationId, dataSourceId, columnMetadata })
     .onConflict((oc) =>
       oc
         .columns(["organisationId", "dataSourceId"])
-        .doUpdateSet({ columnMetadata, inspectorColumns }),
+        .doUpdateSet({ columnMetadata }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();

@@ -70,15 +70,10 @@ export interface DataSourceItemProps {
   dataSource: DataSourceWithImportInfo;
   className?: string;
   density?: "default" | "compact" | "compactPreview";
-  previewImageUrl?: string | null | undefined;
   showColumnPreview?: boolean;
-  defaultColumnName?: string | null | undefined;
   maxColumnPills?: number;
   columnPreviewVariant?: "pills" | "text";
   singleLineColumnPreview?: boolean;
-  overrideTitle?: string | null | undefined;
-  overrideIconName?: string | null | undefined;
-  overrideDescription?: string | null | undefined;
   hideTypeLabel?: boolean;
   /** Hide when every item in context is published (e.g. Movement Data Library). */
   hidePublishedBadge?: boolean;
@@ -88,54 +83,31 @@ export function DataSourceItem({
   dataSource,
   className,
   density = "default",
-  previewImageUrl,
   showColumnPreview,
-  defaultColumnName,
   maxColumnPills = 8,
   columnPreviewVariant = "pills",
   singleLineColumnPreview,
-  overrideTitle,
-  overrideIconName,
-  overrideDescription,
   hideTypeLabel,
   hidePublishedBadge = false,
 }: DataSourceItemProps) {
   const dataSourceType = getDataSourceType(dataSource);
   const lastImported = dataSource.importInfo?.lastCompleted;
-  const [previewState, setPreviewState] = useState<"jpg" | "png" | "none">(
-    "jpg",
-  );
+  const [imageError, setImageError] = useState(false);
 
-  const resolvedPreviewUrl = useMemo(() => {
-    if (!previewImageUrl) return null;
-    if (previewState === "none") return null;
-
-    // If the caller is not using our `/data-source-previews/...` scheme, don't mutate it.
-    if (!previewImageUrl.includes("/data-source-previews/"))
-      return previewImageUrl;
-
-    const match = previewImageUrl.match(/^(.*)\.(jpg|png)(\?.*)?$/);
-    if (!match) return previewImageUrl;
-    const [, base, , query = ""] = match;
-    return `${base}.${previewState}${query}`;
-  }, [previewImageUrl, previewState]);
+  const resolvedPreviewUrl = !imageError
+    ? (dataSource.defaultInspectorConfig?.screenshotUrl ?? null)
+    : null;
 
   const lastImportedText = lastImported
     ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
     : null;
 
-  const displayTitle = overrideTitle?.trim()
-    ? overrideTitle.trim()
-    : dataSource.name;
-  const iconName = overrideIconName?.trim() ? overrideIconName.trim() : "";
-  const fallbackDescription = (
-    dataSource as unknown as { movementLibraryDescription?: string | null }
-  ).movementLibraryDescription;
-  const displayDescription = overrideDescription?.trim()
-    ? overrideDescription.trim()
-    : fallbackDescription?.trim()
-      ? fallbackDescription.trim()
-      : null;
+  const defaultColumnName = dataSource.defaultChoroplethConfig?.column ?? null;
+  const displayTitle =
+    dataSource.defaultInspectorConfig?.name?.trim() || dataSource.name;
+  const iconName = dataSource.defaultInspectorConfig?.icon?.trim() ?? "";
+  const displayDescription =
+    dataSource.defaultInspectorConfig?.description?.trim() || null;
 
   const columnNames = useMemo(() => {
     const cols = dataSource.columnDefs.map((c) => c.name);
@@ -199,9 +171,7 @@ export function DataSourceItem({
             fill
             sizes="(max-width: 768px) 90vw, 640px"
             className="rounded-md border border-neutral-200 object-cover bg-neutral-50"
-            onError={() => {
-              setPreviewState((prev) => (prev === "jpg" ? "png" : "none"));
-            }}
+            onError={() => setImageError(true)}
           />
         </div>
 

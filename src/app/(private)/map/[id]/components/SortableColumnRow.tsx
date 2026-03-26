@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
 import { type MouseEvent, useEffect, useState } from "react";
+import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -21,27 +22,26 @@ import {
   SMART_MATCH_BAR_COLOR_VALUE,
   getSmartMatchInfo,
 } from "./InspectorPanel/inspectorPanelOptions";
-import type {
-  InspectorColumnFormat,
-  InspectorComparisonStat,
-} from "@/models/MapView";
 
-const FORMAT_OPTIONS: { value: InspectorColumnFormat; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "numberWithComparison", label: "Number with comparison" },
-  { value: "percentage", label: "Percentage (bar)" },
-  { value: "scale", label: "Scale (bars)" },
+const FORMAT_OPTIONS: { value: ColumnDisplayFormat; label: string }[] = [
+  { value: ColumnDisplayFormat.Text, label: "Text" },
+  { value: ColumnDisplayFormat.Number, label: "Number" },
+  {
+    value: ColumnDisplayFormat.NumberWithComparison,
+    label: "Number with comparison",
+  },
+  { value: ColumnDisplayFormat.Percentage, label: "Percentage (bar)" },
+  { value: ColumnDisplayFormat.Scale, label: "Scale (bars)" },
 ];
 
 const COMPARISON_STAT_OPTIONS: {
   value: InspectorComparisonStat;
   label: string;
 }[] = [
-  { value: "average", label: "Average" },
-  { value: "median", label: "Median" },
-  { value: "min", label: "Min" },
-  { value: "max", label: "Max" },
+  { value: InspectorComparisonStat.Average, label: "Average" },
+  { value: InspectorComparisonStat.Median, label: "Median" },
+  { value: InspectorComparisonStat.Min, label: "Min" },
+  { value: InspectorComparisonStat.Max, label: "Max" },
 ];
 
 function barColorSelectValue(barColor: string | undefined): string {
@@ -154,7 +154,7 @@ export function SortableColumnRow({
   onDisplayNameChange,
   description,
   onDescriptionChange,
-  format = "text",
+  format = ColumnDisplayFormat.Text,
   onFormatChange,
   comparisonStat,
   onComparisonStatChange,
@@ -167,12 +167,12 @@ export function SortableColumnRow({
 }: {
   id: string;
   columnName: string;
-  displayName: string | undefined;
-  onDisplayNameChange: (value: string) => void;
+  displayName?: string;
+  onDisplayNameChange?: (value: string) => void;
   description?: string;
   onDescriptionChange?: (value: string) => void;
-  format?: InspectorColumnFormat;
-  onFormatChange?: (format: InspectorColumnFormat) => void;
+  format?: ColumnDisplayFormat;
+  onFormatChange?: (format: ColumnDisplayFormat) => void;
   comparisonStat?: InspectorComparisonStat;
   onComparisonStatChange?: (value: InspectorComparisonStat) => void;
   scaleMax?: number;
@@ -184,7 +184,10 @@ export function SortableColumnRow({
 }) {
   const [localDisplayName, setLocalDisplayName] = useState(displayName ?? "");
   useEffect(() => setLocalDisplayName(displayName ?? ""), [displayName]);
-  const debouncedChange = useDebouncedCallback(onDisplayNameChange, 600);
+  const debouncedChange = useDebouncedCallback(
+    (v: string) => onDisplayNameChange?.(v),
+    600,
+  );
 
   const [localDescription, setLocalDescription] = useState(description ?? "");
   useEffect(() => setLocalDescription(description ?? ""), [description]);
@@ -297,7 +300,7 @@ export function SortableColumnRow({
           </Label>
           <Select
             value={format}
-            onValueChange={(v) => onFormatChange(v as InspectorColumnFormat)}
+            onValueChange={(v) => onFormatChange(v as ColumnDisplayFormat)}
           >
             <SelectTrigger
               className="h-7 text-xs"
@@ -315,7 +318,7 @@ export function SortableColumnRow({
           </Select>
         </div>
       )}
-      {format === "scale" && onScaleMaxChange && (
+      {format === ColumnDisplayFormat.Scale && onScaleMaxChange && (
         <div className="space-y-1">
           <Label className="text-[10px] text-muted-foreground uppercase">
             Scale max
@@ -337,42 +340,45 @@ export function SortableColumnRow({
           />
         </div>
       )}
-      {format === "numberWithComparison" && onComparisonStatChange && (
-        <div className="space-y-1">
-          <Label className="text-[10px] text-muted-foreground uppercase">
-            Compare against
-          </Label>
-          <Select
-            value={comparisonStat ?? "average"}
-            onValueChange={(v) =>
-              onComparisonStatChange(v as InspectorComparisonStat)
-            }
-          >
-            <SelectTrigger
-              className="h-7 text-xs"
-              onClick={(e) => e.stopPropagation()}
+      {format === ColumnDisplayFormat.NumberWithComparison &&
+        onComparisonStatChange && (
+          <div className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground uppercase">
+              Compare against
+            </Label>
+            <Select
+              value={comparisonStat ?? InspectorComparisonStat.Average}
+              onValueChange={(v) =>
+                onComparisonStatChange(v as InspectorComparisonStat)
+              }
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {COMPARISON_STAT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      {(format === "percentage" || format === "scale") && onBarColorChange && (
-        <BarColorSelect
-          barColor={barColor}
-          onBarColorChange={onBarColorChange}
-          displayName={displayName}
-          columnName={columnName}
-          onClick={(e) => e.stopPropagation()}
-        />
-      )}
+              <SelectTrigger
+                className="h-7 text-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COMPARISON_STAT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      {(format === ColumnDisplayFormat.Percentage ||
+        format === ColumnDisplayFormat.Scale) &&
+        onBarColorChange && (
+          <BarColorSelect
+            barColor={barColor}
+            onBarColorChange={onBarColorChange}
+            displayName={displayName}
+            columnName={columnName}
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
     </div>
   );
 }

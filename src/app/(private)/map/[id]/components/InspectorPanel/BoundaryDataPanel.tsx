@@ -48,24 +48,19 @@ function useEffectiveConfig(
     const defaults = dataSource?.defaultInspectorConfig;
     if (!defaults) return config;
 
-    const hasStoredColumns = config.columns.length > 0;
-    const hasStoredMeta =
-      config.columnMetadata != null &&
-      Object.keys(config.columnMetadata).length > 0;
+    const hasStoredItems =
+      config.inspectorColumnItems != null &&
+      config.inspectorColumnItems.length > 0;
 
-    if (hasStoredColumns || hasStoredMeta) return config;
+    if (hasStoredItems) return config;
 
     // Per-map config is unconfigured — use the superadmin defaults
     return {
       ...config,
-      columns: defaults.columns ?? [],
-      columnOrder: defaults.columnOrder ?? config.columnOrder,
-      columnItems: defaults.columnItems ?? config.columnItems,
-      columnMetadata: defaults.columnMetadata ?? config.columnMetadata,
-      columnGroups: defaults.columnGroups ?? config.columnGroups,
+      inspectorColumnItems: defaults.items ?? config.inspectorColumnItems,
       layout: defaults.layout ?? config.layout,
-      icon: defaults.icon ?? config.icon,
-      color: defaults.color ?? config.color,
+      icon: defaults.icon ?? config.icon ?? undefined,
+      color: defaults.color ?? config.color ?? undefined,
     };
   }, [config, dataSource]);
 }
@@ -96,18 +91,21 @@ export function BoundaryDataPanel({
   // Columns that need comparison baselines
   const comparisonColumns = useMemo(
     () =>
-      (effectiveConfig.columns ?? [])
+      (effectiveConfig.inspectorColumnItems ?? [])
         .filter(
-          (col) =>
-            effectiveConfig.columnMetadata?.[col]?.format ===
-            "numberWithComparison",
+          (item): item is Extract<typeof item, { type: "column" }> =>
+            item.type === "column" &&
+            item.displayFormat === "NumberWithComparison",
         )
-        .map((col) => ({
-          col,
-          stat:
-            effectiveConfig.columnMetadata?.[col]?.comparisonStat ?? "average",
+        .map((item) => ({
+          col: item.name,
+          stat: (item.comparisonStat?.toLowerCase() ?? "average") as
+            | "average"
+            | "median"
+            | "min"
+            | "max",
         })),
-    [effectiveConfig.columns, effectiveConfig.columnMetadata],
+    [effectiveConfig.inspectorColumnItems],
   );
 
   const baselineQueries = useQueries({
@@ -115,7 +113,7 @@ export function BoundaryDataPanel({
       trpc.dataRecord.columnStat.queryOptions({
         dataSourceId: config.dataSourceId,
         columnName: col,
-        stat: stat as "average" | "median" | "min" | "max",
+        stat,
       }),
     ),
   });
@@ -245,8 +243,10 @@ function BoundaryDataProperties({
   comparisonBaselineLoading: Record<string, boolean>;
 }) {
   const entries = useMemo((): PropertyEntry[] => {
+    const items = getSelectedItemsOrdered(effectiveConfig, allColumnNames);
+
     // If no columns are configured, fall back to showing all columns from json
-    if (!effectiveConfig.columns.length && !effectiveConfig.columnMetadata) {
+    if (items.filter((i) => i.type === "column").length === 0) {
       return Object.entries(json)
         .filter(([, v]) => v !== null && v !== undefined && String(v) !== "")
         .map(([key, value]) => ({
@@ -258,8 +258,6 @@ function BoundaryDataProperties({
         }));
     }
 
-    const items = getSelectedItemsOrdered(effectiveConfig, allColumnNames);
-    const meta = effectiveConfig.columnMetadata ?? {};
     const result: PropertyEntry[] = [];
     let index = 0;
 
@@ -271,33 +269,34 @@ function BoundaryDataProperties({
           isDivider: true,
         });
       } else {
-        const m = meta[item];
-        const raw = json[item];
+        const raw = json[item.name];
         const value =
           raw !== undefined && raw !== null && String(raw) !== "" ? raw : "—";
         result.push({
-          key: `col-${index}-${String(item)}`,
-          label: m?.displayName ?? item,
+          key: `col-${index}-${item.name}`,
+          label: item.name,
           value,
-          format: m?.format,
-          scaleMax: m?.scaleMax,
+          format: item.displayFormat,
+          scaleMax: item.scaleMax,
           barColor: getBarColorForLabel(
-            m?.displayName ?? item,
-            item,
+            item.name,
+            item.name,
             index,
-            m?.barColor,
+            item.barColor,
           ),
-          description:
-            m?.description ??
-            dataSource?.columnMetadata?.find((c) => c.name === item)
-              ?.description,
-          ...(m?.format === "numberWithComparison" && {
-            comparisonBaseline: comparisonBaselines[item] ?? null,
+          description: dataSource?.columnMetadata?.find(
+            (c) => c.name === item.name,
+          )?.description,
+          ...(item.displayFormat === "NumberWithComparison" && {
+            comparisonBaseline: comparisonBaselines[item.name] ?? null,
             comparisonStat:
-              COMPARISON_STAT_LABEL[m.comparisonStat ?? "average"] ??
-              m.comparisonStat ??
+              COMPARISON_STAT_LABEL[
+                item.comparisonStat?.toLowerCase() ?? "average"
+              ] ??
+              item.comparisonStat ??
               "Average",
-            comparisonBaselineLoading: comparisonBaselineLoading[item] === true,
+            comparisonBaselineLoading:
+              comparisonBaselineLoading[item.name] === true,
           }),
         });
         index += 1;

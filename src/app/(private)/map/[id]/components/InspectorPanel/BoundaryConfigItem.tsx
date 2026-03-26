@@ -1,11 +1,10 @@
 import { ArrowDown, ArrowUp, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
-import { MultiSelect } from "@/shadcn/ui/multi-select";
 import { useDataSources } from "../../hooks/useDataSources";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
@@ -32,64 +31,9 @@ export function BoundaryConfigItem({
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(boundaryConfig.dataSourceId);
   const [configName, setConfigName] = useState(boundaryConfig.name || "");
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    boundaryConfig.columns || [],
-  );
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
-  const [movementMeta, setMovementMeta] = useState<{
-    title?: string;
-    icon?: string;
-    description?: string;
-  } | null>(null);
 
   const isMovementLibrary = Boolean(dataSource?.public);
-
-  const columnOptions = useMemo(() => {
-    if (!dataSource) return [];
-    return dataSource.columnDefs.map((col) => ({
-      value: col.name,
-      label: col.name,
-    }));
-  }, [dataSource]);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!dataSource?.public) {
-      setMovementMeta(null);
-      return;
-    }
-    void (async () => {
-      try {
-        const res = await fetch(
-          `/api/data-source-previews/${dataSource.id}/meta`,
-          {
-            method: "GET",
-          },
-        );
-        if (!res.ok) {
-          if (!cancelled) setMovementMeta(null);
-          return;
-        }
-        const meta = (await res.json()) as {
-          title?: string;
-          icon?: string;
-          description?: string;
-        };
-        if (!cancelled) {
-          setMovementMeta({
-            title: meta.title,
-            icon: meta.icon,
-            description: meta.description,
-          });
-        }
-      } catch {
-        if (!cancelled) setMovementMeta(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [dataSource?.id, dataSource?.public]);
 
   if (!dataSource) {
     return (
@@ -114,24 +58,14 @@ export function BoundaryConfigItem({
     });
   };
 
-  const handleColumnsChange = (newColumns: string[]) => {
-    setSelectedColumns(newColumns);
-    onUpdate({
-      ...boundaryConfig,
-      columns: newColumns,
-    });
-  };
-
   const handleDataSourceIdChange = (dataSourceId: string) => {
     const newDataSource = getDataSourceById(dataSourceId);
     const newName = newDataSource?.name ?? configName;
 
     setConfigName(newName || "");
-    setSelectedColumns([]);
     onUpdate({
       ...boundaryConfig,
       dataSourceId,
-      columns: [],
       name: newName,
     });
   };
@@ -188,24 +122,13 @@ export function BoundaryConfigItem({
               <DataSourceItem
                 className="shadow-xs"
                 density="compactPreview"
-                previewImageUrl={`/data-source-previews/${dataSource.id}.jpg`}
                 showColumnPreview={true}
                 columnPreviewVariant="pills"
                 maxColumnPills={8}
                 singleLineColumnPreview={false}
-                overrideTitle={movementMeta?.title}
-                overrideIconName={movementMeta?.icon}
-                overrideDescription={movementMeta?.description}
                 hideTypeLabel={true}
                 hidePublishedBadge={true}
-                dataSource={
-                  {
-                    ...dataSource,
-                    movementLibraryDescription: movementMeta?.description,
-                  } as typeof dataSource & {
-                    movementLibraryDescription?: string;
-                  }
-                }
+                dataSource={dataSource}
               />
             </button>
             <DataSourceSelectModal
@@ -242,17 +165,6 @@ export function BoundaryConfigItem({
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g. Main Data"
                 className="h-9 text-sm"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Columns</Label>
-              <MultiSelect
-                options={columnOptions}
-                selected={selectedColumns}
-                onChange={handleColumnsChange}
-                placeholder="Select columns..."
-                className="text-sm [&>div]:px-2.5 [&>div]:py-1.5"
               />
             </div>
           </div>

@@ -209,7 +209,7 @@ export default function EditColumnMetadataModal() {
       }}
     >
       {isOpen && (
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <div className="flex flex-col">
             <DialogHeader>
               <DialogTitle>

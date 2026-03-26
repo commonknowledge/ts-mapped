@@ -1,12 +1,11 @@
 import z from "zod";
 import { AreaSetCode } from "./AreaSet";
+import { CalculationType } from "./MapView";
 import {
   ColumnDisplayFormat,
   columnDisplayFormats,
-  inspectorColumnSchema,
-} from "./inspectorColumn";
-import { defaultInspectorDataSourceConfigSchema } from "./MapView";
-import type { InspectorColumn } from "./inspectorColumn";
+  inspectorColumnItemSchema,
+} from "./shared";
 
 export enum JobStatus {
   None = "None",
@@ -206,19 +205,41 @@ export enum ColumnType {
 export const columnTypes = Object.values(ColumnType);
 
 export enum ColumnSemanticType {
-  Auto = "Auto",
+  Text = "Text",
+  Number = "Number",
   Percentage01 = "Percentage01",
   Percentage0100 = "Percentage0100",
 }
 export const columnSemanticTypes = Object.values(ColumnSemanticType);
 
 export const numericColumnSemanticTypes = [
+  ColumnSemanticType.Number,
   ColumnSemanticType.Percentage01,
   ColumnSemanticType.Percentage0100,
 ] as const;
 
-export { ColumnDisplayFormat, columnDisplayFormats, inspectorColumnSchema };
-export type { InspectorColumn };
+export { ColumnDisplayFormat, columnDisplayFormats };
+
+export const defaultInspectorConfigSchema = z.object({
+  items: z.array(inspectorColumnItemSchema).default([]),
+  layout: z.enum(["single", "twoColumn"]).optional().nullable(),
+  color: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  icon: z.string().optional().nullable(),
+  screenshotUrl: z.string().optional().nullable(),
+});
+export type DefaultInspectorConfig = z.infer<
+  typeof defaultInspectorConfigSchema
+>;
+
+export const defaultChoroplethConfigSchema = z.object({
+  column: z.string(),
+  calculationType: z.nativeEnum(CalculationType),
+});
+export type DefaultChoroplethConfig = z.infer<
+  typeof defaultChoroplethConfigSchema
+>;
 
 export const columnDefSchema = z.object({
   name: z.string(),
@@ -231,6 +252,7 @@ export type ColumnDef = z.infer<typeof columnDefSchema>;
 // derived from the data, but columnMetadata is user-supplied
 export const columnMetadataSchema = z.object({
   name: z.string(),
+  displayName: z.string().optional(),
   description: z.string(),
   valueLabels: z.record(z.string(), z.string()),
   semanticType: z.nativeEnum(ColumnSemanticType).optional(),
@@ -266,7 +288,8 @@ export const dataSourceSchema = z.object({
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
   columnMetadata: z.array(columnMetadataSchema),
-  inspectorColumns: z.array(inspectorColumnSchema).default([]),
+  defaultInspectorConfig: defaultInspectorConfigSchema.nullish(),
+  defaultChoroplethConfig: defaultChoroplethConfigSchema.nullish(),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,
@@ -277,7 +300,6 @@ export const dataSourceSchema = z.object({
   dateFormat: z.string(),
   naIsNull: z.boolean().optional(),
   nullIsZero: z.boolean().optional(),
-  defaultInspectorConfig: defaultInspectorDataSourceConfigSchema.nullish(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;

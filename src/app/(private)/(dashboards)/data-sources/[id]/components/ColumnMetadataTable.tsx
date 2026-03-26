@@ -95,7 +95,10 @@ function ColumnValueLabelsCell({
             : "Configure labels"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" align="start">
+      <PopoverContent
+        className="w-72 p-0 max-h-64 overflow-y-auto"
+        align="start"
+      >
         <ValueLabelsEditor
           values={sortedValues}
           columnType={columnType}
@@ -179,16 +182,17 @@ function ColumnColorMappingsCell({
             : "Configure colours"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-0" align="start">
-        <div className="max-h-64 overflow-y-auto">
-          <ColorMappingsEditor
-            values={sortedValues}
-            colorMappings={localMappings}
-            onChange={handleChange}
-            onReset={handleReset}
-            onResetAll={handleResetAll}
-          />
-        </div>
+      <PopoverContent
+        className="w-56 p-0 max-h-64 overflow-y-auto"
+        align="start"
+      >
+        <ColorMappingsEditor
+          values={sortedValues}
+          colorMappings={localMappings}
+          onChange={handleChange}
+          onReset={handleReset}
+          onResetAll={handleResetAll}
+        />
       </PopoverContent>
     </Popover>
   );

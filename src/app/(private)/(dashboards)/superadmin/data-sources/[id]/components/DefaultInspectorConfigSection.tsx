@@ -2,24 +2,17 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import {
-  getAllColumnsSorted,
-  getColumnOrderState,
-  normalizeInspectorDataSourceConfig,
-} from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorColumnOrder";
+import { useCallback, useMemo } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
-import { ColumnsSection } from "@/app/(private)/map/[id]/components/InspectorPanel/InspectorSettingsModal/ColumnsSection";
+import { NULL_UUID } from "@/constants";
+import { ColumnSemanticTypeLabels } from "@/labels";
+import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import {
-  DEFAULT_SELECT_VALUE,
-  inferFormat,
-} from "@/app/(private)/map/[id]/components/InspectorPanel/InspectorSettingsModal/constants";
-import {
-  type DefaultInspectorDataSourceConfig,
-  type InspectorDataSourceConfig,
-  InspectorDataSourceConfigType,
-} from "@/models/MapView";
+  ColumnDisplayFormat,
+  InspectorComparisonStat,
+  columnDisplayFormats,
+} from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -31,84 +24,52 @@ import {
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
-import type { InspectorLayout } from "@/app/(private)/map/[id]/components/InspectorPanel/InspectorSettingsModal/constants";
-import type { DataSource } from "@/models/DataSource";
+import type { ColumnMetadata, DataSource } from "@/models/DataSource";
+import type { InspectorColumnItem } from "@/models/shared";
 
-const PLACEHOLDER_ID = "__default_inspector_edit__";
+type InspectorLayout = "single" | "twoColumn";
 
-function toEditingConfig(
-  dataSourceId: string,
-  defaultConfig: DefaultInspectorDataSourceConfig | null | undefined,
-  dataSourceName: string,
-): InspectorDataSourceConfig {
-  if (!defaultConfig) {
-    return {
-      id: PLACEHOLDER_ID,
-      dataSourceId,
-      name: dataSourceName,
-      type: InspectorDataSourceConfigType.Simple,
-      columns: [],
-      columnMetadata: undefined,
-      columnGroups: undefined,
-      layout: "single",
-    };
-  }
-  return {
-    id: PLACEHOLDER_ID,
-    dataSourceId,
-    name: defaultConfig.name,
-    type: defaultConfig.type,
-    columns: defaultConfig.columns ?? [],
-    columnOrder: defaultConfig.columnOrder,
-    columnItems: defaultConfig.columnItems,
-    columnMetadata: defaultConfig.columnMetadata,
-    columnGroups: defaultConfig.columnGroups,
-    layout: defaultConfig.layout ?? "single",
-    icon: defaultConfig.icon,
-    color: defaultConfig.color,
-  };
+function isDivider(
+  item: InspectorColumnItem,
+): item is { type: "divider"; id: string; label: string } {
+  return item.type === "divider";
 }
 
-function toDefaultConfig(
-  config: InspectorDataSourceConfig,
-): DefaultInspectorDataSourceConfig {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, dataSourceId, ...rest } = config;
-  return rest;
+interface DefaultInspectorConfigSectionProps {
+  dataSource: DataSource;
+  items: InspectorColumnItem[];
+  layout: InspectorLayout;
+  color: string | null;
+  name: string;
+  icon: string;
+  isSaving: boolean;
+  onChange: (patch: {
+    items?: InspectorColumnItem[];
+    layout?: InspectorLayout;
+    color?: string | null;
+  }) => void;
 }
 
 export function DefaultInspectorConfigSection({
   dataSource,
-  forcedTitle,
-  forcedIcon,
-}: {
-  dataSource: DataSource;
-  forcedTitle?: string | null | undefined;
-  forcedIcon?: string | null | undefined;
-}) {
+  items,
+  layout,
+  color,
+  name,
+  icon,
+  isSaving,
+  onChange,
+}: DefaultInspectorConfigSectionProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-
-  const { mutateAsync: saveDefaultConfig } = useMutation(
-    trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: trpc.dataSource.listPublic.queryKey(),
-        });
-      },
-      onError: (err) => {
-        toast.error(
-          err.message || "Failed to save default inspector settings.",
+  const { mutate: patchSemanticType } = useMutation(
+    trpc.dataSource.patchColumnMetadataSuperadmin.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries(
+          trpc.dataSource.listPublic.queryFilter(),
         );
       },
     }),
-  );
-
-  const onSave = useCallback(
-    async (config: DefaultInspectorDataSourceConfig) => {
-      await saveDefaultConfig({ dataSourceId: dataSource.id, config });
-    },
-    [dataSource.id, saveDefaultConfig],
   );
 
   const allColumnNames = useMemo(
@@ -116,221 +77,138 @@ export function DefaultInspectorConfigSection({
     [dataSource.columnDefs],
   );
 
-  const [localConfig, setLocalConfig] = useState<InspectorDataSourceConfig>(
-    () => {
-      const raw = toEditingConfig(
-        dataSource.id,
-        dataSource.defaultInspectorConfig,
-        dataSource.name,
-      );
-      const allCols = dataSource.columnDefs.map((c) => c.name);
-      return normalizeInspectorDataSourceConfig(raw, allCols) ?? raw;
-    },
+  const selectedColumnNames = useMemo(
+    () =>
+      items
+        .filter(
+          (i): i is Extract<InspectorColumnItem, { type: "column" }> =>
+            i.type === "column",
+        )
+        .map((i) => i.name),
+    [items],
   );
 
-  // Keep inspector title/icon aligned with the "General" settings.
-  useEffect(() => {
-    const nextName =
-      forcedTitle && forcedTitle.trim().length > 0
-        ? forcedTitle.trim()
-        : dataSource.name;
-    const nextIcon =
-      forcedIcon && forcedIcon.trim().length > 0
-        ? forcedIcon.trim()
-        : undefined;
-
-    setLocalConfig((prev) => {
-      const changed = prev.name !== nextName || prev.icon !== nextIcon;
-      if (!changed) return prev;
-      return { ...prev, name: nextName, icon: nextIcon };
-    });
-    // Intentionally do not mark dirty; the source of truth is the General section.
-  }, [dataSource.name, forcedIcon, forcedTitle]);
-
-  const [isSaving, setIsSaving] = useState(false);
-  const didInitAutoSaveRef = useRef(false);
-  const autoSaveTimeoutRef = useRef<number | null>(null);
-
-  // Cancel is no longer exposed; inspector settings auto-save.
-
-  const allColumnsSorted = useMemo(
-    () => getAllColumnsSorted(allColumnNames),
-    [allColumnNames],
+  const availableColumns = useMemo(
+    () => allColumnNames.filter((n) => !selectedColumnNames.includes(n)),
+    [allColumnNames, selectedColumnNames],
   );
-
-  const {
-    allColumnsInOrder,
-    selectedColumnsInOrder,
-    selectedItemsInOrder,
-    availableColumns,
-    columnIds,
-  } = useMemo(
-    () => getColumnOrderState(localConfig, allColumnNames),
-    [localConfig, allColumnNames],
-  );
-
-  const updateConfig = useCallback(
-    (
-      updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
-    ) => {
-      setLocalConfig((prev) => {
-        const next = updater(prev);
-        return normalizeInspectorDataSourceConfig(next, allColumnNames) ?? next;
-      });
-    },
-    [allColumnNames],
-  );
-
-  // Auto-save inspector config changes (debounced).
-  useEffect(() => {
-    if (!didInitAutoSaveRef.current) {
-      didInitAutoSaveRef.current = true;
-      return;
-    }
-    if (autoSaveTimeoutRef.current) {
-      window.clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    autoSaveTimeoutRef.current = window.setTimeout(() => {
-      setIsSaving(true);
-      void onSave(toDefaultConfig(localConfig))
-        .catch(() => {
-          // toast handled by mutation onError
-        })
-        .finally(() => {
-          setIsSaving(false);
-        });
-    }, 600);
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        window.clearTimeout(autoSaveTimeoutRef.current);
-        autoSaveTimeoutRef.current = null;
-      }
-    };
-  }, [localConfig, onSave]);
 
   const handleAddColumn = useCallback(
     (colName: string) => {
-      if (!allColumnNames.includes(colName)) return;
-      const inferred = inferFormat(colName);
-      updateConfig((prev) => {
-        if (prev.columns.includes(colName)) return prev;
-        const order = prev.columnOrder?.filter((c) =>
-          allColumnNames.includes(c),
-        );
-        const baseOrder =
-          order?.length === allColumnNames.length ? order : allColumnsSorted;
-        const newOrder = [...baseOrder.filter((c) => c !== colName), colName];
-        const nextColumns = [...prev.columns, colName];
-        const nextItems = prev.columnItems
-          ? [...prev.columnItems, colName]
-          : undefined;
-        return {
-          ...prev,
-          columns: nextColumns,
-          columnOrder: newOrder,
-          ...(nextItems && { columnItems: nextItems }),
-          columnMetadata: {
-            ...prev.columnMetadata,
-            [colName]: {
-              ...prev.columnMetadata?.[colName],
-              format:
-                prev.columnMetadata?.[colName]?.format ?? inferred ?? undefined,
-            },
-          },
-        };
+      onChange({
+        items: [...items, { type: "column", name: colName }],
       });
     },
-    [updateConfig, allColumnNames, allColumnsSorted],
+    [items, onChange],
   );
 
   const handleRemoveColumn = useCallback(
     (colName: string) => {
-      updateConfig((prev) => {
-        const nextColumns = prev.columns.filter((c) => c !== colName);
-        const nextMeta = Object.fromEntries(
-          Object.entries(prev.columnMetadata ?? {}).filter(
-            ([k]) => k !== colName,
-          ),
-        );
-        const order = prev.columnOrder?.filter((c) =>
-          allColumnNames.includes(c),
-        );
-        const baseOrder =
-          order?.length === allColumnNames.length ? order : allColumnsSorted;
-        const newOrder = [...baseOrder.filter((c) => c !== colName), colName];
-        const nextItems = prev.columnItems?.filter((i) => i !== colName);
-        return {
-          ...prev,
-          columns: nextColumns,
-          columnOrder: newOrder,
-          ...(nextItems !== undefined && { columnItems: nextItems }),
-          columnMetadata: nextMeta,
-        };
+      onChange({
+        items: items.filter(
+          (i) => !(i.type === "column" && i.name === colName),
+        ),
       });
     },
-    [updateConfig, allColumnNames, allColumnsSorted],
+    [items, onChange],
   );
 
-  const handleRemoveColumnFromRight = useCallback(
-    (colName: string) => {
-      updateConfig((prev) => {
-        const nextColumns = prev.columns.filter((c) => c !== colName);
-        const nextMeta = Object.fromEntries(
-          Object.entries(prev.columnMetadata ?? {}).filter(
-            ([k]) => k !== colName,
-          ),
-        );
-        const newColumnOrder = [
-          ...nextColumns,
-          ...allColumnsInOrder.filter((c) => !nextColumns.includes(c)),
-        ];
-        const nextItems = prev.columnItems?.filter((i) => i !== colName);
-        return {
-          ...prev,
-          columns: nextColumns,
-          columnOrder: newColumnOrder,
-          ...(nextItems !== undefined && { columnItems: nextItems }),
-          columnMetadata: nextMeta,
-        };
+  const handleAddAll = useCallback(() => {
+    const newItems = availableColumns.map(
+      (n): InspectorColumnItem => ({ type: "column", name: n }),
+    );
+    onChange({ items: [...items, ...newItems] });
+  }, [items, availableColumns, onChange]);
+
+  const handleRemoveAll = useCallback(() => {
+    onChange({ items: items.filter((i) => isDivider(i)) });
+  }, [items, onChange]);
+
+  const handleAddDivider = useCallback(() => {
+    onChange({
+      items: [...items, { type: "divider", id: uuidv4(), label: "" }],
+    });
+  }, [items, onChange]);
+
+  const handleMoveUp = useCallback(
+    (index: number) => {
+      if (index === 0) return;
+      const next = [...items];
+      [next[index - 1], next[index]] = [next[index], next[index - 1]];
+      onChange({ items: next });
+    },
+    [items, onChange],
+  );
+
+  const handleMoveDown = useCallback(
+    (index: number) => {
+      if (index >= items.length - 1) return;
+      const next = [...items];
+      [next[index], next[index + 1]] = [next[index + 1], next[index]];
+      onChange({ items: next });
+    },
+    [items, onChange],
+  );
+
+  const handleUpdateColumnItem = useCallback(
+    (
+      colName: string,
+      patch: Partial<Extract<InspectorColumnItem, { type: "column" }>>,
+    ) => {
+      onChange({
+        items: items.map((i) =>
+          i.type === "column" && i.name === colName ? { ...i, ...patch } : i,
+        ),
       });
     },
-    [updateConfig, allColumnsInOrder],
+    [items, onChange],
   );
 
-  const columnMetadata = localConfig.columnMetadata ?? {};
-  const layout = (localConfig.layout ?? "single") as InspectorLayout;
-  const panelColor = localConfig.color ?? undefined;
-  const columns = localConfig.columns ?? [];
+  const handleUpdateDivider = useCallback(
+    (id: string, label: string) => {
+      onChange({
+        items: items.map((i) =>
+          isDivider(i) && i.id === id ? { ...i, label } : i,
+        ),
+      });
+    },
+    [items, onChange],
+  );
+
+  const handleRemoveDivider = useCallback(
+    (id: string) => {
+      onChange({ items: items.filter((i) => !(isDivider(i) && i.id === id)) });
+    },
+    [items, onChange],
+  );
 
   return (
     <div className="flex gap-6 w-full min-w-0">
       <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 p-6 space-y-6">
-        <div>
-          <h3 className="text-sm font-medium mb-1">
-            Default inspector settings
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Configure how this public data source appears in the inspector when
-            added to a map. These settings are used as defaults for all users.
-          </p>
-        </div>
-
-        <div className="text-sm text-muted-foreground">
-          {isSaving ? "Saving…" : "Autosaved"}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium mb-1">
+              Default inspector settings
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Configure how this public data source appears in the inspector
+              when added to a map.
+            </p>
+          </div>
+          <div className="text-sm text-muted-foreground shrink-0">
+            {isSaving ? "Saving…" : "Autosaved"}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Colour</Label>
             <Select
-              value={panelColor ?? DEFAULT_SELECT_VALUE}
+              value={color ?? NULL_UUID}
               onValueChange={(value) =>
-                updateConfig((prev) => ({
-                  ...prev,
-                  color: value === DEFAULT_SELECT_VALUE ? undefined : value,
-                }))
+                onChange({
+                  color: value === NULL_UUID ? null : value,
+                })
               }
             >
               <SelectTrigger className="h-9 w-full min-w-0 truncate">
@@ -340,7 +218,7 @@ export function DefaultInspectorConfigSection({
                 {INSPECTOR_COLOR_OPTIONS.map((opt) => (
                   <SelectItem
                     key={opt.value || "default"}
-                    value={opt.value || DEFAULT_SELECT_VALUE}
+                    value={opt.value || NULL_UUID}
                   >
                     <span className="flex items-center gap-2">
                       <span
@@ -361,7 +239,7 @@ export function DefaultInspectorConfigSection({
             <Select
               value={layout}
               onValueChange={(value: InspectorLayout) =>
-                updateConfig((prev) => ({ ...prev, layout: value }))
+                onChange({ layout: value })
               }
             >
               <SelectTrigger className="h-9 w-full min-w-0 truncate">
@@ -385,20 +263,157 @@ export function DefaultInspectorConfigSection({
           </div>
         </div>
 
-        <ColumnsSection
-          config={localConfig}
-          allColumnsInOrder={allColumnsInOrder}
-          selectedColumnsInOrder={selectedColumnsInOrder}
-          selectedItemsInOrder={selectedItemsInOrder}
-          availableColumns={availableColumns}
-          columnIds={columnIds}
-          columns={columns}
-          columnMetadata={columnMetadata}
-          updateConfig={updateConfig}
-          handleAddColumn={handleAddColumn}
-          handleRemoveColumn={handleRemoveColumn}
-          handleRemoveColumnFromRight={handleRemoveColumnFromRight}
-        />
+        {/* Column management */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-muted-foreground">Columns</Label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleAddAll}
+                disabled={availableColumns.length === 0}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+              >
+                Add all
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveAll}
+                disabled={selectedColumnNames.length === 0}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+              >
+                Remove all
+              </button>
+              <button
+                type="button"
+                onClick={handleAddDivider}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
+              >
+                Add divider
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Available columns */}
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">
+                Available ({availableColumns.length})
+              </p>
+              <div className="border border-neutral-200 rounded-md max-h-64 overflow-y-auto">
+                {availableColumns.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3">
+                    All columns selected
+                  </p>
+                ) : (
+                  availableColumns.map((col) => (
+                    <button
+                      key={col}
+                      type="button"
+                      onClick={() => handleAddColumn(col)}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-50 border-b border-neutral-100 last:border-0 truncate"
+                      title={col}
+                    >
+                      + {col}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Selected items */}
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">
+                Selected ({selectedColumnNames.length})
+              </p>
+              <div className="border border-neutral-200 rounded-md max-h-64 overflow-y-auto">
+                {items.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3">
+                    No columns selected
+                  </p>
+                ) : (
+                  items.map((item, index) => (
+                    <div
+                      key={
+                        isDivider(item) ? `div-${item.id}` : `col-${item.name}`
+                      }
+                      className="flex items-center gap-1 px-2 py-1 border-b border-neutral-100 last:border-0"
+                    >
+                      <div className="flex flex-col shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveUp(index)}
+                          disabled={index === 0}
+                          className="text-muted-foreground hover:text-foreground disabled:opacity-30 leading-none text-xs"
+                          aria-label="Move up"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveDown(index)}
+                          disabled={index === items.length - 1}
+                          className="text-muted-foreground hover:text-foreground disabled:opacity-30 leading-none text-xs"
+                          aria-label="Move down"
+                        >
+                          ▼
+                        </button>
+                      </div>
+
+                      {isDivider(item) ? (
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            ——
+                          </span>
+                          <input
+                            className="flex-1 min-w-0 text-xs border border-input rounded px-1.5 py-0.5"
+                            value={item.label}
+                            placeholder="Divider label"
+                            onChange={(e) =>
+                              handleUpdateDivider(item.id, e.target.value)
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDivider(item.id)}
+                            className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <ColumnItemRow
+                          item={item}
+                          columnType={
+                            dataSource.columnDefs.find(
+                              (c) => c.name === item.name,
+                            )?.type
+                          }
+                          currentSemanticType={
+                            dataSource.columnMetadata?.find(
+                              (m) => m.name === item.name,
+                            )?.semanticType
+                          }
+                          onUpdate={(patch) =>
+                            handleUpdateColumnItem(item.name, patch)
+                          }
+                          onRemove={() => handleRemoveColumn(item.name)}
+                          onPatchSemanticType={(semanticType) =>
+                            patchSemanticType({
+                              dataSourceId: dataSource.id,
+                              column: item.name,
+                              patch: { semanticType },
+                            })
+                          }
+                        />
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div
@@ -406,10 +421,142 @@ export function DefaultInspectorConfigSection({
         style={{ width: "320px", minWidth: "280px" }}
       >
         <DefaultInspectorPreview
-          config={localConfig}
+          items={items}
+          layout={layout}
+          color={color}
+          name={name}
+          icon={icon}
           dataSource={dataSource}
           className="h-full min-h-[200px]"
         />
+      </div>
+    </div>
+  );
+}
+
+const numericOnlyFormats: ColumnDisplayFormat[] = [
+  ColumnDisplayFormat.Number,
+  ColumnDisplayFormat.Percentage,
+  ColumnDisplayFormat.Scale,
+  ColumnDisplayFormat.NumberWithComparison,
+];
+
+function ColumnItemRow({
+  item,
+  columnType,
+  currentSemanticType,
+  onUpdate,
+  onRemove,
+  onPatchSemanticType,
+}: {
+  item: Extract<InspectorColumnItem, { type: "column" }>;
+  columnType: ColumnType | undefined;
+  currentSemanticType: ColumnMetadata["semanticType"];
+  onUpdate: (
+    patch: Partial<Extract<InspectorColumnItem, { type: "column" }>>,
+  ) => void;
+  onRemove: () => void;
+  onPatchSemanticType: (semanticType: ColumnSemanticType | undefined) => void;
+}) {
+  const isNumeric = columnType === ColumnType.Number;
+  const availableFormats = isNumeric
+    ? columnDisplayFormats
+    : columnDisplayFormats.filter((f) => !numericOnlyFormats.includes(f));
+
+  return (
+    <div className="flex-1 min-w-0 space-y-1">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-sm truncate flex-1 min-w-0" title={item.name}>
+          {item.name}
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+        >
+          ✕
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <select
+          className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+          value={item.displayFormat ?? ""}
+          onChange={(e) =>
+            onUpdate({
+              displayFormat: e.target.value
+                ? (e.target.value as ColumnDisplayFormat)
+                : undefined,
+            })
+          }
+        >
+          <option value="">Default format</option>
+          {availableFormats.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+
+        {item.displayFormat === ColumnDisplayFormat.Percentage && (
+          <select
+            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+            value={currentSemanticType ?? ""}
+            onChange={(e) =>
+              onPatchSemanticType(
+                e.target.value
+                  ? (e.target.value as ColumnSemanticType)
+                  : undefined,
+              )
+            }
+          >
+            <option value="">Infer from values</option>
+            {[
+              ColumnSemanticType.Percentage01,
+              ColumnSemanticType.Percentage0100,
+            ].map((s) => (
+              <option key={s} value={s}>
+                {ColumnSemanticTypeLabels[s]}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {item.displayFormat === ColumnDisplayFormat.Scale && (
+          <input
+            type="number"
+            min={2}
+            max={10}
+            className="h-6 w-16 rounded border border-input bg-background px-1.5 text-xs"
+            placeholder="Max"
+            value={item.scaleMax ?? ""}
+            onChange={(e) =>
+              onUpdate({
+                scaleMax: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+          />
+        )}
+
+        {item.displayFormat === ColumnDisplayFormat.NumberWithComparison && (
+          <select
+            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+            value={item.comparisonStat ?? ""}
+            onChange={(e) =>
+              onUpdate({
+                comparisonStat: e.target.value
+                  ? (e.target.value as InspectorComparisonStat)
+                  : undefined,
+              })
+            }
+          >
+            <option value="">Comparison stat</option>
+            {Object.values(InspectorComparisonStat).map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
     </div>
   );

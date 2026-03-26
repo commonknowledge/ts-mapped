@@ -9,27 +9,26 @@ import { useMemo } from "react";
 import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
-import type {
-  InspectorColumnMeta,
-  InspectorDataSourceConfig,
-} from "@/models/MapView";
+import type { InspectorColumnItem } from "@/models/MapView";
+import type { InspectorDataSourceConfig } from "@/models/MapView";
+
+type ColumnItem = Extract<InspectorColumnItem, { type: "column" }>;
 
 export function DroppableSelectedColumns({
   columns,
-  columnMetadata,
+  columnItems,
   updateConfig,
   onRemoveColumn,
   activeId,
 }: {
   columns: string[];
-  columnMetadata?: Record<string, InspectorColumnMeta> | null;
+  columnItems: ColumnItem[];
   updateConfig: (
     updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
   ) => void;
   onRemoveColumn?: (columnName: string) => void;
   activeId: string | null;
 }) {
-  const meta = columnMetadata ?? {};
   const { setNodeRef, isOver } = useDroppable({ id: SELECTED_DROPPABLE_ID });
   const columnIds = useMemo(
     () => columns.map((c, i) => `col-${i}-${c}`),
@@ -58,117 +57,83 @@ export function DroppableSelectedColumns({
           strategy={verticalListSortingStrategy}
         >
           <div className="flex flex-col gap-1.5 flex-1">
-            {columns.map((col, i) => (
-              <SortableColumnRow
-                key={columnIds[i]}
-                id={columnIds[i]}
-                columnName={col}
-                displayName={meta[col]?.displayName}
-                onDisplayNameChange={(value) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    columnMetadata: {
-                      ...(prev.columnMetadata ?? {}),
-                      [col]: {
-                        ...(prev.columnMetadata?.[col] ?? {}),
-                        displayName: value || undefined,
-                      },
-                    },
-                  }))
-                }
-                description={meta[col]?.description}
-                onDescriptionChange={(value) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    columnMetadata: {
-                      ...(prev.columnMetadata ?? {}),
-                      [col]: {
-                        ...(prev.columnMetadata?.[col] ?? {}),
-                        description: value || undefined,
-                      },
-                    },
-                  }))
-                }
-                format={meta[col]?.format ?? "text"}
-                onFormatChange={(format) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    columnMetadata: {
-                      ...(prev.columnMetadata ?? {}),
-                      [col]: {
-                        ...(prev.columnMetadata?.[col] ?? {}),
-                        format,
-                      },
-                    },
-                  }))
-                }
-                comparisonStat={meta[col]?.comparisonStat}
-                onComparisonStatChange={(comparisonStat) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    columnMetadata: {
-                      ...(prev.columnMetadata ?? {}),
-                      [col]: {
-                        ...(prev.columnMetadata?.[col] ?? {}),
-                        comparisonStat,
-                      },
-                    },
-                  }))
-                }
-                scaleMax={meta[col]?.scaleMax ?? 3}
-                onScaleMaxChange={(scaleMax) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    columnMetadata: {
-                      ...(prev.columnMetadata ?? {}),
-                      [col]: {
-                        ...(prev.columnMetadata?.[col] ?? {}),
-                        scaleMax,
-                      },
-                    },
-                  }))
-                }
-                barColor={meta[col]?.barColor}
-                onBarColorChange={(value) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    columnMetadata: {
-                      ...(prev.columnMetadata ?? {}),
-                      [col]: {
-                        ...(prev.columnMetadata?.[col] ?? {}),
-                        barColor: value || undefined,
-                      },
-                    },
-                  }))
-                }
-                onRemove={
-                  onRemoveColumn
-                    ? () => onRemoveColumn(col)
-                    : () =>
-                        updateConfig((prev) => {
-                          const nextColumns = prev.columns.filter(
-                            (c) => c !== col,
-                          );
-                          const nextMeta = Object.fromEntries(
-                            Object.entries(prev.columnMetadata ?? {}).filter(
-                              ([k]) => k !== col,
-                            ),
-                          );
-                          return {
+            {columns.map((col, i) => {
+              const item = columnItems.find((ci) => ci.name === col);
+              return (
+                <SortableColumnRow
+                  key={columnIds[i]}
+                  id={columnIds[i]}
+                  columnName={col}
+                  format={item?.displayFormat}
+                  onFormatChange={(format) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      inspectorColumnItems: (
+                        prev.inspectorColumnItems ?? []
+                      ).map((ci) =>
+                        ci.type === "column" && ci.name === col
+                          ? { ...ci, displayFormat: format }
+                          : ci,
+                      ),
+                    }))
+                  }
+                  comparisonStat={item?.comparisonStat}
+                  onComparisonStatChange={(comparisonStat) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      inspectorColumnItems: (
+                        prev.inspectorColumnItems ?? []
+                      ).map((ci) =>
+                        ci.type === "column" && ci.name === col
+                          ? { ...ci, comparisonStat }
+                          : ci,
+                      ),
+                    }))
+                  }
+                  scaleMax={item?.scaleMax ?? 3}
+                  onScaleMaxChange={(scaleMax) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      inspectorColumnItems: (
+                        prev.inspectorColumnItems ?? []
+                      ).map((ci) =>
+                        ci.type === "column" && ci.name === col
+                          ? { ...ci, scaleMax }
+                          : ci,
+                      ),
+                    }))
+                  }
+                  barColor={item?.barColor}
+                  onBarColorChange={(value) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      inspectorColumnItems: (
+                        prev.inspectorColumnItems ?? []
+                      ).map((ci) =>
+                        ci.type === "column" && ci.name === col
+                          ? { ...ci, barColor: value || undefined }
+                          : ci,
+                      ),
+                    }))
+                  }
+                  onRemove={
+                    onRemoveColumn
+                      ? () => onRemoveColumn(col)
+                      : () =>
+                          updateConfig((prev) => ({
                             ...prev,
-                            columns: nextColumns,
-                            columnMetadata: nextMeta,
-                            ...(prev.columnItems?.length && {
-                              columnItems: prev.columnItems.filter(
-                                (item) => item !== col,
-                              ),
-                            }),
-                          };
-                        })
-                }
-                isDragging={activeId === columnIds[i]}
-              />
-            ))}
+                            inspectorColumnItems: (
+                              prev.inspectorColumnItems ?? []
+                            ).filter(
+                              (ci) =>
+                                !(ci.type === "column" && ci.name === col),
+                            ),
+                          }))
+                  }
+                  isDragging={activeId === columnIds[i]}
+                />
+              );
+            })}
           </div>
         </SortableContext>
       )}

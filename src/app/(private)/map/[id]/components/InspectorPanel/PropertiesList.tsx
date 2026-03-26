@@ -1,22 +1,19 @@
 import { Info, Loader2 } from "lucide-react";
 import { Fragment } from "react";
+import { ColumnSemanticType } from "@/models/DataSource";
+import { ColumnDisplayFormat } from "@/models/shared";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import type { ColumnMetadata } from "@/models/DataSource";
 
-export type ColumnFormat =
-  | "text"
-  | "number"
-  | "numberWithComparison"
-  | "percentage"
-  | "scale";
+export type { ColumnDisplayFormat as ColumnFormat };
 
 export interface PropertyEntry {
   key: string;
   label: string;
   value?: unknown;
   groupLabel?: string;
-  format?: ColumnFormat;
+  format?: ColumnDisplayFormat;
   scaleMax?: number;
   barColor?: string;
   isDivider?: boolean;
@@ -24,6 +21,7 @@ export interface PropertyEntry {
   comparisonBaseline?: number | null;
   comparisonStat?: string;
   comparisonBaselineLoading?: boolean;
+  semanticType?: ColumnSemanticType;
 }
 
 function formatNumber(n: number): string {
@@ -51,31 +49,33 @@ function variancePercent(value: number, baseline: number): number | null {
 
 function PropertyValue({
   value,
-  format = "text",
+  format = ColumnDisplayFormat.Text,
   scaleMax = 3,
   barColor,
   comparisonBaseline,
   comparisonStat,
   comparisonBaselineLoading,
+  semanticType,
 }: {
   value: unknown;
-  format?: ColumnFormat;
+  format?: ColumnDisplayFormat;
   scaleMax?: number;
   barColor?: string;
   comparisonBaseline?: number | null;
   comparisonStat?: string;
   comparisonBaselineLoading?: boolean;
+  semanticType?: ColumnSemanticType;
 }) {
   const num = parseNumeric(value);
   const fill = barFill(barColor);
 
-  if (format === "number" && num !== null) {
+  if (format === ColumnDisplayFormat.Number && num !== null) {
     return (
       <span className="font-medium tabular-nums">{formatNumber(num)}</span>
     );
   }
 
-  if (format === "numberWithComparison" && num !== null) {
+  if (format === ColumnDisplayFormat.NumberWithComparison && num !== null) {
     const baseline =
       comparisonBaseline !== undefined && comparisonBaseline !== null
         ? comparisonBaseline
@@ -138,11 +138,15 @@ function PropertyValue({
     );
   }
 
-  if (format === "percentage" && num !== null) {
+  if (format === ColumnDisplayFormat.Percentage && num !== null) {
     const pct =
-      num > 1
-        ? Math.min(100, Math.max(0, num))
-        : Math.min(100, Math.max(0, num * 100));
+      semanticType === ColumnSemanticType.Percentage01
+        ? Math.min(100, Math.max(0, num * 100))
+        : semanticType === ColumnSemanticType.Percentage0100
+          ? Math.min(100, Math.max(0, num))
+          : num > 1 // fallback heuristic when no semanticType is set
+            ? Math.min(100, Math.max(0, num))
+            : Math.min(100, Math.max(0, num * 100));
     return (
       <div className="flex items-center gap-2 min-w-0">
         <div
@@ -161,7 +165,7 @@ function PropertyValue({
     );
   }
 
-  if (format === "scale" && num !== null) {
+  if (format === ColumnDisplayFormat.Scale && num !== null) {
     const max = Math.max(2, Math.min(10, scaleMax));
     const filled = Math.min(max, Math.max(0, Math.round(num)));
     return (
@@ -208,6 +212,8 @@ export default function PropertiesList({
           label: key,
           value,
           description: columnMetadata?.find((c) => c.name === key)?.description,
+          semanticType: columnMetadata?.find((c) => c.name === key)
+            ?.semanticType,
         }))
       : [];
 
@@ -243,6 +249,7 @@ export default function PropertiesList({
           comparisonBaseline={e.comparisonBaseline}
           comparisonStat={e.comparisonStat}
           comparisonBaselineLoading={e.comparisonBaselineLoading}
+          semanticType={e.semanticType}
         />
       </dd>
     </div>

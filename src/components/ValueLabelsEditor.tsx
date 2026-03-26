@@ -2,7 +2,6 @@
 
 import { ColumnType } from "@/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
-import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -31,7 +30,7 @@ export default function ValueLabelsEditor({
   }
   if (values === null) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground p-4">
         Too many unique values to configure labels.
       </p>
     );
@@ -51,31 +50,29 @@ export default function ValueLabelsEditor({
   });
 
   return (
-    <ScrollArea className="max-h-64 rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Value</TableHead>
-            <TableHead>Label</TableHead>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Value</TableHead>
+          <TableHead>Label</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sorted.map((value) => (
+          <TableRow key={value}>
+            <TableCell className="font-mono text-sm text-muted-foreground whitespace-normal">
+              {value || "(blank)"}
+            </TableCell>
+            <TableCell>
+              <Input
+                value={valueLabels[value] ?? ""}
+                onChange={(e) => onChange(value, e.target.value)}
+                className="h-8 text-sm"
+              />
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sorted.map((value) => (
-            <TableRow key={value}>
-              <TableCell className="font-mono text-sm text-muted-foreground whitespace-normal">
-                {value || "(blank)"}
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={valueLabels[value] ?? ""}
-                  onChange={(e) => onChange(value, e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </ScrollArea>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

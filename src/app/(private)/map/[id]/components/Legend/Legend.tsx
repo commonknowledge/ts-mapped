@@ -10,11 +10,7 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
-import {
-  CalculationType,
-  DEFAULT_CALCULATION_TYPE,
-  MapType,
-} from "@/models/MapView";
+import { CalculationType, MapType } from "@/models/MapView";
 import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
@@ -39,33 +35,6 @@ import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
 import { LegendBars } from "./LegendBars";
 import type { AreaSetGroupCode } from "@/models/AreaSet";
-import type { MapViewConfig } from "@/models/MapView";
-
-async function applyDefaultVisualisationMeta(
-  dataSourceId: string,
-  updateViewConfig: (patch: Partial<MapViewConfig>) => void,
-): Promise<void> {
-  try {
-    const res = await fetch(`/api/data-source-previews/${dataSourceId}/meta`);
-    if (!res.ok) return;
-    const meta = (await res.json()) as {
-      defaultVisualisation?: {
-        displayMode?: "counts" | "values";
-        defaultColumn?: string;
-      };
-    };
-    const { displayMode, defaultColumn } = meta.defaultVisualisation ?? {};
-    updateViewConfig({
-      calculationType:
-        displayMode === "counts"
-          ? CalculationType.Count
-          : DEFAULT_CALCULATION_TYPE,
-      ...(defaultColumn ? { areaDataColumn: defaultColumn } : {}),
-    });
-  } catch {
-    // ignore
-  }
-}
 
 export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -73,54 +42,10 @@ export default function Legend() {
   const { data: dataSources, getDataSourceById } = useDataSources();
 
   const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false);
-  const [movementLibraryMeta, setMovementLibraryMeta] = useState<{
-    title?: string;
-    icon?: string;
-  } | null>(null);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
     null,
   );
   const [bivariatePickerOpen, setBivariatePickerOpen] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const id = viewConfig.areaDataSourceId;
-    if (!id) {
-      setMovementLibraryMeta(null);
-      return;
-    }
-
-    const ds = getDataSourceById(id);
-    if (!ds?.public) {
-      setMovementLibraryMeta(null);
-      return;
-    }
-
-    void (async () => {
-      try {
-        const res = await fetch(`/api/data-source-previews/${id}/meta`, {
-          method: "GET",
-        });
-        if (!res.ok) {
-          if (!cancelled) setMovementLibraryMeta(null);
-          return;
-        }
-        const meta = (await res.json()) as { title?: string; icon?: string };
-        if (!cancelled) {
-          setMovementLibraryMeta({
-            title: meta.title,
-            icon: meta.icon,
-          });
-        }
-      } catch {
-        if (!cancelled) setMovementLibraryMeta(null);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getDataSourceById, viewConfig.areaDataSourceId]);
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -195,28 +120,33 @@ export default function Legend() {
 
   const handleDataSourceSelect = async (dataSourceId: string) => {
     const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
+    const ds = getDataSourceById(dataSourceId);
     if (!selectedAreaSetGroup) {
       updateViewConfig({
         areaDataSourceId: dataSourceId,
         areaDataSecondaryColumn: undefined,
+        ...(ds?.public && ds.defaultChoroplethConfig
+          ? {
+              calculationType: ds.defaultChoroplethConfig.calculationType,
+              areaDataColumn: ds.defaultChoroplethConfig.column,
+            }
+          : {}),
       });
-      const ds = getDataSourceById(dataSourceId);
-      if (ds?.public) {
-        void applyDefaultVisualisationMeta(dataSourceId, updateViewConfig);
-      }
       setIsDataSourceModalOpen(false);
       return;
     }
-    const ds = getDataSourceById(dataSourceId);
     const validAreaSetGroups = getValidAreaSetGroupCodes(ds?.geocodingConfig);
     if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
       updateViewConfig({
         areaDataSourceId: dataSourceId,
         areaDataSecondaryColumn: undefined,
+        ...(ds?.public && ds.defaultChoroplethConfig
+          ? {
+              calculationType: ds.defaultChoroplethConfig.calculationType,
+              areaDataColumn: ds.defaultChoroplethConfig.column,
+            }
+          : {}),
       });
-      if (ds?.public) {
-        void applyDefaultVisualisationMeta(dataSourceId, updateViewConfig);
-      }
       setIsDataSourceModalOpen(false);
       return;
     }
@@ -255,9 +185,9 @@ export default function Legend() {
           onClick={() => setIsDataSourceModalOpen(true)}
         >
           <span className="shrink-0 text-muted-foreground" aria-hidden>
-            {movementLibraryMeta?.icon?.trim() ? (
+            {dataSource?.defaultInspectorConfig?.icon?.trim() ? (
               <InspectorPanelIcon
-                iconName={movementLibraryMeta.icon.trim()}
+                iconName={dataSource.defaultInspectorConfig.icon.trim()}
                 className="h-4 w-4"
               />
             ) : (
@@ -265,8 +195,8 @@ export default function Legend() {
             )}
           </span>
           <span className="min-w-0 flex-1 truncate text-left font-medium">
-            {movementLibraryMeta?.title?.trim()
-              ? movementLibraryMeta.title.trim()
+            {dataSource?.defaultInspectorConfig?.name?.trim()
+              ? dataSource.defaultInspectorConfig.name.trim()
               : (dataSource?.name ?? "Select data source…")}
           </span>
           <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />

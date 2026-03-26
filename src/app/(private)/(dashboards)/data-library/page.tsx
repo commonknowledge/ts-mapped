@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel, Mail, MapIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { Link } from "@/components/Link";
@@ -11,20 +11,10 @@ import PageHeader from "@/components/PageHeader";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 
-interface MovementLibraryMeta {
-  defaultColumn?: string;
-  title?: string;
-  icon?: string;
-  description?: string;
-}
-
 export default function DataLibraryPage() {
   const trpc = useTRPC();
   const router = useRouter();
   const [creatingForId, setCreatingForId] = useState<string | null>(null);
-  const [movementMetaById, setMovementMetaById] = useState<
-    Record<string, MovementLibraryMeta | undefined>
-  >({});
 
   const { data: readableSources, isPending } = useQuery(
     trpc.dataSource.listReadable.queryOptions(),
@@ -34,68 +24,6 @@ export default function DataLibraryPage() {
     () => (readableSources ?? []).filter((ds) => Boolean(ds.public)),
     [readableSources],
   );
-
-  useEffect(() => {
-    const ids = movementSources.map((ds) => ds.id);
-    const missing = ids.filter((id) => movementMetaById[id] === undefined);
-    if (missing.length === 0) return;
-
-    let cancelled = false;
-    void (async () => {
-      const entries = await Promise.all(
-        missing.map(async (id) => {
-          try {
-            const res = await fetch(`/api/data-source-previews/${id}/meta`);
-            if (!res.ok)
-              return [
-                id,
-                {
-                  defaultColumn: undefined,
-                  title: undefined,
-                  icon: undefined,
-                  description: undefined,
-                },
-              ] as const;
-            const json = (await res.json()) as {
-              title?: string;
-              description?: string;
-              icon?: string;
-              defaultVisualisation?: { defaultColumn?: string };
-            };
-            return [
-              id,
-              {
-                defaultColumn: json.defaultVisualisation?.defaultColumn,
-                title: json.title,
-                icon: json.icon,
-                description: json.description,
-              },
-            ] as const;
-          } catch {
-            return [
-              id,
-              {
-                defaultColumn: undefined,
-                title: undefined,
-                icon: undefined,
-                description: undefined,
-              },
-            ] as const;
-          }
-        }),
-      );
-      if (cancelled) return;
-      setMovementMetaById((prev) => {
-        const next = { ...prev };
-        for (const [id, meta] of entries) next[id] = meta;
-        return next;
-      });
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [movementMetaById, movementSources]);
 
   const { mutate: createMap } = useMutation(
     trpc.map.createFromDataSource.mutationOptions({
@@ -140,14 +68,9 @@ export default function DataLibraryPage() {
               <DataSourceItem
                 className="!border-0 !shadow-none !p-0 hover:!bg-transparent hover:!border-0"
                 density="compactPreview"
-                previewImageUrl={`/data-source-previews/${ds.id}.jpg`}
                 showColumnPreview={true}
                 columnPreviewVariant="pills"
                 maxColumnPills={8}
-                defaultColumnName={movementMetaById[ds.id]?.defaultColumn}
-                overrideTitle={movementMetaById[ds.id]?.title}
-                overrideIconName={movementMetaById[ds.id]?.icon}
-                overrideDescription={movementMetaById[ds.id]?.description}
                 dataSource={ds}
                 hideTypeLabel={true}
                 hidePublishedBadge={true}

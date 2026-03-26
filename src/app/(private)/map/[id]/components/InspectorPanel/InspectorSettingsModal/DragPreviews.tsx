@@ -2,17 +2,10 @@
 
 import { GripVertical, Minus } from "lucide-react";
 
-export function ColumnDragPreview({
-  activeId,
-  columnMetadata,
-}: {
-  activeId: string;
-  columnMetadata: Record<string, { displayName?: string }>;
-}) {
+export function ColumnDragPreview({ activeId }: { activeId: string }) {
   const parts = activeId.startsWith("col-") ? activeId.split("-") : [];
   // id format: col-{index}-{colName}
   const columnName = parts.length >= 3 ? parts.slice(2).join("-") : "";
-  const displayName = columnMetadata[columnName]?.displayName;
 
   return (
     <div className="flex flex-col gap-1.5 rounded border-2 border-primary/30 bg-white py-1.5 px-2 shadow-lg min-w-[140px]">
@@ -25,9 +18,6 @@ export function ColumnDragPreview({
           {columnName}
         </span>
       </div>
-      <span className="text-sm font-medium truncate pl-5">
-        {displayName || columnName || "—"}
-      </span>
     </div>
   );
 }

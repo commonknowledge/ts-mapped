@@ -1,5 +1,3 @@
-import fs from "fs";
-import { join } from "path";
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetGroupCode } from "@/models/AreaSet";
@@ -26,38 +24,12 @@ import {
 import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import { findTurfsByMapId } from "@/server/repositories/Turf";
 import { deleteFile } from "@/server/services/minio";
-import { getBaseDir } from "@/server/utils";
 import {
   mapReadProcedure,
   mapWriteProcedure,
   organisationProcedure,
   router,
 } from "../index";
-
-function readMovementLibraryMeta(dataSourceId: string): {
-  displayMode?: "counts" | "values";
-  defaultColumn?: string;
-} {
-  const path = join(
-    getBaseDir(),
-    "public",
-    "data-source-previews",
-    `${dataSourceId}.json`,
-  );
-  if (!fs.existsSync(path)) return {};
-  try {
-    const raw = fs.readFileSync(path, "utf8");
-    const parsed = JSON.parse(raw) as {
-      defaultVisualisation?: {
-        displayMode?: "counts" | "values";
-        defaultColumn?: string;
-      };
-    };
-    return parsed.defaultVisualisation ?? {};
-  } catch {
-    return {};
-  }
-}
 
 export const mapRouter = router({
   list: organisationProcedure.query(async ({ ctx }) => {
@@ -97,20 +69,15 @@ export const mapRouter = router({
       } else {
         await updateMap(map.id, { name: dataSource.name });
 
-        const meta = dataSource.public
-          ? readMovementLibraryMeta(input.dataSourceId)
-          : {};
         const fallbackColumn =
           dataSource.columnDefs?.find(Boolean)?.name ??
           dataSource.columnMetadata?.find(Boolean)?.name ??
           "";
-        const areaDataColumn = meta.defaultColumn?.trim()
-          ? meta.defaultColumn.trim()
-          : fallbackColumn;
+        const areaDataColumn =
+          dataSource.defaultChoroplethConfig?.column?.trim() || fallbackColumn;
         const calculationType =
-          meta.displayMode === "counts"
-            ? CalculationType.Count
-            : DEFAULT_CALCULATION_TYPE;
+          dataSource.defaultChoroplethConfig?.calculationType ??
+          DEFAULT_CALCULATION_TYPE;
 
         await upsertMapView({
           mapId: map.id,

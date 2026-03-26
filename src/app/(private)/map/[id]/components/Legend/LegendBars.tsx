@@ -1,4 +1,4 @@
-import { ColumnType } from "@/models/DataSource";
+import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import { ColorScaleType } from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
@@ -139,12 +139,13 @@ export function GradientBars({
     );
   });
 
-  const valueLabels =
-    resolveColumnMetadataEntry(
-      dataSource?.columnMetadata ?? [],
-      dataSource?.organisationOverride?.columnMetadata,
-      viewConfig.areaDataColumn,
-    )?.valueLabels || {};
+  const resolvedEntry = resolveColumnMetadataEntry(
+    dataSource?.columnMetadata ?? [],
+    dataSource?.organisationOverride?.columnMetadata,
+    viewConfig.areaDataColumn,
+  );
+  const valueLabels = resolvedEntry?.valueLabels || {};
+  const semanticType = resolvedEntry?.semanticType;
 
   const hasValueLabels = Object.keys(valueLabels).length > 0;
 
@@ -216,9 +217,7 @@ export function GradientBars({
                       return valueLabels[String(value)] || valueLabels[""];
                     }
                   }
-                  const isPercent =
-                    colorScheme.minValue >= 0 && colorScheme.maxValue <= 1;
-                  return isPercent
+                  return semanticType === ColumnSemanticType.Percentage01
                     ? `${Math.round(value * 100)}%`
                     : formatNumber(value);
                 })()}

@@ -116,26 +116,11 @@ export function DataSourceSelectModal({
   } = useDataSources();
   const { viewConfig } = useMapViews();
   const prevIsModalOpenRef = useRef(isModalOpen);
-  const [movementMetaById, setMovementMetaById] = useState<
-    Record<
-      string,
-      | {
-          defaultColumn?: string;
-          title?: string;
-          icon?: string;
-          description?: string;
-        }
-      | undefined
-    >
-  >({});
 
   useEffect(() => {
     const wasOpen = prevIsModalOpenRef.current;
     prevIsModalOpenRef.current = isModalOpen;
     if (wasOpen || !isModalOpen) return;
-
-    // Refresh MDL meta (icon/title/description/defaults) each time the modal opens.
-    setMovementMetaById({});
 
     const activeId = viewConfig.areaDataSourceId;
     if (!activeId) return;
@@ -170,69 +155,6 @@ export function DataSourceSelectModal({
 
   const fetchedCount = dataSources?.length ?? 0;
   const filteredCount = filteredAndSearchedDataSources.length;
-
-  useEffect(() => {
-    if (activeTab !== "movement") return;
-    const ids = filteredAndSearchedDataSources.map((ds) => ds.id);
-    const missing = ids.filter((id) => movementMetaById[id] === undefined);
-    if (missing.length === 0) return;
-
-    let cancelled = false;
-    void (async () => {
-      const entries = await Promise.all(
-        missing.map(async (id) => {
-          try {
-            const res = await fetch(`/api/data-source-previews/${id}/meta`);
-            if (!res.ok)
-              return [
-                id,
-                {
-                  defaultColumn: undefined,
-                  title: undefined,
-                  icon: undefined,
-                  description: undefined,
-                },
-              ] as const;
-            const json = (await res.json()) as {
-              title?: string;
-              description?: string;
-              icon?: string;
-              defaultVisualisation?: { defaultColumn?: string };
-            };
-            return [
-              id,
-              {
-                defaultColumn: json.defaultVisualisation?.defaultColumn,
-                title: json.title,
-                icon: json.icon,
-                description: json.description,
-              },
-            ] as const;
-          } catch {
-            return [
-              id,
-              {
-                defaultColumn: undefined,
-                title: undefined,
-                icon: undefined,
-                description: undefined,
-              },
-            ] as const;
-          }
-        }),
-      );
-      if (cancelled) return;
-      setMovementMetaById((prev) => {
-        const next = { ...prev };
-        for (const [id, meta] of entries) next[id] = meta;
-        return next;
-      });
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, filteredAndSearchedDataSources, movementMetaById]);
 
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -312,43 +234,13 @@ export function DataSourceSelectModal({
                       density={
                         activeTab === "user" ? "compact" : "compactPreview"
                       }
-                      previewImageUrl={
-                        activeTab === "movement"
-                          ? `/data-source-previews/${ds.id}.jpg`
-                          : undefined
-                      }
                       showColumnPreview={true}
                       columnPreviewVariant={"pills"}
                       singleLineColumnPreview={activeTab === "user"}
                       maxColumnPills={activeTab === "user" ? 6 : 8}
-                      defaultColumnName={
-                        activeTab === "movement"
-                          ? movementMetaById[ds.id]?.defaultColumn
-                          : undefined
-                      }
-                      overrideTitle={
-                        activeTab === "movement"
-                          ? movementMetaById[ds.id]?.title
-                          : undefined
-                      }
-                      overrideIconName={
-                        activeTab === "movement"
-                          ? movementMetaById[ds.id]?.icon
-                          : undefined
-                      }
                       hideTypeLabel={activeTab === "movement"}
                       hidePublishedBadge={activeTab === "movement"}
-                      dataSource={
-                        {
-                          ...ds,
-                          ...(activeTab === "movement" && {
-                            movementLibraryDescription:
-                              movementMetaById[ds.id]?.description,
-                          }),
-                        } as DataSourceWithImportInfo & {
-                          movementLibraryDescription?: string;
-                        }
-                      }
+                      dataSource={ds}
                     />
                   </button>
                 ))}

@@ -74,13 +74,13 @@ export function AvailableListWithDividers({
                   </p>
                 ) : (
                   selectedItemsInOrder.map((item, i) =>
-                    typeof item === "string" ? (
+                    item.type === "column" ? (
                       <SortableAvailableRow
                         key={selectedSectionIds[i]}
                         id={selectedSectionIds[i]}
-                        columnName={item}
+                        columnName={item.name}
                         selected={true}
-                        onToggle={() => onRemoveColumn(item)}
+                        onToggle={() => onRemoveColumn(item.name)}
                         isDragging={activeId === selectedSectionIds[i]}
                       />
                     ) : (

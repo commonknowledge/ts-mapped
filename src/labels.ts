@@ -143,14 +143,18 @@ export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
 };
 
 export const ColumnSemanticTypeLabels: Record<ColumnSemanticType, string> = {
-  Auto: "Number",
+  Text: "Text",
+  Number: "Number",
   Percentage01: "Percentage (0–1)",
   Percentage0100: "Percentage (0–100)",
 };
 
 export const ColumnDisplayFormatLabels: Record<ColumnDisplayFormat, string> = {
-  Auto: "Auto",
-  Bar: "Bar",
+  Text: "Text",
+  Number: "Number",
+  Percentage: "Percentage (bar)",
+  Scale: "Scale (bars)",
+  NumberWithComparison: "Number with comparison",
 };
 
 export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =

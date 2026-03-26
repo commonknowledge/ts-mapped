@@ -129,7 +129,6 @@ export interface DataSource {
   geocodingConfig: object; // jsonb, NOT NULL, DEFAULT {}
   columnDefs: unknown[]; // jsonb, NOT NULL, DEFAULT []
   columnMetadata: unknown[]; // jsonb, NOT NULL, DEFAULT [] — ColumnMetadata[]
-  inspectorColumns: unknown[]; // jsonb, NOT NULL, DEFAULT [] — InspectorColumn[]
   columnRoles: object; // jsonb, NOT NULL, DEFAULT {} (renamed from columnsConfig)
   enrichments: unknown[]; // jsonb, NOT NULL, DEFAULT [] (renamed from enrichmentConfig)
   organisationId: string; // uuid, NOT NULL
@@ -140,7 +139,8 @@ export interface DataSource {
   dateFormat: string; // text, NOT NULL, DEFAULT 'yyyy-MM-dd'
   recordCount: number; // integer, NOT NULL, DEFAULT 0
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
-  defaultInspectorConfig: unknown | null; // jsonb, NULL — DefaultInspectorDataSourceConfig
+  defaultInspectorConfig: unknown | null; // jsonb, NULL — DefaultInspectorConfig
+  defaultChoroplethConfig: unknown | null; // jsonb, NULL — DefaultChoroplethConfig
 
   // FOREIGN KEYS:
   // - organisationId -> organisation.id (CASCADE DELETE, CASCADE UPDATE)

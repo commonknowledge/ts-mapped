@@ -4,15 +4,15 @@ import type { Kysely } from "kysely";
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("dataSource")
-    .addColumn("columnVisualisations", "jsonb", (col) =>
-      col.notNull().defaultTo("[]"),
-    )
+    .addColumn("defaultInspectorConfig", "jsonb")
+    .addColumn("defaultChoroplethConfig", "jsonb")
     .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("dataSource")
-    .dropColumn("columnVisualisations")
+    .dropColumn("defaultInspectorConfig")
+    .dropColumn("defaultChoroplethConfig")
     .execute();
 }

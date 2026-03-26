@@ -36,7 +36,6 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import ColumnMetadataTable from "./components/ColumnMetadataTable";
-import ColumnVisualisationPanel from "./components/ColumnVisualisationPanel";
 import ConfigurationForm from "./components/ConfigurationForm";
 import EnrichmentTable from "./components/EnrichmentTable";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -237,7 +236,6 @@ export function DataSourceDashboard({
         <TabsList>
           <TabsTrigger value="settings">Configuration</TabsTrigger>
           <TabsTrigger value="columns">Column metadata</TabsTrigger>
-          <TabsTrigger value="inspector">Map inspector</TabsTrigger>
           {showEnrichment && (
             <TabsTrigger value="enrichment">Enrichment</TabsTrigger>
           )}
@@ -280,10 +278,6 @@ export function DataSourceDashboard({
 
         <TabsContent value="columns">
           <ColumnMetadataTable dataSource={dataSource} />
-        </TabsContent>
-
-        <TabsContent value="inspector" className="flex flex-col min-h-0">
-          <ColumnVisualisationPanel dataSource={dataSource} />
         </TabsContent>
 
         {showEnrichment && (
