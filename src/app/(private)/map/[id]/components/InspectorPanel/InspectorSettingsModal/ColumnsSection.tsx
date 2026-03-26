@@ -23,20 +23,20 @@ import {
 } from "./DragPreviews";
 import { DroppableSelectedColumns } from "./DroppableSelectedColumns";
 import type {
-  InspectorColumnItem,
   InspectorDataSourceConfig,
+  InspectorItem,
 } from "@/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 function isDivider(
-  item: InspectorColumnItem,
+  item: InspectorItem,
 ): item is { type: "divider"; id: string; label: string } {
   return item.type === "divider";
 }
 
 function isColumn(
-  item: InspectorColumnItem,
-): item is Extract<InspectorColumnItem, { type: "column" }> {
+  item: InspectorItem,
+): item is Extract<InspectorItem, { type: "column" }> {
   return item.type === "column";
 }
 
@@ -52,7 +52,7 @@ export function ColumnsSection({
 }: {
   config: InspectorDataSourceConfig;
   selectedColumnsInOrder: string[];
-  selectedItemsInOrder: InspectorColumnItem[];
+  selectedItemsInOrder: InspectorItem[];
   availableColumns: string[];
   columnIds: string[];
   updateConfig: (
@@ -114,7 +114,7 @@ export function ColumnsSection({
         next.splice(newIndex, 0, removed);
         updateConfig((prev) => ({
           ...prev,
-          inspectorColumnItems: next,
+          InspectorItems: next,
         }));
         return;
       }
@@ -135,7 +135,7 @@ export function ColumnsSection({
         nextColOrder.splice(newIndex, 0, removed);
         updateConfig((prev) => {
           const colItemsMap = new Map(
-            (prev.inspectorColumnItems ?? [])
+            (prev.inspectorItems ?? [])
               .filter(isColumn)
               .map((ci) => [ci.name, ci]),
           );
@@ -145,8 +145,8 @@ export function ColumnsSection({
           let colIdx = 0;
           return {
             ...prev,
-            inspectorColumnItems: (prev.inspectorColumnItems ?? []).map(
-              (item) => (isColumn(item) ? newColItems[colIdx++] : item),
+            InspectorItems: (prev.inspectorItems ?? []).map((item) =>
+              isColumn(item) ? newColItems[colIdx++] : item,
             ),
           };
         });
@@ -177,10 +177,10 @@ export function ColumnsSection({
             onClick={() =>
               updateConfig((prev) => ({
                 ...prev,
-                inspectorColumnItems: [
-                  ...(prev.inspectorColumnItems ?? []),
+                InspectorItems: [
+                  ...(prev.inspectorItems ?? []),
                   ...availableColumns.map(
-                    (n): InspectorColumnItem => ({ type: "column", name: n }),
+                    (n): InspectorItem => ({ type: "column", name: n }),
                   ),
                 ],
               }))
@@ -195,9 +195,7 @@ export function ColumnsSection({
             onClick={() =>
               updateConfig((prev) => ({
                 ...prev,
-                inspectorColumnItems: (prev.inspectorColumnItems ?? []).filter(
-                  isDivider,
-                ),
+                InspectorItems: (prev.inspectorItems ?? []).filter(isDivider),
               }))
             }
             disabled={selectedColumnsInOrder.length === 0}
@@ -228,8 +226,8 @@ export function ColumnsSection({
               onAddDivider={() =>
                 updateConfig((prev) => ({
                   ...prev,
-                  inspectorColumnItems: [
-                    ...(prev.inspectorColumnItems ?? []),
+                  InspectorItems: [
+                    ...(prev.inspectorItems ?? []),
                     { type: "divider" as const, id: uuidv4(), label: "" },
                   ],
                 }))
@@ -237,17 +235,17 @@ export function ColumnsSection({
               onDividerLabelChange={(id, label) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  inspectorColumnItems: (prev.inspectorColumnItems ?? []).map(
-                    (i) => (isDivider(i) && i.id === id ? { ...i, label } : i),
+                  InspectorItems: (prev.inspectorItems ?? []).map((i) =>
+                    isDivider(i) && i.id === id ? { ...i, label } : i,
                   ),
                 }))
               }
               onRemoveDivider={(id) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  inspectorColumnItems: (
-                    prev.inspectorColumnItems ?? []
-                  ).filter((i) => !(isDivider(i) && i.id === id)),
+                  InspectorItems: (prev.inspectorItems ?? []).filter(
+                    (i) => !(isDivider(i) && i.id === id),
+                  ),
                 }))
               }
               activeId={activeId}
@@ -269,8 +267,8 @@ export function ColumnsSection({
               onAddDivider={() =>
                 updateConfig((prev) => ({
                   ...prev,
-                  inspectorColumnItems: [
-                    ...(prev.inspectorColumnItems ?? []),
+                  InspectorItems: [
+                    ...(prev.inspectorItems ?? []),
                     { type: "divider" as const, id: uuidv4(), label: "" },
                   ],
                 }))
@@ -278,17 +276,17 @@ export function ColumnsSection({
               onDividerLabelChange={(id, label) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  inspectorColumnItems: (prev.inspectorColumnItems ?? []).map(
-                    (i) => (isDivider(i) && i.id === id ? { ...i, label } : i),
+                  InspectorItems: (prev.inspectorItems ?? []).map((i) =>
+                    isDivider(i) && i.id === id ? { ...i, label } : i,
                   ),
                 }))
               }
               onRemoveDivider={(id) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  inspectorColumnItems: (
-                    prev.inspectorColumnItems ?? []
-                  ).filter((i) => !(isDivider(i) && i.id === id)),
+                  InspectorItems: (prev.inspectorItems ?? []).filter(
+                    (i) => !(isDivider(i) && i.id === id),
+                  ),
                 }))
               }
               activeId={activeId}

@@ -44,8 +44,8 @@ export const inspectorLabelDividerSchema = z.object({
 });
 export type InspectorLabelDivider = z.infer<typeof inspectorLabelDividerSchema>;
 
-export const inspectorColumnItemSchema = z.union([
+export const inspectorItemSchema = z.union([
   inspectorColumnSchema.extend({ type: z.literal("column") }),
   inspectorLabelDividerSchema,
 ]);
-export type InspectorColumnItem = z.infer<typeof inspectorColumnItemSchema>;
+export type InspectorItem = z.infer<typeof inspectorItemSchema>;

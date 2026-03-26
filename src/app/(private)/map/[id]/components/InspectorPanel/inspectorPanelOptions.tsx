@@ -157,7 +157,6 @@ export function getSmartMatchInfo(
 export function getBarColorForLabel(
   displayName: string,
   columnName: string,
-  _index: number,
   barColor?: string | null,
 ): string {
   if (

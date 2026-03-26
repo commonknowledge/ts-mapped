@@ -6,6 +6,7 @@ import {
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
 import { FilterOperator, FilterType } from "@/models/MapView";
+import { InspectorComparisonStat } from "@/models/shared";
 import { db } from "@/server/services/database";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
@@ -50,18 +51,18 @@ export async function countDataRecordsForDataSource(
 export async function getColumnStat(
   dataSourceId: string,
   columnName: string,
-  stat: "average" | "median" | "min" | "max",
+  stat: InspectorComparisonStat,
 ): Promise<number | null> {
   const numericRowFilter = sql<boolean>`
     (json->>${columnName}) ~ '^-?\\d+(\\.\\d+)?$'
   `;
 
   const agg =
-    stat === "average"
+    stat === InspectorComparisonStat.Average
       ? sql<number>`AVG((json->>${columnName})::double precision)`
-      : stat === "min"
+      : stat === InspectorComparisonStat.Min
         ? sql<number>`MIN((json->>${columnName})::double precision)`
-        : stat === "max"
+        : stat === InspectorComparisonStat.Max
           ? sql<number>`MAX((json->>${columnName})::double precision)`
           : sql<number>`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (json->>${columnName})::double precision)`;
 

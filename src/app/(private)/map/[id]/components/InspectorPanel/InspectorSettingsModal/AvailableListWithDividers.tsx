@@ -10,7 +10,7 @@ import { AvailableColumnRow } from "./AvailableColumnRow";
 import { SELECTED_LEFT_DROPPABLE_ID } from "./constants";
 import { SortableAvailableRow } from "./SortableAvailableRow";
 import { SortableDividerRow } from "./SortableDividerRow";
-import type { InspectorColumnItem } from "@/models/MapView";
+import type { InspectorItem } from "@/models/MapView";
 
 export function AvailableListWithDividers({
   selectedItemsInOrder,
@@ -24,7 +24,7 @@ export function AvailableListWithDividers({
   activeId,
   mode = "both",
 }: {
-  selectedItemsInOrder: InspectorColumnItem[];
+  selectedItemsInOrder: InspectorItem[];
   selectedSectionIds: string[];
   availableColumns: string[];
   onAddColumn: (columnName: string) => void;

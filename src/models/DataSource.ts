@@ -4,7 +4,7 @@ import { CalculationType } from "./MapView";
 import {
   ColumnDisplayFormat,
   columnDisplayFormats,
-  inspectorColumnItemSchema,
+  inspectorItemSchema,
 } from "./shared";
 
 export enum JobStatus {
@@ -221,7 +221,7 @@ export const numericColumnSemanticTypes = [
 export { ColumnDisplayFormat, columnDisplayFormats };
 
 export const defaultInspectorConfigSchema = z.object({
-  items: z.array(inspectorColumnItemSchema).default([]),
+  items: z.array(inspectorItemSchema).default([]),
   layout: z.enum(["single", "twoColumn"]).optional().nullable(),
   color: z.string().optional().nullable(),
   name: z.string().optional().nullable(),

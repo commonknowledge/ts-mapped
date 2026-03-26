@@ -9,10 +9,10 @@ import { useMemo } from "react";
 import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
-import type { InspectorColumnItem } from "@/models/MapView";
+import type { InspectorItem } from "@/models/MapView";
 import type { InspectorDataSourceConfig } from "@/models/MapView";
 
-type ColumnItem = Extract<InspectorColumnItem, { type: "column" }>;
+type ColumnItem = Extract<InspectorItem, { type: "column" }>;
 
 export function DroppableSelectedColumns({
   columns,
@@ -68,9 +68,7 @@ export function DroppableSelectedColumns({
                   onFormatChange={(format) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      inspectorColumnItems: (
-                        prev.inspectorColumnItems ?? []
-                      ).map((ci) =>
+                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, displayFormat: format }
                           : ci,
@@ -81,9 +79,7 @@ export function DroppableSelectedColumns({
                   onComparisonStatChange={(comparisonStat) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      inspectorColumnItems: (
-                        prev.inspectorColumnItems ?? []
-                      ).map((ci) =>
+                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, comparisonStat }
                           : ci,
@@ -94,9 +90,7 @@ export function DroppableSelectedColumns({
                   onScaleMaxChange={(scaleMax) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      inspectorColumnItems: (
-                        prev.inspectorColumnItems ?? []
-                      ).map((ci) =>
+                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, scaleMax }
                           : ci,
@@ -107,9 +101,7 @@ export function DroppableSelectedColumns({
                   onBarColorChange={(value) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      inspectorColumnItems: (
-                        prev.inspectorColumnItems ?? []
-                      ).map((ci) =>
+                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, barColor: value || undefined }
                           : ci,
@@ -122,9 +114,7 @@ export function DroppableSelectedColumns({
                       : () =>
                           updateConfig((prev) => ({
                             ...prev,
-                            inspectorColumnItems: (
-                              prev.inspectorColumnItems ?? []
-                            ).filter(
+                            InspectorItems: (prev.inspectorItems ?? []).filter(
                               (ci) =>
                                 !(ci.type === "column" && ci.name === col),
                             ),

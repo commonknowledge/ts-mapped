@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetCode } from "@/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
-import { pointSchema } from "@/models/shared";
+import { InspectorComparisonStat, pointSchema } from "@/models/shared";
 import {
   findAreaByCode,
   findAreasByPoint,
@@ -189,7 +189,7 @@ export const dataRecordRouter = router({
     .input(
       z.object({
         columnName: z.string(),
-        stat: z.enum(["average", "median", "min", "max"]),
+        stat: z.nativeEnum(InspectorComparisonStat),
       }),
     )
     .query(async ({ input }) => {

@@ -6,24 +6,24 @@ import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import type { ColumnMetadata, ColumnType } from "@/models/DataSource";
 import type { DataSourceOrganisationOverride } from "@/models/DataSourceOrganisationOverride";
 
-export default function DataSourcePropertiesList({
-  dataSource,
+export interface SimpleDataSource {
+  id: string;
+  columnMetadata: ColumnMetadata[];
+  organisationOverride?: DataSourceOrganisationOverride | null;
+  columnDefs?: { name: string; type: ColumnType }[];
+}
+
+export function SimpleRecordProperties({
   json,
+  dataSource,
   onlyColumns,
 }: {
-  dataSource:
-    | {
-        columnMetadata: ColumnMetadata[];
-        organisationOverride?: DataSourceOrganisationOverride | null;
-        columnDefs?: { name: string; type: ColumnType }[];
-        id: string;
-      }
-    | null
-    | undefined;
   json: Record<string, unknown>;
-  onlyColumns?: string[] | null | undefined;
+  dataSource?: SimpleDataSource | null;
+  onlyColumns?: string[] | null;
 }) {
   const columns = onlyColumns || Object.keys(json);
+
   const metadata = useMemo(
     () =>
       resolveColumnMetadata(
@@ -35,6 +35,7 @@ export default function DataSourcePropertiesList({
       dataSource?.organisationOverride?.columnMetadata,
     ],
   );
+
   const properties = useMemo(() => {
     const filtered: { column: string; value: string }[] = [];
     columns.forEach((columnName) => {
@@ -63,22 +64,20 @@ export default function DataSourcePropertiesList({
 
   return (
     <dl className="flex flex-col gap-3">
-      {properties.map(({ column, value }, i) => {
-        return (
-          <div key={`${column}-${i}`}>
-            <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-0.5">
-              {column === DUMMY_COUNT_COLUMN ? "Count" : column}
-              <ColumnMetadataIcons
-                column={column}
-                dataSource={dataSource}
-                iconColorClass="text-muted-foreground"
-                fields={{ description: true, valueLabels: true }}
-              />
-            </dt>
-            <dd className="font-medium">{String(value)}</dd>
-          </div>
-        );
-      })}
+      {properties.map(({ column, value }, i) => (
+        <div key={`${column}-${i}`}>
+          <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-0.5">
+            {column === DUMMY_COUNT_COLUMN ? "Count" : column}
+            <ColumnMetadataIcons
+              column={column}
+              dataSource={dataSource}
+              iconColorClass="text-muted-foreground"
+              fields={{ description: true, valueLabels: true }}
+            />
+          </dt>
+          <dd className="font-medium">{String(value)}</dd>
+        </div>
+      ))}
     </dl>
   );
 }

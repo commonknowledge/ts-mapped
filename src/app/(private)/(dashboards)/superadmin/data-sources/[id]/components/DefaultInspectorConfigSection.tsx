@@ -25,26 +25,26 @@ import {
 import { cn } from "@/shadcn/utils";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
 import type { ColumnMetadata, DataSource } from "@/models/DataSource";
-import type { InspectorColumnItem } from "@/models/shared";
+import type { InspectorItem } from "@/models/shared";
 
 type InspectorLayout = "single" | "twoColumn";
 
 function isDivider(
-  item: InspectorColumnItem,
+  item: InspectorItem,
 ): item is { type: "divider"; id: string; label: string } {
   return item.type === "divider";
 }
 
 interface DefaultInspectorConfigSectionProps {
   dataSource: DataSource;
-  items: InspectorColumnItem[];
+  items: InspectorItem[];
   layout: InspectorLayout;
   color: string | null;
   name: string;
   icon: string;
   isSaving: boolean;
   onChange: (patch: {
-    items?: InspectorColumnItem[];
+    items?: InspectorItem[];
     layout?: InspectorLayout;
     color?: string | null;
   }) => void;
@@ -81,7 +81,7 @@ export function DefaultInspectorConfigSection({
     () =>
       items
         .filter(
-          (i): i is Extract<InspectorColumnItem, { type: "column" }> =>
+          (i): i is Extract<InspectorItem, { type: "column" }> =>
             i.type === "column",
         )
         .map((i) => i.name),
@@ -115,7 +115,7 @@ export function DefaultInspectorConfigSection({
 
   const handleAddAll = useCallback(() => {
     const newItems = availableColumns.map(
-      (n): InspectorColumnItem => ({ type: "column", name: n }),
+      (n): InspectorItem => ({ type: "column", name: n }),
     );
     onChange({ items: [...items, ...newItems] });
   }, [items, availableColumns, onChange]);
@@ -153,7 +153,7 @@ export function DefaultInspectorConfigSection({
   const handleUpdateColumnItem = useCallback(
     (
       colName: string,
-      patch: Partial<Extract<InspectorColumnItem, { type: "column" }>>,
+      patch: Partial<Extract<InspectorItem, { type: "column" }>>,
     ) => {
       onChange({
         items: items.map((i) =>
@@ -461,18 +461,16 @@ function ColumnItemRow({
   onRemove,
   onPatchColumnMetadata,
 }: {
-  item: Extract<InspectorColumnItem, { type: "column" }>;
+  item: Extract<InspectorItem, { type: "column" }>;
   columnType: ColumnType | undefined;
   currentSemanticType: ColumnMetadata["semanticType"];
   currentDisplayName: ColumnMetadata["displayName"];
   currentDescription: ColumnMetadata["description"] | undefined;
   onUpdate: (
-    patch: Partial<Extract<InspectorColumnItem, { type: "column" }>>,
+    patch: Partial<Extract<InspectorItem, { type: "column" }>>,
   ) => void;
   onRemove: () => void;
-  onPatchColumnMetadata: (
-    patch: Partial<Omit<ColumnMetadata, "name">>,
-  ) => void;
+  onPatchColumnMetadata: (patch: Partial<Omit<ColumnMetadata, "name">>) => void;
 }) {
   const isNumeric = columnType === ColumnType.Number;
   const availableFormats = isNumeric

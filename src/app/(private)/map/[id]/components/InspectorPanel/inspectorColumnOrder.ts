@@ -1,11 +1,11 @@
 "use client";
 
-import type { InspectorColumnItem } from "@/models/MapView";
+import type { InspectorItem } from "@/models/MapView";
 import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 function isColumn(
-  item: InspectorColumnItem,
-): item is Extract<InspectorColumnItem, { type: "column" }> {
+  item: InspectorItem,
+): item is Extract<InspectorItem, { type: "column" }> {
   return item.type === "column";
 }
 
@@ -16,9 +16,9 @@ function isColumn(
 export function getSelectedItemsOrdered(
   config: InspectorDataSourceConfig | null,
   allColumnNames: string[],
-): InspectorColumnItem[] {
+): InspectorItem[] {
   if (!config) return [];
-  const items = config.inspectorColumnItems ?? [];
+  const items = config.inspectorItems ?? [];
   const validSet = new Set(allColumnNames);
   return items.filter((i) => i.type === "divider" || validSet.has(i.name));
 }
@@ -31,7 +31,7 @@ export function getColumnOrderState(
   allColumnNames: string[],
 ): {
   selectedColumnsInOrder: string[];
-  selectedItemsInOrder: InspectorColumnItem[];
+  selectedItemsInOrder: InspectorItem[];
   availableColumns: string[];
   columnIds: string[];
 } {

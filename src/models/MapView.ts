@@ -1,9 +1,9 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
-import { inspectorColumnItemSchema } from "./shared";
+import { inspectorItemSchema } from "./shared";
 import { pointSchema } from "./shared";
 
-export type { InspectorColumnItem, InspectorLabelDivider } from "./shared";
+export type { InspectorItem, InspectorLabelDivider } from "./shared";
 
 export enum FilterOperator {
   AND = "AND",
@@ -163,7 +163,7 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
  * Configuration for a single data source in the inspector.
  * - id / dataSourceId: identity
  * - name: user-friendly label
- * - inspectorColumnItems: inspector-only display config per column and dividers
+ * - InspectorItems: inspector-only display config per column and dividers
  * - layout: "single" (one column) or "twoColumn" grid
  * - icon: optional Lucide icon name
  * - color: optional Tailwind color token (e.g. "blue")
@@ -172,10 +172,7 @@ export const inspectorDataSourceConfigSchema = z.object({
   id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
-  inspectorColumnItems: z
-    .array(inspectorColumnItemSchema)
-    .optional()
-    .nullable(),
+  inspectorItems: z.array(inspectorItemSchema).optional().nullable(),
   layout: z.enum(["single", "twoColumn"]).optional().nullable(),
   icon: z.string().optional().nullable(),
   color: z.string().optional().nullable(),
