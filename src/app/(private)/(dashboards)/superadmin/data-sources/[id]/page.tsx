@@ -8,7 +8,6 @@ import { redirect, useParams } from "next/navigation";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import { useDataSources } from "@/app/(private)/hooks/useDataSources";
 import {
   INSPECTOR_ICON_OPTIONS,
   InspectorPanelIcon,
@@ -16,6 +15,7 @@ import {
 import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser } from "@/hooks";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";

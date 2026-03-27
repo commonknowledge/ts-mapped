@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useDataSources } from "./useDataSources";
+import { useDataSources } from "@/hooks/useDataSources";
 import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 
 export function _resolveColumnMetadata(

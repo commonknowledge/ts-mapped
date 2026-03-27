@@ -1,6 +1,6 @@
 import { Database } from "lucide-react";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
+import { useDataSources } from "@/hooks/useDataSources";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import {

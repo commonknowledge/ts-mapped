@@ -1,11 +1,11 @@
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
+import { useDataSources } from "@/hooks/useDataSources";
 import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
-import { useDataSources } from "../../hooks/useDataSources";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
 

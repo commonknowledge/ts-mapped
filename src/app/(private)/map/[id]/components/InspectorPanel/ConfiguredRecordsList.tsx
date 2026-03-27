@@ -1,6 +1,6 @@
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
+import { useDataSources } from "@/hooks/useDataSources";
 import { buildName } from "@/utils/dataRecord";
-import { useDataSources } from "../../hooks/useDataSources";
 import { ConfiguredRecordProperties } from "./ConfiguredRecordProperties";
 
 interface DataRecord {

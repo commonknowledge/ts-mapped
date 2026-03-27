@@ -1,11 +1,11 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/(private)/map/[id]/hooks/useFolders";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
+import { useDataSources } from "@/hooks/useDataSources";
 import { FilterType } from "@/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { buildName } from "@/utils/dataRecord";

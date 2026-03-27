@@ -4,9 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import {
   ResizableHandle,

@@ -8,10 +8,10 @@ import {
   isPublicMapRouteAtom,
   mapModeAtom,
 } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useViewId } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { activeDataSourceIdAtom } from "../atoms/publicMapAtoms";

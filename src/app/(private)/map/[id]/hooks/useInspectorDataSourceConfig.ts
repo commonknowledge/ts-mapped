@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useDataSources } from "./useDataSources";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useMapViews } from "./useMapViews";
 import type { DefaultInspectorConfig } from "@/models/DataSource";
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
+import { useDataSources } from "@/hooks/useDataSources";
 import { LayerType } from "@/types";
 import { useInspectorState } from "./useInspectorState";
 

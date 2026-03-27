@@ -5,6 +5,7 @@ import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
 import { isPublicMapRouteAtom } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
+import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import {
   useMapViews,
   useViewId,
@@ -12,7 +13,6 @@ import {
 import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useTRPC } from "@/services/trpc/react";
-import { useMapId } from "../map/[id]/hooks/useMapCore";
 
 export function useDataSources() {
   const trpc = useTRPC();

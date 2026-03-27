@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { MapPinIcon, PlusIcon, TableIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { AreaSetCodeLabels } from "@/labels";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";

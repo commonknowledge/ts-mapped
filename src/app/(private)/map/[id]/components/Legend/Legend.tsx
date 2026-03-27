@@ -2,13 +2,13 @@ import { ChevronDown, CornerDownRight, LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
 import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
-import {
-  useChoroplethDataSource,
-  useDataSources,
-} from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import {
+  useChoroplethDataSource,
+  useDataSources,
+} from "@/hooks/useDataSources";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import { MapType } from "@/models/MapView";

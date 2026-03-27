@@ -6,6 +6,7 @@ import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import {
   AreaSetCodeLabels,
   AreaSetCodeYears,
@@ -25,7 +26,6 @@ import {
 import { Switch } from "@/shadcn/ui/switch";
 import { Tooltip, TooltipContent } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { useChoroplethDataSource } from "../hooks/useDataSources";
 import mapStyles from "../styles";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
 import { CHOROPLETH_AREA_SET_CODES } from "./Choropleth/configs";

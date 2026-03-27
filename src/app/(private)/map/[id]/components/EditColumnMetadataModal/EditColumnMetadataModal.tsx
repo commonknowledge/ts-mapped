@@ -4,10 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useColumnValues } from "@/hooks/useColumnValues";
+import { useDataSources } from "@/hooks/useDataSources";
 import { ColumnType } from "@/models/DataSource";
 import {
   Dialog,

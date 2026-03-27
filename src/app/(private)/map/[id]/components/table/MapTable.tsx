@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/(private)/map/[id]/hooks/useDataRecords";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceTypeLabels } from "@/labels";
 import { ColumnType } from "@/models/DataSource";

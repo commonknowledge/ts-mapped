@@ -1,13 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ListFilter, Search, XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/(private)/map/[id]/hooks/useTurfsQuery";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
+import { useDataSources } from "@/hooks/useDataSources";
 import { FilterTypeLabels } from "@/labels";
 import {
   FilterOperator,

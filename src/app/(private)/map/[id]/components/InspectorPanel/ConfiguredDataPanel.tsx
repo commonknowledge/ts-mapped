@@ -2,7 +2,7 @@
 
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { useDataSources } from "../../hooks/useDataSources";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import ConfiguredRecordsList from "./ConfiguredRecordsList";
 import {

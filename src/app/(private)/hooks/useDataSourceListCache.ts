@@ -6,6 +6,9 @@ import { useTRPC } from "@/services/trpc/react";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceListItem = RouterOutputs["dataSource"]["listReadable"][number];
+type DataSourceById = RouterOutputs["dataSource"]["byId"];
+type DataSourceByOrganisation =
+  RouterOutputs["dataSource"]["byOrganisation"][number];
 
 export function useDataSourceListCache() {
   const trpc = useTRPC();
@@ -21,6 +24,12 @@ export function useDataSourceListCache() {
       }),
       queryClient.invalidateQueries({
         queryKey: trpc.dataSource.listForMapView.queryKey(),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: trpc.dataSource.byOrganisation.queryKey(),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: trpc.dataSource.byId.queryKey(),
       }),
     ]);
   }, [queryClient, trpc]);
@@ -43,6 +52,22 @@ export function useDataSourceListCache() {
       queryClient.setQueriesData(
         { queryKey: trpc.dataSource.listForMapView.queryKey() },
         mapUpdater,
+      );
+      queryClient.setQueriesData(
+        { queryKey: trpc.dataSource.byOrganisation.queryKey() },
+        (old: DataSourceByOrganisation[] | undefined) =>
+          old?.map((ds) =>
+            ds.id === dataSourceId
+              ? { ...ds, ...updater(ds as unknown as DataSourceListItem) }
+              : ds,
+          ),
+      );
+      queryClient.setQueriesData(
+        { queryKey: trpc.dataSource.byId.queryKey() },
+        (old: DataSourceById | undefined) => {
+          if (!old || old.id !== dataSourceId) return old;
+          return { ...old, ...updater(old as unknown as DataSourceListItem) };
+        },
       );
     },
     [queryClient, trpc],

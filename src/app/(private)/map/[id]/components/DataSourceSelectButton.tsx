@@ -1,6 +1,7 @@
 import { PlusIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
+import { useDataSources } from "@/hooks/useDataSources";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -11,7 +12,6 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
-import { useDataSources } from "../hooks/useDataSources";
 import { useMapViews } from "../hooks/useMapViews";
 import type { DataSourceWithImportInfo } from "@/components/DataSourceItem";
 

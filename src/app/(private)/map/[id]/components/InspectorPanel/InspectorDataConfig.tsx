@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useDataSources } from "@/hooks/useDataSources";
 import { type InspectorDataSourceConfig } from "@/models/MapView";
-import { useDataSources } from "../../hooks/useDataSources";
 import { useMapViews } from "../../hooks/useMapViews";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryConfigItem } from "./BoundaryConfigItem";

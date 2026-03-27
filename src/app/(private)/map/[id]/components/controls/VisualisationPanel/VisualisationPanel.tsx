@@ -1,9 +1,9 @@
 import { Palette, PieChart, X } from "lucide-react";
 import { useState } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
-import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY } from "@/constants";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType, ColorScheme } from "@/models/MapView";
 import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";

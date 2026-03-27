@@ -2,6 +2,7 @@
 
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { AreaSetGroupCode } from "@/models/AreaSet";
 import { GeocodingType } from "@/models/DataSource";
 import {
@@ -9,7 +10,6 @@ import {
   selectedBivariateBucketAtom,
 } from "../atoms/choroplethAtoms";
 import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
-import { useChoroplethDataSource } from "./useDataSources";
 import { useZoom } from "./useMapCamera";
 import { useMapViews } from "./useMapViews";
 
