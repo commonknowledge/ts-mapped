@@ -46,8 +46,8 @@ export default function InspectorConfigTab() {
       const newDataSourceConfig: InspectorDataSourceConfig = {
         id: uuidv4(),
         dataSourceId,
-        name: dataSource?.name || "Data Source",
-        items: [],
+        ...{ name: dataSource?.name || "Data Source", items: [] },
+        ...dataSource?.defaultInspectorConfig,
       };
 
       const prevDataSources = view.inspectorConfig?.dataSources || [];

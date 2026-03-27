@@ -1,8 +1,8 @@
-import type { InspectorColumn, InspectorItem } from "@/models/shared";
+import type { InspectorItem } from "@/models/shared";
 
 export interface InspectorBlock {
   group?: string;
-  columns: InspectorColumn[];
+  columns: string[];
 }
 
 /**
@@ -19,9 +19,9 @@ export function buildInspectorBlocks(
     } else {
       const last = blocks[blocks.length - 1];
       if (last) {
-        last.columns.push(item);
+        last.columns.push(item.name);
       } else {
-        blocks.push({ columns: [item] });
+        blocks.push({ columns: [item.name] });
       }
     }
   }

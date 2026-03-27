@@ -129,7 +129,10 @@ export const dataRecordRouter = router({
         dataSourceArea.areaSetCode,
         dataSourceArea.code,
       );
-      return { records, match };
+      return {
+        records,
+        match: records.length ? match : DataRecordMatchType.None,
+      };
     }),
   byPoint: dataSourceReadProcedure
     .input(

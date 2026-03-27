@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { useMemo } from "react";
 import { ColumnType } from "@/models/DataSource";
 import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
@@ -8,17 +7,11 @@ import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useInspectorColumn } from "../../hooks/useInspectorColumn";
-import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { getDisplayValue, parseColumnNumber } from "../../utils/stats";
-import {
-  getBarColorForLabel,
-  getInspectorColorClass,
-} from "./inspectorPanelOptions";
+import { getBarColorForLabel } from "./inspectorPanelOptions";
 import { PropertyLabel } from "./PropertyLabel";
-import { SimpleRecordProperties } from "./SimpleRecordProperties";
-import { buildInspectorBlocks } from "./utils";
 import type { ColumnMetadata } from "@/models/DataSource";
-import type { InspectorColumn, InspectorItem } from "@/models/shared";
+import type { InspectorColumn } from "@/models/shared";
 
 // ============================================================================
 // Internal rendering helpers
@@ -36,7 +29,7 @@ function variancePercent(value: number, baseline: number): number | null {
 interface SubRendererProps {
   value: unknown;
   inspectorColumn: InspectorColumn;
-  dataSourceId: string;
+  dataSourceId: string | undefined;
   columnMetadata?: ColumnMetadata | undefined;
   columnType?: ColumnType | null;
 }
@@ -71,7 +64,7 @@ function NumberWithComparisonValue({
   const baselineQuery = useQuery(
     trpc.dataRecord.columnStat.queryOptions(
       {
-        dataSourceId,
+        dataSourceId: dataSourceId || "",
         columnName: inspectorColumn.name,
         stat: comparisonStat,
       },
@@ -211,14 +204,14 @@ function ScaleValue({
   );
 }
 
-function ConfiguredPropertyValue({
+function DataRecordPropertyValue({
   value,
   name,
   dataSourceId,
 }: {
   value: unknown;
   name: string;
-  dataSourceId: string;
+  dataSourceId: string | undefined;
 }) {
   const { columnMetadata, columnDef } = useDataSourceColumn(dataSourceId, name);
   const inspectorColumn = useInspectorColumn(dataSourceId, name);
@@ -281,104 +274,40 @@ function ConfiguredPropertyValue({
 }
 
 // ============================================================================
-// ConfiguredRecordProperties
-// Renders a single record's json using inspector config items directly.
-// Falls back to SimpleRecordProperties when no column items are configured.
+// DataRecordColumns
+// Renders a list of columns with labels and formatted values.
 // ============================================================================
 
-export function ConfiguredRecordProperties({
+export default function DataRecordColumns({
+  columns,
   json,
   dataSourceId,
 }: {
+  columns?: string[];
   json: Record<string, unknown>;
-  dataSourceId: string;
+  dataSourceId: string | undefined;
 }) {
-  const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
-
-  const inspectorColumns = useMemo(
-    () =>
-      inspectorConfig?.items?.filter(
-        (i): i is Extract<InspectorItem, { type: "column" }> =>
-          i.type === "column",
-      ) || [],
-    [inspectorConfig],
-  );
-
-  const hasValues = inspectorColumns.some((item) => {
-    const raw = json[item.name];
-    return raw !== undefined && raw !== null && String(raw) !== "";
-  });
-
-  const blocks = useMemo(
-    () => buildInspectorBlocks(inspectorConfig?.items),
-    [inspectorConfig?.items],
-  );
-
-  if (inspectorColumns.length === 0) {
-    return <SimpleRecordProperties json={json} dataSourceId={dataSourceId} />;
-  }
-
-  if (!hasValues) {
-    return <></>;
-  }
-
-  const isTwoColumn = inspectorConfig?.layout === "twoColumn";
-
-  let globalColumnIndex = 0;
-
-  const dividerBackgroundClassName = getInspectorColorClass(
-    inspectorConfig?.color,
-  );
-
+  const safeColumns = columns ?? Object.keys(json);
   return (
-    <dl
-      className={cn(
-        "flex flex-col gap-3 px-3",
-        isTwoColumn &&
-          "grid grid-cols-2 gap-x-4 gap-y-3 relative before:content-[''] before:absolute before:left-1/2 before:top-0 before:bottom-0 before:w-px before:bg-neutral-200 before:-translate-x-px",
-      )}
-    >
-      {blocks.map((block, blockIndex) => {
-        const divider =
-          block.group !== undefined ? (
-            <div
-              key={`divider-${blockIndex}`}
-              className={cn(
-                "text-neutral-500 text-xs font-medium uppercase tracking-wide pt-4 relative z-10",
-                dividerBackgroundClassName ?? "bg-inherit",
-                isTwoColumn
-                  ? "col-span-2 mt-2 first:mt-0 first:border-t-0 first:pt-0"
-                  : "mt-3 first:mt-0 first:border-t-0 first:pt-0",
-              )}
-            >
-              <div className="border-t border-neutral-400 pt-2">
-                {block.group}
-              </div>
-            </div>
-          ) : null;
-
-        const columns = block.columns.map((column) => {
-          const index = globalColumnIndex++;
-          return (
-            <div key={`${column.name}-${index}`}>
-              <PropertyLabel
-                column={column.name}
+    <>
+      {safeColumns.map((column, index) => {
+        return (
+          <div key={`${column}-${index}`}>
+            <PropertyLabel
+              column={column}
+              dataSourceId={dataSourceId}
+              showSettings={false}
+            />
+            <dd>
+              <DataRecordPropertyValue
+                value={json[column]}
+                name={column}
                 dataSourceId={dataSourceId}
-                showSettings={false}
               />
-              <dd>
-                <ConfiguredPropertyValue
-                  value={json[column.name]}
-                  name={column.name}
-                  dataSourceId={dataSourceId}
-                />
-              </dd>
-            </div>
-          );
-        });
-
-        return [divider, ...columns];
+            </dd>
+          </div>
+        );
       })}
-    </dl>
+    </>
   );
 }

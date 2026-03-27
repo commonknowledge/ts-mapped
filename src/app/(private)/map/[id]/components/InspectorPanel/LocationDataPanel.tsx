@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AreaSetCode } from "@/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
-import ConfiguredDataPanel from "./ConfiguredDataPanel";
+import DataRecordsPanel from "./DataRecordsPanel";
 import type { SelectedBoundary } from "../../types/inspector";
 import type { Point } from "@/models/shared";
 
@@ -51,16 +51,16 @@ export function LocationDataPanel({
 
   return (
     <>
-      {data?.match === DataRecordMatchType.Approximate && (
-        <p className="text-sm text-muted-foreground mb-2 italic">
-          Approximate boundary match
-        </p>
-      )}
-      <ConfiguredDataPanel
+      <DataRecordsPanel
         dataSourceId={dataSourceId}
         records={data?.records ?? []}
         isLoading={isLoading}
         defaultExpanded={defaultExpanded}
+        hint={
+          data?.match === DataRecordMatchType.Approximate
+            ? "Approximate boundary match"
+            : ""
+        }
       />
     </>
   );

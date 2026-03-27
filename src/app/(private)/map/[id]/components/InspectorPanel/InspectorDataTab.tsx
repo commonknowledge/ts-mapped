@@ -20,10 +20,10 @@ import {
 import { LayerType } from "@/types";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
+import DataRecordColumns from "./DataRecordColumns";
 import InspectorDataConfig from "./InspectorDataConfig";
 import { LocationDataPanel } from "./LocationDataPanel";
 import SimplePropertiesList from "./SimplePropertiesList";
-import { SimpleRecordProperties } from "./SimpleRecordProperties";
 import type { RawAreaStat } from "../../hooks/useRawAreaStats";
 
 interface InspectorDataTabProps {
@@ -91,7 +91,7 @@ export default function InspectorDataTab({
       {isBoundary ? (
         <>
           <SimplePropertiesList properties={boundaryProperties} />
-          <SimpleRecordProperties
+          <DataRecordColumns
             json={getAreaStatJson(areaStat)}
             dataSourceId={choroplethDataSource?.id}
           />
@@ -136,7 +136,7 @@ export default function InspectorDataTab({
               <>
                 <SimplePropertiesList properties={properties} />
                 {recordData?.json && (
-                  <SimpleRecordProperties
+                  <DataRecordColumns
                     json={recordData?.json}
                     dataSourceId={dataSource?.id}
                   />

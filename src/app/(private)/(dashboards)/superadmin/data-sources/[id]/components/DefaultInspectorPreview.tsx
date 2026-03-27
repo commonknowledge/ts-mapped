@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import ConfiguredDataPanel from "@/app/(private)/map/[id]/components/InspectorPanel/ConfiguredDataPanel";
+import DataRecordsPanel from "@/app/(private)/map/[id]/components/InspectorPanel/DataRecordsPanel";
 import { useInspectorDataSourceConfig } from "@/app/(private)/map/[id]/hooks/useInspectorDataSourceConfig";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
@@ -24,9 +24,7 @@ export function DefaultInspectorPreview({
     }),
   );
 
-  const sampleRow = listData?.records?.[0] as
-    | { id: string; externalId: string; json: Record<string, unknown> }
-    | undefined;
+  const sampleRow = listData?.records?.[0];
 
   const selectedCount =
     inspectorConfig?.items.filter((i) => i.type === "column").length ?? 0;
@@ -52,7 +50,7 @@ export function DefaultInspectorPreview({
             No columns selected
           </p>
         ) : (
-          <ConfiguredDataPanel
+          <DataRecordsPanel
             dataSourceId={dataSourceId}
             records={sampleRow ? [sampleRow] : []}
             isLoading={false}

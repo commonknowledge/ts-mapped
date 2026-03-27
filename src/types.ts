@@ -96,4 +96,5 @@ export enum DataRecordMatchType {
   Contains = "Contains",
   ContainedBy = "ContainedBy",
   Exact = "Exact",
+  None = "None",
 }

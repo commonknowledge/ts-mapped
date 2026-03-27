@@ -31,7 +31,7 @@ export default function TogglePanel({
       <div className="flex items-center justify-between relative">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 hover:bg-neutral-100 rounded px-1  / text-sm font-medium cursor-pointer"
+          className="flex items-center gap-2 hover:bg-neutral-100 rounded pl-1 pr-2 / text-sm font-medium cursor-pointer"
         >
           <ChevronDown
             size={16}
