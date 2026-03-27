@@ -1,9 +1,10 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
 import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
@@ -61,13 +62,11 @@ export function DefaultInspectorConfigSection({
     dataSource.defaultInspectorConfig?.layout ?? "single";
   const color = dataSource.defaultInspectorConfig?.color ?? null;
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
+  const { invalidateAll } = useDataSourceListCache();
   const { mutate: patchColumnMetadata } = useMutation(
     trpc.dataSource.patchColumnMetadataSuperadmin.mutationOptions({
       onSuccess: () => {
-        void queryClient.invalidateQueries(
-          trpc.dataSource.listPublic.queryFilter(),
-        );
+        void invalidateAll();
       },
     }),
   );

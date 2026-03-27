@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
@@ -48,17 +49,16 @@ export default function PrivateMapOverlay() {
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
   const onImportComplete = useCallback(() => {
-    // Refresh readable data sources after an import
-    queryClient.invalidateQueries({
-      queryKey: trpc.dataSource.listReadable.queryKey(),
-    });
+    // Refresh data sources after an import
+    void invalidateDataSources();
 
     // Also refresh data records so table values (e.g. tag columns) stay in sync
     queryClient.invalidateQueries({
       queryKey: trpc.dataRecord.list.queryKey(),
     });
-  }, [queryClient, trpc]);
+  }, [invalidateDataSources, queryClient, trpc]);
 
   const markerQueries = useMarkerQueries();
   const { selectedDataSourceId } = useTable();

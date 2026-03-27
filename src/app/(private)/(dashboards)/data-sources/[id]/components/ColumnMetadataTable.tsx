@@ -1,8 +1,9 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import ColorMappingsEditor from "@/components/ColorMappingsEditor";
 import ValueLabelsEditor from "@/components/ValueLabelsEditor";
 import { useColumnValues } from "@/hooks/useColumnValues";
@@ -224,16 +225,14 @@ export default function ColumnMetadataTable({
     setMetadata(initialMetadata);
   }, [initialMetadata]);
 
-  const client = useQueryClient();
   const trpc = useTRPC();
+  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
 
   const { mutate: updateDataSourceConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
       onSuccess: () => {
         toast.success("Saved.");
-        client.invalidateQueries({
-          queryKey: trpc.dataSource.listReadable.queryKey(),
-        });
+        void invalidateDataSources();
       },
       onError: (error) => {
         toast.error(error.message || "Could not save column metadata.");

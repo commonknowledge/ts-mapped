@@ -1,12 +1,14 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
+import { useDataSources } from "@/app/(private)/hooks/useDataSources";
 import {
   INSPECTOR_ICON_OPTIONS,
   InspectorPanelIcon,
@@ -31,7 +33,6 @@ import { DefaultChoroplethSection } from "./components/DefaultChoroplethSection"
 import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
 import { ScreenshotSection } from "./components/ScreenshotSection";
 import type {
-  DataSource,
   DefaultChoroplethConfig,
   DefaultInspectorConfig,
 } from "@/models/DataSource";
@@ -205,7 +206,7 @@ export default function DataSourceConfigPage() {
   const { currentUser } = useCurrentUser();
   const { id } = useParams<{ id: string }>();
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
+  const { updateDataSource, invalidateAll } = useDataSourceListCache();
 
   const setIsSuperadminDataSourceRoute = useSetAtom(
     isSuperadminDataSourceRouteAtom,
@@ -215,22 +216,24 @@ export default function DataSourceConfigPage() {
     return () => setIsSuperadminDataSourceRoute(false);
   }, [setIsSuperadminDataSourceRoute]);
 
-  const { data: dataSources, isPending } = useQuery(
-    trpc.dataSource.listPublic.queryOptions(),
-  );
+  const { data: dataSources, isPending, getDataSourceById } = useDataSources();
 
   if (currentUser?.email !== ADMIN_USER_EMAIL) redirect("/");
 
   const dataSource = dataSources?.find((ds) => ds.id === id);
+
+  // Ref keeps the latest getDataSourceById without adding it to useCallback deps,
+  // so debounced save handlers stay identity-stable (avoiding child re-renders)
+  // but still read post-optimistic-update data when the timeout fires.
+  const getDataSourceByIdRef = useRef(getDataSourceById);
+  getDataSourceByIdRef.current = getDataSourceById;
 
   const { mutateAsync: saveInspectorConfig, isPending: isSavingInspector } =
     useMutation(
       trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({
         onError: (err) => {
           toast.error(err.message || "Failed to save inspector settings.");
-          void queryClient.invalidateQueries(
-            trpc.dataSource.listPublic.queryFilter(),
-          );
+          void invalidateAll();
         },
       }),
     );
@@ -239,9 +242,7 @@ export default function DataSourceConfigPage() {
     trpc.dataSource.updateDefaultChoroplethConfig.mutationOptions({
       onError: (err) => {
         toast.error(err.message || "Failed to save choropleth settings.");
-        void queryClient.invalidateQueries(
-          trpc.dataSource.listPublic.queryFilter(),
-        );
+        void invalidateAll();
       },
     }),
   );
@@ -250,30 +251,23 @@ export default function DataSourceConfigPage() {
 
   const handleInspectorConfigChange = useCallback(
     (patch: Partial<DefaultInspectorConfig>) => {
-      queryClient.setQueryData<DataSource[]>(
-        trpc.dataSource.listPublic.queryKey(),
-        (old) =>
-          old?.map((ds) =>
-            ds.id === id
-              ? {
-                  ...ds,
-                  defaultInspectorConfig: {
-                    ...(ds.defaultInspectorConfig ?? { items: [] }),
-                    ...patch,
-                  },
-                }
-              : ds,
-          ),
-      );
+      updateDataSource(id, (ds) => ({
+        ...ds,
+        defaultInspectorConfig: {
+          ...(ds.defaultInspectorConfig ?? { items: [] }),
+          ...patch,
+        },
+      }));
       if (inspectorSaveTimer.current) clearTimeout(inspectorSaveTimer.current);
       inspectorSaveTimer.current = setTimeout(() => {
-        const config = queryClient
-          .getQueryData<DataSource[]>(trpc.dataSource.listPublic.queryKey())
-          ?.find((ds) => ds.id === id)?.defaultInspectorConfig ?? { items: [] };
+        const config = getDataSourceByIdRef.current(id)
+          ?.defaultInspectorConfig ?? {
+          items: [],
+        };
         void saveInspectorConfig({ dataSourceId: id, config });
       }, 600);
     },
-    [id, queryClient, trpc, saveInspectorConfig],
+    [id, updateDataSource, saveInspectorConfig],
   );
 
   const choroplethSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(
@@ -282,24 +276,19 @@ export default function DataSourceConfigPage() {
 
   const handleChoroplethConfigChange = useCallback(
     (config: DefaultChoroplethConfig | null) => {
-      queryClient.setQueryData<DataSource[]>(
-        trpc.dataSource.listPublic.queryKey(),
-        (old) =>
-          old?.map((ds) =>
-            ds.id === id ? { ...ds, defaultChoroplethConfig: config } : ds,
-          ),
-      );
+      updateDataSource(id, (ds) => ({
+        ...ds,
+        defaultChoroplethConfig: config,
+      }));
       if (choroplethSaveTimer.current)
         clearTimeout(choroplethSaveTimer.current);
       choroplethSaveTimer.current = setTimeout(() => {
         const currentConfig =
-          queryClient
-            .getQueryData<DataSource[]>(trpc.dataSource.listPublic.queryKey())
-            ?.find((ds) => ds.id === id)?.defaultChoroplethConfig ?? null;
+          getDataSourceByIdRef.current(id)?.defaultChoroplethConfig ?? null;
         void saveChoroplethConfig({ dataSourceId: id, config: currentConfig });
       }, 600);
     },
-    [id, queryClient, trpc, saveChoroplethConfig],
+    [id, updateDataSource, saveChoroplethConfig],
   );
 
   const [isUploading, setIsUploading] = useState(false);
