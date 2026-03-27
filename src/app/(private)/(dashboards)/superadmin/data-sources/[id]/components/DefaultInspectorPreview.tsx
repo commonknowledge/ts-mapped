@@ -17,17 +17,17 @@ export function DefaultInspectorPreview({
 
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
 
+  const selectedCount =
+    inspectorConfig?.items.filter((i) => i.type === "column").length ?? 0;
+
   const { data: listData } = useQuery(
-    trpc.dataRecord.list.queryOptions({
-      dataSourceId,
-      page: 0,
-    }),
+    trpc.dataRecord.list.queryOptions(
+      { dataSourceId, page: 0 },
+      { enabled: selectedCount > 0 },
+    ),
   );
 
   const sampleRow = listData?.records?.[0];
-
-  const selectedCount =
-    inspectorConfig?.items.filter((i) => i.type === "column").length ?? 0;
 
   return (
     <div

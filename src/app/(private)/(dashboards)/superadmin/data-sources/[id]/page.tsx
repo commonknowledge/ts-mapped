@@ -218,7 +218,7 @@ export default function DataSourceConfigPage() {
 
   const { data: dataSources, isPending, getDataSourceById } = useDataSources();
 
-  if (currentUser?.email !== ADMIN_USER_EMAIL) redirect("/");
+  if (currentUser && currentUser.email !== ADMIN_USER_EMAIL) redirect("/");
 
   const dataSource = dataSources?.find((ds) => ds.id === id);
 
@@ -348,9 +348,6 @@ export default function DataSourceConfigPage() {
 
       <ScreenshotSection
         screenshotUrl={dataSource.defaultInspectorConfig?.screenshotUrl}
-        onUploaded={(url) =>
-          handleInspectorConfigChange({ screenshotUrl: url })
-        }
         isUploading={isUploading}
         onUpload={handleScreenshotUpload}
       />

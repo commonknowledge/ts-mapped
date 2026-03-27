@@ -226,13 +226,16 @@ export default function ColumnMetadataTable({
   }, [initialMetadata]);
 
   const trpc = useTRPC();
-  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
+  const { updateDataSource } = useDataSourceListCache();
 
   const { mutate: updateDataSourceConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         toast.success("Saved.");
-        void invalidateDataSources();
+        updateDataSource(variables.dataSourceId, (ds) => ({
+          ...ds,
+          columnMetadata: variables.columnMetadata ?? ds.columnMetadata,
+        }));
       },
       onError: (error) => {
         toast.error(error.message || "Could not save column metadata.");

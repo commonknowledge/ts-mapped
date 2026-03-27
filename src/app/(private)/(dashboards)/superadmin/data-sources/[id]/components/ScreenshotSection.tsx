@@ -7,7 +7,6 @@ import { Label } from "@/shadcn/ui/label";
 
 interface ScreenshotSectionProps {
   screenshotUrl: string | null | undefined;
-  onUploaded: (url: string) => void;
   isUploading: boolean;
   onUpload: (file: File) => Promise<void>;
 }
