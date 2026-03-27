@@ -1,6 +1,6 @@
 "use client";
 
-import { CalculationType, calculationTypes } from "@/models/MapView";
+import { CalculationType, calculationTypes } from "@/models/shared";
 import { Label } from "@/shadcn/ui/label";
 import type { DefaultChoroplethConfig } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";

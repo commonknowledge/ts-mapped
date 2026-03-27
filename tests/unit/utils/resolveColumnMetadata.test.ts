@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
-  resolveColumnMetadata,
-  resolveColumnMetadataEntry,
-} from "@/utils/resolveColumnMetadata";
+  _resolveColumnMetadata as resolveColumnMetadata,
+  _resolveColumnMetadataEntry as resolveColumnMetadataEntry,
+} from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import type { ColumnMetadata } from "@/models/DataSource";
 
 const base: ColumnMetadata[] = [

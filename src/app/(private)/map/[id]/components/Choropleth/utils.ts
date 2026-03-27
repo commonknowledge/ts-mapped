@@ -1,4 +1,4 @@
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/MapView";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 
 export const getChoroplethDataKey = (viewConfig: {
   calculationType?: CalculationType | null | undefined;

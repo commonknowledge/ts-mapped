@@ -1,35 +1,25 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import ConfiguredDataPanel from "@/app/(private)/map/[id]/components/InspectorPanel/ConfiguredDataPanel";
+import { useInspectorDataSourceConfig } from "@/app/(private)/map/[id]/hooks/useInspectorDataSourceConfig";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
-import type { DataSource } from "@/models/DataSource";
-import type { InspectorItem } from "@/models/shared";
 
 export function DefaultInspectorPreview({
-  items,
-  layout,
-  color,
-  name,
-  icon,
-  dataSource,
+  dataSourceId,
   className,
 }: {
-  items: InspectorItem[];
-  layout: "single" | "twoColumn" | null;
-  color: string | null;
-  name: string;
-  icon: string;
-  dataSource: DataSource;
+  dataSourceId: string;
   className?: string;
 }) {
   const trpc = useTRPC();
 
+  const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+
   const { data: listData } = useQuery(
     trpc.dataRecord.list.queryOptions({
-      dataSourceId: dataSource.id,
+      dataSourceId,
       page: 0,
     }),
   );
@@ -38,22 +28,8 @@ export function DefaultInspectorPreview({
     | { id: string; externalId: string; json: Record<string, unknown> }
     | undefined;
 
-  const selectedCount = items.filter((i) => i.type === "column").length;
-
-  // Construct a synthetic InspectorDataSourceConfig from the preview props.
-  // resolveInspectorConfig will return it as-is since items are already populated.
-  const syntheticConfig = useMemo(
-    () => ({
-      id: "preview",
-      dataSourceId: dataSource.id,
-      name: name || dataSource.name,
-      inspectorItems: items,
-      layout,
-      icon,
-      color,
-    }),
-    [dataSource.id, dataSource.name, name, items, layout, icon, color],
-  );
+  const selectedCount =
+    inspectorConfig?.items.filter((i) => i.type === "column").length ?? 0;
 
   return (
     <div
@@ -77,7 +53,7 @@ export function DefaultInspectorPreview({
           </p>
         ) : (
           <ConfiguredDataPanel
-            config={syntheticConfig}
+            dataSourceId={dataSourceId}
             records={sampleRow ? [sampleRow] : []}
             isLoading={false}
             defaultExpanded={true}

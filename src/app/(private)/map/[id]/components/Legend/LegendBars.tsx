@@ -1,7 +1,7 @@
+import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType } from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor } from "../../colors";
 import { getDisplayValue } from "../../utils/stats";
@@ -140,10 +140,9 @@ export function GradientBars({
     );
   });
 
-  const columnMetadata = resolveColumnMetadataEntry(
-    dataSource?.columnMetadata ?? [],
-    dataSource?.organisationOverride?.columnMetadata,
-    viewConfig.areaDataColumn,
+  const { columnMetadata } = useDataSourceColumn(
+    dataSource?.id,
+    viewConfig.areaDataColumn ?? "",
   );
   const valueLabels = columnMetadata?.valueLabels || {};
 
@@ -241,12 +240,11 @@ export function CategoricBars({
       .filter((v) => v && v !== "null" && v !== "undefined"),
   );
 
-  const valueLabels =
-    resolveColumnMetadataEntry(
-      dataSource?.columnMetadata ?? [],
-      dataSource?.organisationOverride?.columnMetadata,
-      viewConfig.areaDataColumn,
-    )?.valueLabels || {};
+  const { columnMetadata: areaColumnMetadata } = useDataSourceColumn(
+    dataSource?.id,
+    viewConfig.areaDataColumn ?? "",
+  );
+  const valueLabels = areaColumnMetadata?.valueLabels || {};
 
   return (
     <div className="flex max-h-[min(35vh,14rem)] min-h-0 w-full flex-col gap-1.5 overflow-y-auto py-1 pr-0.5">

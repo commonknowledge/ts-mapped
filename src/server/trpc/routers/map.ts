@@ -3,12 +3,8 @@ import z from "zod";
 import { AreaSetGroupCode } from "@/models/AreaSet";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { mapConfigSchema, mapSchema } from "@/models/Map";
-import {
-  CalculationType,
-  DEFAULT_CALCULATION_TYPE,
-  MapStyleName,
-  mapViewSchema,
-} from "@/models/MapView";
+import { MapStyleName, mapViewSchema } from "@/models/MapView";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {

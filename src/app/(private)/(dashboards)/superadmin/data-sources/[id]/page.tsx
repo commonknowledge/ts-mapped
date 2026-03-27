@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSetAtom } from "jotai";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
@@ -10,6 +11,7 @@ import {
   INSPECTOR_ICON_OPTIONS,
   InspectorPanelIcon,
 } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
 import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
@@ -29,6 +31,7 @@ import { DefaultChoroplethSection } from "./components/DefaultChoroplethSection"
 import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
 import { ScreenshotSection } from "./components/ScreenshotSection";
 import type {
+  DataSource,
   DefaultChoroplethConfig,
   DefaultInspectorConfig,
 } from "@/models/DataSource";
@@ -204,6 +207,14 @@ export default function DataSourceConfigPage() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const setIsSuperadminDataSourceRoute = useSetAtom(
+    isSuperadminDataSourceRouteAtom,
+  );
+  useEffect(() => {
+    setIsSuperadminDataSourceRoute(true);
+    return () => setIsSuperadminDataSourceRoute(false);
+  }, [setIsSuperadminDataSourceRoute]);
+
   const { data: dataSources, isPending } = useQuery(
     trpc.dataSource.listPublic.queryOptions(),
   );
@@ -212,30 +223,14 @@ export default function DataSourceConfigPage() {
 
   const dataSource = dataSources?.find((ds) => ds.id === id);
 
-  const [localInspectorConfig, setLocalInspectorConfig] =
-    useState<DefaultInspectorConfig>({ items: [] });
-  const [localChoroplethConfig, setLocalChoroplethConfig] =
-    useState<DefaultChoroplethConfig | null>(null);
-
-  // Initialise local state once the data source loads
-  const didInitRef = useRef(false);
-  useEffect(() => {
-    if (!dataSource || didInitRef.current) return;
-    didInitRef.current = true;
-    setLocalInspectorConfig(dataSource.defaultInspectorConfig ?? { items: [] });
-    setLocalChoroplethConfig(dataSource.defaultChoroplethConfig ?? null);
-  }, [dataSource]);
-
   const { mutateAsync: saveInspectorConfig, isPending: isSavingInspector } =
     useMutation(
       trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({
-        onSuccess: async () => {
-          await queryClient.invalidateQueries(
-            trpc.dataSource.listPublic.queryFilter(),
-          );
-        },
         onError: (err) => {
           toast.error(err.message || "Failed to save inspector settings.");
+          void queryClient.invalidateQueries(
+            trpc.dataSource.listPublic.queryFilter(),
+          );
         },
       }),
     );
@@ -244,70 +239,86 @@ export default function DataSourceConfigPage() {
     trpc.dataSource.updateDefaultChoroplethConfig.mutationOptions({
       onError: (err) => {
         toast.error(err.message || "Failed to save choropleth settings.");
+        void queryClient.invalidateQueries(
+          trpc.dataSource.listPublic.queryFilter(),
+        );
       },
     }),
   );
 
-  // Debounced auto-save for inspector config
-  const inspectorAutoSaveRef = useRef<number | null>(null);
-  const didInitInspectorAutoSaveRef = useRef(false);
-  useEffect(() => {
-    if (!didInitInspectorAutoSaveRef.current) {
-      didInitInspectorAutoSaveRef.current = true;
-      return;
-    }
-    if (!id) return;
-    if (inspectorAutoSaveRef.current)
-      window.clearTimeout(inspectorAutoSaveRef.current);
-    inspectorAutoSaveRef.current = window.setTimeout(() => {
-      void saveInspectorConfig({
-        dataSourceId: id,
-        config: localInspectorConfig,
-      });
-    }, 600);
-    return () => {
-      if (inspectorAutoSaveRef.current)
-        window.clearTimeout(inspectorAutoSaveRef.current);
-    };
-  }, [id, localInspectorConfig, saveInspectorConfig]);
+  const inspectorSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Debounced auto-save for choropleth config
-  const choroplethAutoSaveRef = useRef<number | null>(null);
-  const didInitChoroplethAutoSaveRef = useRef(false);
-  useEffect(() => {
-    if (!didInitChoroplethAutoSaveRef.current) {
-      didInitChoroplethAutoSaveRef.current = true;
-      return;
-    }
-    if (!id) return;
-    if (choroplethAutoSaveRef.current)
-      window.clearTimeout(choroplethAutoSaveRef.current);
-    choroplethAutoSaveRef.current = window.setTimeout(() => {
-      void saveChoroplethConfig({
-        dataSourceId: id,
-        config: localChoroplethConfig,
-      });
-    }, 600);
-    return () => {
-      if (choroplethAutoSaveRef.current)
-        window.clearTimeout(choroplethAutoSaveRef.current);
-    };
-  }, [id, localChoroplethConfig, saveChoroplethConfig]);
+  const handleInspectorConfigChange = useCallback(
+    (patch: Partial<DefaultInspectorConfig>) => {
+      queryClient.setQueryData<DataSource[]>(
+        trpc.dataSource.listPublic.queryKey(),
+        (old) =>
+          old?.map((ds) =>
+            ds.id === id
+              ? {
+                  ...ds,
+                  defaultInspectorConfig: {
+                    ...(ds.defaultInspectorConfig ?? { items: [] }),
+                    ...patch,
+                  },
+                }
+              : ds,
+          ),
+      );
+      if (inspectorSaveTimer.current) clearTimeout(inspectorSaveTimer.current);
+      inspectorSaveTimer.current = setTimeout(() => {
+        const config = queryClient
+          .getQueryData<DataSource[]>(trpc.dataSource.listPublic.queryKey())
+          ?.find((ds) => ds.id === id)?.defaultInspectorConfig ?? { items: [] };
+        void saveInspectorConfig({ dataSourceId: id, config });
+      }, 600);
+    },
+    [id, queryClient, trpc, saveInspectorConfig],
+  );
+
+  const choroplethSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const handleChoroplethConfigChange = useCallback(
+    (config: DefaultChoroplethConfig | null) => {
+      queryClient.setQueryData<DataSource[]>(
+        trpc.dataSource.listPublic.queryKey(),
+        (old) =>
+          old?.map((ds) =>
+            ds.id === id ? { ...ds, defaultChoroplethConfig: config } : ds,
+          ),
+      );
+      if (choroplethSaveTimer.current)
+        clearTimeout(choroplethSaveTimer.current);
+      choroplethSaveTimer.current = setTimeout(() => {
+        const currentConfig =
+          queryClient
+            .getQueryData<DataSource[]>(trpc.dataSource.listPublic.queryKey())
+            ?.find((ds) => ds.id === id)?.defaultChoroplethConfig ?? null;
+        void saveChoroplethConfig({ dataSourceId: id, config: currentConfig });
+      }, 600);
+    },
+    [id, queryClient, trpc, saveChoroplethConfig],
+  );
 
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleScreenshotUpload = useCallback(async (file: File) => {
-    setIsUploading(true);
-    try {
-      const url = await uploadFile(file);
-      setLocalInspectorConfig((prev) => ({ ...prev, screenshotUrl: url }));
-      toast.success("Screenshot updated");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setIsUploading(false);
-    }
-  }, []);
+  const handleScreenshotUpload = useCallback(
+    async (file: File) => {
+      setIsUploading(true);
+      try {
+        const url = await uploadFile(file);
+        handleInspectorConfigChange({ screenshotUrl: url });
+        toast.success("Screenshot updated");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [handleInspectorConfigChange],
+  );
 
   if (isPending) {
     return <div className="p-8 text-muted-foreground">Loading…</div>;
@@ -339,19 +350,17 @@ export default function DataSourceConfigPage() {
 
       <GeneralSection
         dataSourceName={dataSource.name}
-        name={localInspectorConfig.name ?? ""}
-        description={localInspectorConfig.description ?? ""}
-        icon={localInspectorConfig.icon ?? ""}
+        name={dataSource.defaultInspectorConfig?.name ?? ""}
+        description={dataSource.defaultInspectorConfig?.description ?? ""}
+        icon={dataSource.defaultInspectorConfig?.icon ?? ""}
         disabled={isSavingInspector}
-        onChange={(patch) =>
-          setLocalInspectorConfig((prev) => ({ ...prev, ...patch }))
-        }
+        onChange={handleInspectorConfigChange}
       />
 
       <ScreenshotSection
-        screenshotUrl={localInspectorConfig.screenshotUrl}
+        screenshotUrl={dataSource.defaultInspectorConfig?.screenshotUrl}
         onUploaded={(url) =>
-          setLocalInspectorConfig((prev) => ({ ...prev, screenshotUrl: url }))
+          handleInspectorConfigChange({ screenshotUrl: url })
         }
         isUploading={isUploading}
         onUpload={handleScreenshotUpload}
@@ -359,21 +368,14 @@ export default function DataSourceConfigPage() {
 
       <DefaultChoroplethSection
         dataSource={dataSource}
-        config={localChoroplethConfig}
-        onChange={setLocalChoroplethConfig}
+        config={dataSource.defaultChoroplethConfig ?? null}
+        onChange={handleChoroplethConfigChange}
       />
 
       <DefaultInspectorConfigSection
         dataSource={dataSource}
-        items={localInspectorConfig.items ?? []}
-        layout={localInspectorConfig.layout ?? "single"}
-        color={localInspectorConfig.color ?? null}
-        name={localInspectorConfig.name ?? ""}
-        icon={localInspectorConfig.icon ?? ""}
         isSaving={isSavingInspector}
-        onChange={(patch) =>
-          setLocalInspectorConfig((prev) => ({ ...prev, ...patch }))
-        }
+        onChange={handleInspectorConfigChange}
       />
     </div>
   );

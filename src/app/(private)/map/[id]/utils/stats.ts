@@ -1,5 +1,5 @@
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
-import { CalculationType } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { formatNumber } from "@/utils/text";
 import type { ColumnMetadata } from "@/models/DataSource";
 

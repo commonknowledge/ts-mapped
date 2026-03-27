@@ -5,12 +5,8 @@ import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataS
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
-import {
-  CalculationType,
-  ColorScaleType,
-  ColorScheme,
-  DEFAULT_CALCULATION_TYPE,
-} from "@/models/MapView";
+import { ColorScaleType, ColorScheme } from "@/models/MapView";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {

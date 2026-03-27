@@ -49,3 +49,15 @@ export const inspectorItemSchema = z.union([
   inspectorLabelDividerSchema,
 ]);
 export type InspectorItem = z.infer<typeof inspectorItemSchema>;
+
+/** Choropleth */
+
+export enum CalculationType {
+  Count = "Count",
+  Sum = "Sum",
+  Avg = "Avg",
+  Mode = "Mode",
+}
+export const calculationTypes = Object.values(CalculationType);
+export const calculationType = z.nativeEnum(CalculationType);
+export const DEFAULT_CALCULATION_TYPE = CalculationType.Avg;

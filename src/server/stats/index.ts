@@ -1,7 +1,7 @@
 import { sql } from "kysely";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
-import { CalculationType } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";

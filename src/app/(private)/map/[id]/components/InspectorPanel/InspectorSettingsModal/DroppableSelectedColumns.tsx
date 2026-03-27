@@ -68,7 +68,7 @@ export function DroppableSelectedColumns({
                   onFormatChange={(format) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
+                      items: (prev.items ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, displayFormat: format }
                           : ci,
@@ -79,7 +79,7 @@ export function DroppableSelectedColumns({
                   onComparisonStatChange={(comparisonStat) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
+                      items: (prev.items ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, comparisonStat }
                           : ci,
@@ -90,7 +90,7 @@ export function DroppableSelectedColumns({
                   onScaleMaxChange={(scaleMax) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
+                      items: (prev.items ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, scaleMax }
                           : ci,
@@ -101,7 +101,7 @@ export function DroppableSelectedColumns({
                   onBarColorChange={(value) =>
                     updateConfig((prev) => ({
                       ...prev,
-                      InspectorItems: (prev.inspectorItems ?? []).map((ci) =>
+                      items: (prev.items ?? []).map((ci) =>
                         ci.type === "column" && ci.name === col
                           ? { ...ci, barColor: value || undefined }
                           : ci,
@@ -114,7 +114,7 @@ export function DroppableSelectedColumns({
                       : () =>
                           updateConfig((prev) => ({
                             ...prev,
-                            InspectorItems: (prev.inspectorItems ?? []).filter(
+                            items: (prev.items ?? []).filter(
                               (ci) =>
                                 !(ci.type === "column" && ci.name === col),
                             ),

@@ -62,7 +62,11 @@ import type { DataSourceEvent } from "@/server/events";
 import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
-  listPublic: superadminProcedure.query(() => findPublicDataSources()),
+  listPublic: superadminProcedure.query(async () => {
+    const dataSources = await findPublicDataSources();
+    const withImportInfo = await addImportInfo(dataSources);
+    return withImportInfo.map((ds) => ({ ...ds, organisationOverride: null }));
+  }),
   updateDefaultInspectorConfig: superadminProcedure
     .input(
       z.object({

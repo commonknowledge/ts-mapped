@@ -1,11 +1,11 @@
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo } from "react";
-import { CalculationType } from "@/models/MapView";
-import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
+import { CalculationType } from "@/models/shared";
 import { useFillColor } from "../colors";
 import { DEFAULT_FILL_COLOR } from "../constants";
 import { useAreaStats } from "../data";
 import { getDisplayValue } from "../utils/stats";
+import { useDataSourceColumns } from "./useDataSourceColumn";
 import { useChoroplethDataSource } from "./useDataSources";
 import { useMapViews } from "./useMapViews";
 import type { AreaSetCode } from "@/models/AreaSet";
@@ -29,13 +29,8 @@ export const useDisplayAreaStats = <
   const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
-  const resolvedMetadata = useMemo(
-    () =>
-      resolveColumnMetadata(
-        choroplethDataSource?.columnMetadata ?? [],
-        choroplethDataSource?.organisationOverride?.columnMetadata,
-      ),
-    [choroplethDataSource],
+  const { columnMetadata: resolvedMetadata } = useDataSourceColumns(
+    choroplethDataSource?.id,
   );
 
   const columnMetadata = resolvedMetadata.find(

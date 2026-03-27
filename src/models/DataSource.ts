@@ -1,7 +1,7 @@
 import z from "zod";
 import { AreaSetCode } from "./AreaSet";
-import { CalculationType } from "./MapView";
 import {
+  CalculationType,
   ColumnDisplayFormat,
   columnDisplayFormats,
   inspectorItemSchema,

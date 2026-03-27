@@ -18,7 +18,7 @@ export function getSelectedItemsOrdered(
   allColumnNames: string[],
 ): InspectorItem[] {
   if (!config) return [];
-  const items = config.inspectorItems ?? [];
+  const items = config.items ?? [];
   const validSet = new Set(allColumnNames);
   return items.filter((i) => i.type === "divider" || validSet.has(i.name));
 }

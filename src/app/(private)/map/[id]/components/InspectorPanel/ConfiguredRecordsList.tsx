@@ -1,8 +1,7 @@
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import { buildName } from "@/utils/dataRecord";
+import { useDataSources } from "../../hooks/useDataSources";
 import { ConfiguredRecordProperties } from "./ConfiguredRecordProperties";
-import type { ColumnMetadata, DataSource } from "@/models/DataSource";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 interface DataRecord {
   id: string;
@@ -11,16 +10,15 @@ interface DataRecord {
 }
 
 export default function ConfiguredRecordsList({
+  dataSourceId,
   records,
-  dataSource,
-  inspectorConfig,
-  resolvedMetadata,
 }: {
+  dataSourceId: string;
   records: DataRecord[];
-  dataSource: DataSource | null | undefined;
-  inspectorConfig: InspectorDataSourceConfig;
-  resolvedMetadata: ColumnMetadata[];
 }) {
+  const { getDataSourceById } = useDataSources();
+  const dataSource = getDataSourceById(dataSourceId);
+
   if (!records.length) {
     return (
       <div className="py-4 text-center text-muted-foreground">
@@ -34,10 +32,7 @@ export default function ConfiguredRecordsList({
       <div>
         <ConfiguredRecordProperties
           json={records[0].json}
-          inspectorConfig={inspectorConfig}
-          resolvedMetadata={resolvedMetadata}
-          columnDefs={dataSource?.columnDefs}
-          dataSourceId={dataSource?.id}
+          dataSourceId={dataSourceId}
         />
       </div>
     );
@@ -53,10 +48,7 @@ export default function ConfiguredRecordsList({
           >
             <ConfiguredRecordProperties
               json={record.json}
-              inspectorConfig={inspectorConfig}
-              resolvedMetadata={resolvedMetadata}
-              columnDefs={dataSource?.columnDefs}
-              dataSourceId={dataSource?.id}
+              dataSourceId={dataSourceId}
             />
           </TogglePanel>
         </li>

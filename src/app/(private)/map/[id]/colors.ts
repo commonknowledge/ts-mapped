@@ -12,11 +12,11 @@ import { useMemo } from "react";
 import { DEFAULT_CUSTOM_COLOR } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
 import {
-  CalculationType,
   ColorScaleType,
   ColorScheme,
   type SteppedColorStep,
 } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { getCategoryColorScale } from "@/utils/colors";
 import { getChoroplethDataKey } from "./components/Choropleth/utils";
 import { DEFAULT_FILL_COLOR } from "./constants";

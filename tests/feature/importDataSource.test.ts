@@ -9,7 +9,8 @@ import {
   DataSourceType,
   GeocodingType,
 } from "@/models/DataSource";
-import { CalculationType, FilterType } from "@/models/MapView";
+import { FilterType } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import importDataSource from "@/server/jobs/importDataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {

@@ -1,6 +1,6 @@
 import { BarChart3, ChevronDown, Circle, Palette, Users } from "lucide-react";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { CalculationType } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,

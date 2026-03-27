@@ -1,7 +1,7 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { DUMMY_COUNT_COLUMN } from "@/constants";
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/MapView";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { useChoropleth } from "./hooks/useChoropleth";
 import { useMapBounds } from "./hooks/useMapBounds";

@@ -4,7 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
+import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
 import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
+import { useInspectorColumn } from "@/app/(private)/map/[id]/hooks/useInspectorColumn";
 import { NULL_UUID } from "@/constants";
 import { ColumnSemanticTypeLabels } from "@/labels";
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
@@ -24,7 +27,11 @@ import {
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
-import type { ColumnMetadata, DataSource } from "@/models/DataSource";
+import type {
+  ColumnMetadata,
+  DataSource,
+  DefaultInspectorConfig,
+} from "@/models/DataSource";
 import type { InspectorItem } from "@/models/shared";
 
 type InspectorLayout = "single" | "twoColumn";
@@ -37,32 +44,25 @@ function isDivider(
 
 interface DefaultInspectorConfigSectionProps {
   dataSource: DataSource;
-  items: InspectorItem[];
-  layout: InspectorLayout;
-  color: string | null;
-  name: string;
-  icon: string;
   isSaving: boolean;
-  onChange: (patch: {
-    items?: InspectorItem[];
-    layout?: InspectorLayout;
-    color?: string | null;
-  }) => void;
+  onChange: (patch: Partial<DefaultInspectorConfig>) => void;
 }
 
 export function DefaultInspectorConfigSection({
   dataSource,
-  items,
-  layout,
-  color,
-  name,
-  icon,
   isSaving,
   onChange,
 }: DefaultInspectorConfigSectionProps) {
+  const items = useMemo(
+    () => dataSource.defaultInspectorConfig?.items ?? [],
+    [dataSource.defaultInspectorConfig?.items],
+  );
+  const layout: InspectorLayout =
+    dataSource.defaultInspectorConfig?.layout ?? "single";
+  const color = dataSource.defaultInspectorConfig?.color ?? null;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { mutate: patchSemanticType } = useMutation(
+  const { mutate: patchColumnMetadata } = useMutation(
     trpc.dataSource.patchColumnMetadataSuperadmin.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries(
@@ -383,33 +383,14 @@ export function DefaultInspectorConfigSection({
                         </div>
                       ) : (
                         <ColumnItemRow
-                          item={item}
-                          columnType={
-                            dataSource.columnDefs.find(
-                              (c) => c.name === item.name,
-                            )?.type
-                          }
-                          currentSemanticType={
-                            dataSource.columnMetadata?.find(
-                              (m) => m.name === item.name,
-                            )?.semanticType
-                          }
-                          currentDisplayName={
-                            dataSource.columnMetadata?.find(
-                              (m) => m.name === item.name,
-                            )?.displayName
-                          }
-                          currentDescription={
-                            dataSource.columnMetadata?.find(
-                              (m) => m.name === item.name,
-                            )?.description
-                          }
+                          dataSourceId={dataSource.id}
+                          name={item.name}
                           onUpdate={(patch) =>
                             handleUpdateColumnItem(item.name, patch)
                           }
                           onRemove={() => handleRemoveColumn(item.name)}
                           onPatchColumnMetadata={(patch) =>
-                            patchSemanticType({
+                            patchColumnMetadata({
                               dataSourceId: dataSource.id,
                               column: item.name,
                               patch,
@@ -431,12 +412,7 @@ export function DefaultInspectorConfigSection({
         style={{ width: "320px", minWidth: "280px" }}
       >
         <DefaultInspectorPreview
-          items={items}
-          layout={layout}
-          color={color}
-          name={name}
-          icon={icon}
-          dataSource={dataSource}
+          dataSourceId={dataSource.id}
           className="h-full min-h-[200px]"
         />
       </div>
@@ -452,27 +428,23 @@ const numericOnlyFormats: ColumnDisplayFormat[] = [
 ];
 
 function ColumnItemRow({
-  item,
-  columnType,
-  currentSemanticType,
-  currentDisplayName,
-  currentDescription,
+  dataSourceId,
+  name,
   onUpdate,
   onRemove,
   onPatchColumnMetadata,
 }: {
-  item: Extract<InspectorItem, { type: "column" }>;
-  columnType: ColumnType | undefined;
-  currentSemanticType: ColumnMetadata["semanticType"];
-  currentDisplayName: ColumnMetadata["displayName"];
-  currentDescription: ColumnMetadata["description"] | undefined;
+  dataSourceId: string;
+  name: string;
   onUpdate: (
     patch: Partial<Extract<InspectorItem, { type: "column" }>>,
   ) => void;
   onRemove: () => void;
   onPatchColumnMetadata: (patch: Partial<Omit<ColumnMetadata, "name">>) => void;
 }) {
-  const isNumeric = columnType === ColumnType.Number;
+  const { columnDef, columnMetadata } = useDataSourceColumn(dataSourceId, name);
+  const inspectorColumn = useInspectorColumn(dataSourceId, name);
+  const isNumeric = columnDef?.type === ColumnType.Number;
   const availableFormats = isNumeric
     ? columnDisplayFormats
     : columnDisplayFormats.filter((f) => !numericOnlyFormats.includes(f));
@@ -480,8 +452,13 @@ function ColumnItemRow({
   return (
     <div className="flex-1 min-w-0 space-y-1">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="text-sm truncate flex-1 min-w-0" title={item.name}>
-          {item.name}
+        <span className="text-sm truncate flex-1 min-w-0" title={name}>
+          {name}
+          <ColumnMetadataIcons
+            dataSourceId={dataSourceId}
+            column={name}
+            fields={{ description: true }}
+          />
         </span>
         <button
           type="button"
@@ -494,7 +471,7 @@ function ColumnItemRow({
       <div className="flex flex-wrap gap-2">
         <select
           className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-          value={item.displayFormat ?? ""}
+          value={inspectorColumn?.displayFormat ?? ""}
           onChange={(e) =>
             onUpdate({
               displayFormat: e.target.value
@@ -511,10 +488,10 @@ function ColumnItemRow({
           ))}
         </select>
 
-        {item.displayFormat === ColumnDisplayFormat.Percentage && (
+        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Percentage && (
           <select
             className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-            value={currentSemanticType ?? ""}
+            value={columnMetadata?.semanticType ?? ""}
             onChange={(e) =>
               onPatchColumnMetadata({
                 semanticType: e.target.value
@@ -535,14 +512,14 @@ function ColumnItemRow({
           </select>
         )}
 
-        {item.displayFormat === ColumnDisplayFormat.Scale && (
+        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Scale && (
           <input
             type="number"
             min={2}
             max={10}
             className="h-6 w-16 rounded border border-input bg-background px-1.5 text-xs"
             placeholder="Max"
-            value={item.scaleMax ?? ""}
+            value={inspectorColumn?.scaleMax ?? ""}
             onChange={(e) =>
               onUpdate({
                 scaleMax: e.target.value ? Number(e.target.value) : undefined,
@@ -551,10 +528,11 @@ function ColumnItemRow({
           />
         )}
 
-        {item.displayFormat === ColumnDisplayFormat.NumberWithComparison && (
+        {inspectorColumn?.displayFormat ===
+          ColumnDisplayFormat.NumberWithComparison && (
           <select
             className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-            value={item.comparisonStat ?? ""}
+            value={inspectorColumn?.comparisonStat ?? ""}
             onChange={(e) =>
               onUpdate({
                 comparisonStat: e.target.value
@@ -571,28 +549,6 @@ function ColumnItemRow({
             ))}
           </select>
         )}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <input
-          className="h-6 rounded border border-input bg-background px-1.5 text-xs w-32"
-          placeholder="Display name"
-          value={currentDisplayName ?? ""}
-          onChange={(e) =>
-            onPatchColumnMetadata({
-              displayName: e.target.value || undefined,
-            })
-          }
-        />
-        <input
-          className="h-6 rounded border border-input bg-background px-1.5 text-xs flex-1 min-w-24"
-          placeholder="Description"
-          value={currentDescription ?? ""}
-          onChange={(e) =>
-            onPatchColumnMetadata({
-              description: e.target.value,
-            })
-          }
-        />
       </div>
     </div>
   );

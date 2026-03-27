@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { getCategoryColorsKey } from "@/app/(private)/map/[id]/colors";
-import { useColumnMetadataMutations } from "@/app/(private)/map/[id]/hooks/useColumnMetadataMutations";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import ColorMappingsEditor from "@/components/ColorMappingsEditor";
 import type { ColumnMetadata } from "@/models/DataSource";

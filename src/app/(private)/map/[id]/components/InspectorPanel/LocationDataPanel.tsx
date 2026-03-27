@@ -6,16 +6,15 @@ import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import ConfiguredDataPanel from "./ConfiguredDataPanel";
 import type { SelectedBoundary } from "../../types/inspector";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
 import type { Point } from "@/models/shared";
 
 export function LocationDataPanel({
-  config,
+  dataSourceId,
   selectedBoundary,
   markerPoint,
   defaultExpanded,
 }: {
-  config: InspectorDataSourceConfig;
+  dataSourceId: string;
   selectedBoundary?: SelectedBoundary | null;
   markerPoint?: Point | null;
   defaultExpanded: boolean;
@@ -25,7 +24,7 @@ export function LocationDataPanel({
   const { data: boundaryData, isLoading: isLoadingBoundary } = useQuery(
     trpc.dataRecord.byAreaCode.queryOptions(
       {
-        dataSourceId: config.dataSourceId,
+        dataSourceId: dataSourceId,
         areaCode: selectedBoundary?.code || "",
         areaSetCode: selectedBoundary?.areaSetCode ?? AreaSetCode.WMC24,
       },
@@ -38,7 +37,7 @@ export function LocationDataPanel({
   const { data: pointData, isLoading: isLoadingPoint } = useQuery(
     trpc.dataRecord.byPoint.queryOptions(
       {
-        dataSourceId: config.dataSourceId,
+        dataSourceId: dataSourceId,
         point: markerPoint || { lat: 0, lng: 0 },
       },
       {
@@ -58,7 +57,7 @@ export function LocationDataPanel({
         </p>
       )}
       <ConfiguredDataPanel
-        config={config}
+        dataSourceId={dataSourceId}
         records={data?.records ?? []}
         isLoading={isLoading}
         defaultExpanded={defaultExpanded}

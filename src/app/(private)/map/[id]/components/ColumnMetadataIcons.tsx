@@ -1,25 +1,27 @@
 import { InfoIcon, Settings2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { useDataSourceColumn } from "../hooks/useDataSourceColumn";
 import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
 import type { EditColumnMetadataFields } from "../atoms/editColumnMetadataAtom";
-import type { ColumnMetadata } from "@/models/DataSource";
 
 function ColumnMetadataIcons({
   dataSourceId,
   column,
   fields,
   iconColorClass = "text-black",
-  metadata,
   showSettings = true,
 }: {
   dataSourceId?: string;
   fields: EditColumnMetadataFields;
   column: string;
   iconColorClass?: string;
-  metadata?: ColumnMetadata;
   showSettings?: boolean;
 }) {
   const [, setEditColumnMetadata] = useEditColumnMetadata();
+  const { columnMetadata: metadata } = useDataSourceColumn(
+    dataSourceId,
+    column,
+  );
 
   if (!dataSourceId) {
     return null;

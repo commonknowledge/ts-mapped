@@ -1,8 +1,5 @@
-import {
-  ColorScheme,
-  DEFAULT_CALCULATION_TYPE,
-  MapStyleName,
-} from "@/models/MapView";
+import { ColorScheme, MapStyleName } from "@/models/MapView";
+import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import type { MapViewConfig } from "@/models/MapView";
 
 export const createNewViewConfig = (): MapViewConfig => {

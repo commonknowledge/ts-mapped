@@ -1,7 +1,7 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
-import { inspectorItemSchema } from "./shared";
-import { pointSchema } from "./shared";
+import { defaultInspectorConfigSchema } from "./DataSource";
+import { CalculationType, pointSchema } from "./shared";
 
 export type { InspectorItem, InspectorLabelDivider } from "./shared";
 
@@ -73,16 +73,6 @@ export const dataSourceViewSchema = z.object({
 });
 
 export type DataSourceView = z.infer<typeof dataSourceViewSchema>;
-
-export enum CalculationType {
-  Count = "Count",
-  Sum = "Sum",
-  Avg = "Avg",
-  Mode = "Mode",
-}
-export const calculationTypes = Object.values(CalculationType);
-export const calculationType = z.nativeEnum(CalculationType);
-export const DEFAULT_CALCULATION_TYPE = CalculationType.Avg;
 
 export enum ColorScheme {
   RedBlue = "RedBlue",
@@ -168,15 +158,11 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
  * - icon: optional Lucide icon name
  * - color: optional Tailwind color token (e.g. "blue")
  */
-export const inspectorDataSourceConfigSchema = z.object({
-  id: z.string(),
-  dataSourceId: z.string(),
-  name: z.string(),
-  inspectorItems: z.array(inspectorItemSchema).optional().nullable(),
-  layout: z.enum(["single", "twoColumn"]).optional().nullable(),
-  icon: z.string().optional().nullable(),
-  color: z.string().optional().nullable(),
-});
+export const inspectorDataSourceConfigSchema =
+  defaultInspectorConfigSchema.extend({
+    id: z.string(),
+    dataSourceId: z.string(),
+  });
 
 export type InspectorDataSourceConfig = z.infer<
   typeof inspectorDataSourceConfigSchema

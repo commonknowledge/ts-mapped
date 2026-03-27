@@ -1,6 +1,7 @@
 import { ChevronDown, CornerDownRight, LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
 import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import {
   useChoroplethDataSource,
   useDataSources,
@@ -10,7 +11,8 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
-import { CalculationType, MapType } from "@/models/MapView";
+import { MapType } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
@@ -26,7 +28,6 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { useColorScheme } from "../../colors";
 import { useAreaStats } from "../../data";
 import BivariateLegend from "../BivariateLagend";
@@ -40,6 +41,7 @@ export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
   const { data: dataSources, getDataSourceById } = useDataSources();
+  const { columnMetadata } = useDataSourceColumns(dataSource?.id);
 
   const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
@@ -110,11 +112,7 @@ export default function Legend() {
       .map((col) => ({
         value: col.name,
         label: `${col.name} (${col.type})`,
-        hint: resolveColumnMetadataEntry(
-          dataSource?.columnMetadata || [],
-          dataSource?.organisationOverride?.columnMetadata,
-          col.name,
-        )?.description,
+        hint: columnMetadata.find((m) => m.name === col.name)?.description,
       })) || []),
   ];
 
@@ -225,11 +223,8 @@ export default function Legend() {
                       ?.columnDefs.map((col) => ({
                         value: col.name,
                         label: `${col.name} (${col.type})`,
-                        hint: resolveColumnMetadataEntry(
-                          dataSource?.columnMetadata || [],
-                          dataSource?.organisationOverride?.columnMetadata,
-                          col.name,
-                        )?.description,
+                        hint: columnMetadata.find((m) => m.name === col.name)
+                          ?.description,
                       })) || []),
                   ]}
                   value={viewConfig.areaDataColumn || NULL_UUID}

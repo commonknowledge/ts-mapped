@@ -1,17 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
-import { resolveInspectorConfig } from "@/utils/resolveInspectorConfig";
 import { useDataSources } from "../../hooks/useDataSources";
+import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import ConfiguredRecordsList from "./ConfiguredRecordsList";
 import {
   InspectorPanelIcon,
   getInspectorColorClass,
 } from "./inspectorPanelOptions";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 interface DataRecord {
   id: string;
@@ -20,39 +17,22 @@ interface DataRecord {
 }
 
 export default function ConfiguredDataPanel({
-  config,
+  dataSourceId,
   records,
   isLoading,
   defaultExpanded,
 }: {
-  config: InspectorDataSourceConfig;
+  dataSourceId: string;
   records: DataRecord[];
   isLoading: boolean;
   defaultExpanded: boolean;
 }) {
   const { getDataSourceById } = useDataSources();
-
-  const dataSource = getDataSourceById(config.dataSourceId);
-
-  const inspectorConfig = useMemo(
-    () => resolveInspectorConfig(config, dataSource?.defaultInspectorConfig),
-    [config, dataSource],
-  );
-
-  const resolvedMetadata = useMemo(
-    () =>
-      resolveColumnMetadata(
-        dataSource?.columnMetadata ?? [],
-        dataSource?.organisationOverride?.columnMetadata,
-      ),
-    [
-      dataSource?.columnMetadata,
-      dataSource?.organisationOverride?.columnMetadata,
-    ],
-  );
+  const dataSource = getDataSourceById(dataSourceId);
+  const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
 
   const dataSourceType = dataSource?.config?.type ?? null;
-  const panelIcon = inspectorConfig.icon ? (
+  const panelIcon = inspectorConfig?.icon ? (
     <InspectorPanelIcon
       iconName={inspectorConfig.icon}
       className="h-4 w-4 shrink-0"
@@ -63,11 +43,11 @@ export default function ConfiguredDataPanel({
     </span>
   ) : undefined;
 
-  const colorClass = getInspectorColorClass(inspectorConfig.color);
+  const colorClass = getInspectorColorClass(inspectorConfig?.color);
 
   return (
     <TogglePanel
-      label={config.name}
+      label={inspectorConfig?.name || dataSource?.name || "Data"}
       icon={panelIcon}
       defaultExpanded={defaultExpanded}
       wrapperClassName={colorClass}
@@ -77,12 +57,7 @@ export default function ConfiguredDataPanel({
           <p className="text-sm">Loading...</p>
         </div>
       ) : (
-        <ConfiguredRecordsList
-          records={records}
-          dataSource={dataSource}
-          inspectorConfig={inspectorConfig}
-          resolvedMetadata={resolvedMetadata}
-        />
+        <ConfiguredRecordsList dataSourceId={dataSourceId} records={records} />
       )}
     </TogglePanel>
   );

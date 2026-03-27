@@ -9,6 +9,7 @@ import {
   useMapViews,
   useViewId,
 } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapId } from "./useMapCore";
@@ -17,15 +18,24 @@ export function useDataSources() {
   const trpc = useTRPC();
   const organisationId = useOrganisationId();
   const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
+  const isSuperadminDataSourceRoute = useAtomValue(
+    isSuperadminDataSourceRouteAtom,
+  );
   const mapId = useMapId();
   const viewId = useViewId();
+
+  const listPublicQuery = useQuery(
+    trpc.dataSource.listPublic.queryOptions(undefined, {
+      enabled: isSuperadminDataSourceRoute,
+    }),
+  );
 
   const listReadableQuery = useQuery(
     trpc.dataSource.listReadable.queryOptions(
       {
         activeOrganisationId: organisationId ?? undefined,
       },
-      { enabled: !isPublicMapRoute },
+      { enabled: !isPublicMapRoute && !isSuperadminDataSourceRoute },
     ),
   );
 
@@ -36,7 +46,11 @@ export function useDataSources() {
     ),
   );
 
-  const query = isPublicMapRoute ? listForMapViewQuery : listReadableQuery;
+  const query = isSuperadminDataSourceRoute
+    ? listPublicQuery
+    : isPublicMapRoute
+      ? listForMapViewQuery
+      : listReadableQuery;
 
   const getDataSourceById = useCallback(
     (id: string | null | undefined) => {

@@ -1,21 +1,24 @@
 import { DUMMY_COUNT_COLUMN } from "@/constants";
+import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import type { EditColumnMetadataFields } from "../../atoms/editColumnMetadataAtom";
-import type { ColumnMetadata } from "@/models/DataSource";
 
 export function PropertyLabel({
   column,
-  metadata,
   dataSourceId,
   showSettings = true,
   fields = { description: true },
 }: {
   column: string;
-  metadata?: ColumnMetadata;
   dataSourceId?: string;
   showSettings?: boolean;
   fields?: EditColumnMetadataFields;
 }) {
+  const { columnMetadata: metadata } = useDataSourceColumn(
+    dataSourceId,
+    column,
+  );
+
   const label =
     column === DUMMY_COUNT_COLUMN ? "Count" : metadata?.displayName || column;
 
@@ -25,7 +28,6 @@ export function PropertyLabel({
       <ColumnMetadataIcons
         column={column}
         dataSourceId={dataSourceId}
-        metadata={metadata}
         showSettings={showSettings}
         iconColorClass="text-muted-foreground"
         fields={fields}

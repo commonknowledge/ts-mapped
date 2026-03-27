@@ -114,7 +114,7 @@ export function ColumnsSection({
         next.splice(newIndex, 0, removed);
         updateConfig((prev) => ({
           ...prev,
-          InspectorItems: next,
+          items: next,
         }));
         return;
       }
@@ -135,9 +135,7 @@ export function ColumnsSection({
         nextColOrder.splice(newIndex, 0, removed);
         updateConfig((prev) => {
           const colItemsMap = new Map(
-            (prev.inspectorItems ?? [])
-              .filter(isColumn)
-              .map((ci) => [ci.name, ci]),
+            (prev.items ?? []).filter(isColumn).map((ci) => [ci.name, ci]),
           );
           const newColItems = nextColOrder
             .map((name) => colItemsMap.get(name))
@@ -145,7 +143,7 @@ export function ColumnsSection({
           let colIdx = 0;
           return {
             ...prev,
-            InspectorItems: (prev.inspectorItems ?? []).map((item) =>
+            items: (prev.items ?? []).map((item) =>
               isColumn(item) ? newColItems[colIdx++] : item,
             ),
           };
@@ -177,8 +175,8 @@ export function ColumnsSection({
             onClick={() =>
               updateConfig((prev) => ({
                 ...prev,
-                InspectorItems: [
-                  ...(prev.inspectorItems ?? []),
+                items: [
+                  ...(prev.items ?? []),
                   ...availableColumns.map(
                     (n): InspectorItem => ({ type: "column", name: n }),
                   ),
@@ -195,7 +193,7 @@ export function ColumnsSection({
             onClick={() =>
               updateConfig((prev) => ({
                 ...prev,
-                InspectorItems: (prev.inspectorItems ?? []).filter(isDivider),
+                items: (prev.items ?? []).filter(isDivider),
               }))
             }
             disabled={selectedColumnsInOrder.length === 0}
@@ -226,8 +224,8 @@ export function ColumnsSection({
               onAddDivider={() =>
                 updateConfig((prev) => ({
                   ...prev,
-                  InspectorItems: [
-                    ...(prev.inspectorItems ?? []),
+                  items: [
+                    ...(prev.items ?? []),
                     { type: "divider" as const, id: uuidv4(), label: "" },
                   ],
                 }))
@@ -235,7 +233,7 @@ export function ColumnsSection({
               onDividerLabelChange={(id, label) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  InspectorItems: (prev.inspectorItems ?? []).map((i) =>
+                  items: (prev.items ?? []).map((i) =>
                     isDivider(i) && i.id === id ? { ...i, label } : i,
                   ),
                 }))
@@ -243,7 +241,7 @@ export function ColumnsSection({
               onRemoveDivider={(id) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  InspectorItems: (prev.inspectorItems ?? []).filter(
+                  items: (prev.items ?? []).filter(
                     (i) => !(isDivider(i) && i.id === id),
                   ),
                 }))
@@ -267,8 +265,8 @@ export function ColumnsSection({
               onAddDivider={() =>
                 updateConfig((prev) => ({
                   ...prev,
-                  InspectorItems: [
-                    ...(prev.inspectorItems ?? []),
+                  items: [
+                    ...(prev.items ?? []),
                     { type: "divider" as const, id: uuidv4(), label: "" },
                   ],
                 }))
@@ -276,7 +274,7 @@ export function ColumnsSection({
               onDividerLabelChange={(id, label) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  InspectorItems: (prev.inspectorItems ?? []).map((i) =>
+                  items: (prev.items ?? []).map((i) =>
                     isDivider(i) && i.id === id ? { ...i, label } : i,
                   ),
                 }))
@@ -284,7 +282,7 @@ export function ColumnsSection({
               onRemoveDivider={(id) =>
                 updateConfig((prev) => ({
                   ...prev,
-                  InspectorItems: (prev.inspectorItems ?? []).filter(
+                  items: (prev.items ?? []).filter(
                     (i) => !(isDivider(i) && i.id === id),
                   ),
                 }))

@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { useAreaStats } from "@/app/(private)/map/[id]/data";
-import { useColumnMetadataMutations } from "@/app/(private)/map/[id]/hooks/useColumnMetadataMutations";
+import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
@@ -16,7 +17,6 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { useEditColumnMetadata } from "../../hooks/useEditColumnMetadata";
 import ColorMappingsSection from "./ColorMappingsSection";
 import ValueLabelsSection from "./ValueLabelsSection";
@@ -55,18 +55,11 @@ export default function EditColumnMetadataModal() {
     dataSource.organisationId === organisationId,
   );
 
-  const columnType = dataSource?.columnDefs.find(
-    (col) => col.name === columnName,
-  )?.type;
-
-  const existingMeta = useMemo(() => {
-    if (!dataSource) return undefined;
-    return resolveColumnMetadataEntry(
-      dataSource.columnMetadata,
-      dataSource.organisationOverride?.columnMetadata,
-      columnName,
-    );
-  }, [dataSource, columnName]);
+  const { columnMetadata: existingMeta, columnDef } = useDataSourceColumn(
+    dataSourceId,
+    columnName,
+  );
+  const columnType = columnDef?.type;
 
   const ownerMeta = useMemo(() => {
     if (!dataSource) return undefined;

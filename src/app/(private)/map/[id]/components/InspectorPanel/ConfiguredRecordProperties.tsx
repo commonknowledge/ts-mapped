@@ -6,6 +6,9 @@ import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
+import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
+import { useInspectorColumn } from "../../hooks/useInspectorColumn";
+import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { getDisplayValue, parseColumnNumber } from "../../utils/stats";
 import {
   getBarColorForLabel,
@@ -14,8 +17,7 @@ import {
 import { PropertyLabel } from "./PropertyLabel";
 import { SimpleRecordProperties } from "./SimpleRecordProperties";
 import { buildInspectorBlocks } from "./utils";
-import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
+import type { ColumnMetadata } from "@/models/DataSource";
 import type { InspectorColumn, InspectorItem } from "@/models/shared";
 
 // ============================================================================
@@ -31,7 +33,7 @@ function variancePercent(value: number, baseline: number): number | null {
   return ((value - baseline) / baseline) * 100;
 }
 
-interface PropertyValueProps {
+interface SubRendererProps {
   value: unknown;
   inspectorColumn: InspectorColumn;
   dataSourceId: string;
@@ -43,7 +45,7 @@ function TextOrNumberValue({
   value,
   columnMetadata,
   columnType,
-}: Pick<PropertyValueProps, "value" | "columnMetadata" | "columnType">) {
+}: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
   const text = getDisplayValue(value, {
     calculationType: null,
     columnType: columnType ?? ColumnType.Number,
@@ -57,7 +59,7 @@ function NumberWithComparisonValue({
   inspectorColumn,
   dataSourceId,
   columnMetadata,
-}: Omit<PropertyValueProps, "columnType">) {
+}: Omit<SubRendererProps, "columnType">) {
   const num = parseColumnNumber(value, {
     calculationType: null,
     columnMetadata,
@@ -134,7 +136,7 @@ function PercentageBarValue({
   value,
   inspectorColumn,
   columnMetadata,
-}: Omit<PropertyValueProps, "dataSourceId" | "columnType">) {
+}: Omit<SubRendererProps, "dataSourceId" | "columnType">) {
   const num = parseColumnNumber(value, {
     calculationType: null,
     columnMetadata,
@@ -174,7 +176,7 @@ function ScaleValue({
   value,
   inspectorColumn,
   columnMetadata,
-}: Omit<PropertyValueProps, "dataSourceId" | "columnType">) {
+}: Omit<SubRendererProps, "dataSourceId" | "columnType">) {
   const num = parseColumnNumber(value, {
     calculationType: null,
     columnMetadata,
@@ -209,31 +211,73 @@ function ScaleValue({
   );
 }
 
-function ConfiguredPropertyValue(props: PropertyValueProps) {
-  const { inspectorColumn } = props;
-  const format = inspectorColumn.displayFormat;
+function ConfiguredPropertyValue({
+  value,
+  name,
+  dataSourceId,
+}: {
+  value: unknown;
+  name: string;
+  dataSourceId: string;
+}) {
+  const { columnMetadata, columnDef } = useDataSourceColumn(dataSourceId, name);
+  const inspectorColumn = useInspectorColumn(dataSourceId, name);
+
+  const format = inspectorColumn?.displayFormat;
 
   if (
+    !inspectorColumn ||
     format === ColumnDisplayFormat.Number ||
     format === ColumnDisplayFormat.Text ||
     !format
   ) {
-    return <TextOrNumberValue {...props} />;
+    return (
+      <TextOrNumberValue
+        value={value}
+        columnMetadata={columnMetadata}
+        columnType={columnDef?.type}
+      />
+    );
   }
 
   if (format === ColumnDisplayFormat.NumberWithComparison) {
-    return <NumberWithComparisonValue {...props} />;
+    return (
+      <NumberWithComparisonValue
+        value={value}
+        inspectorColumn={inspectorColumn}
+        dataSourceId={dataSourceId}
+        columnMetadata={columnMetadata}
+      />
+    );
   }
 
   if (format === ColumnDisplayFormat.Percentage) {
-    return <PercentageBarValue {...props} />;
+    return (
+      <PercentageBarValue
+        value={value}
+        inspectorColumn={inspectorColumn}
+        columnMetadata={columnMetadata}
+      />
+    );
   }
 
   if (format === ColumnDisplayFormat.Scale) {
-    return <ScaleValue {...props} />;
+    return (
+      <ScaleValue
+        value={value}
+        inspectorColumn={inspectorColumn}
+        columnMetadata={columnMetadata}
+      />
+    );
   }
 
-  return <TextOrNumberValue {...props} />;
+  return (
+    <TextOrNumberValue
+      value={value}
+      columnMetadata={columnMetadata}
+      columnType={columnDef?.type}
+    />
+  );
 }
 
 // ============================================================================
@@ -244,20 +288,16 @@ function ConfiguredPropertyValue(props: PropertyValueProps) {
 
 export function ConfiguredRecordProperties({
   json,
-  inspectorConfig,
-  resolvedMetadata,
-  columnDefs,
   dataSourceId,
 }: {
   json: Record<string, unknown>;
-  inspectorConfig: InspectorDataSourceConfig;
-  resolvedMetadata: ColumnMetadata[];
-  columnDefs?: ColumnDef[];
-  dataSourceId?: string;
+  dataSourceId: string;
 }) {
+  const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+
   const inspectorColumns = useMemo(
     () =>
-      inspectorConfig.inspectorItems?.filter(
+      inspectorConfig?.items?.filter(
         (i): i is Extract<InspectorItem, { type: "column" }> =>
           i.type === "column",
       ) || [],
@@ -270,31 +310,24 @@ export function ConfiguredRecordProperties({
   });
 
   const blocks = useMemo(
-    () => buildInspectorBlocks(inspectorConfig.inspectorItems),
-    [inspectorConfig.inspectorItems],
+    () => buildInspectorBlocks(inspectorConfig?.items),
+    [inspectorConfig?.items],
   );
 
   if (inspectorColumns.length === 0) {
-    return (
-      <SimpleRecordProperties
-        json={json}
-        resolvedMetadata={resolvedMetadata}
-        columnDefs={columnDefs}
-        dataSourceId={dataSourceId}
-      />
-    );
+    return <SimpleRecordProperties json={json} dataSourceId={dataSourceId} />;
   }
 
   if (!hasValues) {
     return <></>;
   }
 
-  const isTwoColumn = inspectorConfig.layout === "twoColumn";
+  const isTwoColumn = inspectorConfig?.layout === "twoColumn";
 
   let globalColumnIndex = 0;
 
   const dividerBackgroundClassName = getInspectorColorClass(
-    inspectorConfig.color,
+    inspectorConfig?.color,
   );
 
   return (
@@ -326,27 +359,18 @@ export function ConfiguredRecordProperties({
 
         const columns = block.columns.map((column) => {
           const index = globalColumnIndex++;
-
-          const metadata = resolvedMetadata.find((m) => m.name === column.name);
-          const colType = columnDefs?.find(
-            (cd) => cd.name === column.name,
-          )?.type;
-
           return (
-            <div key={`col-${index}-${column.name}`}>
+            <div key={`${column.name}-${index}`}>
               <PropertyLabel
                 column={column.name}
-                metadata={metadata}
                 dataSourceId={dataSourceId}
                 showSettings={false}
               />
               <dd>
                 <ConfiguredPropertyValue
                   value={json[column.name]}
-                  inspectorColumn={column}
-                  dataSourceId={inspectorConfig.dataSourceId}
-                  columnMetadata={metadata}
-                  columnType={colType}
+                  name={column.name}
+                  dataSourceId={dataSourceId}
                 />
               </dd>
             </div>

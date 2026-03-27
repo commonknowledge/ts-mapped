@@ -5,11 +5,8 @@ import {
   DataSourceType,
   GeocodingType,
 } from "@/models/DataSource";
-import {
-  ColorScheme,
-  DEFAULT_CALCULATION_TYPE,
-  MapStyleName,
-} from "@/models/MapView";
+import { ColorScheme, MapStyleName } from "@/models/MapView";
+import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,
