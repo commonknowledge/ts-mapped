@@ -1,8 +1,8 @@
 import { InfoIcon, Settings2Icon } from "lucide-react";
+import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { useDataSourceColumn } from "../hooks/useDataSourceColumn";
-import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
-import type { EditColumnMetadataFields } from "../atoms/editColumnMetadataAtom";
+import type { EditColumnMetadataFields } from "@/atoms/editColumnMetadataAtom";
 
 function ColumnMetadataIcons({
   dataSourceId,

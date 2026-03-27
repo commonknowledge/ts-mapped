@@ -293,11 +293,7 @@ export default function DataRecordColumns({
       {safeColumns.map((column, index) => {
         return (
           <div key={`${column}-${index}`}>
-            <PropertyLabel
-              column={column}
-              dataSourceId={dataSourceId}
-              showSettings={false}
-            />
+            <PropertyLabel column={column} dataSourceId={dataSourceId} />
             <dd>
               <DataRecordPropertyValue
                 value={json[column]}

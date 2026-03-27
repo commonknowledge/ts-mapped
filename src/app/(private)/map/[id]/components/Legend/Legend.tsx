@@ -4,7 +4,7 @@ import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/Inspecto
 import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { DUMMY_COUNT_COLUMN, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import {
   useChoroplethDataSource,
   useDataSources,
@@ -32,6 +32,7 @@ import { useColorScheme } from "../../colors";
 import { useAreaStats } from "../../data";
 import BivariateLegend from "../BivariateLagend";
 import { getValidAreaSetGroupCodes } from "../Choropleth/areas";
+import { getDefaultAreaSetGroupCode } from "../Choropleth/configs";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
 import { LegendBars } from "./LegendBars";
@@ -120,6 +121,13 @@ export default function Legend() {
     const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
     const ds = getDataSourceById(dataSourceId);
     if (!selectedAreaSetGroup) {
+      const areaSetCode =
+        ds?.geocodingConfig && "areaSetCode" in ds.geocodingConfig
+          ? ds.geocodingConfig.areaSetCode
+          : null;
+      const defaultAreaSetGroupCode = areaSetCode
+        ? getDefaultAreaSetGroupCode(areaSetCode)
+        : null;
       updateViewConfig({
         areaDataSourceId: dataSourceId,
         areaDataSecondaryColumn: undefined,
@@ -128,6 +136,9 @@ export default function Legend() {
               calculationType: ds.defaultChoroplethConfig.calculationType,
               areaDataColumn: ds.defaultChoroplethConfig.column,
             }
+          : {}),
+        ...(defaultAreaSetGroupCode && !viewConfig.areaSetGroupCode
+          ? { areaSetGroupCode: defaultAreaSetGroupCode }
           : {}),
       });
       setIsDataSourceModalOpen(false);
@@ -214,9 +225,10 @@ export default function Legend() {
                   triggerClassName="text-xs font-normal hover:border-action-hover"
                   options={[
                     { value: NULL_UUID, label: "None" },
+                    { value: DUMMY_COUNT_COLUMN, label: "Count" },
                     {
                       value: MAX_COLUMN_KEY,
-                      label: "Highest-value column (String)",
+                      label: "Highest value column (String)",
                     },
                     ...(dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
@@ -236,6 +248,10 @@ export default function Legend() {
                         ?.type === ColumnType.Number;
                     updateViewConfig({
                       areaDataColumn: col,
+                      calculationType:
+                        col === DUMMY_COUNT_COLUMN
+                          ? CalculationType.Count
+                          : viewConfig.calculationType,
                       ...(col === viewConfig.areaDataSecondaryColumn
                         ? { areaDataSecondaryColumn: undefined }
                         : {}),

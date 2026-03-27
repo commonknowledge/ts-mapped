@@ -5,6 +5,7 @@ import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { useMapViews } from "../../hooks/useMapViews";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryConfigItem } from "./BoundaryConfigItem";
+import { deriveInspectorItems } from "./utils";
 
 export default function InspectorConfigTab() {
   const { view, updateView } = useMapViews();
@@ -43,10 +44,17 @@ export default function InspectorConfigTab() {
       }
 
       const dataSource = getDataSourceById(dataSourceId);
+      const derivedItems = deriveInspectorItems(
+        dataSource?.columnDefs ?? [],
+        dataSource?.columnMetadata ?? [],
+      );
+      const derivedLayout = derivedItems.length > 4 ? "twoColumn" : null;
       const newDataSourceConfig: InspectorDataSourceConfig = {
         id: uuidv4(),
         dataSourceId,
-        ...{ name: dataSource?.name || "Data Source", items: [] },
+        name: dataSource?.name || "Data Source",
+        items: derivedItems,
+        layout: derivedLayout,
         ...dataSource?.defaultInspectorConfig,
       };
 

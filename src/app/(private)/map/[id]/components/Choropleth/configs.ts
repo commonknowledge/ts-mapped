@@ -1,6 +1,6 @@
 import { AreaSetCode, AreaSetSizes } from "@/models/AreaSet";
+import { AreaSetGroupCode } from "@/models/AreaSet";
 import { MapType } from "@/models/MapView";
-import type { AreaSetGroupCode } from "@/models/AreaSet";
 
 export interface ChoroplethLayerConfig {
   areaSetCode: AreaSetCode;
@@ -281,6 +281,19 @@ export const CHOROPLETH_AREA_SET_CODES = Array.from(
     ),
   ),
 );
+
+export const getDefaultAreaSetGroupCode = (
+  areaSetCode: AreaSetCode,
+): AreaSetGroupCode => {
+  const matchedGroup = Object.keys(CHOROPLETH_LAYER_CONFIGS).find(
+    (areaSetGroupCode) => {
+      const sources =
+        CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode as AreaSetGroupCode];
+      return sources.some((source) => source.areaSetCode === areaSetCode);
+    },
+  );
+  return (matchedGroup as AreaSetGroupCode) || AreaSetGroupCode.WMC24;
+};
 
 export const getChoroplethLayerConfig = ({
   dataSourceAreaSetCode,

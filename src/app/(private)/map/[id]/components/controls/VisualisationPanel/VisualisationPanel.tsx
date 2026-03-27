@@ -4,9 +4,10 @@ import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY } from "@/constants";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
+import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType, ColorScheme } from "@/models/MapView";
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
+import { CalculationType } from "@/models/shared";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
@@ -29,7 +30,6 @@ import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
-import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
 import { dataRecordsWillAggregate } from "../../Choropleth/areas";
 import SteppedColorEditor from "./SteppedColorEditor";
 import type { DataSource } from "@/models/DataSource";
@@ -255,39 +255,6 @@ export default function VisualisationPanel({
             </p>
 
             <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
-              <Label
-                htmlFor="choropleth-calculation-select"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Display
-              </Label>
-              <Select
-                value={
-                  viewConfig.calculationType === CalculationType.Count
-                    ? "counts"
-                    : "values"
-                }
-                onValueChange={(value) =>
-                  updateViewConfig({
-                    calculationType:
-                      value === "counts"
-                        ? CalculationType.Count
-                        : DEFAULT_CALCULATION_TYPE,
-                  })
-                }
-              >
-                <SelectTrigger
-                  className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-                  id="choropleth-calculation-select"
-                >
-                  <SelectValue placeholder="Choose calculation..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="counts">Count by area</SelectItem>
-                  <SelectItem value="values">Data values</SelectItem>
-                </SelectContent>
-              </Select>
-
               {canSelectAggregation && (
                 <>
                   <Label

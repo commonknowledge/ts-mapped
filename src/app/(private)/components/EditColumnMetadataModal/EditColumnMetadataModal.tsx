@@ -8,6 +8,7 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useColumnValues } from "@/hooks/useColumnValues";
 import { useDataSources } from "@/hooks/useDataSources";
+import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
 import {
   Dialog,
@@ -17,10 +18,9 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { useEditColumnMetadata } from "../../hooks/useEditColumnMetadata";
 import ColorMappingsSection from "./ColorMappingsSection";
 import ValueLabelsSection from "./ValueLabelsSection";
-import type { EditColumnMetadataFields } from "../../atoms/editColumnMetadataAtom";
+import type { EditColumnMetadataFields } from "@/atoms/editColumnMetadataAtom";
 
 export default function EditColumnMetadataModal() {
   const [editColumnMetadata, setEditColumnMetadata] = useEditColumnMetadata();
