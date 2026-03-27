@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { resolveInspectorConfig } from "@/utils/resolveInspectorConfig";
 import { useDataSources } from "../../hooks/useDataSources";
 import ConfiguredRecordsList from "./ConfiguredRecordsList";
@@ -38,6 +39,18 @@ export default function ConfiguredDataPanel({
     [config, dataSource],
   );
 
+  const resolvedMetadata = useMemo(
+    () =>
+      resolveColumnMetadata(
+        dataSource?.columnMetadata ?? [],
+        dataSource?.organisationOverride?.columnMetadata,
+      ),
+    [
+      dataSource?.columnMetadata,
+      dataSource?.organisationOverride?.columnMetadata,
+    ],
+  );
+
   const dataSourceType = dataSource?.config?.type ?? null;
   const panelIcon = inspectorConfig.icon ? (
     <InspectorPanelIcon
@@ -68,6 +81,7 @@ export default function ConfiguredDataPanel({
           records={records}
           dataSource={dataSource}
           inspectorConfig={inspectorConfig}
+          resolvedMetadata={resolvedMetadata}
         />
       )}
     </TogglePanel>

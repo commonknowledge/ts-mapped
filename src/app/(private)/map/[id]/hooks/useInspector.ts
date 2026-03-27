@@ -5,8 +5,6 @@ import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import { useInspectorState } from "./useInspectorState";
-import type { PropertiesListItem } from "../components/InspectorPanel/SimplePropertiesList";
-import type { DataSource } from "@/models/DataSource";
 
 export function useInspectorContent() {
   const { getDataSourceById } = useDataSources();
@@ -15,12 +13,7 @@ export function useInspectorContent() {
   const { focusedRecord, selectedTurf, selectedBoundary, selectedRecords } =
     useInspectorState();
 
-  const inspectorContent: {
-    type: LayerType;
-    name: string;
-    properties: PropertiesListItem[];
-    dataSource?: DataSource | null | undefined;
-  } | null = useMemo(() => {
+  const inspectorContent = useMemo(() => {
     // if no selected marker / member to inspect
     if (!focusedRecord) {
       // check if area selected

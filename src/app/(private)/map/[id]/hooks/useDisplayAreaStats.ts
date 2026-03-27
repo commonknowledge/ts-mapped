@@ -86,16 +86,16 @@ export const useDisplayAreaStats = <
           : DEFAULT_FILL_COLOR;
       return {
         ...area,
-        primaryDisplayValue: getDisplayValue(
-          areaStat?.primary,
-          areaStats?.primary,
-          columnMetadata?.valueLabels,
-        ),
-        secondaryDisplayValue: getDisplayValue(
-          areaStat?.secondary,
-          areaStats?.secondary,
-          secondaryColumnMetadata?.valueLabels,
-        ),
+        primaryDisplayValue: getDisplayValue(areaStat?.primary, {
+          calculationType: areaStats?.calculationType,
+          columnType: areaStats?.primary?.columnType,
+          columnMetadata,
+        }),
+        secondaryDisplayValue: getDisplayValue(areaStat?.secondary, {
+          calculationType: areaStats?.calculationType,
+          columnType: areaStats?.secondary?.columnType,
+          columnMetadata: secondaryColumnMetadata,
+        }),
 
         backgroundColor: toRGBA(colorResult),
       };

@@ -1,7 +1,7 @@
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import { buildName } from "@/utils/dataRecord";
 import { ConfiguredRecordProperties } from "./ConfiguredRecordProperties";
-import type { DataSource } from "@/models/DataSource";
+import type { ColumnMetadata, DataSource } from "@/models/DataSource";
 import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 interface DataRecord {
@@ -14,10 +14,12 @@ export default function ConfiguredRecordsList({
   records,
   dataSource,
   inspectorConfig,
+  resolvedMetadata,
 }: {
   records: DataRecord[];
   dataSource: DataSource | null | undefined;
   inspectorConfig: InspectorDataSourceConfig;
+  resolvedMetadata: ColumnMetadata[];
 }) {
   if (!records.length) {
     return (
@@ -32,8 +34,10 @@ export default function ConfiguredRecordsList({
       <div>
         <ConfiguredRecordProperties
           json={records[0].json}
-          dataSource={dataSource}
           inspectorConfig={inspectorConfig}
+          resolvedMetadata={resolvedMetadata}
+          columnDefs={dataSource?.columnDefs}
+          dataSourceId={dataSource?.id}
         />
       </div>
     );
@@ -49,8 +53,10 @@ export default function ConfiguredRecordsList({
           >
             <ConfiguredRecordProperties
               json={record.json}
-              dataSource={dataSource}
               inspectorConfig={inspectorConfig}
+              resolvedMetadata={resolvedMetadata}
+              columnDefs={dataSource?.columnDefs}
+              dataSourceId={dataSource?.id}
             />
           </TogglePanel>
         </li>

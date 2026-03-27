@@ -137,8 +137,8 @@ export const INSPECTOR_BAR_COLOR_OPTIONS: BarColorOption[] = [
 ];
 
 export function getSmartMatchInfo(
-  displayName: string,
   columnName: string,
+  displayName?: string,
 ): { color: string; matchLabel: string } {
   const combined = `${displayName} ${columnName}`.toLowerCase().trim();
   // Exact match first (e.g. column named "ruk" or "lab")
@@ -155,8 +155,8 @@ export function getSmartMatchInfo(
 }
 
 export function getBarColorForLabel(
-  displayName: string,
   columnName: string,
+  displayName?: string | undefined,
   barColor?: string | null,
 ): string {
   if (
@@ -164,7 +164,7 @@ export function getBarColorForLabel(
     barColor === DEFAULT_BAR_COLOR_VALUE ||
     barColor === SMART_MATCH_BAR_COLOR_VALUE
   ) {
-    return getSmartMatchInfo(displayName, columnName).color;
+    return getSmartMatchInfo(columnName, displayName).color;
   }
   return barColor;
 }

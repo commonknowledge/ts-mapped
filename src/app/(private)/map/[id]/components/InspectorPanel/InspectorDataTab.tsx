@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { LayerType } from "@/types";
+import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import InspectorDataConfig from "./InspectorDataConfig";
@@ -45,6 +46,30 @@ export default function InspectorDataTab({
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
+
+  const choroplethResolvedMetadata = useMemo(
+    () =>
+      resolveColumnMetadata(
+        choroplethDataSource?.columnMetadata ?? [],
+        choroplethDataSource?.organisationOverride?.columnMetadata,
+      ),
+    [
+      choroplethDataSource?.columnMetadata,
+      choroplethDataSource?.organisationOverride?.columnMetadata,
+    ],
+  );
+
+  const dataSourceResolvedMetadata = useMemo(
+    () =>
+      resolveColumnMetadata(
+        dataSource?.columnMetadata ?? [],
+        dataSource?.organisationOverride?.columnMetadata,
+      ),
+    [
+      dataSource?.columnMetadata,
+      dataSource?.organisationOverride?.columnMetadata,
+    ],
+  );
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -92,8 +117,10 @@ export default function InspectorDataTab({
         <>
           <SimplePropertiesList properties={boundaryProperties} />
           <SimpleRecordProperties
-            dataSource={choroplethDataSource}
             json={getAreaStatJson(areaStat)}
+            resolvedMetadata={choroplethResolvedMetadata}
+            columnDefs={choroplethDataSource?.columnDefs}
+            dataSourceId={choroplethDataSource?.id}
           />
         </>
       ) : (
@@ -138,7 +165,9 @@ export default function InspectorDataTab({
                 {recordData?.json && (
                   <SimpleRecordProperties
                     json={recordData?.json}
-                    dataSource={dataSource}
+                    resolvedMetadata={dataSourceResolvedMetadata}
+                    columnDefs={dataSource?.columnDefs}
+                    dataSourceId={dataSource?.id}
                   />
                 )}
               </>

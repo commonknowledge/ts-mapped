@@ -1,62 +1,47 @@
 import { useMemo } from "react";
-import { DUMMY_COUNT_COLUMN } from "@/constants";
-import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { getDisplayValue } from "../../utils/stats";
-import ColumnMetadataIcons from "../ColumnMetadataIcons";
-import type { ColumnMetadata, ColumnType } from "@/models/DataSource";
-import type { DataSourceOrganisationOverride } from "@/models/DataSourceOrganisationOverride";
-
-export interface SimpleDataSource {
-  id: string;
-  columnMetadata: ColumnMetadata[];
-  organisationOverride?: DataSourceOrganisationOverride | null;
-  columnDefs?: { name: string; type: ColumnType }[];
-}
+import { PropertyLabel } from "./PropertyLabel";
+import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 
 export function SimpleRecordProperties({
   json,
-  dataSource,
+  resolvedMetadata,
+  columnDefs,
+  dataSourceId,
   onlyColumns,
 }: {
   json: Record<string, unknown>;
-  dataSource?: SimpleDataSource | null;
+  resolvedMetadata: ColumnMetadata[];
+  columnDefs?: ColumnDef[];
+  dataSourceId?: string;
   onlyColumns?: string[] | null;
 }) {
   const columns = onlyColumns || Object.keys(json);
 
-  const metadata = useMemo(
-    () =>
-      resolveColumnMetadata(
-        dataSource?.columnMetadata || [],
-        dataSource?.organisationOverride?.columnMetadata,
-      ),
-    [
-      dataSource?.columnMetadata,
-      dataSource?.organisationOverride?.columnMetadata,
-    ],
-  );
-
   const properties = useMemo(() => {
-    const filtered: { column: string; value: string }[] = [];
+    const filtered: {
+      column: string;
+      value: string;
+      metadata?: ColumnMetadata;
+    }[] = [];
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        const columnMetadata = metadata.find((m) => m.name === columnName);
+        const columnMetadata = resolvedMetadata.find(
+          (m) => m.name === columnName,
+        );
         filtered.push({
           column: columnName,
-          value: getDisplayValue(
-            json[columnName],
-            {
-              columnType: dataSource?.columnDefs?.find(
-                (cd) => cd.name === columnName,
-              )?.type,
-            },
-            columnMetadata?.valueLabels,
-          ),
+          value: getDisplayValue(json[columnName], {
+            columnType: columnDefs?.find((cd) => cd.name === columnName)?.type,
+            columnMetadata,
+            calculationType: null,
+          }),
+          metadata: columnMetadata,
         });
       }
     });
     return filtered;
-  }, [columns, dataSource?.columnDefs, json, metadata]);
+  }, [columns, columnDefs, json, resolvedMetadata]);
 
   if (!properties.length) {
     return <p className="text-sm">No data</p>;
@@ -64,17 +49,14 @@ export function SimpleRecordProperties({
 
   return (
     <dl className="flex flex-col gap-3">
-      {properties.map(({ column, value }, i) => (
+      {properties.map(({ column, value, metadata }, i) => (
         <div key={`${column}-${i}`}>
-          <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-0.5">
-            {column === DUMMY_COUNT_COLUMN ? "Count" : column}
-            <ColumnMetadataIcons
-              column={column}
-              dataSource={dataSource}
-              iconColorClass="text-muted-foreground"
-              fields={{ description: true, valueLabels: true }}
-            />
-          </dt>
+          <PropertyLabel
+            column={column}
+            metadata={metadata}
+            dataSourceId={dataSourceId}
+            fields={{ description: true, valueLabels: true }}
+          />
           <dd className="font-medium">{String(value)}</dd>
         </div>
       ))}

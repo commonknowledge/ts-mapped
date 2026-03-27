@@ -1,40 +1,31 @@
 import { InfoIcon, Settings2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
 import type { EditColumnMetadataFields } from "../atoms/editColumnMetadataAtom";
 import type { ColumnMetadata } from "@/models/DataSource";
-import type { DataSourceOrganisationOverride } from "@/models/DataSourceOrganisationOverride";
 
 function ColumnMetadataIcons({
-  dataSource,
+  dataSourceId,
   column,
   fields,
   iconColorClass = "text-black",
+  metadata,
+  showSettings = true,
 }: {
-  dataSource?:
-    | {
-        id: string;
-        columnMetadata: ColumnMetadata[];
-        organisationOverride?: DataSourceOrganisationOverride | null;
-      }
-    | null
-    | undefined;
+  dataSourceId?: string;
   fields: EditColumnMetadataFields;
   column: string;
   iconColorClass?: string;
+  metadata?: ColumnMetadata;
+  showSettings?: boolean;
 }) {
   const [, setEditColumnMetadata] = useEditColumnMetadata();
 
-  if (!dataSource) {
+  if (!dataSourceId) {
     return null;
   }
 
-  const description = resolveColumnMetadataEntry(
-    dataSource.columnMetadata,
-    dataSource.organisationOverride?.columnMetadata,
-    column,
-  )?.description;
+  const description = metadata?.description;
 
   return (
     <>
@@ -52,21 +43,23 @@ function ColumnMetadataIcons({
           </TooltipContent>
         </Tooltip>
       )}
-      <button
-        type="button"
-        className="inline-flex items-center ml-1 p-0.5 -m-0.5 border-0 bg-transparent cursor-pointer align-middle rounded hover:bg-neutral-200 focus-visible:bg-neutral-200 focus-visible:outline-none transition-colors"
-        onClick={(e) => {
-          e.stopPropagation();
-          setEditColumnMetadata({
-            dataSourceId: dataSource.id,
-            column,
-            fields,
-          });
-        }}
-        aria-label="Edit column"
-      >
-        <Settings2Icon className={`h-3.5 w-3.5 shrink-0 ${iconColorClass}`} />
-      </button>
+      {showSettings && (
+        <button
+          type="button"
+          className="inline-flex items-center ml-1 p-0.5 -m-0.5 border-0 bg-transparent cursor-pointer align-middle rounded hover:bg-neutral-200 focus-visible:bg-neutral-200 focus-visible:outline-none transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditColumnMetadata({
+              dataSourceId,
+              column,
+              fields,
+            });
+          }}
+          aria-label="Edit column"
+        >
+          <Settings2Icon className={`h-3.5 w-3.5 shrink-0 ${iconColorClass}`} />
+        </button>
+      )}
     </>
   );
 }

@@ -1,9 +1,10 @@
-import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
+import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType } from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor } from "../../colors";
+import { getDisplayValue } from "../../utils/stats";
 import { getChoroplethDataKey } from "../Choropleth/utils";
 import type { CategoricColorScheme, NumericColorScheme } from "../../colors";
 import type { CombinedAreaStats } from "../../data";
@@ -139,13 +140,12 @@ export function GradientBars({
     );
   });
 
-  const resolvedEntry = resolveColumnMetadataEntry(
+  const columnMetadata = resolveColumnMetadataEntry(
     dataSource?.columnMetadata ?? [],
     dataSource?.organisationOverride?.columnMetadata,
     viewConfig.areaDataColumn,
   );
-  const valueLabels = resolvedEntry?.valueLabels || {};
-  const semanticType = resolvedEntry?.semanticType;
+  const valueLabels = columnMetadata?.valueLabels || {};
 
   const hasValueLabels = Object.keys(valueLabels).length > 0;
 
@@ -208,19 +208,11 @@ export function GradientBars({
               style={positionStyle}
             >
               <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
-                {(() => {
-                  if (hasValueLabels) {
-                    if (value) {
-                      return valueLabels[String(value)];
-                    } else {
-                      // Handle empty values
-                      return valueLabels[String(value)] || valueLabels[""];
-                    }
-                  }
-                  return semanticType === ColumnSemanticType.Percentage01
-                    ? `${Math.round(value * 100)}%`
-                    : formatNumber(value);
-                })()}
+                {getDisplayValue(value, {
+                  calculationType: viewConfig.calculationType,
+                  columnMetadata,
+                  columnType: ColumnType.Number,
+                })}
               </div>
             </div>
           );

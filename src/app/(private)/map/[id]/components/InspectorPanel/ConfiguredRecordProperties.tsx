@@ -1,31 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
-import { Info, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useMemo } from "react";
-import { ColumnSemanticType } from "@/models/DataSource";
+import { ColumnType } from "@/models/DataSource";
 import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
+import { getDisplayValue, parseColumnNumber } from "../../utils/stats";
 import {
   getBarColorForLabel,
   getInspectorColorClass,
 } from "./inspectorPanelOptions";
+import { PropertyLabel } from "./PropertyLabel";
 import { SimpleRecordProperties } from "./SimpleRecordProperties";
-import type { SimpleDataSource } from "./SimpleRecordProperties";
+import { buildInspectorBlocks } from "./utils";
+import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 import type { InspectorDataSourceConfig } from "@/models/MapView";
 import type { InspectorColumn, InspectorItem } from "@/models/shared";
 
 // ============================================================================
 // Internal rendering helpers
 // ============================================================================
-
-function parseNumeric(value: unknown): number | null {
-  if (typeof value === "number" && !Number.isNaN(value)) return value;
-  const n = Number(value);
-  return Number.isNaN(n) ? null : n;
-}
 
 function barFill(barColor?: string): string {
   return barColor?.trim() ? barColor : "var(--primary)";
@@ -36,39 +31,45 @@ function variancePercent(value: number, baseline: number): number | null {
   return ((value - baseline) / baseline) * 100;
 }
 
-function ConfiguredPropertyValue({
-  value: raw,
-  inspectorColumn,
-  dataSourceId,
-  semanticType,
-}: {
+interface PropertyValueProps {
   value: unknown;
   inspectorColumn: InspectorColumn;
   dataSourceId: string;
-  semanticType?: ColumnSemanticType | undefined;
-}) {
-  const format = inspectorColumn.displayFormat;
-  const value =
-    raw !== undefined && raw !== null && String(raw) !== "" ? raw : "—";
-  const num = parseNumeric(raw);
+  columnMetadata?: ColumnMetadata | undefined;
+  columnType?: ColumnType | null;
+}
 
-  const barColor = getBarColorForLabel(
-    inspectorColumn.name,
-    inspectorColumn.name,
-    inspectorColumn.barColor,
-  );
+function TextOrNumberValue({
+  value,
+  columnMetadata,
+  columnType,
+}: Pick<PropertyValueProps, "value" | "columnMetadata" | "columnType">) {
+  const text = getDisplayValue(value, {
+    calculationType: null,
+    columnType: columnType ?? ColumnType.Number,
+    columnMetadata,
+  });
+  return <span className="font-medium tabular-nums">{text}</span>;
+}
 
-  const fill = barFill(barColor);
-
+function NumberWithComparisonValue({
+  value,
+  inspectorColumn,
+  dataSourceId,
+  columnMetadata,
+}: Omit<PropertyValueProps, "columnType">) {
+  const num = parseColumnNumber(value, {
+    calculationType: null,
+    columnMetadata,
+  });
   const comparisonStat =
     inspectorColumn.comparisonStat || InspectorComparisonStat.Average;
 
   const trpc = useTRPC();
-
   const baselineQuery = useQuery(
     trpc.dataRecord.columnStat.queryOptions(
       {
-        dataSourceId: dataSourceId,
+        dataSourceId,
         columnName: inspectorColumn.name,
         stat: comparisonStat,
       },
@@ -76,116 +77,163 @@ function ConfiguredPropertyValue({
     ),
   );
 
-  if (
-    inspectorColumn.displayFormat === ColumnDisplayFormat.Number &&
-    num !== null
-  ) {
-    return (
-      <span className="font-medium tabular-nums">{formatNumber(num)}</span>
-    );
+  if (num === null) {
+    return <span className="font-medium">-</span>;
   }
 
-  if (
-    inspectorColumn.displayFormat ===
-      ColumnDisplayFormat.NumberWithComparison &&
-    num !== null
-  ) {
-    const baseline = baselineQuery.data ?? null;
-    const pct = baseline !== null ? variancePercent(num, baseline) : null;
-    const pctLabel =
-      pct !== null
-        ? pct >= 0
-          ? `+${pct.toFixed(1)}%`
-          : `${pct.toFixed(1)}%`
-        : null;
-    const statAbbrev = String(comparisonStat).substring(0, 3);
-    const suffix = statAbbrev ? ` ${statAbbrev}` : "";
-    const title =
-      comparisonStat && baseline !== null
-        ? `vs ${comparisonStat}: ${formatNumber(baseline)}`
-        : undefined;
+  const baseline = baselineQuery.data ?? null;
+  const pct = baseline !== null ? variancePercent(num, baseline) : null;
+  const pctLabel =
+    pct !== null
+      ? pct >= 0
+        ? `+${pct.toFixed(1)}%`
+        : `${pct.toFixed(1)}%`
+      : null;
+  const statAbbrev = String(comparisonStat).substring(0, 3);
+  const suffix = statAbbrev ? ` ${statAbbrev}` : "";
+  const title =
+    comparisonStat && baseline !== null
+      ? `vs ${comparisonStat}: ${formatNumber(baseline)}`
+      : undefined;
 
-    if (baselineQuery.isLoading) {
-      return (
-        <span
-          className="font-medium tabular-nums inline-flex items-baseline gap-1.5 flex-wrap"
-          title={title}
-        >
-          <span>{formatNumber(num)}</span>
-          <span className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1">
-            <Loader2 className="h-3 w-3 animate-spin shrink-0" aria-hidden />
-            <span>{suffix ? suffix.trim() : "…"}</span>
-          </span>
-        </span>
-      );
-    }
-
+  if (baselineQuery.isLoading) {
     return (
       <span
         className="font-medium tabular-nums inline-flex items-baseline gap-1.5 flex-wrap"
         title={title}
       >
         <span>{formatNumber(num)}</span>
-        <span
-          className={cn(
-            "text-xs font-medium text-muted-foreground",
-            pct !== null && pct > 0 && "text-green-700",
-            pct !== null && pct < 0 && "text-red-700",
-          )}
-        >
-          {pctLabel !== null ? `${pctLabel}${suffix}` : `—${suffix}`}
+        <span className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1">
+          <Loader2 className="h-3 w-3 animate-spin shrink-0" aria-hidden />
+          <span>{suffix ? suffix.trim() : "…"}</span>
         </span>
       </span>
     );
   }
 
-  if (format === ColumnDisplayFormat.Percentage && num !== null) {
-    const pct =
-      semanticType === ColumnSemanticType.Percentage01
-        ? Math.min(100, Math.max(0, num * 100))
-        : semanticType === ColumnSemanticType.Percentage0100
-          ? Math.min(100, Math.max(0, num))
-          : num > 1
-            ? Math.min(100, Math.max(0, num))
-            : Math.min(100, Math.max(0, num * 100));
-    return (
-      <div className="flex items-center gap-2 min-w-0">
+  return (
+    <span
+      className="font-medium tabular-nums inline-flex items-baseline gap-1.5 flex-wrap"
+      title={title}
+    >
+      <span>{formatNumber(num)}</span>
+      <span
+        className={cn(
+          "text-xs font-medium text-muted-foreground",
+          pct !== null && pct > 0 && "text-green-700",
+          pct !== null && pct < 0 && "text-red-700",
+        )}
+      >
+        {pctLabel !== null ? `${pctLabel}${suffix}` : `—${suffix}`}
+      </span>
+    </span>
+  );
+}
+
+function PercentageBarValue({
+  value,
+  inspectorColumn,
+  columnMetadata,
+}: Omit<PropertyValueProps, "dataSourceId" | "columnType">) {
+  const num = parseColumnNumber(value, {
+    calculationType: null,
+    columnMetadata,
+  });
+  const fill = barFill(
+    getBarColorForLabel(
+      inspectorColumn.name,
+      columnMetadata?.displayName,
+      inspectorColumn.barColor,
+    ),
+  );
+
+  if (num === null) {
+    return <span className="font-medium">-</span>;
+  }
+
+  const pct = Math.min(100, Math.max(0, num));
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <div
+        className="h-2 flex-1 min-w-0 rounded-full bg-neutral-200 overflow-hidden"
+        title={`${pct.toFixed(0)}%`}
+      >
         <div
-          className="h-2 flex-1 min-w-0 rounded-full bg-neutral-200 overflow-hidden"
-          title={`${pct.toFixed(0)}%`}
-        >
-          <div
-            className="h-full rounded-full transition-[width]"
-            style={{ width: `${pct}%`, backgroundColor: fill }}
-          />
-        </div>
-        <span className="text-xs font-medium tabular-nums shrink-0 w-8 text-right">
-          {pct.toFixed(0)}%
-        </span>
+          className="h-full rounded-full transition-[width]"
+          style={{ width: `${pct}%`, backgroundColor: fill }}
+        />
       </div>
-    );
+      <span className="text-xs font-medium tabular-nums shrink-0 w-8 text-right">
+        {pct.toFixed(0)}%
+      </span>
+    </div>
+  );
+}
+
+function ScaleValue({
+  value,
+  inspectorColumn,
+  columnMetadata,
+}: Omit<PropertyValueProps, "dataSourceId" | "columnType">) {
+  const num = parseColumnNumber(value, {
+    calculationType: null,
+    columnMetadata,
+  });
+  const fill = barFill(
+    getBarColorForLabel(
+      inspectorColumn.name,
+      columnMetadata?.displayName,
+      inspectorColumn.barColor,
+    ),
+  );
+
+  if (num === null) {
+    return <span className="font-medium">-</span>;
   }
 
-  if (format === ColumnDisplayFormat.Scale && num !== null) {
-    const max = Math.max(2, Math.min(10, inspectorColumn.scaleMax || 2));
-    const filled = Math.min(max, Math.max(0, Math.round(num)));
-    return (
-      <div className="flex items-center gap-1" title={`${filled} / ${max}`}>
-        {Array.from({ length: max }, (_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-2 flex-1 min-w-[6px] rounded-sm transition-colors",
-              i < filled ? "" : "bg-neutral-200",
-            )}
-            style={i < filled ? { backgroundColor: fill } : undefined}
-          />
-        ))}
-      </div>
-    );
+  const max = Math.max(2, Math.min(10, inspectorColumn.scaleMax || 2));
+  const filled = Math.min(max, Math.max(0, Math.round(num)));
+  return (
+    <div className="flex items-center gap-1" title={`${filled} / ${max}`}>
+      {Array.from({ length: max }, (_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-2 flex-1 min-w-[6px] rounded-sm transition-colors",
+            i < filled ? "" : "bg-neutral-200",
+          )}
+          style={i < filled ? { backgroundColor: fill } : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ConfiguredPropertyValue(props: PropertyValueProps) {
+  const { inspectorColumn } = props;
+  const format = inspectorColumn.displayFormat;
+
+  if (
+    format === ColumnDisplayFormat.Number ||
+    format === ColumnDisplayFormat.Text ||
+    !format
+  ) {
+    return <TextOrNumberValue {...props} />;
   }
 
-  return <span className="font-medium">{String(value ?? "")}</span>;
+  if (format === ColumnDisplayFormat.NumberWithComparison) {
+    return <NumberWithComparisonValue {...props} />;
+  }
+
+  if (format === ColumnDisplayFormat.Percentage) {
+    return <PercentageBarValue {...props} />;
+  }
+
+  if (format === ColumnDisplayFormat.Scale) {
+    return <ScaleValue {...props} />;
+  }
+
+  return <TextOrNumberValue {...props} />;
 }
 
 // ============================================================================
@@ -196,12 +244,16 @@ function ConfiguredPropertyValue({
 
 export function ConfiguredRecordProperties({
   json,
-  dataSource,
   inspectorConfig,
+  resolvedMetadata,
+  columnDefs,
+  dataSourceId,
 }: {
   json: Record<string, unknown>;
-  dataSource?: SimpleDataSource | null;
   inspectorConfig: InspectorDataSourceConfig;
+  resolvedMetadata: ColumnMetadata[];
+  columnDefs?: ColumnDef[];
+  dataSourceId?: string;
 }) {
   const inspectorColumns = useMemo(
     () =>
@@ -217,8 +269,20 @@ export function ConfiguredRecordProperties({
     return raw !== undefined && raw !== null && String(raw) !== "";
   });
 
+  const blocks = useMemo(
+    () => buildInspectorBlocks(inspectorConfig.inspectorItems),
+    [inspectorConfig.inspectorItems],
+  );
+
   if (inspectorColumns.length === 0) {
-    return <SimpleRecordProperties json={json} dataSource={dataSource} />;
+    return (
+      <SimpleRecordProperties
+        json={json}
+        resolvedMetadata={resolvedMetadata}
+        columnDefs={columnDefs}
+        dataSourceId={dataSourceId}
+      />
+    );
   }
 
   if (!hasValues) {
@@ -226,24 +290,6 @@ export function ConfiguredRecordProperties({
   }
 
   const isTwoColumn = inspectorConfig.layout === "twoColumn";
-
-  // Build blocks separated by dividers
-  const blocks: {
-    group?: string;
-    columns: Extract<InspectorItem, { type: "column" }>[];
-  }[] = [];
-  for (const item of inspectorConfig.inspectorItems || []) {
-    if (item.type === "divider") {
-      blocks.push({ group: item.label, columns: [] });
-    } else {
-      const last = blocks[blocks.length - 1];
-      if (last) {
-        last.columns.push(item);
-      } else {
-        blocks.push({ columns: [item] });
-      }
-    }
-  }
 
   let globalColumnIndex = 0;
 
@@ -281,37 +327,26 @@ export function ConfiguredRecordProperties({
         const columns = block.columns.map((column) => {
           const index = globalColumnIndex++;
 
-          const metadata = resolveColumnMetadataEntry(
-            dataSource?.columnMetadata || [],
-            dataSource?.organisationOverride?.columnMetadata,
-            column.name,
-          );
+          const metadata = resolvedMetadata.find((m) => m.name === column.name);
+          const colType = columnDefs?.find(
+            (cd) => cd.name === column.name,
+          )?.type;
 
           return (
             <div key={`col-${index}-${column.name}`}>
-              <dt className="mb-[2px] text-muted-foreground text-xs uppercase font-mono flex items-center gap-1">
-                {column.name}
-                {metadata?.description ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info
-                        className="h-3.5 w-3.5 shrink-0 cursor-help text-black"
-                        aria-label="Column description"
-                        tabIndex={0}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p>{metadata.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : null}
-              </dt>
+              <PropertyLabel
+                column={column.name}
+                metadata={metadata}
+                dataSourceId={dataSourceId}
+                showSettings={false}
+              />
               <dd>
                 <ConfiguredPropertyValue
                   value={json[column.name]}
                   inspectorColumn={column}
                   dataSourceId={inspectorConfig.dataSourceId}
-                  semanticType={metadata?.semanticType}
+                  columnMetadata={metadata}
+                  columnType={colType}
                 />
               </dd>
             </div>

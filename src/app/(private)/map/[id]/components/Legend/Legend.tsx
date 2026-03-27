@@ -260,7 +260,7 @@ export default function Legend() {
                 viewConfig.areaDataColumn !== NULL_UUID &&
                 viewConfig.areaDataColumn !== MAX_COLUMN_KEY && (
                   <ColumnMetadataIcons
-                    dataSource={dataSource}
+                    dataSourceId={dataSource?.id}
                     column={viewConfig.areaDataColumn}
                     fields={{
                       description: true,
@@ -299,7 +299,7 @@ export default function Legend() {
                 </div>
                 {viewConfig.areaDataSecondaryColumn && (
                   <ColumnMetadataIcons
-                    dataSource={dataSource}
+                    dataSourceId={dataSource?.id}
                     column={viewConfig.areaDataSecondaryColumn}
                     fields={{ description: true, valueLabels: true }}
                   />
