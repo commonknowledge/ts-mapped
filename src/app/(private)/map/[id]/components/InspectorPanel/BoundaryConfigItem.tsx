@@ -4,14 +4,10 @@ import { DataSourceItem } from "@/components/DataSourceItem";
 import { useDataSources } from "@/hooks/useDataSources";
 import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
-import { Input } from "@/shadcn/ui/input";
-import { Label } from "@/shadcn/ui/label";
-import DataSourceSelectButton from "../DataSourceSelectButton";
-import { DataSourceSelectModal } from "../DataSourceSelectButton";
+import { InspectorConfigModal } from "./InspectorConfigModal";
 
 export function BoundaryConfigItem({
   boundaryConfig,
-  index,
   canMoveUp,
   canMoveDown,
   onMoveUp,
@@ -20,7 +16,6 @@ export function BoundaryConfigItem({
   onUpdate,
 }: {
   boundaryConfig: InspectorDataSourceConfig;
-  index: number;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onMoveUp: () => void;
@@ -30,10 +25,7 @@ export function BoundaryConfigItem({
 }) {
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(boundaryConfig.dataSourceId);
-  const [configName, setConfigName] = useState(boundaryConfig.name || "");
-  const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
-
-  const isMovementLibrary = Boolean(dataSource?.public);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
   if (!dataSource) {
     return (
@@ -49,26 +41,6 @@ export function BoundaryConfigItem({
       </div>
     );
   }
-
-  const handleNameChange = (newName: string) => {
-    setConfigName(newName);
-    onUpdate({
-      ...boundaryConfig,
-      name: newName,
-    });
-  };
-
-  const handleDataSourceIdChange = (dataSourceId: string) => {
-    const newDataSource = getDataSourceById(dataSourceId);
-    const newName = newDataSource?.name ?? configName;
-
-    setConfigName(newName || "");
-    onUpdate({
-      ...boundaryConfig,
-      dataSourceId,
-      name: newName,
-    });
-  };
 
   return (
     <div className="flex items-start gap-3">
@@ -105,70 +77,30 @@ export function BoundaryConfigItem({
         </Button>
       </div>
 
-      <div
-        className={
-          isMovementLibrary
-            ? "min-w-0 flex-1"
-            : "min-w-0 flex-1 border rounded-lg p-3"
-        }
-      >
-        {isMovementLibrary ? (
-          <>
-            <button
-              type="button"
-              className="text-left w-full"
-              onClick={() => setIsSelectModalOpen(true)}
-            >
-              <DataSourceItem
-                className="shadow-xs"
-                density="compactPreview"
-                showColumnPreview={true}
-                columnPreviewVariant="pills"
-                maxColumnPills={8}
-                singleLineColumnPreview={false}
-                hideTypeLabel={true}
-                hidePublishedBadge={true}
-                dataSource={dataSource}
-              />
-            </button>
-            <DataSourceSelectModal
-              isModalOpen={isSelectModalOpen}
-              setIsModalOpen={setIsSelectModalOpen}
-              onSelect={(dataSourceId) => {
-                setIsSelectModalOpen(false);
-                handleDataSourceIdChange(dataSourceId);
-              }}
-              title="Select data source for inspector"
-            />
-          </>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <DataSourceSelectButton
-              className="w-full"
-              dataSource={dataSource}
-              onSelect={(dataSourceId) =>
-                handleDataSourceIdChange(dataSourceId)
-              }
-              modalTitle="Select data source for inspector"
-            />
-
-            <div className="space-y-1.5">
-              <Label
-                htmlFor={`config-name-${index}`}
-                className="text-xs text-muted-foreground"
-              >
-                Name
-              </Label>
-              <Input
-                id={`config-name-${index}`}
-                value={configName}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="e.g. Main Data"
-                className="h-9 text-sm"
-              />
-            </div>
-          </div>
-        )}
+      <div className="min-w-0 flex-1">
+        <button
+          type="button"
+          className="text-left w-full"
+          onClick={() => setIsConfigModalOpen(true)}
+        >
+          <DataSourceItem
+            className="shadow-xs"
+            density="compactPreview"
+            showColumnPreview={true}
+            columnPreviewVariant="pills"
+            maxColumnPills={8}
+            singleLineColumnPreview={false}
+            hideTypeLabel={true}
+            hidePublishedBadge={true}
+            dataSource={dataSource}
+          />
+        </button>
+        <InspectorConfigModal
+          open={isConfigModalOpen}
+          onOpenChange={setIsConfigModalOpen}
+          boundaryConfig={boundaryConfig}
+          onUpdate={onUpdate}
+        />
       </div>
     </div>
   );

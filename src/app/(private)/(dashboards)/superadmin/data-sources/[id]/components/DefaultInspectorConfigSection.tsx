@@ -1,10 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
 import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
@@ -17,7 +15,6 @@ import {
   InspectorComparisonStat,
   columnDisplayFormats,
 } from "@/models/shared";
-import { useTRPC } from "@/services/trpc/react";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -29,8 +26,8 @@ import {
 import { cn } from "@/shadcn/utils";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
 import type {
+  ColumnDef,
   ColumnMetadata,
-  DataSource,
   DefaultInspectorConfig,
 } from "@/models/DataSource";
 import type { InspectorItem } from "@/models/shared";
@@ -44,36 +41,30 @@ function isDivider(
 }
 
 interface DefaultInspectorConfigSectionProps {
-  dataSource: DataSource;
-  isSaving: boolean;
+  dataSourceId: string;
+  columnDefs: ColumnDef[];
+  config: DefaultInspectorConfig;
   onChange: (patch: Partial<DefaultInspectorConfig>) => void;
+  onPatchColumnMetadata?: (
+    column: string,
+    patch: Partial<Omit<ColumnMetadata, "name">>,
+  ) => void;
 }
 
 export function DefaultInspectorConfigSection({
-  dataSource,
-  isSaving,
+  dataSourceId,
+  columnDefs,
+  config,
   onChange,
+  onPatchColumnMetadata,
 }: DefaultInspectorConfigSectionProps) {
-  const items = useMemo(
-    () => dataSource.defaultInspectorConfig?.items ?? [],
-    [dataSource.defaultInspectorConfig?.items],
-  );
-  const layout: InspectorLayout =
-    dataSource.defaultInspectorConfig?.layout ?? "single";
-  const color = dataSource.defaultInspectorConfig?.color ?? null;
-  const trpc = useTRPC();
-  const { invalidateAll } = useDataSourceListCache();
-  const { mutate: patchColumnMetadata } = useMutation(
-    trpc.dataSource.patchColumnMetadataSuperadmin.mutationOptions({
-      onSuccess: () => {
-        void invalidateAll();
-      },
-    }),
-  );
+  const items = useMemo(() => config.items ?? [], [config.items]);
+  const layout: InspectorLayout = config.layout ?? "single";
+  const color = config.color ?? null;
 
   const allColumnNames = useMemo(
-    () => dataSource.columnDefs.map((c) => c.name),
-    [dataSource.columnDefs],
+    () => columnDefs.map((c) => c.name),
+    [columnDefs],
   );
 
   const selectedColumnNames = useMemo(
@@ -184,21 +175,6 @@ export function DefaultInspectorConfigSection({
   return (
     <div className="flex gap-6 w-full min-w-0">
       <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium mb-1">
-              Default inspector settings
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Configure how this public data source appears in the inspector
-              when added to a map.
-            </p>
-          </div>
-          <div className="text-sm text-muted-foreground shrink-0">
-            {isSaving ? "Saving…" : "Autosaved"}
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Colour</Label>
@@ -382,18 +358,17 @@ export function DefaultInspectorConfigSection({
                         </div>
                       ) : (
                         <ColumnItemRow
-                          dataSourceId={dataSource.id}
+                          dataSourceId={dataSourceId}
                           name={item.name}
                           onUpdate={(patch) =>
                             handleUpdateColumnItem(item.name, patch)
                           }
                           onRemove={() => handleRemoveColumn(item.name)}
-                          onPatchColumnMetadata={(patch) =>
-                            patchColumnMetadata({
-                              dataSourceId: dataSource.id,
-                              column: item.name,
-                              patch,
-                            })
+                          onPatchColumnMetadata={
+                            onPatchColumnMetadata
+                              ? (patch) =>
+                                  onPatchColumnMetadata(item.name, patch)
+                              : undefined
                           }
                         />
                       )}
@@ -411,7 +386,7 @@ export function DefaultInspectorConfigSection({
         style={{ width: "320px", minWidth: "280px" }}
       >
         <DefaultInspectorPreview
-          dataSourceId={dataSource.id}
+          dataSourceId={dataSourceId}
           className="h-full min-h-[200px]"
         />
       </div>
@@ -439,7 +414,9 @@ function ColumnItemRow({
     patch: Partial<Extract<InspectorItem, { type: "column" }>>,
   ) => void;
   onRemove: () => void;
-  onPatchColumnMetadata: (patch: Partial<Omit<ColumnMetadata, "name">>) => void;
+  onPatchColumnMetadata?: (
+    patch: Partial<Omit<ColumnMetadata, "name">>,
+  ) => void;
 }) {
   const { columnDef, columnMetadata } = useDataSourceColumn(dataSourceId, name);
   const inspectorColumn = useInspectorColumn(dataSourceId, name);
@@ -487,29 +464,30 @@ function ColumnItemRow({
           ))}
         </select>
 
-        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Percentage && (
-          <select
-            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-            value={columnMetadata?.semanticType ?? ""}
-            onChange={(e) =>
-              onPatchColumnMetadata({
-                semanticType: e.target.value
-                  ? (e.target.value as ColumnSemanticType)
-                  : undefined,
-              })
-            }
-          >
-            <option value="">Infer from values</option>
-            {[
-              ColumnSemanticType.Percentage01,
-              ColumnSemanticType.Percentage0100,
-            ].map((s) => (
-              <option key={s} value={s}>
-                {ColumnSemanticTypeLabels[s]}
-              </option>
-            ))}
-          </select>
-        )}
+        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Percentage &&
+          onPatchColumnMetadata && (
+            <select
+              className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+              value={columnMetadata?.semanticType ?? ""}
+              onChange={(e) =>
+                onPatchColumnMetadata({
+                  semanticType: e.target.value
+                    ? (e.target.value as ColumnSemanticType)
+                    : undefined,
+                })
+              }
+            >
+              <option value="">Infer from values</option>
+              {[
+                ColumnSemanticType.Percentage01,
+                ColumnSemanticType.Percentage0100,
+              ].map((s) => (
+                <option key={s} value={s}>
+                  {ColumnSemanticTypeLabels[s]}
+                </option>
+              ))}
+            </select>
+          )}
 
         {inspectorColumn?.displayFormat === ColumnDisplayFormat.Scale && (
           <input

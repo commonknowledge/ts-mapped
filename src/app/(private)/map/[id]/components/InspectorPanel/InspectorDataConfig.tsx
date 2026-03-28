@@ -77,7 +77,6 @@ export default function InspectorConfigTab() {
         <BoundaryConfigItem
           key={dataSourceConfig.id}
           boundaryConfig={dataSourceConfig}
-          index={index}
           canMoveUp={index > 0}
           canMoveDown={index < dataSourcesConfig.length - 1}
           onMoveUp={() => moveDataSourceConfig(index, index - 1)}
