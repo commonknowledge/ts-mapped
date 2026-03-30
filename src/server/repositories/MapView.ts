@@ -31,3 +31,21 @@ export async function upsertMapView(view: NewMapView) {
 export async function deleteMapView(id: string) {
   return db.deleteFrom("mapView").where("id", "=", id).execute();
 }
+
+export async function assertViewBelongsToMap({
+  viewId,
+  mapId,
+}: {
+  viewId: string;
+  mapId: string;
+}) {
+  const view = await db
+    .selectFrom("mapView")
+    .where("id", "=", viewId)
+    .where("mapId", "=", mapId)
+    .select("id")
+    .executeTakeFirst();
+  if (!view) {
+    throw new Error("View not found");
+  }
+}

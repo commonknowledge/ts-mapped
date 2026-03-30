@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useDataSources } from "@/hooks/useDataSources";
+import { useViewId } from "../../hooks/useMapViews";
 import { useUpdateInspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 import { useViewInspectorConfig } from "../../hooks/useViewInspectorConfig";
 import DataSourceSelectButton from "../DataSourceSelectButton";
@@ -8,6 +9,7 @@ import { InspectorConfigItem } from "./InspectorConfigItem";
 import { deriveInspectorItems } from "./utils";
 
 export default function InspectorDataConfig() {
+  const viewId = useViewId();
   const inspectorConfigs = useViewInspectorConfig();
   const updateInspectorConfig = useUpdateInspectorConfig();
   const { getDataSourceById } = useDataSources();
@@ -29,6 +31,10 @@ export default function InspectorDataConfig() {
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
+      if (!viewId) {
+        return;
+      }
+
       const dataSource = getDataSourceById(dataSourceId);
       const derivedItems = deriveInspectorItems(
         dataSource?.columnDefs ?? [],
@@ -41,7 +47,7 @@ export default function InspectorDataConfig() {
         {
           id: uuidv4(),
           dataSourceId,
-          mapViewId: "",
+          mapViewId: viewId,
           position: configs.length,
           name: dataSource?.name || "Data Source",
           description: null,
@@ -54,7 +60,7 @@ export default function InspectorDataConfig() {
         },
       ]);
     },
-    [getDataSourceById, updateInspectorConfig],
+    [getDataSourceById, updateInspectorConfig, viewId],
   );
 
   return (

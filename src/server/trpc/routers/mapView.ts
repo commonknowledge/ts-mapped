@@ -4,7 +4,10 @@ import {
   findByMapViewId,
   replaceAllForMapView,
 } from "@/server/repositories/InspectorDataSourceConfig";
-import { deleteMapView } from "@/server/repositories/MapView";
+import {
+  assertViewBelongsToMap,
+  deleteMapView,
+} from "@/server/repositories/MapView";
 import { enqueue } from "@/server/services/queue";
 import {
   dataSourceOwnerProcedure,
@@ -17,6 +20,10 @@ export const mapViewRouter = router({
   inspectorConfigs: mapReadProcedure
     .input(z.object({ viewId: z.string() }))
     .query(async ({ input }) => {
+      await assertViewBelongsToMap({
+        viewId: input.viewId,
+        mapId: input.mapId,
+      });
       return findByMapViewId(input.viewId);
     }),
 
@@ -33,6 +40,10 @@ export const mapViewRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
+      await assertViewBelongsToMap({
+        viewId: input.viewId,
+        mapId: input.mapId,
+      });
       const configs = input.configs.map((config, index) => ({
         ...config,
         mapViewId: input.viewId,

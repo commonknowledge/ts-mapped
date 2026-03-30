@@ -12,7 +12,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("map_view_id", "uuid", (col) =>
       col.notNull().references("map_view.id").onDelete("cascade"),
     )
-    .addColumn("data_source_id", "uuid", (col) => col.notNull())
+    .addColumn("data_source_id", "uuid", (col) =>
+      col.notNull().references("data_source.id").onDelete("cascade"),
+    )
     .addColumn("name", "text")
     .addColumn("description", "text")
     .addColumn("icon", "text")
