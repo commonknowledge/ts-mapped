@@ -34,6 +34,7 @@ import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
+import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
 import { dataRecordsWillAggregate } from "../../Choropleth/areas";
 import SteppedColorEditor from "./SteppedColorEditor";
 import type { DataSource } from "@/models/DataSource";
@@ -192,6 +193,8 @@ export default function VisualisationPanel({
       )}
       style={{
         left: positionLeft,
+        minWidth: VISUALISATION_PANEL_WIDTH,
+        width: VISUALISATION_PANEL_WIDTH,
       }}
     >
       <div className="flex justify-between items-start gap-6 / text-sm">

@@ -2,7 +2,6 @@ import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/models/MapView";
 import { useChoropleth } from "../hooks/useChoropleth";
-import { useInspectorContent } from "../hooks/useInspector";
 import {
   useCompareGeographiesMode,
   useMapControls,
@@ -10,7 +9,11 @@ import {
 } from "../hooks/useMapControls";
 import { useDrawMode } from "../hooks/useMapCore";
 import { useMapViews } from "../hooks/useMapViews";
-import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import {
+  CONTROL_PANEL_WIDTH,
+  VISUALISATION_PANEL_WIDTH,
+  mapColors,
+} from "../styles";
 import BoundaryHoverInfo from "./BoundaryHoverInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
@@ -21,8 +24,6 @@ export default function PrivateMapControls() {
   const drawMode = useDrawMode();
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
-  const { inspectorContent } = useInspectorContent();
-  const inspectorVisible = Boolean(inspectorContent);
   const { boundariesPanelOpen } = useChoropleth();
   const compareGeographiesMode = useCompareGeographiesMode();
   const {
@@ -74,33 +75,30 @@ export default function PrivateMapControls() {
       : "translate(-50%)",
   };
 
-  const positionLeft = {
-    transform: showControls
-      ? `translateX(calc(${CONTROL_PANEL_WIDTH}px))`
-      : "translateX(0)",
-  };
+  let positionLeft = 16;
+  if (showControls) {
+    positionLeft += CONTROL_PANEL_WIDTH;
+  }
+  if (boundariesPanelOpen) {
+    positionLeft += VISUALISATION_PANEL_WIDTH;
+  }
 
   return (
     <>
       <div
-        className={`absolute top-5 z-10 transition-all duration-300 hidden md:block pointer-events-none ${
-          boundariesPanelOpen ? "left-[50%]" : "left-8"
-        }`}
+        className="absolute top-5 z-10 duration-300 pointer-events-none right-4 flex justify-between items-start gap-4"
         style={{
-          ...positionLeft,
-          maxWidth: showControls
-            ? `calc(100% - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"} - 64px)`
-            : `calc(100% - ${inspectorVisible ? "280px" : "32px"} - 64px)`,
+          ...{ left: positionLeft + "px" },
           transition: "max-width 0.3s, transform 0.3s",
-          ...(boundariesPanelOpen && { transform: "translateX(-50%)" }),
         }}
       >
         <BoundaryHoverInfo />
+        <InspectorPanel />
       </div>
 
       <div
         className="absolute bottom-8 left-8 z-10 transition-transform duration-300 hidden md:block"
-        style={positionLeft}
+        style={{ left: positionLeft + "px" }}
       >
         <MapStyleSelector />
       </div>
@@ -108,8 +106,6 @@ export default function PrivateMapControls() {
       <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300 hidden md:block">
         <ZoomControl />
       </div>
-
-      <InspectorPanel />
 
       {viewConfig.mapType !== MapType.Hex && (
         <div

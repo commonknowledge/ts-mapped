@@ -54,6 +54,12 @@ export function useLayers() {
         placedMarkers.forEach((marker) =>
           setPlacedMarkerVisibility(marker.id, true),
         );
+        mapConfig.markerDataSourceIds.forEach((id) =>
+          setDataSourceVisibility(id, true),
+        );
+        if (mapConfig.membersDataSourceId) {
+          setDataSourceVisibility(mapConfig.membersDataSourceId, true);
+        }
       } else if (layer === LayerType.Turf) {
         turfs.forEach((t) => setTurfVisibility(t.id, true));
       } else if (layer === LayerType.Boundary) {
@@ -61,6 +67,7 @@ export function useLayers() {
       }
     },
     [
+      mapConfig.markerDataSourceIds,
       mapConfig.membersDataSourceId,
       placedMarkers,
       setDataSourceVisibility,
@@ -84,6 +91,12 @@ export function useLayers() {
         placedMarkers.forEach((marker) =>
           setPlacedMarkerVisibility(marker.id, false),
         );
+        mapConfig.markerDataSourceIds.forEach((id) =>
+          setDataSourceVisibility(id, false),
+        );
+        if (mapConfig.membersDataSourceId) {
+          setDataSourceVisibility(mapConfig.membersDataSourceId, false);
+        }
       } else if (layer === LayerType.Turf) {
         turfs.forEach((t) => setTurfVisibility(t.id, false));
       } else if (layer === LayerType.Boundary) {
@@ -91,6 +104,7 @@ export function useLayers() {
       }
     },
     [
+      mapConfig.markerDataSourceIds,
       mapConfig.membersDataSourceId,
       placedMarkers,
       setDataSourceVisibility,

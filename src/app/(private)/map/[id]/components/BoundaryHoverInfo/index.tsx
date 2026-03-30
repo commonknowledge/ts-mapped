@@ -58,51 +58,53 @@ export default function BoundaryHoverInfo() {
 
   return (
     <AnimatePresence mode="wait">
-      {showInfo && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15, type: "tween" }}
-          className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-none"
-        >
-          {selectedAreas.length > 0 && (
-            <button
-              className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20 pointer-events-auto"
-              aria-label="Clear selected areas"
-              onClick={() => setSelectedAreas([])}
-            >
-              <XIcon
-                size={16}
-                className="text-neutral-600 hover:text-neutral-900"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15, type: "tween" }}
+        className="min-w-0"
+      >
+        {showInfo && (
+          <div className="bg-white rounded shadow-lg py-1 pr-6 relative pointer-events-none">
+            {selectedAreas.length > 0 && (
+              <button
+                className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20 pointer-events-auto"
+                aria-label="Clear selected areas"
+                onClick={() => setSelectedAreas([])}
+              >
+                <XIcon
+                  size={16}
+                  className="text-neutral-600 hover:text-neutral-900"
+                />
+              </button>
+            )}
+            {areasToDisplay.length > 0 && (
+              <AreasList
+                areas={areasToDisplay}
+                primaryLabel={primaryLabel}
+                secondaryLabel={secondaryLabel}
+                setSelectedAreas={setSelectedAreas}
               />
-            </button>
-          )}
-          {areasToDisplay.length > 0 && (
-            <AreasList
-              areas={areasToDisplay}
-              primaryLabel={primaryLabel}
-              secondaryLabel={secondaryLabel}
-              setSelectedAreas={setSelectedAreas}
-            />
-          )}
-          {hasSecondaryArea && (
-            <>
-              {areasToDisplay.length > 0 && (
-                <hr className="border-neutral-200 mx-3 my-1" />
-              )}
-              <div className="px-3 py-1 flex flex-row items-center font-medium">
-                <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                  {AreaSetCodeLabels[secondaryAreaSetConfig.areaSetCode] ||
-                    "Secondary boundary"}
-                  :
-                </span>
-                <span className="text-sm">{hoverSecondaryArea.name}</span>
-              </div>
-            </>
-          )}
-        </motion.div>
-      )}
+            )}
+            {hasSecondaryArea && (
+              <>
+                {areasToDisplay.length > 0 && (
+                  <hr className="border-neutral-200 mx-3 my-1" />
+                )}
+                <div className="px-3 py-1 flex flex-row items-center font-medium">
+                  <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                    {AreaSetCodeLabels[secondaryAreaSetConfig.areaSetCode] ||
+                      "Secondary boundary"}
+                    :
+                  </span>
+                  <span className="text-sm">{hoverSecondaryArea.name}</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </motion.div>
     </AnimatePresence>
   );
 }
