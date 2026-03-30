@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -88,6 +88,8 @@ export function DataSourceDashboard({
     }),
   );
 
+  const queryClient = useQueryClient();
+
   useSubscription(
     trpc.dataSource.events.subscriptionOptions(
       { dataSourceId: dataSource.id },
@@ -101,10 +103,20 @@ export function DataSourceDashboard({
           }
           if (dataSourceEvent.event === "ImportFailed") {
             setImporting(false);
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataSource.byId.queryKey({
+                dataSourceId: dataSource.id,
+              }),
+            });
             toast.error("Failed to import this data source.");
           }
           if (dataSourceEvent.event === "ImportComplete") {
             setImporting(false);
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataSource.byId.queryKey({
+                dataSourceId: dataSource.id,
+              }),
+            });
             setLastImported(dataSourceEvent.at);
           }
         },

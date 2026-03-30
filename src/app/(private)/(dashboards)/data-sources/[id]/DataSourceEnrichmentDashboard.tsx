@@ -140,11 +140,6 @@ export function DataSourceEnrichmentDashboard({
                 page: 0,
               }),
             });
-            queryClient.invalidateQueries({
-              queryKey: trpc.dataSource.byId.queryKey({
-                dataSourceId: dataSource.id,
-              }),
-            });
           }
           if (dataSourceEvent.event === "EnrichmentComplete") {
             setEnriching(false);
