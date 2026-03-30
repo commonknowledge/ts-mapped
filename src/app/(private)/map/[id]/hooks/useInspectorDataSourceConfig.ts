@@ -2,20 +2,20 @@
 
 import { useMemo } from "react";
 import { useDataSources } from "@/hooks/useDataSources";
-import { useMapViews } from "./useMapViews";
+import { useViewInspectorConfig } from "./useViewInspectorConfig";
 import type { DefaultInspectorConfig } from "@/models/DataSource";
 
 export function useInspectorDataSourceConfig(
   dataSourceId: string | null | undefined,
 ): DefaultInspectorConfig | null | undefined {
-  const { view } = useMapViews();
+  const inspectorConfigs = useViewInspectorConfig();
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(dataSourceId);
 
   return useMemo(() => {
     if (!dataSourceId) return undefined;
 
-    const viewDataSourceConfig = view?.inspectorConfig?.dataSources?.find(
+    const viewDataSourceConfig = inspectorConfigs.find(
       (ds) => ds.dataSourceId === dataSourceId,
     );
 
@@ -27,5 +27,5 @@ export function useInspectorDataSourceConfig(
       ...dataSource?.defaultInspectorConfig,
       ...viewDataSourceConfig,
     };
-  }, [dataSource, dataSourceId, view?.inspectorConfig?.dataSources]);
+  }, [dataSource, dataSourceId, inspectorConfigs]);
 }

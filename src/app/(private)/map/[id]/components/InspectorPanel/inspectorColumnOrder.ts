@@ -1,7 +1,7 @@
 "use client";
 
+import type { InspectorDataSourceConfig } from "@/models/InspectorDataSourceConfig";
 import type { InspectorItem } from "@/models/MapView";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 function isColumn(
   item: InspectorItem,

@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
-import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
+import { useViewInspectorConfig } from "@/app/(private)/map/[id]/hooks/useViewInspectorConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { AreaSetCodeLabels } from "@/labels";
@@ -36,7 +36,7 @@ export default function InspectorDataTab({
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
   const trpc = useTRPC();
-  const { view } = useMapViews();
+  const inspectorConfigs = useViewInspectorConfig();
   const { selectedBoundary, focusedRecord } = useInspectorState();
   const { inspectorContent } = useInspectorContent();
   const { dataSource, properties = [], type } = inspectorContent || {};
@@ -56,11 +56,6 @@ export default function InspectorDataTab({
         enabled: Boolean(focusedRecord?.dataSourceId),
       },
     ),
-  );
-
-  const dataSourceConfigs = useMemo(
-    () => view?.inspectorConfig?.dataSources || [],
-    [view?.inspectorConfig?.dataSources],
   );
 
   const isBoundary = type === LayerType.Boundary;
@@ -122,7 +117,7 @@ export default function InspectorDataTab({
             const hasProperties =
               properties.length ||
               Object.keys(recordData?.json || {}).length ||
-              dataSourceConfigs.length;
+              inspectorConfigs.length;
 
             if (!hasProperties) {
               return (
@@ -147,7 +142,7 @@ export default function InspectorDataTab({
         </>
       )}
 
-      {dataSourceConfigs.map((config, index) => (
+      {inspectorConfigs.map((config, index) => (
         <LocationDataPanel
           key={config.id}
           dataSourceId={config.dataSourceId}

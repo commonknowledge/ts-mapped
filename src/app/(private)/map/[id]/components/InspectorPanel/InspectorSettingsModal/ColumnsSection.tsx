@@ -22,10 +22,8 @@ import {
   DividerDragPreview,
 } from "./DragPreviews";
 import { DroppableSelectedColumns } from "./DroppableSelectedColumns";
-import type {
-  InspectorDataSourceConfig,
-  InspectorItem,
-} from "@/models/MapView";
+import type { InspectorDataSourceConfig } from "@/models/InspectorDataSourceConfig";
+import type { InspectorItem } from "@/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 function isDivider(

@@ -11,6 +11,7 @@ import type { DataRecordTable } from "@/server/models/DataRecord";
 import type { DataSourceTable } from "@/server/models/DataSource";
 import type { DataSourceOrganisationOverrideTable } from "@/server/models/DataSourceOrganisationOverride";
 import type { FolderTable } from "@/server/models/Folder";
+import type { InspectorDataSourceConfigTable } from "@/server/models/InspectorDataSourceConfig";
 import type { InvitationTable } from "@/server/models/Invitation";
 import type { JobTable } from "@/server/models/Job";
 import type { MapTable } from "@/server/models/Map";
@@ -64,6 +65,7 @@ export interface Database {
   invitation: InvitationTable;
   map: MapTable;
   mapView: MapViewTable;
+  inspectorDataSourceConfig: InspectorDataSourceConfigTable;
   organisation: OrganisationTable;
   organisationUser: OrganisationUserTable;
   placedMarker: PlacedMarkerTable;

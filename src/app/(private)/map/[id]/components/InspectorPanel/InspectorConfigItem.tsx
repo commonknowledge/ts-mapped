@@ -2,12 +2,12 @@ import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { useDataSources } from "@/hooks/useDataSources";
-import { type InspectorDataSourceConfig } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { InspectorConfigModal } from "./InspectorConfigModal";
+import type { InspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 
-export function BoundaryConfigItem({
-  boundaryConfig,
+export function InspectorConfigItem({
+  config,
   canMoveUp,
   canMoveDown,
   onMoveUp,
@@ -15,16 +15,16 @@ export function BoundaryConfigItem({
   onClickRemove,
   onUpdate,
 }: {
-  boundaryConfig: InspectorDataSourceConfig;
+  config: InspectorConfig;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onClickRemove: () => void;
-  onUpdate: (config: InspectorDataSourceConfig) => void;
+  onUpdate: (config: InspectorConfig) => void;
 }) {
   const { getDataSourceById } = useDataSources();
-  const dataSource = getDataSourceById(boundaryConfig.dataSourceId);
+  const dataSource = getDataSourceById(config.dataSourceId);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
   if (!dataSource) {
@@ -98,7 +98,7 @@ export function BoundaryConfigItem({
         <InspectorConfigModal
           open={isConfigModalOpen}
           onOpenChange={setIsConfigModalOpen}
-          boundaryConfig={boundaryConfig}
+          config={config}
           onUpdate={onUpdate}
         />
       </div>

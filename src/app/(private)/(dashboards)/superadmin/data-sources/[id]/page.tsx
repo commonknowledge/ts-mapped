@@ -15,8 +15,8 @@ import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { DefaultChoroplethSection } from "./components/DefaultChoroplethSection";
-import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
 import { GeneralSection } from "./components/GeneralSection";
+import { InspectorConfigSection } from "./components/InspectorConfigSection";
 import { ScreenshotSection } from "./components/ScreenshotSection";
 import type {
   ColumnMetadata,
@@ -188,7 +188,7 @@ export default function DataSourceConfigPage() {
         onChange={handleChoroplethConfigChange}
       />
 
-      <DefaultInspectorConfigSection
+      <InspectorConfigSection
         dataSourceId={dataSource.id}
         columnDefs={dataSource.columnDefs}
         config={dataSource.defaultInspectorConfig ?? { items: [] }}

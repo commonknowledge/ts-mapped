@@ -11,10 +11,10 @@ import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
-import type { View } from "../types";
 import { useDebouncedCallback } from "./useDebouncedCallback";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
+import type { View } from "../types";
 
 export function useMapViews() {
   const viewId = useViewId();

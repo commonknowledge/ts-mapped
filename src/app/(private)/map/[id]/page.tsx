@@ -35,7 +35,6 @@ export default async function MapPage({
         console.log("View ID:", currentView.id);
         console.log("View Name:", currentView.name);
         console.log("View Config:", currentView.config);
-        console.log("Inspector Config:", currentView.inspectorConfig);
         console.log("Data Source Views:", currentView.dataSourceViews);
         console.log("==============================");
       }

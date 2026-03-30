@@ -73,7 +73,6 @@ export function useInitialMapViewEffect() {
         name: "Default View",
         config: createNewViewConfig(),
         dataSourceViews,
-        inspectorConfig: { dataSources: [] },
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
         createdAt: new Date(),

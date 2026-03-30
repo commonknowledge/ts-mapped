@@ -317,7 +317,6 @@ export async function inferColumnSemanticTypes(
   let changed = false;
 
   for (const col of numericColumns) {
-    console.log("checking col", col);
     const existing = updatedMetadata.find((m) => m.name === col.name);
     if (existing?.semanticType !== undefined) continue;
 

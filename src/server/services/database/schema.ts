@@ -225,11 +225,31 @@ export interface MapView {
   name: string; // text, NOT NULL, DEFAULT 'Untitled'
   position: number; // double precision, NOT NULL, DEFAULT 0
   dataSourceViews: unknown[]; // jsonb, NOT NULL, DEFAULT []
-  inspectorConfig: unknown[] | null; // jsonb, NULL - Array of InspectorDataSourceConfig
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 
   // FOREIGN KEYS:
   // - mapId -> map.id (CASCADE DELETE, CASCADE UPDATE)
+}
+
+/**
+ * inspectorDataSourceConfig Table
+ * Per-view inspector display configuration for each data source
+ */
+export interface InspectorDataSourceConfig {
+  id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+  mapViewId: string; // uuid, NOT NULL
+  dataSourceId: string; // uuid, NOT NULL
+  name: string | null; // text, NULL
+  description: string | null; // text, NULL
+  icon: string | null; // text, NULL
+  screenshotUrl: string | null; // text, NULL
+  layout: string | null; // text, NULL
+  color: string | null; // text, NULL
+  items: unknown[]; // jsonb, NOT NULL, DEFAULT []
+  position: number; // double precision, NOT NULL, DEFAULT 0
+
+  // FOREIGN KEYS:
+  // - mapViewId -> mapView.id (CASCADE DELETE)
 }
 
 /**
@@ -329,6 +349,7 @@ export interface Turf {
  *   │     └─> dataRecord
  *   ├─> map
  *   │     ├─> mapView ─> publicMap
+ *   │     │     └─> inspectorDataSourceConfig
  *   │     ├─> folder
  *   │     │     └─> placedMarker
  *   │     └─> turf
@@ -378,6 +399,7 @@ export interface Database {
   // Maps & Views
   map: Map;
   mapView: MapView;
+  inspectorDataSourceConfig: InspectorDataSourceConfig;
   publicMap: PublicMap;
 
   // Map Annotations

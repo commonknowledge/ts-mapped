@@ -9,8 +9,8 @@ import { useMemo } from "react";
 import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
+import type { InspectorDataSourceConfig } from "@/models/InspectorDataSourceConfig";
 import type { InspectorItem } from "@/models/MapView";
-import type { InspectorDataSourceConfig } from "@/models/MapView";
 
 type ColumnItem = Extract<InspectorItem, { type: "column" }>;
 

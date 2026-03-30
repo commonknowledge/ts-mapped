@@ -1,6 +1,5 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
-import { defaultInspectorConfigSchema } from "./DataSource";
 import { CalculationType, pointSchema } from "./shared";
 
 export type { InspectorItem, InspectorLabelDivider } from "./shared";
@@ -143,51 +142,11 @@ export const mapViewConfigSchema = z.object({
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 
-// ============================================================================
-// INSPECTOR CONFIGURATION
-// ============================================================================
-// Configures which data sources and columns are displayed in the inspector panel
-// for different aspects (boundaries, markers, members, etc.)
-
-/**
- * Configuration for a single data source in the inspector.
- * - id / dataSourceId: identity
- * - name: user-friendly label
- * - InspectorItems: inspector-only display config per column and dividers
- * - layout: "single" (one column) or "twoColumn" grid
- * - icon: optional Lucide icon name
- * - color: optional Tailwind color token (e.g. "blue")
- */
-export const inspectorDataSourceConfigSchema =
-  defaultInspectorConfigSchema.extend({
-    id: z.string(),
-    dataSourceId: z.string(),
-  });
-
-export type InspectorDataSourceConfig = z.infer<
-  typeof inspectorDataSourceConfigSchema
->;
-
-/**
- * Complete inspector configuration for a map view.
- */
-export const inspectorConfigSchema = z.object({
-  dataSources: z.array(inspectorDataSourceConfigSchema).optional(),
-  // Future: markers, members, etc.
-});
-
-export type InspectorConfig = z.infer<typeof inspectorConfigSchema>;
-
-// ============================================================================
-// END INSPECTOR CONFIGURATION
-// ============================================================================
-
 export const mapViewSchema = z.object({
   id: z.string(),
   name: z.string(),
   config: mapViewConfigSchema,
   dataSourceViews: z.array(dataSourceViewSchema),
-  inspectorConfig: inspectorConfigSchema.nullish(),
   position: z.number(),
   mapId: z.string(),
   createdAt: z.date(),

@@ -77,14 +77,18 @@ function NumberWithComparisonValue({
   }
 
   const baseline = baselineQuery.data ?? null;
-  const pct = baseline !== null ? variancePercent(num, baseline) : null;
-  const pctLabel =
+  let pct = baseline !== null ? variancePercent(num, baseline) : null;
+  let pctLabel =
     pct !== null
       ? pct >= 0
         ? `+${pct.toFixed(1)}%`
         : `${pct.toFixed(1)}%`
       : null;
-  const statAbbrev = String(comparisonStat).substring(0, 3);
+  if (comparisonStat === InspectorComparisonStat.Min && baseline === 0) {
+    pct = Infinity;
+    pctLabel = "+Inf";
+  }
+  const statAbbrev = String(comparisonStat).substring(0, 3).toLowerCase();
   const suffix = statAbbrev ? ` ${statAbbrev}` : "";
   const title =
     comparisonStat && baseline !== null

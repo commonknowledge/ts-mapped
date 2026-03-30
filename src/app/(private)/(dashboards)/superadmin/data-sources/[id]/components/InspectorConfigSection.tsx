@@ -40,24 +40,24 @@ function isDivider(
   return item.type === "divider";
 }
 
-interface DefaultInspectorConfigSectionProps {
+interface InspectorConfigSectionProps {
   dataSourceId: string;
   columnDefs: ColumnDef[];
   config: DefaultInspectorConfig;
   onChange: (patch: Partial<DefaultInspectorConfig>) => void;
-  onPatchColumnMetadata?: (
+  onPatchColumnMetadata: (
     column: string,
     patch: Partial<Omit<ColumnMetadata, "name">>,
   ) => void;
 }
 
-export function DefaultInspectorConfigSection({
+export function InspectorConfigSection({
   dataSourceId,
   columnDefs,
   config,
   onChange,
   onPatchColumnMetadata,
-}: DefaultInspectorConfigSectionProps) {
+}: InspectorConfigSectionProps) {
   const items = useMemo(() => config.items ?? [], [config.items]);
   const layout: InspectorLayout = config.layout ?? "single";
   const color = config.color ?? null;
@@ -364,11 +364,8 @@ export function DefaultInspectorConfigSection({
                             handleUpdateColumnItem(item.name, patch)
                           }
                           onRemove={() => handleRemoveColumn(item.name)}
-                          onPatchColumnMetadata={
-                            onPatchColumnMetadata
-                              ? (patch) =>
-                                  onPatchColumnMetadata(item.name, patch)
-                              : undefined
+                          onPatchColumnMetadata={(patch) =>
+                            onPatchColumnMetadata(item.name, patch)
                           }
                         />
                       )}
