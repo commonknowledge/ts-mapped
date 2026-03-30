@@ -44,7 +44,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       ds->>'layout',
       ds->>'color',
       COALESCE(ds->'items', '[]'::jsonb),
-      idx::double precision
+      (idx - 1)::double precision
     FROM map_view mv,
          jsonb_array_elements(mv.inspector_config->'dataSources') WITH ORDINALITY AS arr(ds, idx)
     WHERE mv.inspector_config IS NOT NULL
