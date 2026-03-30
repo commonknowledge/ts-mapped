@@ -37,7 +37,7 @@ export const getDataSourceAdaptor = (dataSource: {
     case DataSourceType.Mailchimp:
       return new MailchimpAdaptor(id, config.apiKey, config.listId);
     case DataSourceType.Zetkin:
-      return new ZetkinAdaptor(config.orgId, config.oAuthCredentials);
+      return new ZetkinAdaptor(id, config.orgId, config.oAuthCredentials);
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;

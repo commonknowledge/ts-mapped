@@ -96,7 +96,7 @@ export const oauthRouter = router({
   // Zetkin
   zetkinGetOAuthURL: publicProcedure.query(() => {
     const zetkin = createZetkinClient();
-    const url = zetkin.getLoginUrl(redirectUri) as string;
+    const url = zetkin.getLoginUrl(redirectUri, ["level2"]) as string;
     return { url };
   }),
 
@@ -105,6 +105,15 @@ export const oauthRouter = router({
     .mutation(async ({ input }) => {
       const zetkin = createZetkinClient();
       await zetkin.authenticate(input.redirectSuccessUrl);
-      return zetkin.getTokenData() as ZetkinOAuthCredentials;
+      const tokenData = zetkin.getTokenData() as Record<string, unknown>;
+      const expiresIn = tokenData?.expires_in
+        ? Number(tokenData.expires_in)
+        : undefined;
+      return {
+        access_token: tokenData.access_token,
+        token_type: tokenData.token_type,
+        refresh_token: tokenData.refresh_token,
+        expiry_date: expiresIn ? Date.now() + expiresIn * 1000 : undefined,
+      } as ZetkinOAuthCredentials;
     }),
 });

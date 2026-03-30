@@ -85,6 +85,7 @@ export const zetkinOAuthCredentialsSchema = z.object({
   access_token: z.string().nonempty(),
   token_type: z.string().nonempty(),
   refresh_token: z.string().optional(),
+  expiry_date: z.number().optional(),
 });
 
 export type ZetkinOAuthCredentials = z.infer<
