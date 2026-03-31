@@ -296,8 +296,23 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
         .resource(`/orgs/${this.orgId}/people/fields`)
         .post({ slug, title: fieldName, type: "text" });
 
-      const created = createResponse.data?.data as ZetkinCustomField;
+      const created = createResponse?.data?.data as ZetkinCustomField | undefined;
+
+      if (
+        !created ||
+        typeof created !== "object" ||
+        typeof (created as any).slug !== "string" ||
+        typeof (created as any).title !== "string"
+      ) {
+        logger.warn(
+          `Failed to create Zetkin custom field "${fieldName}" (slug: ${slug}): unexpected response shape`,
+          { response: createResponse },
+        );
+        continue;
+      }
+
       this.cachedFields?.push(created);
+      existingSlugs.add((created as any).slug);
 
       logger.info(`Created Zetkin custom field "${fieldName}" (slug: ${slug})`);
     }
