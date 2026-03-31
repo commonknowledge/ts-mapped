@@ -7,6 +7,7 @@ import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import { parseTurfPolygon } from "@/models/Turf";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -76,7 +77,7 @@ export default function SortableTurfItem({
     if (!map || isCurrentlyDragging || isEditing) return;
 
     // the bounding box of the polygon
-    const bbox = turfLib.bbox(turf.polygon);
+    const bbox = turfLib.bbox(parseTurfPolygon(turf.polygon));
     const padding = 20;
 
     map.fitBounds(

@@ -6,6 +6,7 @@ import { MapIcon, MapPinIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { parseAreaGeography } from "@/models/Area";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -202,7 +203,7 @@ export function SearchBox() {
       setMapSearchResult({
         id: `area-${area.id}`,
         type: "Feature",
-        geometry: areaWithGeometry.geography,
+        geometry: parseAreaGeography(areaWithGeometry.geoJson),
         properties: {
           ...area,
         },

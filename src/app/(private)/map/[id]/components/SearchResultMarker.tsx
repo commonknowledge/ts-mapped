@@ -9,7 +9,6 @@ import {
 } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
 import { mapColors } from "../styles";
-import type { PolygonOrMultiPolygon } from "@/models/Turf";
 import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
@@ -102,7 +101,7 @@ export default function SearchResultMarker() {
                 label: fullLabel,
                 notes: "",
                 area,
-                polygon: mapSearchResult.geometry as PolygonOrMultiPolygon,
+                polygon: JSON.stringify(mapSearchResult.geometry),
                 position: 0,
               });
 

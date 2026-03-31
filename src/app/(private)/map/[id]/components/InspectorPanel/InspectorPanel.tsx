@@ -9,6 +9,7 @@ import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
+import { parseAreaGeography } from "@/models/Area";
 import { AreaSetCode } from "@/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -49,6 +50,12 @@ export default function InspectorPanel() {
       },
       { enabled: Boolean(selectedBoundary && type === LayerType.Boundary) },
     ),
+  );
+
+  const geography = useMemo(
+    () =>
+      areaData?.geoJson ? parseAreaGeography(areaData.geoJson) : undefined,
+    [areaData],
   );
 
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
@@ -93,14 +100,14 @@ export default function InspectorPanel() {
   };
 
   const handleAddToMyAreas = () => {
-    if (!areaData?.geography || !selectedBoundary) {
+    if (!geography || !selectedBoundary) {
       toast.error("Unable to add boundary to areas");
       return;
     }
 
     try {
       // Convert the boundary geography to a turf polygon
-      const area = turf.area(areaData.geography);
+      const area = turf.area(geography);
       const roundedArea = Math.round(area * 100) / 100;
 
       insertTurf({
@@ -108,7 +115,7 @@ export default function InspectorPanel() {
         label: selectedBoundary.name || "Boundary",
         notes: "",
         area: roundedArea,
-        polygon: areaData.geography,
+        polygon: areaData?.geoJson ?? "",
         position: 0,
       });
 
