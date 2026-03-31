@@ -137,6 +137,8 @@ function ZetkinFieldsWithOAuth({
       window.location.href = result.url;
     } catch {
       setError("Could not authorize with Zetkin.");
+    } finally {
+      setLoading(false);
     }
   };
 
