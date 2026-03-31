@@ -124,7 +124,7 @@ export default function DataRecordsPanel({
             setIsConfigModalOpen(true);
           }}
         >
-          <Settings className="h-4 w-4" />
+          <Settings className="h-4 w-4 mr-2" />
         </IconButtonWithTooltip>
       }
     >
