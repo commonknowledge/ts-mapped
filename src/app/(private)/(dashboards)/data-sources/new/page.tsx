@@ -109,7 +109,7 @@ function NewDataSourceForm({ oAuthState }: { oAuthState: OAuthState | null }) {
       recordType: (oAuthState?.recordType ?? "") as DataSourceRecordType,
       config: oAuthState?.dataSourceType
         ? ({ type: oAuthState.dataSourceType } as NewDataSourceConfig)
-        : (undefined as NewDataSourceConfig | undefined),
+        : undefined,
     },
     onSubmit: async ({ value }) => {
       if (!organisationId) return toast.error("No organisation selected");

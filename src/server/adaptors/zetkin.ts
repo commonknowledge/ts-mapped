@@ -94,7 +94,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
       refresh_token: newTokenData.refresh_token
         ? String(newTokenData.refresh_token)
         : this.credentials.refresh_token,
-      expiry_date: Date.now() + expiresIn * 1000
+      expiry_date: Date.now() + expiresIn * 1000,
     };
 
     logger.debug("Refreshed Zetkin access token");
@@ -296,13 +296,15 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
         .resource(`/orgs/${this.orgId}/people/fields`)
         .post({ slug, title: fieldName, type: "text" });
 
-      const created = createResponse?.data?.data as ZetkinCustomField | undefined;
+      const created = createResponse?.data?.data as
+        | ZetkinCustomField
+        | undefined;
 
       if (
         !created ||
         typeof created !== "object" ||
-        typeof (created as any).slug !== "string" ||
-        typeof (created as any).title !== "string"
+        typeof created.slug !== "string" ||
+        typeof created.title !== "string"
       ) {
         logger.warn(
           `Failed to create Zetkin custom field "${fieldName}" (slug: ${slug}): unexpected response shape`,
@@ -312,7 +314,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
       }
 
       this.cachedFields?.push(created);
-      existingSlugs.add((created as any).slug);
+      existingSlugs.add(created.slug);
 
       logger.info(`Created Zetkin custom field "${fieldName}" (slug: ${slug})`);
     }
@@ -349,8 +351,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
       .resource(`/orgs/${this.orgId}/people/tags`)
       .get();
 
-    this.cachedTags =
-      (response.data?.data as ZetkinTag[] | undefined) ?? [];
+    this.cachedTags = (response.data?.data as ZetkinTag[] | undefined) ?? [];
     return this.cachedTags;
   }
 
@@ -397,6 +398,8 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
     this.cachedFields =
       this.cachedFields?.filter((f) => f.id !== field.id) ?? null;
 
-    logger.info(`Deleted Zetkin custom field "${columnName}" (id: ${field.id})`);
+    logger.info(
+      `Deleted Zetkin custom field "${columnName}" (id: ${field.id})`,
+    );
   }
 }

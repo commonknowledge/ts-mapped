@@ -59,7 +59,9 @@ export const oauthRouter = router({
         });
       }
 
-      const { tokens: { access_token, expiry_date, refresh_token } } = await oauth2Client.getToken(code);
+      const {
+        tokens: { access_token, expiry_date, refresh_token },
+      } = await oauth2Client.getToken(code);
       if (!access_token || !expiry_date || !refresh_token) {
         throw new TRPCError({
           code: "BAD_REQUEST",

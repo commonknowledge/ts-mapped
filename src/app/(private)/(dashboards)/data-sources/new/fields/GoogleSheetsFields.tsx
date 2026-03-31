@@ -15,7 +15,6 @@ import {
 } from "@/shadcn/ui/select";
 import type {
   DataSourceRecordType,
-  GoogleOAuthCredentials,
   GoogleSheetsConfig,
 } from "@/models/DataSource";
 import type { OAuthState } from "@/models/OAuth";
