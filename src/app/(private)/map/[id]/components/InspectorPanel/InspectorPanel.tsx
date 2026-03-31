@@ -1,22 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
-import { ArrowLeftIcon, PlusIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, InfoIcon, PlusIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAreaStats";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
+import SimplePropertiesList from "./SimplePropertiesList";
 import {
   UnderlineTabs,
   UnderlineTabsContent,
@@ -36,6 +39,7 @@ export default function InspectorPanel() {
   } = useInspectorState();
   const { inspectorContent } = useInspectorContent();
   const { type } = inspectorContent ?? {};
+  const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
   const trpc = useTRPC();
   const { insertTurf, loading: savingTurf } = useTurfMutations();
@@ -54,6 +58,20 @@ export default function InspectorPanel() {
 
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
   const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
+
+  const boundaryProperties = useMemo(() => {
+    if (type !== LayerType.Boundary) return [];
+    const props = [...(inspectorContent?.properties ?? [])];
+    if (selectedSecondaryArea) {
+      props.push({
+        label:
+          AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
+          "Secondary boundary",
+        value: selectedSecondaryArea.name,
+      });
+    }
+    return props;
+  }, [inspectorContent?.properties, selectedSecondaryArea, type]);
 
   const safeActiveTab = useMemo(() => {
     if (activeTab === "data" && !hasData) {
@@ -139,8 +157,8 @@ export default function InspectorPanel() {
       id="inspector-panel"
       className={cn("absolute top-0 right-4 / flex flex-col gap-6")}
       style={{
-        minWidth: "250px",
-        maxWidth: "450px",
+        minWidth: "300px",
+        maxWidth: "320px",
         maxHeight: "calc(100% - 80px)",
         paddingTop: "20px",
         paddingBottom: "20px",
@@ -159,15 +177,37 @@ export default function InspectorPanel() {
               {type === LayerType.Boundary &&
                 areaToDisplay?.backgroundColor && (
                   <span
-                    className="w-4 h-4 rounded shrink-0"
+                    className="w-4 h-4 rounded shrink-0 border border-neutral-200"
                     style={{ backgroundColor: areaToDisplay.backgroundColor }}
                   />
                 )}
               {inspectorContent?.name as string}
             </h1>
             {areaToDisplay && (
-              <h2 className="text-muted-foreground text-xs uppercase font-mono">
-                {AreaSetCodeLabels[areaToDisplay.areaSetCode]}
+              <h2 className="text-muted-foreground text-xs uppercase font-mono flex items-center gap-1">
+                <span>{AreaSetCodeLabels[areaToDisplay.areaSetCode]}</span>
+                {type === LayerType.Boundary &&
+                  boundaryProperties.length > 0 && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground"
+                          aria-label="Boundary info"
+                        >
+                          <InfoIcon className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="bottom"
+                        align="start"
+                        sideOffset={6}
+                        className="bg-white text-foreground border border-neutral-200 shadow-md px-3 py-2 max-w-xs"
+                      >
+                        <SimplePropertiesList properties={boundaryProperties} />
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
               </h2>
             )}
           </div>

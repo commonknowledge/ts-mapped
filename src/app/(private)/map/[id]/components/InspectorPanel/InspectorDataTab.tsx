@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MapPinIcon, SettingsIcon, TableIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
@@ -8,7 +8,6 @@ import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useViewInspectorConfig } from "@/app/(private)/map/[id]/hooks/useViewInspectorConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
-import { AreaSetCodeLabels } from "@/labels";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -19,7 +18,6 @@ import {
 } from "@/shadcn/ui/dialog";
 import { LayerType } from "@/types";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
-import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import DataRecordColumns from "./DataRecordColumns";
 import InspectorDataConfig from "./InspectorDataConfig";
 import { LocationDataPanel } from "./LocationDataPanel";
@@ -44,8 +42,6 @@ export default function InspectorDataTab({
   const choroplethDataSource = useChoroplethDataSource();
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
-  const [selectedSecondaryArea] = useSelectedSecondaryArea();
-
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
       {
@@ -60,19 +56,6 @@ export default function InspectorDataTab({
 
   const isBoundary = type === LayerType.Boundary;
 
-  const boundaryProperties = useMemo(() => {
-    const boundaryProperties = [...properties];
-    if (selectedSecondaryArea) {
-      boundaryProperties.push({
-        label:
-          AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
-          "Secondary boundary",
-        value: selectedSecondaryArea.name,
-      });
-    }
-    return boundaryProperties;
-  }, [properties, selectedSecondaryArea]);
-
   const flyToMarker = () => {
     const map = mapRef?.current;
 
@@ -84,13 +67,12 @@ export default function InspectorDataTab({
   return (
     <div className="flex flex-col gap-4">
       {isBoundary ? (
-        <>
-          <SimplePropertiesList properties={boundaryProperties} />
+        <div className="grid grid-cols-2 gap-4">
           <DataRecordColumns
             json={getAreaStatJson(areaStat)}
             dataSourceId={choroplethDataSource?.id}
           />
-        </>
+        </div>
       ) : (
         // Show default data source and properties
         <>

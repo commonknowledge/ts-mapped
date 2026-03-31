@@ -44,7 +44,11 @@ function TextOrNumberValue({
     columnType: columnType ?? ColumnType.Number,
     columnMetadata,
   });
-  return <span className="font-medium tabular-nums">{text}</span>;
+  return (
+    <span className="font-medium tabular-nums whitespace-normal break-all min-w-0">
+      {text}
+    </span>
+  );
 }
 
 function NumberWithComparisonValue({
@@ -296,9 +300,9 @@ export default function DataRecordColumns({
     <>
       {safeColumns.map((column, index) => {
         return (
-          <div key={`${column}-${index}`}>
+          <div key={`${column}-${index}`} className="min-w-0">
             <PropertyLabel column={column} dataSourceId={dataSourceId} />
-            <dd>
+            <dd className="min-w-0 whitespace-normal break-all">
               <DataRecordPropertyValue
                 value={json[column]}
                 name={column}
