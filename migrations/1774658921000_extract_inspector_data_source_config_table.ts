@@ -49,6 +49,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       (idx - 1)::double precision
     FROM map_view mv,
          jsonb_array_elements(mv.inspector_config->'dataSources') WITH ORDINALITY AS arr(ds, idx)
+    INNER JOIN data_source ON data_source.id = (ds->>'dataSourceId')::uuid
     WHERE mv.inspector_config IS NOT NULL
       AND mv.inspector_config->'dataSources' IS NOT NULL
   `.execute(db);
