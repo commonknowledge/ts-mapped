@@ -87,6 +87,7 @@ Use tRPC as the bridge between client components and server logic:
 
 - Keep as much state as possible in the React/tRPC query cache. Avoid copying into useState() variables and syncing with useEffect().
   Use `queryClient.setQueryData` and `queryClient.setQueriesData` to manage the query cache.
+- Do not use the typescript `as` operator except when parsing JSON of a known format.
 - Do not use `!!x` to cast to `boolean`. Use `Boolean(x)`.
 - Functions with more than 2 parameters should use the destructured input pattern,
   e.g. `const sum = ({ a, b, c }: { a: number, b: number, c: number }) => a + b + c`
@@ -179,7 +180,7 @@ export function useCurrentUser() {
 
 Global atoms (current user, organisation) are hydrated from the server via providers in `src/providers/`.
 
-## Imports & Code Style
+## Imports
 
 ESLint enforces these rules automatically (run `npm run lint` to fix):
 

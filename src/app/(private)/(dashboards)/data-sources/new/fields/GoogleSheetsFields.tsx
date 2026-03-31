@@ -95,9 +95,9 @@ function GoogleSheetsFieldsWithOAuth({
           hasCompletedOAuth.current = true;
           setError("");
           setLoading(true);
-          const oAuthCredentials = (await exchangeCode({
+          const oAuthCredentials = await exchangeCode({
             redirectSuccessUrl: window.location.href,
-          })) as GoogleOAuthCredentials;
+          });
           onChange({ oAuthCredentials });
         }
       } catch {

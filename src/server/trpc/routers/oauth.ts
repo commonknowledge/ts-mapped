@@ -47,7 +47,7 @@ export const oauthRouter = router({
     }),
 
   googleExchangeOAuthCode: publicProcedure
-    .input(z.object({ redirectSuccessUrl: z.string() }))
+    .input(z.object({ redirectSuccessUrl: z.string().url() }))
     .mutation(async ({ input }) => {
       const parsed = new URL(input.redirectSuccessUrl);
       const code = parsed.searchParams.get("code");
@@ -59,8 +59,14 @@ export const oauthRouter = router({
         });
       }
 
-      const { tokens } = await oauth2Client.getToken(code);
-      return tokens;
+      const { tokens: { access_token, expiry_date, refresh_token } } = await oauth2Client.getToken(code);
+      if (!access_token || !expiry_date || !refresh_token) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Authorization failed",
+        });
+      }
+      return { access_token, expiry_date, refresh_token };
     }),
 
   googleGetSheets: publicProcedure
@@ -101,7 +107,7 @@ export const oauthRouter = router({
   }),
 
   zetkinExchangeOAuthCode: publicProcedure
-    .input(z.object({ redirectSuccessUrl: z.string() }))
+    .input(z.object({ redirectSuccessUrl: z.string().url() }))
     .mutation(async ({ input }) => {
       const zetkin = createZetkinClient();
       await zetkin.authenticate(input.redirectSuccessUrl);
