@@ -154,10 +154,11 @@ export default function InspectorDataTab({
       <Button
         variant="outline"
         className="w-full"
+        size="sm"
         onClick={() => setConfigDialogOpen(true)}
       >
         <SettingsIcon />
-        Manage data
+        Manage inspector data
       </Button>
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
