@@ -204,3 +204,10 @@ npm test -- tests/unit
 ```
 
 Integration tests in `tests/feature/` hit a real database and external services. Unit tests in `tests/unit/` are faster and self-contained.
+
+
+## Shorthands
+Whilst prompting, we may use certain abbreviations to save time. They include:
+- **ds** = Data Sources
+- **mdl** = Movement Data Library
+- **cp** = Choropleth
