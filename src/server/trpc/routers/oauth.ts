@@ -105,15 +105,33 @@ export const oauthRouter = router({
     .mutation(async ({ input }) => {
       const zetkin = createZetkinClient();
       await zetkin.authenticate(input.redirectSuccessUrl);
-      const tokenData = zetkin.getTokenData() as Record<string, unknown>;
-      const expiresIn = tokenData?.expires_in
-        ? Number(tokenData.expires_in)
-        : undefined;
+      const rawTokenData = zetkin.getTokenData();
+
+      const tokenDataResult = z
+        .object({
+          access_token: z.string(),
+          token_type: z.string(),
+          refresh_token: z.string(),
+          expires_in: z.number().int().positive(),
+        })
+        .safeParse(rawTokenData);
+
+      if (!tokenDataResult.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve valid OAuth tokens from Zetkin",
+        });
+      }
+
+      const { access_token, token_type, refresh_token, expires_in } =
+        tokenDataResult.data;
+      const expiry_date = Date.now() + expires_in * 1000;
+
       return {
-        access_token: tokenData.access_token,
-        token_type: tokenData.token_type,
-        refresh_token: tokenData.refresh_token,
-        expiry_date: expiresIn ? Date.now() + expiresIn * 1000 : undefined,
+        access_token,
+        token_type,
+        refresh_token,
+        expiry_date,
       } as ZetkinOAuthCredentials;
     }),
 });
