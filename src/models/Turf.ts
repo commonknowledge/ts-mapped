@@ -22,7 +22,8 @@ export type MultiPolygon = z.infer<typeof multiPolygonSchema>;
 export type PolygonOrMultiPolygon = z.infer<typeof polygonOrMultiPolygonSchema>;
 
 export function parseTurfPolygon(geoJson: string): PolygonOrMultiPolygon {
-  return JSON.parse(geoJson) as PolygonOrMultiPolygon;
+  const parsed = JSON.parse(geoJson);
+  return polygonOrMultiPolygonSchema.parse(parsed);
 }
 
 export const turfSchema = z.object({
