@@ -76,7 +76,7 @@ const removeEnrichmentColumns = async (
   );
   await db
     .updateTable("dataSource")
-    .set({ columnDefs: JSON.stringify(updatedColumnDefs) as never })
+    .set({ columnDefs: updatedColumnDefs })
     .where("id", "=", dataSourceId)
     .execute();
 

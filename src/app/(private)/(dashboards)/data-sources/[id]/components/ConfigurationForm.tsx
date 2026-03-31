@@ -5,6 +5,7 @@ import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceFeatures } from "@/features";
 import { DataSourceType, geocodingConfigSchema } from "@/models/DataSource";
@@ -60,6 +61,7 @@ export default function ConfigurationForm({
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
 
   const { mutate: updateDataSourceConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
@@ -80,9 +82,7 @@ export default function ConfigurationForm({
               dataSourceId: dataSource.id,
             }),
           }),
-          queryClient.invalidateQueries({
-            queryKey: trpc.dataSource.listReadable.queryKey(),
-          }),
+          invalidateDataSources(),
           queryClient.invalidateQueries({
             queryKey: trpc.area.stats.queryKey(),
           }),

@@ -1,10 +1,11 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import FormFieldWrapper, {
@@ -45,8 +46,8 @@ export default function NewDataSourcePage() {
   // Manually manage loading state to account for success redirect duration
   const [isLoading, setIsLoading] = useState(false);
 
-  const client = useQueryClient();
   const trpc = useTRPC();
+  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
   const {
     mutate: createDataSource,
     isPending,
@@ -54,9 +55,7 @@ export default function NewDataSourcePage() {
   } = useMutation(
     trpc.dataSource.create.mutationOptions({
       onSuccess: (data) => {
-        client.invalidateQueries({
-          queryKey: trpc.dataSource.listReadable.queryKey(),
-        });
+        void invalidateDataSources();
         router.push(`/data-sources/${data.id}/config`);
       },
       onError: () => {

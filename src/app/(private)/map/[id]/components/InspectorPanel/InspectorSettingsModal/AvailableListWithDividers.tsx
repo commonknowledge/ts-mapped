@@ -1,0 +1,127 @@
+"use client";
+
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { cn } from "@/shadcn/utils";
+import { AvailableColumnRow } from "./AvailableColumnRow";
+import { SELECTED_LEFT_DROPPABLE_ID } from "./constants";
+import { SortableAvailableRow } from "./SortableAvailableRow";
+import { SortableDividerRow } from "./SortableDividerRow";
+import type { InspectorItem } from "@/models/MapView";
+
+export function AvailableListWithDividers({
+  selectedItemsInOrder,
+  selectedSectionIds,
+  availableColumns,
+  onAddColumn,
+  onRemoveColumn,
+  onAddDivider,
+  onDividerLabelChange,
+  onRemoveDivider,
+  activeId,
+  mode = "both",
+}: {
+  selectedItemsInOrder: InspectorItem[];
+  selectedSectionIds: string[];
+  availableColumns: string[];
+  onAddColumn: (columnName: string) => void;
+  onRemoveColumn: (columnName: string) => void;
+  onAddDivider: () => void;
+  onDividerLabelChange: (id: string, label: string) => void;
+  onRemoveDivider: (id: string) => void;
+  activeId: string | null;
+  mode?: "both" | "selected" | "available";
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: SELECTED_LEFT_DROPPABLE_ID,
+  });
+
+  return (
+    <div className="rounded border border-dashed border-neutral-200 bg-neutral-50/50 flex flex-col flex-1 min-h-0 overflow-hidden">
+      {mode !== "available" && (
+        <>
+          <div className="p-2 shrink-0">
+            <button
+              type="button"
+              onClick={onAddDivider}
+              className="w-full rounded border border-dashed border-neutral-300 py-1.5 text-xs text-muted-foreground hover:border-neutral-400 hover:text-foreground transition-colors"
+            >
+              + Add label divider
+            </button>
+          </div>
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <p className="text-[11px] font-medium text-muted-foreground px-2 pb-1 shrink-0">
+              Selected
+            </p>
+            <div
+              ref={setNodeRef}
+              className={cn(
+                "flex-1 min-h-0 overflow-y-auto p-2 pt-0 rounded-b space-y-1",
+                isOver &&
+                  "bg-primary/5 ring-1 ring-primary/20 border border-primary/30 border-dashed",
+              )}
+            >
+              <SortableContext
+                items={selectedSectionIds}
+                strategy={verticalListSortingStrategy}
+              >
+                {selectedItemsInOrder.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-3 text-center">
+                    Tick columns below to add
+                  </p>
+                ) : (
+                  selectedItemsInOrder.map((item, i) =>
+                    item.type === "column" ? (
+                      <SortableAvailableRow
+                        key={selectedSectionIds[i]}
+                        id={selectedSectionIds[i]}
+                        columnName={item.name}
+                        selected={true}
+                        onToggle={() => onRemoveColumn(item.name)}
+                        isDragging={activeId === selectedSectionIds[i]}
+                      />
+                    ) : (
+                      <SortableDividerRow
+                        key={`divider-${item.id}`}
+                        id={selectedSectionIds[i]}
+                        label={item.label}
+                        onLabelChange={(value) =>
+                          onDividerLabelChange(item.id, value)
+                        }
+                        onRemove={() => onRemoveDivider(item.id)}
+                        isDragging={activeId === selectedSectionIds[i]}
+                      />
+                    ),
+                  )
+                )}
+              </SortableContext>
+            </div>
+          </div>
+        </>
+      )}
+
+      {mode !== "selected" && (
+        <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+          <div className="p-2 pt-0 space-y-1 overflow-y-auto">
+            {availableColumns.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-3 text-center">
+                All columns selected
+              </p>
+            ) : (
+              availableColumns.map((col) => (
+                <AvailableColumnRow
+                  key={col}
+                  columnName={col}
+                  onAdd={() => onAddColumn(col)}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

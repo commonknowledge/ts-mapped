@@ -6,15 +6,15 @@ import {
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
 import { createPortal } from "react-dom";
-import {
-  useMarkerDataSources,
-  useMembersDataSource,
-} from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/(private)/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils/position";
+import {
+  useMarkerDataSources,
+  useMembersDataSource,
+} from "@/hooks/useDataSources";
 import { LayerType } from "@/types";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";

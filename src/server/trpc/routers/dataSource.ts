@@ -9,6 +9,8 @@ import {
   GeocodingType,
   columnMetadataSchema,
   dataSourceSchema,
+  defaultChoroplethConfigSchema,
+  defaultInspectorConfigSchema,
 } from "@/models/DataSource";
 import { dataSourceViewSchema } from "@/models/MapView";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -17,10 +19,6 @@ import {
   removeEnrichmentColumnsFromDataSource,
 } from "@/server/mapping/enrich";
 import {
-  findColumnMetadataOverridesByOrg,
-  upsertColumnMetadataOverride,
-} from "@/server/repositories/ColumnMetadataOverride";
-import {
   applyFilterAndSearch,
   findDataRecordsByDataSource,
   findDataRecordsByIds,
@@ -28,11 +26,20 @@ import {
 import {
   createDataSource,
   deleteDataSource,
+  findDataSourceById,
   findDataSourcesByIds,
+  findPublicDataSources,
   getJobInfo,
   getUniqueColumnValues,
   updateDataSource,
+  updateDefaultChoroplethConfig,
+  updateDefaultInspectorConfig,
 } from "@/server/repositories/DataSource";
+import {
+  findDataSourceOrganisationOverride,
+  findDataSourceOrganisationOverridesByOrg,
+  upsertDataSourceOrganisationOverride,
+} from "@/server/repositories/DataSourceOrganisationOverride";
 import { findMapViewById } from "@/server/repositories/MapView";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { db } from "@/server/services/database";
@@ -48,12 +55,40 @@ import {
   organisationProcedure,
   protectedProcedure,
   router,
+  superadminProcedure,
 } from "../index";
 import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
 import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
+  listPublic: superadminProcedure.query(async () => {
+    const dataSources = await findPublicDataSources();
+    const withImportInfo = await addImportInfo(dataSources);
+    return withImportInfo.map((ds) => ({ ...ds, organisationOverride: null }));
+  }),
+  updateDefaultInspectorConfig: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        config: defaultInspectorConfigSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await updateDefaultInspectorConfig(input.dataSourceId, input.config);
+      return true;
+    }),
+  updateDefaultChoroplethConfig: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        config: defaultChoroplethConfigSchema.nullable(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await updateDefaultChoroplethConfig(input.dataSourceId, input.config);
+      return true;
+    }),
   listForMapView: mapReadProcedure
     .input(z.object({ viewId: z.string() }))
     .query(async ({ ctx: { map }, input }) => {
@@ -68,7 +103,7 @@ export const dataSourceRouter = router({
       const withImportInfo = await addImportInfo(dataSources);
       return withImportInfo.map((ds) => ({
         ...ds,
-        columnMetadataOverride: null,
+        organisationOverride: null,
       }));
     }),
   listReadable: protectedProcedure
@@ -116,20 +151,18 @@ export const dataSourceRouter = router({
 
       const overrides =
         orgId && filteredDataSources.length
-          ? await findColumnMetadataOverridesByOrg(
+          ? await findDataSourceOrganisationOverridesByOrg(
               orgId,
               filteredDataSources.map((ds) => ds.id),
             )
           : [];
 
-      const overrideMap = new Map(
-        overrides.map((o) => [o.dataSourceId, o.columnMetadata]),
-      );
+      const overrideMap = new Map(overrides.map((o) => [o.dataSourceId, o]));
 
       const withImportInfo = await addImportInfo(filteredDataSources);
       return withImportInfo.map((ds) => ({
         ...ds,
-        columnMetadataOverride: overrideMap.get(ds.id) ?? null,
+        organisationOverride: overrideMap.get(ds.id) ?? null,
       }));
     }),
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
@@ -593,7 +626,7 @@ export const dataSourceRouter = router({
     return true;
   }),
 
-  updateColumnMetadataOverride: organisationProcedure
+  updateOrganisationOverride: organisationProcedure
     .input(
       z.object({
         dataSourceId: z.string(),
@@ -601,12 +634,105 @@ export const dataSourceRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await upsertColumnMetadataOverride(
+      await upsertDataSourceOrganisationOverride(
         ctx.organisation.id,
         input.dataSourceId,
         input.columnMetadata,
       );
       return true;
+    }),
+
+  patchColumnMetadata: dataSourceOwnerProcedure
+    .input(
+      z.object({
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = ctx.dataSource.columnMetadata ?? [];
+      const hasEntry = existing.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existing.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existing,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await updateDataSource(ctx.dataSource.id, { columnMetadata: updated });
+      return { columnMetadata: updated };
+    }),
+
+  patchColumnMetadataSuperadmin: superadminProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const dataSource = await findDataSourceById(input.dataSourceId);
+      if (!dataSource) throw new TRPCError({ code: "NOT_FOUND" });
+      const existing = dataSource.columnMetadata ?? [];
+      const hasEntry = existing.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existing.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existing,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await updateDataSource(input.dataSourceId, { columnMetadata: updated });
+      return { columnMetadata: updated };
+    }),
+
+  patchColumnMetadataOverride: organisationProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        column: z.string(),
+        patch: columnMetadataSchema.omit({ name: true }).partial(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await findDataSourceOrganisationOverride(
+        ctx.organisation.id,
+        input.dataSourceId,
+      );
+      const existingMetadata = existing?.columnMetadata ?? [];
+      const hasEntry = existingMetadata.some((m) => m.name === input.column);
+      const updated = hasEntry
+        ? existingMetadata.map((m) =>
+            m.name === input.column ? { ...m, ...input.patch } : m,
+          )
+        : [
+            ...existingMetadata,
+            {
+              name: input.column,
+              description: "",
+              valueLabels: {},
+              ...input.patch,
+            },
+          ];
+      await upsertDataSourceOrganisationOverride(
+        ctx.organisation.id,
+        input.dataSourceId,
+        updated,
+      );
+      return { columnMetadata: updated };
     }),
 
   events: dataSourceOwnerProcedure.subscription(async function* ({

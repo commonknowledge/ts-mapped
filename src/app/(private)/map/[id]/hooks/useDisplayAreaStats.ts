@@ -1,12 +1,12 @@
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo } from "react";
-import { CalculationType } from "@/models/MapView";
-import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
+import { CalculationType } from "@/models/shared";
 import { useFillColor } from "../colors";
 import { DEFAULT_FILL_COLOR } from "../constants";
 import { useAreaStats } from "../data";
 import { getDisplayValue } from "../utils/stats";
-import { useChoroplethDataSource } from "./useDataSources";
+import { useDataSourceColumns } from "./useDataSourceColumn";
 import { useMapViews } from "./useMapViews";
 import type { AreaSetCode } from "@/models/AreaSet";
 
@@ -29,10 +29,23 @@ export const useDisplayAreaStats = <
   const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
+  const { columnMetadata: resolvedMetadata } = useDataSourceColumns(
+    choroplethDataSource?.id,
+  );
+
+  const columnMetadata = resolvedMetadata.find(
+    (c) => c.name === areaStats?.primary?.column,
+  );
+
+  const secondaryColumnMetadata = resolvedMetadata.find(
+    (c) => c.name === areaStats?.secondary?.column,
+  );
+
   const fillColor = useFillColor({
     areaStats,
     viewConfig,
     selectedBivariateBucket: null,
+    resolvedColorMappings: columnMetadata?.valueColors,
   });
 
   const { result, value: fillColorExpression } = expression.createExpression([
@@ -47,23 +60,6 @@ export const useDisplayAreaStats = <
       fillColorExpression,
     );
   }
-
-  const resolvedMetadata = useMemo(
-    () =>
-      resolveColumnMetadata(
-        choroplethDataSource?.columnMetadata ?? [],
-        choroplethDataSource?.columnMetadataOverride,
-      ),
-    [choroplethDataSource],
-  );
-
-  const columnMetadata = resolvedMetadata.find(
-    (c) => c.name === areaStats?.primary?.column,
-  );
-
-  const secondaryColumnMetadata = resolvedMetadata.find(
-    (c) => c.name === areaStats?.secondary?.column,
-  );
 
   const areasToDisplay = useMemo((): (T & DisplayAreaStat)[] => {
     return areas.map((area) => {
@@ -85,16 +81,16 @@ export const useDisplayAreaStats = <
           : DEFAULT_FILL_COLOR;
       return {
         ...area,
-        primaryDisplayValue: getDisplayValue(
-          areaStat?.primary,
-          areaStats?.primary,
-          columnMetadata?.valueLabels,
-        ),
-        secondaryDisplayValue: getDisplayValue(
-          areaStat?.secondary,
-          areaStats?.secondary,
-          secondaryColumnMetadata?.valueLabels,
-        ),
+        primaryDisplayValue: getDisplayValue(areaStat?.primary, {
+          calculationType: areaStats?.calculationType,
+          columnType: areaStats?.primary?.columnType,
+          columnMetadata,
+        }),
+        secondaryDisplayValue: getDisplayValue(areaStat?.secondary, {
+          calculationType: areaStats?.calculationType,
+          columnType: areaStats?.secondary?.columnType,
+          columnMetadata: secondaryColumnMetadata,
+        }),
 
         backgroundColor: toRGBA(colorResult),
       };

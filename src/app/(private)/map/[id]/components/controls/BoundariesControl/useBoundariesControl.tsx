@@ -1,17 +1,11 @@
 import { useMemo } from "react";
-import {
-  useDataSources,
-  useMembersDataSource,
-} from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { GE_DATA_SOURCE_NAME, MAX_COLUMN_KEY } from "@/constants";
+import { useDataSources, useMembersDataSource } from "@/hooks/useDataSources";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { AreaSetGroupCode } from "@/models/AreaSet";
-import {
-  CalculationType,
-  DEFAULT_CALCULATION_TYPE,
-  MapType,
-} from "@/models/MapView";
+import { MapType } from "@/models/MapView";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 
 export function useBoundariesControl() {
   const { viewConfig, updateViewConfig } = useMapViews();

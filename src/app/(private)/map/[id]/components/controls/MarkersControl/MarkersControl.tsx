@@ -4,11 +4,6 @@ import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import {
-  useDataSources,
-  useMarkerDataSources,
-  useMembersDataSource,
-} from "@/app/(private)/map/[id]/hooks/useDataSources";
-import {
   useFolderMutations,
   useFoldersQuery,
 } from "@/app/(private)/map/[id]/hooks/useFolders";
@@ -20,6 +15,11 @@ import {
 } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import {
+  useDataSources,
+  useMarkerDataSources,
+  useMembersDataSource,
+} from "@/hooks/useDataSources";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { LayerType } from "@/types";
 import { CollectionIcon } from "../../Icons";

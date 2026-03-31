@@ -6,6 +6,7 @@ import {
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
 import { FilterOperator, FilterType } from "@/models/MapView";
+import { InspectorComparisonStat } from "@/models/shared";
 import { db } from "@/server/services/database";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
@@ -45,6 +46,35 @@ export async function countDataRecordsForDataSource(
     total: Number(result?.count) || 0,
     matched: Number(result?.matched) || 0,
   };
+}
+
+export async function getColumnStat(
+  dataSourceId: string,
+  columnName: string,
+  stat: InspectorComparisonStat,
+): Promise<number | null> {
+  const numericRowFilter = sql<boolean>`
+    (json->>${columnName}) ~ '^-?\\d+(\\.\\d+)?$'
+  `;
+
+  const agg =
+    stat === InspectorComparisonStat.Average
+      ? sql<number>`AVG((json->>${columnName})::double precision)`
+      : stat === InspectorComparisonStat.Min
+        ? sql<number>`MIN((json->>${columnName})::double precision)`
+        : stat === InspectorComparisonStat.Max
+          ? sql<number>`MAX((json->>${columnName})::double precision)`
+          : sql<number>`PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (json->>${columnName})::double precision)`;
+
+  const row = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where(numericRowFilter)
+    .select(agg.as("value"))
+    .executeTakeFirst();
+
+  const value = row?.value;
+  return typeof value === "number" && !Number.isNaN(value) ? value : null;
 }
 
 export function getFirstDataRecord(dataSourceId: string) {
@@ -434,3 +464,25 @@ export const deleteByDataSourceId = async (dataSourceId: string) =>
     .deleteFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .execute();
+
+export async function getNumericColumnRange(
+  dataSourceId: string,
+  columnName: string,
+): Promise<{ min: number | null; max: number | null; hasDecimals: boolean }> {
+  const result = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .select([
+      sql<number | null>`MIN((json->>${columnName})::float)`.as("min"),
+      sql<number | null>`MAX((json->>${columnName})::float)`.as("max"),
+      sql<boolean>`BOOL_OR((json->>${columnName})::float > 0 AND (json->>${columnName})::float < 1)`.as(
+        "hasDecimals",
+      ),
+    ])
+    .executeTakeFirst();
+  return {
+    min: result?.min ?? null,
+    max: result?.max ?? null,
+    hasDecimals: result?.hasDecimals ?? false,
+  };
+}

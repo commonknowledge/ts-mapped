@@ -1,6 +1,8 @@
 import z from "zod";
 import { areaSetCode, areaSetGroupCode } from "./AreaSet";
-import { pointSchema } from "./shared";
+import { CalculationType, pointSchema } from "./shared";
+
+export type { InspectorItem, InspectorLabelDivider } from "./shared";
 
 export enum FilterOperator {
   AND = "AND",
@@ -71,16 +73,6 @@ export const dataSourceViewSchema = z.object({
 
 export type DataSourceView = z.infer<typeof dataSourceViewSchema>;
 
-export enum CalculationType {
-  Count = "Count",
-  Sum = "Sum",
-  Avg = "Avg",
-  Mode = "Mode",
-}
-export const calculationTypes = Object.values(CalculationType);
-export const calculationType = z.nativeEnum(CalculationType);
-export const DEFAULT_CALCULATION_TYPE = CalculationType.Avg;
-
 export enum ColorScheme {
   RedBlue = "RedBlue",
   GreenYellowRed = "GreenYellowRed",
@@ -139,7 +131,7 @@ export const mapViewConfigSchema = z.object({
   calculationType: z.nativeEnum(CalculationType).nullish(),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
-  categoryColors: z.record(z.string(), z.string()).optional(),
+  colorMappings: z.record(z.string(), z.string()).optional(),
   colorScaleType: z.nativeEnum(ColorScaleType).optional(),
   steppedColorStepsByKey: z
     .record(z.string(), z.array(steppedColorStepSchema))
@@ -150,51 +142,11 @@ export const mapViewConfigSchema = z.object({
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 
-// ============================================================================
-// INSPECTOR CONFIGURATION
-// ============================================================================
-// Configures which data sources and columns are displayed in the inspector panel
-// for different aspects (boundaries, markers, members, etc.)
-
-/**
- * Configuration for a single boundary data source in the inspector
- * - dataSourceId: Reference to the data source
- * - name: User-friendly name for this inspector config
- * - type: The type of inspector display (currently only "simple")
- * - columns: Array of column names to display from this data source
- */
-export const inspectorBoundaryConfigSchema = z.object({
-  id: z.string(),
-  dataSourceId: z.string(),
-  name: z.string(),
-  columns: z.array(z.string()),
-});
-
-export type InspectorBoundaryConfig = z.infer<
-  typeof inspectorBoundaryConfigSchema
->;
-
-/**
- * Complete inspector configuration for a map view
- * Organized by aspect (boundaries, markers, members, etc.)
- */
-export const inspectorConfigSchema = z.object({
-  boundaries: z.array(inspectorBoundaryConfigSchema).optional(),
-  // Future: markers, members, etc.
-});
-
-export type InspectorConfig = z.infer<typeof inspectorConfigSchema>;
-
-// ============================================================================
-// END INSPECTOR CONFIGURATION
-// ============================================================================
-
 export const mapViewSchema = z.object({
   id: z.string(),
   name: z.string(),
   config: mapViewConfigSchema,
   dataSourceViews: z.array(dataSourceViewSchema),
-  inspectorConfig: inspectorConfigSchema.nullish(),
   position: z.number(),
   mapId: z.string(),
   createdAt: z.date(),

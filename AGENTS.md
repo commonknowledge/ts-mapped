@@ -83,6 +83,24 @@ Use tRPC as the bridge between client components and server logic:
 - **Server components**: call the server-side tRPC caller from `src/services/trpc/server.tsx`
 - **API routes**: use for streaming responses or bulk data that would be impractical over tRPC
 
+## Code Style
+
+- Keep as much state as possible in the React/tRPC query cache. Avoid copying into useState() variables and syncing with useEffect().
+  Use `queryClient.setQueryData` and `queryClient.setQueriesData` to manage the query cache.
+- Do not use `!!x` to cast to `boolean`. Use `Boolean(x)`.
+- Functions with more than 2 parameters should use the destructured input pattern,
+  e.g. `const sum = ({ a, b, c }: { a: number, b: number, c: number }) => a + b + c`
+- Constants should either go in a `constants/` directory or a `constants.ts` file.
+- Utils (pure functions) should go in a `utils/` directory or a `utils.ts` file.
+- Functions with side effects, or async functions, should go in a `services/` directory, or somewhere more specific.
+- Complex components that require their own directory should be in a file with the same name as the directory,
+  e.g. `Choropleth/Choropleth.tsx`.
+
+## English Dialect
+
+- Use American spellings for code, British spellings for user-facing text, comments, and documentation.
+- Use British spellings in code if there is precedent (e.g. "visualisation") for consistency.
+
 ## Database
 
 ### Kysely ORM

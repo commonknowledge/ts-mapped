@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useDataSources } from "@/hooks/useDataSources";
 import { DataSourceType } from "@/models/DataSource";
 import { FilterType } from "@/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
-import { useDataSources } from "./useDataSources";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import { useViewIdAtom } from "./useMapViews";
@@ -73,7 +73,6 @@ export function useInitialMapViewEffect() {
         name: "Default View",
         config: createNewViewConfig(),
         dataSourceViews,
-        inspectorConfig: { boundaries: [] },
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
         createdAt: new Date(),

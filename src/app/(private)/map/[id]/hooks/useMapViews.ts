@@ -5,15 +5,13 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { AreaSetGroupCode } from "@/models/AreaSet";
-import {
-  DEFAULT_CALCULATION_TYPE,
-  MapType,
-  type MapViewConfig,
-} from "@/models/MapView";
+import { MapType, type MapViewConfig } from "@/models/MapView";
+import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
+import { useDebouncedCallback } from "./useDebouncedCallback";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
@@ -114,7 +112,7 @@ export function useMapViews() {
     ],
   );
 
-  const { mutate: updateViewMutate } = useMutation(
+  const { mutate: updateViewMutateRaw } = useMutation(
     trpc.map.updateViews.mutationOptions({
       onMutate: async () => {
         if (!mapId) return;
@@ -148,6 +146,8 @@ export function useMapViews() {
       },
     }),
   );
+
+  const updateViewMutate = useDebouncedCallback(updateViewMutateRaw, 600);
 
   const updateView = useCallback(
     (view: View) => {

@@ -3,9 +3,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import {
   ResizableHandle,
@@ -27,7 +28,6 @@ import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import ControlPanel from "./controls/ControlPanel";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
-import EditColumnMetadataModal from "./EditColumnMetadataModal";
 import Loading from "./Loading";
 import MapInfoPopup from "./MapInfoPopup";
 import PrivateMapControls from "./PrivateMapControls";
@@ -49,17 +49,16 @@ export default function PrivateMapOverlay() {
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
   const onImportComplete = useCallback(() => {
-    // Refresh readable data sources after an import
-    queryClient.invalidateQueries({
-      queryKey: trpc.dataSource.listReadable.queryKey(),
-    });
+    // Refresh data sources after an import
+    void invalidateDataSources();
 
     // Also refresh data records so table values (e.g. tag columns) stay in sync
     queryClient.invalidateQueries({
       queryKey: trpc.dataRecord.list.queryKey(),
     });
-  }, [queryClient, trpc]);
+  }, [invalidateDataSources, queryClient, trpc]);
 
   const markerQueries = useMarkerQueries();
   const { selectedDataSourceId } = useTable();
@@ -158,7 +157,6 @@ export default function PrivateMapOverlay() {
         </div>
         {loading && <Loading />}
       </div>
-      <EditColumnMetadataModal />
       {mapId && (
         <MapInfoPopup
           open={infoPopupOpen}

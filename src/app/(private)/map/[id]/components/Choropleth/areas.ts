@@ -24,7 +24,7 @@ export const getValidAreaSetGroupCodes = (
     const validAreaSets = Object.keys(AreaSetSizes).filter(
       (code) =>
         code === areaSetCode ||
-        AreaSetSizes[code as AreaSetCode] > dataSourceAreaSize,
+        AreaSetSizes[code as AreaSetCode] >= dataSourceAreaSize,
     );
 
     // Get the associated group for each valid area set

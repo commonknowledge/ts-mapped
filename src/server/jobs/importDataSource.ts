@@ -1,9 +1,10 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
-import { ColumnType } from "@/models/DataSource";
+import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
 import {
   deleteByDataSourceId,
+  getNumericColumnRange,
   upsertDataRecords,
 } from "@/server/repositories/DataRecord";
 import {
@@ -13,7 +14,7 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import type { ColumnDef } from "@/models/DataSource";
+import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
@@ -78,6 +79,11 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     await updateDataSource(dataSource.id, {
       columnDefs: columnDefsAccumulator,
       recordCount: count,
+    });
+
+    await inferColumnSemanticTypes({
+      ...dataSource,
+      columnDefs: columnDefsAccumulator,
     });
 
     pubsub.publish("dataSourceEvent", {
@@ -269,5 +275,80 @@ const mergeColumnType = (
   // different types, not empty => "unknown"
   return ColumnType.Unknown;
 };
+
+const PERCENTAGE_NAME_PATTERNS = ["pct", "percent", "%"];
+
+export function isPercentageColumnName(name: string): boolean {
+  const lower = name.toLowerCase();
+  return PERCENTAGE_NAME_PATTERNS.some((p) => lower.includes(p));
+}
+
+export function inferSemanticTypeFromRange(
+  hasPercentageColName: boolean,
+  min: number | null,
+  max: number | null,
+  hasDecimals: boolean,
+): ColumnSemanticType | null {
+  if (max === null) return null;
+
+  if (hasPercentageColName) {
+    if (max <= 1) return ColumnSemanticType.Percentage01;
+    if (max <= 100) return ColumnSemanticType.Percentage0100;
+    return null;
+  }
+
+  // Value-range rule: 0–1 with at least one decimal value
+  if (min !== null && min >= 0 && max <= 1 && hasDecimals) {
+    return ColumnSemanticType.Percentage01;
+  }
+
+  return null;
+}
+
+export async function inferColumnSemanticTypes(
+  dataSource: DataSource,
+): Promise<void> {
+  const numericColumns = dataSource.columnDefs.filter(
+    (col) => col.type === ColumnType.Number,
+  );
+  if (numericColumns.length === 0) return;
+
+  const updatedMetadata: ColumnMetadata[] = [...dataSource.columnMetadata];
+  let changed = false;
+
+  for (const col of numericColumns) {
+    const existing = updatedMetadata.find((m) => m.name === col.name);
+    if (existing?.semanticType !== undefined) continue;
+
+    const hasPercentageColumnName = isPercentageColumnName(col.name);
+    const { min, max, hasDecimals } = await getNumericColumnRange(
+      dataSource.id,
+      col.name,
+    );
+    const inferred = inferSemanticTypeFromRange(
+      hasPercentageColumnName,
+      min,
+      max,
+      hasDecimals,
+    );
+    if (inferred === null) continue;
+
+    if (existing) {
+      existing.semanticType = inferred;
+    } else {
+      updatedMetadata.push({
+        name: col.name,
+        description: "",
+        valueLabels: {},
+        semanticType: inferred,
+      });
+    }
+    changed = true;
+  }
+
+  if (changed) {
+    await updateDataSource(dataSource.id, { columnMetadata: updatedMetadata });
+  }
+}
 
 export default importDataSource;

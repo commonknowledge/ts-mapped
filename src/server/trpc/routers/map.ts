@@ -3,7 +3,8 @@ import z from "zod";
 import { AreaSetGroupCode } from "@/models/AreaSet";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { mapConfigSchema, mapSchema } from "@/models/Map";
-import { CalculationType, MapStyleName, mapViewSchema } from "@/models/MapView";
+import { MapStyleName, mapViewSchema } from "@/models/MapView";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
@@ -63,20 +64,33 @@ export const mapRouter = router({
         });
       } else {
         await updateMap(map.id, { name: dataSource.name });
+
+        const fallbackColumn =
+          dataSource.columnDefs?.find(Boolean)?.name ??
+          dataSource.columnMetadata?.find(Boolean)?.name ??
+          "";
+        const areaDataColumn =
+          dataSource.defaultChoroplethConfig?.column?.trim() || fallbackColumn;
+        const calculationType =
+          dataSource.defaultChoroplethConfig?.calculationType ??
+          DEFAULT_CALCULATION_TYPE;
+
         await upsertMapView({
           mapId: map.id,
           name: "Default View",
           dataSourceViews: [],
           position: 0,
           config: {
-            areaDataColumn: "",
+            areaDataColumn:
+              calculationType === CalculationType.Count ? "" : areaDataColumn,
             areaDataSourceId: input.dataSourceId,
             areaSetGroupCode: AreaSetGroupCode.WMC24,
-            calculationType: CalculationType.Count,
+            calculationType,
             colorScheme: null,
             mapStyleName: MapStyleName.Light,
             reverseColorScheme: false,
             showBoundaryOutline: true,
+            showChoropleth: true,
             showLabels: true,
             showLocations: true,
             showMembers: true,

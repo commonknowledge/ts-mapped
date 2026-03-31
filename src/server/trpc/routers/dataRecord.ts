@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetCode } from "@/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
-import { pointSchema } from "@/models/shared";
+import { InspectorComparisonStat, pointSchema } from "@/models/shared";
 import {
   findAreaByCode,
   findAreasByPoint,
@@ -14,6 +14,7 @@ import {
   findDataRecordsByDataSource,
   findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
+  getColumnStat,
 } from "@/server/repositories/DataRecord";
 import { geojsonPointToPoint } from "@/server/utils/geo";
 import { DataRecordMatchType } from "@/types";
@@ -128,7 +129,10 @@ export const dataRecordRouter = router({
         dataSourceArea.areaSetCode,
         dataSourceArea.code,
       );
-      return { records, match };
+      return {
+        records,
+        match: records.length ? match : DataRecordMatchType.None,
+      };
     }),
   byPoint: dataSourceReadProcedure
     .input(
@@ -184,4 +188,14 @@ export const dataRecordRouter = router({
         return { records, count };
       },
     ),
+  columnStat: dataSourceReadProcedure
+    .input(
+      z.object({
+        columnName: z.string(),
+        stat: z.nativeEnum(InspectorComparisonStat),
+      }),
+    )
+    .query(async ({ input }) => {
+      return getColumnStat(input.dataSourceId, input.columnName, input.stat);
+    }),
 });

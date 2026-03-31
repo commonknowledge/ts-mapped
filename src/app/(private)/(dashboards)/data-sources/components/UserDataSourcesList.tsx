@@ -3,14 +3,18 @@
 import { Boxes, Database, PlusIcon, Users, UsersIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { DataSourceItem } from "@/components/DataSourceItem";
-import DataSourceRecordTypeIcon, {
-  dataSourceRecordTypeColors,
-  dataSourceRecordTypeLabels,
-} from "@/components/DataSourceRecordTypeIcon";
+import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import { Link } from "@/components/Link";
+import { DataSourceRecordTypeLabels } from "@/labels";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
-import { cn } from "@/shadcn/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -76,8 +80,7 @@ export default function UserDataSourcesList({
         .filter((rt) => rt !== DataSourceRecordType.Members)
         .map((rt) => ({
           value: rt,
-          label: dataSourceRecordTypeLabels[rt],
-          color: dataSourceRecordTypeColors[rt],
+          label: DataSourceRecordTypeLabels[rt],
           items: otherDataSources?.filter((ds) => ds.recordType === rt),
         })),
     ];
@@ -127,7 +130,12 @@ export default function UserDataSourcesList({
                 href={`/data-sources/${dataSource.id}`}
                 className="hover:border-blue-300 h-full"
               >
-                <DataSourceItem dataSource={dataSource} />
+                <DataSourceItem
+                  dataSource={dataSource}
+                  showColumnPreview={true}
+                  columnPreviewVariant="pills"
+                  maxColumnPills={8}
+                />
               </Link>
             ))}
             {memberDataSources?.length === 0 && (
@@ -141,41 +149,40 @@ export default function UserDataSourcesList({
 
         {/* Other Data Sources Section */}
         <div>
-          <div className="flex items-center mb-6 gap-4">
-            <h2 className="text-lg font-medium flex items-center gap-2">
-              Other data sources
-            </h2>
-            <div className="flex gap-2 flex-wrap">
-              {filterOptions.map((option) => {
-                const isDisabled = !option.items?.length;
-                const isSelected = selectedFilter === option.value;
-
-                return (
-                  <button
-                    key={option.value}
-                    disabled={isDisabled}
-                    onClick={() =>
-                      !isDisabled && setSelectedFilter(option.value)
-                    }
-                    className={cn(
-                      "px-3 py-1 text-xs rounded-full border transition-colors flex items-center gap-1 cursor-pointer",
-                      isDisabled && "pointer-events-none opacity-60",
-                      isSelected
-                        ? "bg-blue-100 border-blue-200"
-                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100",
-                    )}
-                  >
-                    {option.value === "all" ? null : (
-                      <DataSourceRecordTypeIcon
-                        type={option.value}
-                        className={option.color}
-                        size={16}
-                      />
-                    )}
-                    {option.label} ({option.items?.length || 0})
-                  </button>
-                );
-              })}
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-lg font-medium shrink-0">Other data sources</h2>
+            <div className="w-full sm:ml-auto sm:w-auto sm:max-w-[40ch]">
+              <Select
+                value={selectedFilter}
+                onValueChange={(value) =>
+                  setSelectedFilter(value as DataSourceRecordType | "all")
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose a record type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.map((option) => {
+                    const isDisabled =
+                      option.value !== "all" && !option.items?.length;
+                    return (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        disabled={isDisabled}
+                      >
+                        {option.value === "all" ? null : (
+                          <DataSourceRecordTypeIcon
+                            type={option.value}
+                            size={16}
+                          />
+                        )}
+                        {option.label}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -185,7 +192,12 @@ export default function UserDataSourcesList({
                 href={`/data-sources/${dataSource.id}`}
                 className="hover:border-blue-300"
               >
-                <DataSourceItem dataSource={dataSource} />
+                <DataSourceItem
+                  dataSource={dataSource}
+                  showColumnPreview={true}
+                  columnPreviewVariant="pills"
+                  maxColumnPills={8}
+                />
               </Link>
             ))}
             {filteredOtherDataSources?.length === 0 && (

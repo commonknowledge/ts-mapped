@@ -14,8 +14,8 @@ import {
   VISUALISATION_PANEL_WIDTH,
   mapColors,
 } from "../styles";
-import BoundaryHoverInfo from "./BoundaryHoverInfo";
-import InspectorPanel from "./inspector/InspectorPanel";
+import BoundaryHoverInfo from "./BoundaryHoverInfo/BoundaryHoverInfo";
+import InspectorPanel from "./InspectorPanel/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";

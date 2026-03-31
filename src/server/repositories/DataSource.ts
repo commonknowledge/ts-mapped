@@ -2,7 +2,12 @@ import { sql } from "kysely";
 import { DataSourceType, JobStatus } from "@/models/DataSource";
 import { db } from "@/server/services/database";
 import type { DataSourceUpdate, NewDataSource } from "../models/DataSource";
-import type { ColumnDef, JobInfo } from "@/models/DataSource";
+import type {
+  ColumnDef,
+  DefaultChoroplethConfig,
+  DefaultInspectorConfig,
+  JobInfo,
+} from "@/models/DataSource";
 
 export async function createDataSource(dataSource: NewDataSource) {
   return await db
@@ -149,6 +154,36 @@ export async function updateDataSource(
     .updateTable("dataSource")
     .set(updateWith)
     .where("id", "=", id)
+    .execute();
+}
+
+export async function updateDefaultInspectorConfig(
+  id: string,
+  config: DefaultInspectorConfig,
+) {
+  await db
+    .updateTable("dataSource")
+    .set({ defaultInspectorConfig: config })
+    .where("id", "=", id)
+    .execute();
+}
+
+export async function updateDefaultChoroplethConfig(
+  id: string,
+  config: DefaultChoroplethConfig | null,
+) {
+  await db
+    .updateTable("dataSource")
+    .set({ defaultChoroplethConfig: config })
+    .where("id", "=", id)
+    .execute();
+}
+
+export async function findPublicDataSources() {
+  return await db
+    .selectFrom("dataSource")
+    .where("public", "=", true)
+    .selectAll()
     .execute();
 }
 

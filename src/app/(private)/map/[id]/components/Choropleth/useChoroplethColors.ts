@@ -2,11 +2,13 @@ import { useEffect, useRef } from "react";
 import { useFillColor } from "@/app/(private)/map/[id]/colors";
 import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
+import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import {
   useLastLoadedSourceId,
   useMapRef,
 } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
 
 export function useChoroplethFillColor() {
   const { selectedBivariateBucket } = useChoropleth();
@@ -14,12 +16,23 @@ export function useChoroplethFillColor() {
   const { viewConfig } = useMapViews();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
+  const dataSource = useChoroplethDataSource();
+  const primaryColumn = areaStats?.primary?.column;
+
+  const { columnMetadata: primaryColumnMetadata } = useDataSourceColumn(
+    dataSource?.id,
+    primaryColumn ?? "",
+  );
+  const resolvedColorMappings = primaryColumn
+    ? primaryColumnMetadata?.valueColors
+    : undefined;
 
   // Get fill color
   const fillColor = useFillColor({
     areaStats,
     viewConfig,
     selectedBivariateBucket,
+    resolvedColorMappings,
   });
 
   return fillColor;

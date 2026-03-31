@@ -1,16 +1,13 @@
 import { Palette, PieChart, X } from "lucide-react";
 import { useState } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
-import { useChoroplethDataSource } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY } from "@/constants";
+import { useChoroplethDataSource } from "@/hooks/useDataSources";
+import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
-import {
-  CalculationType,
-  ColorScaleType,
-  ColorScheme,
-  DEFAULT_CALCULATION_TYPE,
-} from "@/models/MapView";
+import { ColorScaleType, ColorScheme } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
@@ -33,7 +30,6 @@ import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
-import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
 import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
 import { dataRecordsWillAggregate } from "../../Choropleth/areas";
 import SteppedColorEditor from "./SteppedColorEditor";
@@ -41,6 +37,44 @@ import type { DataSource } from "@/models/DataSource";
 
 const SELECT_TO_BUTTON_CLASSES =
   "bg-background hover:bg-accent hover:text-accent-foreground hover:border-border font-medium cursor-pointer";
+
+function OpacityControl({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const clampValue = (v: number) =>
+    isNaN(v) ? 80 : Math.max(0, Math.min(v, 100));
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 relative">
+        <input
+          type="range"
+          id="choropleth-opacity"
+          min="0"
+          max="100"
+          step="1"
+          value={value}
+          onChange={(e) => onChange(clampValue(Number(e.target.value)))}
+          className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
+          style={{
+            background: `linear-gradient(to right, #737373 0%, #737373 ${value}%, #e5e7eb ${value}%, #e5e7eb 100%)`,
+          }}
+        />
+      </div>
+      <Input
+        type="number"
+        min="0"
+        max="100"
+        value={value}
+        onChange={(e) => onChange(clampValue(Number(e.target.value)))}
+        className="w-16"
+      />
+    </div>
+  );
+}
 
 function IncludeColumnsModal({
   dataSource,
@@ -138,7 +172,7 @@ function SetCategoryColorsButton() {
             column: viewConfig.areaDataColumn,
             fields: {
               valueLabels: true,
-              categoryColors: true,
+              valueColors: true,
             },
           });
         }
@@ -224,40 +258,6 @@ export default function VisualisationPanel({
             </p>
 
             <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
-              <Label
-                htmlFor="choropleth-calculation-select"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Display
-              </Label>
-
-              <Select
-                value={
-                  viewConfig.calculationType === CalculationType.Count
-                    ? "counts"
-                    : "values"
-                }
-                onValueChange={(value) =>
-                  updateViewConfig({
-                    calculationType:
-                      value === "counts"
-                        ? CalculationType.Count
-                        : DEFAULT_CALCULATION_TYPE,
-                  })
-                }
-              >
-                <SelectTrigger
-                  className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-                  id="choropleth-calculation-select"
-                >
-                  <SelectValue placeholder="Choose calculation..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="counts">Count by area</SelectItem>
-                  <SelectItem value="values">Data values</SelectItem>
-                </SelectContent>
-              </Select>
-
               {canSelectAggregation && (
                 <>
                   <Label
@@ -569,44 +569,12 @@ export default function VisualisationPanel({
                 >
                   Opacity (%)
                 </Label>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 relative">
-                    <input
-                      type="range"
-                      id="choropleth-opacity"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={viewConfig.choroplethOpacityPct ?? 80}
-                      onChange={(e) => {
-                        const v = Number(e.target.value);
-                        const choroplethOpacityPct = isNaN(v)
-                          ? 80
-                          : Math.max(0, Math.min(v, 100));
-                        updateViewConfig({ choroplethOpacityPct });
-                      }}
-                      className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
-                      style={{
-                        background: `linear-gradient(to right, #737373 0%, #737373 ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb 100%)`,
-                      }}
-                    />
-                  </div>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={viewConfig.choroplethOpacityPct ?? 80}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      const choroplethOpacityPct = isNaN(v)
-                        ? 80
-                        : Math.max(0, Math.min(v, 100));
-                      updateViewConfig({ choroplethOpacityPct });
-                    }}
-                    className="w-16"
-                  />
-                </div>
+                <OpacityControl
+                  value={viewConfig.choroplethOpacityPct ?? 80}
+                  onChange={(v) =>
+                    updateViewConfig({ choroplethOpacityPct: v })
+                  }
+                />
               </div>
             </div>
           )}

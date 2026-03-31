@@ -1,9 +1,9 @@
 import { PlusIcon } from "lucide-react";
 
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Link } from "@/components/Link";
+import { useDataSources } from "@/hooks/useDataSources";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   EyeIcon,
   EyeOffIcon,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import ColorPalette from "@/components/ColorPalette";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -66,7 +67,7 @@ export default function DataSourceItem({
   const { mapConfig, updateMapConfig } = useMapConfig();
   const { view } = useMapViews();
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
+  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
 
   const dataSourceView = useMemo(
     () =>
@@ -141,9 +142,7 @@ export default function DataSourceItem({
   const { mutate: updateName } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.dataSource.listReadable.queryKey(),
-        });
+        void invalidateDataSources();
         toast.success("Data source renamed successfully");
         setIsRenaming(false);
       },

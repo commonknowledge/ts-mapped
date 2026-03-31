@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 vi.mock("@/server/repositories/User", () => ({
   findUserByEmailAndPassword: vi.fn(),
 }));
-vi.mock("@/server/utils/ratelimit", async (importOriginal) => {
+vi.mock("@/server/services/ratelimit", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...(actual as object),
@@ -24,7 +24,7 @@ import { findUserByEmailAndPassword } from "@/server/repositories/User";
 import {
   checkLoginAttempt,
   rollbackLoginAttempt,
-} from "@/server/utils/ratelimit";
+} from "@/server/services/ratelimit";
 
 const mockCheckLoginAttempt = vi.mocked(checkLoginAttempt);
 const mockRollbackLoginAttempt = vi.mocked(rollbackLoginAttempt);

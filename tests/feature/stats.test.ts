@@ -9,7 +9,7 @@ import {
   DataSourceType,
   GeocodingType,
 } from "@/models/DataSource";
-import { CalculationType } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,

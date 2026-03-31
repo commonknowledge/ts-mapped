@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-vi.mock("@/server/utils/ratelimit", () => ({
+vi.mock("@/server/services/ratelimit", () => ({
   checkForgotPasswordAttempt: vi.fn(),
 }));
 vi.mock("@/server/repositories/User", () => ({
@@ -14,8 +14,8 @@ vi.mock("@/server/services/logger", () => ({
 }));
 
 import { findUserByEmail } from "@/server/repositories/User";
+import { checkForgotPasswordAttempt } from "@/server/services/ratelimit";
 import { authRouter } from "@/server/trpc/routers/auth";
-import { checkForgotPasswordAttempt } from "@/server/utils/ratelimit";
 
 const mockCheckForgotPasswordAttempt = vi.mocked(checkForgotPasswordAttempt);
 const mockFindUserByEmail = vi.mocked(findUserByEmail);

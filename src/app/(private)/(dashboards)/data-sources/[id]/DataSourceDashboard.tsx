@@ -35,9 +35,9 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import ColumnMetadataForm from "./components/ColumnMetadataForm";
+import ColumnMetadataTable from "./components/ColumnMetadataTable";
 import ConfigurationForm from "./components/ConfigurationForm";
-import { DataSourceEnrichmentDashboard } from "./DataSourceEnrichmentDashboard";
+import EnrichmentTable from "./components/EnrichmentTable";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceDashboard({
@@ -69,6 +69,7 @@ export function DataSourceDashboard({
   );
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   // Check webhook status for Google Sheets data sources
   const { data: webhookStatus } = useQuery(
@@ -87,8 +88,6 @@ export function DataSourceDashboard({
       },
     }),
   );
-
-  const queryClient = useQueryClient();
 
   useSubscription(
     trpc.dataSource.events.subscriptionOptions(
@@ -112,12 +111,12 @@ export function DataSourceDashboard({
           }
           if (dataSourceEvent.event === "ImportComplete") {
             setImporting(false);
+            setLastImported(dataSourceEvent.at);
             queryClient.invalidateQueries({
               queryKey: trpc.dataSource.byId.queryKey({
                 dataSourceId: dataSource.id,
               }),
             });
-            setLastImported(dataSourceEvent.at);
           }
         },
       },
@@ -164,7 +163,7 @@ export function DataSourceDashboard({
   );
 
   return (
-    <div className="p-4 mx-auto max-w-5xl w-full">
+    <div className="flex flex-col h-full p-4 mx-auto max-w-5xl w-full">
       <div className="flex gap-12">
         <div className="grow">
           <Breadcrumb className="mb-4">
@@ -238,9 +237,10 @@ export function DataSourceDashboard({
         </Alert>
       )}
 
-      <Tabs defaultValue="settings" className="gap-6">
+      <Tabs defaultValue="settings" className="flex-1 min-h-0 gap-6">
         <TabsList>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="settings">Configuration</TabsTrigger>
+          <TabsTrigger value="columns">Column metadata</TabsTrigger>
           {showEnrichment && (
             <TabsTrigger value="enrichment">Enrichment</TabsTrigger>
           )}
@@ -263,7 +263,6 @@ export function DataSourceDashboard({
                     : mappedInformation
                 }
               />
-              <ColumnMetadataForm dataSource={dataSource} />
             </div>
 
             <div className="flex flex-col gap-6">
@@ -282,9 +281,13 @@ export function DataSourceDashboard({
           </div>
         </TabsContent>
 
+        <TabsContent value="columns">
+          <ColumnMetadataTable dataSource={dataSource} />
+        </TabsContent>
+
         {showEnrichment && (
           <TabsContent value="enrichment">
-            <DataSourceEnrichmentDashboard dataSource={dataSource} />
+            <EnrichmentTable dataSource={dataSource} />
           </TabsContent>
         )}
       </Tabs>

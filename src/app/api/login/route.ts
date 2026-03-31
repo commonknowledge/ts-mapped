@@ -7,7 +7,7 @@ import {
   checkLoginAttempt,
   getClientIp,
   rollbackLoginAttempt,
-} from "@/server/utils/ratelimit";
+} from "@/server/services/ratelimit";
 
 const loginSchema = z.object({
   email: z.string().email(),

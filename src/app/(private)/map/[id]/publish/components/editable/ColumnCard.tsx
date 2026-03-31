@@ -1,5 +1,5 @@
 import { Plus, X } from "lucide-react";
-import { useDataSources } from "@/app/(private)/map/[id]/hooks/useDataSources";
+import { useDataSources } from "@/hooks/useDataSources";
 import { PublicMapColumnType } from "@/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";

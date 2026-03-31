@@ -1,3 +1,5 @@
+import { BookOpen } from "lucide-react";
+
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { cn } from "@/shadcn/utils";
 import type { DataSourceType } from "@/models/DataSource";
@@ -51,15 +53,22 @@ export function DataSourceItem({
         className,
       )}
     >
-      <div className="flex gap-2 items-center">
-        <DataSourceIcon type={dataSourceType} />
-        <h4 className="font-medium truncate">{dataSource.name}</h4>
-
-        {dataSource.public && (
-          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full ml-auto">
-            Public
-          </span>
-        )}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2 text-neutral-600">
+          <div className="flex min-w-0 items-center gap-2">
+            <DataSourceIcon type={dataSourceType} />
+            <p className="text-xs font-mono uppercase">{dataSourceType}</p>
+          </div>
+          {dataSource.public && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded border border-green-200 bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
+              <BookOpen className="h-3 w-3 shrink-0" aria-hidden />
+              Published
+            </span>
+          )}
+        </div>
+        <h4 className="truncate font-medium text-neutral-900">
+          {dataSource.name}
+        </h4>
       </div>
       {/* Stats */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500 mt-2">
