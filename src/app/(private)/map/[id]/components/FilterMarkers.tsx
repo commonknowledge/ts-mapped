@@ -120,9 +120,12 @@ export default function FilterMarkers() {
     for (const dataSourceView of view?.dataSourceViews || []) {
       const filter = dataSourceView.filter;
       const dataSourceTurfs = getFilterTurfs(filter)
-        .map((turfId) => turfs?.find((t) => t.id === turfId)?.polygon)
+        .map((turfId) => {
+          const polygon = turfs?.find((t) => t.id === turfId)?.polygon;
+          return polygon ? (JSON.parse(polygon) as Polygon) : undefined;
+        })
         .filter((t) => t !== undefined);
-      filterTurfs = filterTurfs.concat(dataSourceTurfs as Polygon[]);
+      filterTurfs = filterTurfs.concat(dataSourceTurfs);
     }
     return filterTurfs;
   }, [turfs, view?.dataSourceViews]);

@@ -11,6 +11,12 @@ export const areaGeographySchema = z.union([
   }),
 ]);
 
+export type AreaGeography = z.infer<typeof areaGeographySchema>;
+
+export function parseAreaGeography(geoJSON: string): AreaGeography {
+  return JSON.parse(geoJSON) as AreaGeography;
+}
+
 export const boundingBoxSchema = z.object({
   north: z.number(),
   east: z.number(),

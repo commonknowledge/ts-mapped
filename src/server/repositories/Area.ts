@@ -1,7 +1,6 @@
 import { sql } from "kysely";
 import { AreaSetCode } from "@/models/AreaSet";
 import { db, dbRead } from "@/server/services/database";
-import type { Area } from "@/models/Area";
 import type { Point } from "@/models/shared";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
@@ -36,13 +35,19 @@ export async function findAreaByCode(
 export async function findAreaByCodeWithGeometry(
   code: string,
   areaSetCode: AreaSetCode,
-): Promise<Area | undefined> {
+) {
   return db
     .selectFrom("area")
     .innerJoin("areaSet", "area.areaSetId", "areaSet.id")
     .where("area.code", "=", code)
     .where("areaSet.code", "=", areaSetCode)
-    .selectAll("area")
+    .select([
+      "area.id",
+      "area.code",
+      "area.name",
+      "area.areaSetId",
+      sql<string>`ST_AsGeoJSON(geography)`.as("geoJson"),
+    ])
     .executeTakeFirst();
 }
 

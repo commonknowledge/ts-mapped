@@ -15,6 +15,7 @@ import {
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobileEffect } from "@/hooks/useIsMobile";
 import { MapType } from "@/models/MapView";
+import { parseTurfPolygon } from "@/models/Turf";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { useDraw } from "../hooks/useDraw";
 import { useInspectorState } from "../hooks/useInspectorState";
@@ -122,7 +123,7 @@ export default function Map({
       draw.add({
         type: "Feature",
         properties: { ...turf },
-        geometry: turf.polygon,
+        geometry: parseTurfPolygon(turf.polygon),
       });
     });
   }, [visibleTurfs, draw, viewConfig.showTurf, mapMode]);
@@ -474,7 +475,7 @@ export default function Map({
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
-                  polygon: feature.geometry as Polygon,
+                  polygon: JSON.stringify(feature.geometry),
                   color: null,
                   position: 0,
                 });
@@ -494,7 +495,7 @@ export default function Map({
                     notes: feature?.properties?.notes,
                     label: feature?.properties?.label,
                     area: roundedArea,
-                    polygon: feature.geometry as Polygon,
+                    polygon: JSON.stringify(feature.geometry),
                     createdAt: new Date(
                       feature?.properties?.createdAt as string,
                     ),

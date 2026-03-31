@@ -1,44 +1,47 @@
+import { sql } from "kysely";
 import { db } from "@/server/services/database";
-import type { NewTurf, TurfUpdate } from "@/server/models/Turf";
+import type { NewTurf } from "@/server/models/Turf";
+
+const turfColumns = [
+  "turf.id",
+  "turf.label",
+  "turf.notes",
+  "turf.area",
+  "turf.mapId",
+  "turf.createdAt",
+  "turf.color",
+  "turf.folderId",
+  "turf.position",
+] as const;
+
+function selectTurfColumns() {
+  return [...turfColumns, sql<string>`ST_AsGeoJSON(polygon)`.as("polygon")];
+}
 
 export function findTurfsByMapId(mapId: string) {
-  return db.selectFrom("turf").where("mapId", "=", mapId).selectAll().execute();
+  return db
+    .selectFrom("turf")
+    .where("mapId", "=", mapId)
+    .select(selectTurfColumns())
+    .execute();
 }
 
 export async function deleteTurf(id: string) {
-  return db
-    .deleteFrom("turf")
-    .where("id", "=", id)
-    .returningAll()
-    .executeTakeFirstOrThrow();
+  return db.deleteFrom("turf").where("id", "=", id).execute();
 }
 
 export async function deleteTurfsByFolderId(folderId: string) {
   return db.deleteFrom("turf").where("folderId", "=", folderId).execute();
 }
 
-export async function insertTurf(turf: NewTurf) {
-  return db
-    .insertInto("turf")
-    .values(turf)
-    .returningAll()
-    .executeTakeFirstOrThrow();
-}
-
-export async function updateTurf(id: string, turf: TurfUpdate) {
-  return db
-    .updateTable("turf")
-    .set(turf)
-    .where("id", "=", id)
-    .returningAll()
-    .executeTakeFirstOrThrow();
-}
-
 export async function upsertTurf(turf: NewTurf) {
+  const { polygon, ...rest } = turf;
+  const polygonExpr = sql<string>`ST_GeomFromGeoJSON(${polygon})::geography`;
+  const values = { ...rest, polygon: polygonExpr } as unknown as NewTurf;
   return db
     .insertInto("turf")
-    .values(turf)
-    .onConflict((oc) => oc.columns(["id"]).doUpdateSet(turf))
-    .returningAll()
+    .values(values)
+    .onConflict((oc) => oc.columns(["id"]).doUpdateSet(values))
+    .returning(selectTurfColumns())
     .executeTakeFirstOrThrow();
 }
