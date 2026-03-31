@@ -13,6 +13,7 @@ import type {
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
+  zetkinConfigSchema,
 } from "@/models/DataSource";
 import type { DataSourceType } from "@/models/DataSource";
 import type { columnFilterTypes } from "@/models/MapView";
@@ -105,7 +106,8 @@ type DataSourceConfigKey =
   | keyof z.infer<typeof airtableConfigSchema>
   | keyof z.infer<typeof googleSheetsConfigSchema>
   | keyof z.infer<typeof mailchimpConfigSchema>
-  | keyof z.infer<typeof csvConfigSchema>;
+  | keyof z.infer<typeof csvConfigSchema>
+  | keyof z.infer<typeof zetkinConfigSchema>;
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
@@ -117,6 +119,7 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   tableId: "Table ID",
   type: "Type",
   url: "URL",
+  orgId: "Organisation ID",
 };
 
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {
@@ -125,6 +128,7 @@ export const DataSourceTypeLabels: Record<DataSourceType, string> = {
   csv: "CSV",
   googlesheets: "Google Sheets",
   mailchimp: "Mailchimp",
+  zetkin: "Zetkin",
 };
 
 export const EnrichmentSourceTypeLabels: Record<EnrichmentSourceType, string> =

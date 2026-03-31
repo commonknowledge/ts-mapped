@@ -6,6 +6,7 @@ import { folderRouter } from "./routers/folder";
 import { invitationRouter } from "./routers/invitation";
 import { mapRouter } from "./routers/map";
 import { mapViewRouter } from "./routers/mapView";
+import { oauthRouter } from "./routers/oauth";
 import { organisationRouter } from "./routers/organisation";
 import { placedMarkerRouter } from "./routers/placedMarker";
 import { publicMapRouter } from "./routers/publicMap";
@@ -27,6 +28,7 @@ export const appRouter = router({
   organisation: organisationRouter,
   publicMap: publicMapRouter,
   user: userRouter,
+  oauth: oauthRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,3 +1,12 @@
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "")
+    .replace(/^(\d)/, "_$1");
+}
+
 export const trimLeadingSlashes = (str: string) => str.replace(/^\/+/g, "");
 export const trimTrailingSlashes = (str: string) => str.replace(/\/+$/g, "");
 

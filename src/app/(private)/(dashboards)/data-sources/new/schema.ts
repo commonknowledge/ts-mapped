@@ -1,12 +1,11 @@
 import z from "zod";
 import {
-  DataSourceRecordType,
-  DataSourceType,
   actionNetworkConfigSchema,
   airtableConfigSchema,
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
+  zetkinConfigSchema,
 } from "@/models/DataSource";
 
 export const newCSVConfigSchema = csvConfigSchema.extend({
@@ -22,20 +21,7 @@ export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
   mailchimpConfigSchema,
   googleSheetsConfigSchema,
   newCSVConfigSchema,
+  zetkinConfigSchema,
 ]);
 
 export type NewDataSourceConfig = z.infer<typeof newDataSourceConfigSchema>;
-
-export const defaultStateSchema = z
-  .object({
-    dataSourceName: z.string().optional(),
-    recordType: z.nativeEnum(DataSourceRecordType).optional(),
-    dataSourceType: z.nativeEnum(DataSourceType).optional(),
-  })
-  .catch({
-    dataSourceName: undefined,
-    recordType: undefined,
-    dataSourceType: undefined,
-  });
-
-export type DefaultState = z.infer<typeof defaultStateSchema>;

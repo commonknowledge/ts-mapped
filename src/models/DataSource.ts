@@ -26,6 +26,7 @@ export enum DataSourceType {
   CSV = "csv",
   GoogleSheets = "googlesheets",
   Mailchimp = "mailchimp",
+  Zetkin = "zetkin",
 }
 
 export const dataSourceTypes = Object.values(DataSourceType);
@@ -80,12 +81,32 @@ export const csvConfigSchema = z.object({
 
 export type CSVConfig = z.infer<typeof csvConfigSchema>;
 
+export const zetkinOAuthCredentialsSchema = z.object({
+  access_token: z.string().nonempty(),
+  token_type: z.string().nonempty(),
+  refresh_token: z.string().nonempty(),
+  expiry_date: z.number(),
+});
+
+export type ZetkinOAuthCredentials = z.infer<
+  typeof zetkinOAuthCredentialsSchema
+>;
+
+export const zetkinConfigSchema = z.object({
+  type: z.literal(DataSourceType.Zetkin),
+  orgId: z.string().nonempty(),
+  oAuthCredentials: zetkinOAuthCredentialsSchema,
+});
+
+export type ZetkinConfig = z.infer<typeof zetkinConfigSchema>;
+
 export const dataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
   airtableConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
   csvConfigSchema,
+  zetkinConfigSchema,
 ]);
 
 export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
