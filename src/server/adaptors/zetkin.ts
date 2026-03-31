@@ -183,7 +183,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
 
       const response = await this.z
         .resource(`/orgs/${this.orgId}/people`)
-        .get(1, 1);
+        .get(0, 1);
 
       const people = response.data?.data as ZetkinPerson[] | undefined;
       if (!people || people.length === 0) return null;
