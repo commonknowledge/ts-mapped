@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { MapPinIcon, PlusIcon, SettingsIcon, TableIcon } from "lucide-react";
+import { MapPinIcon, SettingsIcon, TableIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
