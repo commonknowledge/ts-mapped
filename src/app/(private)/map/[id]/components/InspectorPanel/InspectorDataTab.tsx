@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { MapPinIcon, PlusIcon, TableIcon } from "lucide-react";
+import { MapPinIcon, SettingsIcon, TableIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
@@ -161,8 +161,8 @@ export default function InspectorDataTab({
         className="w-full"
         onClick={() => setConfigDialogOpen(true)}
       >
-        <PlusIcon />
-        Add data
+        <SettingsIcon />
+        Configure
       </Button>
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
