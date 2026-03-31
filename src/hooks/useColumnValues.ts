@@ -48,10 +48,8 @@ export function useColumnValues({
   );
 
   return useMemo(() => {
-    if (rawValues == null) return rawValues;
-
     let values = Array.from(
-      new Set([...rawValues, ...(additionalValues ?? [])]),
+      new Set([...(rawValues || []), ...(additionalValues ?? [])]),
     );
     if (nullIsZero && columnType === ColumnType.Number) {
       values = applyNullIsZero(values);

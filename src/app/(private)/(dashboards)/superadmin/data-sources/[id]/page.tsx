@@ -7,6 +7,7 @@ import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import EditColumnMetadataModal from "@/app/(private)/components/EditColumnMetadataModal/EditColumnMetadataModal";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
 import { ADMIN_USER_EMAIL } from "@/constants";
@@ -200,6 +201,7 @@ export default function DataSourceConfigPage() {
           patchColumnMetadata({ dataSourceId: dataSource.id, column, patch })
         }
       />
+      <EditColumnMetadataModal />
     </div>
   );
 }

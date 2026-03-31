@@ -128,7 +128,7 @@ export const mapViewConfigSchema = z.object({
   showLocations: z.boolean(),
   showMembers: z.boolean(),
   showTurf: z.boolean(),
-  calculationType: z.nativeEnum(CalculationType).nullish(),
+  calculationType: z.nativeEnum(CalculationType).default(CalculationType.Avg),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
   colorMappings: z.record(z.string(), z.string()).optional(),

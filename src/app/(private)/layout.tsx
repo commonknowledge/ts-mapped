@@ -1,7 +1,6 @@
 import { getServerSession } from "@/auth";
 import { redirectToLogin } from "@/auth/redirectToLogin";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
-import EditColumnMetadataModal from "./components/EditColumnMetadataModal/EditColumnMetadataModal";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -20,7 +19,6 @@ export default async function PrivateLayout({
   return (
     <>
       {children}
-      <EditColumnMetadataModal />
       <SentryFeedbackWidget />
     </>
   );

@@ -4,7 +4,7 @@ import { AreaSetGroupCode } from "@/models/AreaSet";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { mapConfigSchema, mapSchema } from "@/models/Map";
 import { MapStyleName, mapViewSchema } from "@/models/MapView";
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
+import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
@@ -81,8 +81,7 @@ export const mapRouter = router({
           dataSourceViews: [],
           position: 0,
           config: {
-            areaDataColumn:
-              calculationType === CalculationType.Count ? "" : areaDataColumn,
+            areaDataColumn,
             areaDataSourceId: input.dataSourceId,
             areaSetGroupCode: AreaSetGroupCode.WMC24,
             calculationType,
