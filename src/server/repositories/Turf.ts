@@ -36,7 +36,7 @@ export async function deleteTurfsByFolderId(folderId: string) {
 
 export async function upsertTurf(turf: NewTurf) {
   const { polygon, ...rest } = turf;
-  const polygonExpr = sql<string>`ST_GeomFromGeoJSON(${polygon})::geography`;
+  const polygonExpr = sql<string>`ST_SetSRID(ST_GeomFromGeoJSON(${polygon}), 4326)::geography`;
   const values = { ...rest, polygon: polygonExpr } as unknown as NewTurf;
   return db
     .insertInto("turf")
