@@ -85,6 +85,8 @@ Use tRPC as the bridge between client components and server logic:
 
 ## Code Style
 
+- Keep as much state as possible in the React/tRPC query cache. Avoid copying into useState() variables and syncing with useEffect().
+  Use `queryClient.setQueryData` and `queryClient.setQueriesData` to manage the query cache.
 - Do not use `!!x` to cast to `boolean`. Use `Boolean(x)`.
 - Functions with more than 2 parameters should use the destructured input pattern,
   e.g. `const sum = ({ a, b, c }: { a: number, b: number, c: number }) => a + b + c`
