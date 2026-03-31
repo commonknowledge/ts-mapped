@@ -40,6 +40,16 @@ function isDivider(
   return item.type === "divider";
 }
 
+function inferDisplayFormatFromColumnName(
+  colName: string,
+): ColumnDisplayFormat | undefined {
+  const normalised = colName.trim().toLowerCase();
+  if (normalised.includes("%") || normalised.includes("percentage")) {
+    return ColumnDisplayFormat.Percentage;
+  }
+  return undefined;
+}
+
 interface InspectorConfigSectionProps {
   dataSourceId: string;
   columnDefs: ColumnDef[];
@@ -86,7 +96,14 @@ export function InspectorConfigSection({
   const handleAddColumn = useCallback(
     (colName: string) => {
       onChange({
-        items: [...items, { type: "column", name: colName }],
+        items: [
+          ...items,
+          {
+            type: "column",
+            name: colName,
+            displayFormat: inferDisplayFormatFromColumnName(colName),
+          },
+        ],
       });
     },
     [items, onChange],
@@ -105,7 +122,11 @@ export function InspectorConfigSection({
 
   const handleAddAll = useCallback(() => {
     const newItems = availableColumns.map(
-      (n): InspectorItem => ({ type: "column", name: n }),
+      (n): InspectorItem => ({
+        type: "column",
+        name: n,
+        displayFormat: inferDisplayFormatFromColumnName(n),
+      }),
     );
     onChange({ items: [...items, ...newItems] });
   }, [items, availableColumns, onChange]);
