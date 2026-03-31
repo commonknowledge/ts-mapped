@@ -84,8 +84,8 @@ export type CSVConfig = z.infer<typeof csvConfigSchema>;
 export const zetkinOAuthCredentialsSchema = z.object({
   access_token: z.string().nonempty(),
   token_type: z.string().nonempty(),
-  refresh_token: z.string().optional(),
-  expiry_date: z.number().optional(),
+  refresh_token: z.string().nonempty(),
+  expiry_date: z.number(),
 });
 
 export type ZetkinOAuthCredentials = z.infer<

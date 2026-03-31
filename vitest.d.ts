@@ -22,11 +22,13 @@ declare module "vitest" {
         apiKey: string;
         listId: string;
       };
-      zetkin: {
+      zetkin?: {
         orgId: string;
         oAuthCredentials: {
           access_token: string;
+          refresh_token: string;
           token_type: string;
+          expiry_date: number;
         };
       };
       enrichment: {

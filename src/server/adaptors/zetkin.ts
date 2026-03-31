@@ -41,10 +41,11 @@ interface ZetkinTag {
 }
 
 export class ZetkinAdaptor implements DataSourceAdaptor {
+  credentials: ZetkinOAuthCredentials;
+
   private dataSourceId: string;
   private orgId: string;
   private z: typeof Z;
-  private credentials: ZetkinOAuthCredentials;
   private cachedFields: ZetkinCustomField[] | null = null;
   private cachedTags: ZetkinTag[] | null = null;
 
@@ -85,9 +86,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
     await this.z.refresh();
 
     const newTokenData = this.z.getTokenData() as Record<string, unknown>;
-    const expiresIn = newTokenData.expires_in
-      ? Number(newTokenData.expires_in)
-      : undefined;
+    const expiresIn = Number(newTokenData.expires_in);
 
     this.credentials = {
       access_token: String(newTokenData.access_token),
@@ -95,7 +94,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
       refresh_token: newTokenData.refresh_token
         ? String(newTokenData.refresh_token)
         : this.credentials.refresh_token,
-      expiry_date: expiresIn ? Date.now() + expiresIn * 1000 : undefined,
+      expiry_date: Date.now() + expiresIn * 1000,
     };
 
     logger.debug("Refreshed Zetkin access token");
@@ -335,8 +334,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
       .resource(`/orgs/${this.orgId}/people/tags`)
       .get();
 
-    this.cachedTags =
-      (response.data?.data as ZetkinTag[] | undefined) ?? [];
+    this.cachedTags = (response.data?.data as ZetkinTag[] | undefined) ?? [];
     return this.cachedTags;
   }
 
@@ -383,6 +381,8 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
     this.cachedFields =
       this.cachedFields?.filter((f) => f.id !== field.id) ?? null;
 
-    logger.info(`Deleted Zetkin custom field "${columnName}" (id: ${field.id})`);
+    logger.info(
+      `Deleted Zetkin custom field "${columnName}" (id: ${field.id})`,
+    );
   }
 }

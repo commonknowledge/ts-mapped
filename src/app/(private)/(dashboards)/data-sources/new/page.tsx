@@ -71,7 +71,9 @@ export default function NewDataSourcePage() {
         title="New data source"
         description="Create a new data source to import into your maps."
       />
-      {oAuthState !== undefined && <NewDataSourceForm oAuthState={oAuthState} />}
+      {oAuthState !== undefined && (
+        <NewDataSourceForm oAuthState={oAuthState} />
+      )}
     </div>
   );
 }
@@ -244,7 +246,8 @@ function NewDataSourceForm({ oAuthState }: { oAuthState: OAuthState | null }) {
       <form.Subscribe selector={(state) => state.values.config}>
         {(config) => {
           const isConfigValid =
-            Boolean(config) && newDataSourceConfigSchema.safeParse(config).success;
+            Boolean(config) &&
+            newDataSourceConfigSchema.safeParse(config).success;
           return (
             <Button
               disabled={isLoading || isPending || !isConfigValid}
