@@ -88,10 +88,12 @@ export function GeocodingConfigFields({
       })) || [];
 
   const locationColumnOptions =
-    dataSource?.columnDefs.map((cd) => ({
-      label: cd.name,
-      value: cd.name,
-    })) || [];
+    dataSource?.columnDefs
+      .map((cd) => ({
+        label: cd.name,
+        value: cd.name,
+      }))
+      .filter((o) => Boolean(o.label.trim())) || [];
 
   const areaTypeOptions =
     (Object.keys(AreaSetCodeLabels) as AreaSetCode[])

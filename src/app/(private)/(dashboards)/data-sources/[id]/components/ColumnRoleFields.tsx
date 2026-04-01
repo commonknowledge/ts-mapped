@@ -28,13 +28,17 @@ export function ColumnRoleFields({
     }
   };
 
+  const validColumns = dataSource.columnDefs.filter((cd) =>
+    Boolean(cd.name.trim()),
+  );
+
   return (
     <>
       <CustomMultiSelect
         id="config-name-columns-multi"
         label="Name columns"
         hint="Select one or more fields to use as labels on the map."
-        allOptions={dataSource?.columnDefs.map((cd) => cd.name)}
+        allOptions={validColumns.map((cd) => cd.name)}
         selectedOptions={nameColumns}
         onChange={onChange}
       />
@@ -45,7 +49,7 @@ export function ColumnRoleFields({
         placeholder="No date column"
         value={dateColumn || NULL_UUID}
         options={[{ label: "No date column", value: NULL_UUID }].concat(
-          dataSource?.columnDefs.map((cd) => ({
+          validColumns.map((cd) => ({
             label: cd.name,
             value: cd.name,
           })),
