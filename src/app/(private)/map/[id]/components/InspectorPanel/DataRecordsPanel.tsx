@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import { BookOpen, BookOpenIcon, Settings } from "lucide-react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -101,6 +101,16 @@ export default function DataRecordsPanel({
               </li>
             ))}
           </ul>
+        )}
+
+        {dataSource?.organisationName && (
+          <div className="flex items-center gap-1 pt-2 border-t border-neutral-200/70 text-muted-foreground">
+            <BookOpen className="w-3 h-3 shrink-0" />
+            <p className="text-[11px] truncate">
+              Published by <span className="text-neutral-400">•</span>{" "}
+              {dataSource.organisationName}
+            </p>
+          </div>
         )}
       </div>
     </TogglePanel>

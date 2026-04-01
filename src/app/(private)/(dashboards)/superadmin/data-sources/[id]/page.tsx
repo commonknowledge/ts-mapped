@@ -164,6 +164,9 @@ export default function DataSourceConfigPage() {
           {dataSource.name}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
+          Organisation: {dataSource.organisationName ?? "—"}
+        </p>
+        <p className="text-sm text-muted-foreground mt-1">
           Configure default inspector settings for this public data source.
         </p>
       </div>

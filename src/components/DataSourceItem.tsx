@@ -66,6 +66,29 @@ function LastImportedOrDateAddedMeta({
   return null;
 }
 
+function OrganisationMeta({
+  organisationName,
+  compact,
+}: {
+  organisationName: string | null | undefined;
+  compact?: boolean;
+}) {
+  const name = organisationName?.trim();
+  if (!name) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 whitespace-nowrap text-muted-foreground",
+        compact ? "text-[11px]" : "text-xs",
+      )}
+    >
+      Published by
+      <span className="text-neutral-400">•</span>
+      <span className="truncate">{name}</span>
+    </span>
+  );
+}
+
 export interface DataSourceItemProps {
   dataSource: DataSourceWithImportInfo;
   className?: string;
@@ -235,15 +258,25 @@ export function DataSourceItem({
             </p>
           )}
 
-          {(lastImportedText || dataSource.createdAt) && (
+          <div className="flex items-center gap-4">
+
+
             <div className="mt-1">
-              <LastImportedOrDateAddedMeta
-                lastImportedText={lastImportedText}
-                createdAt={dataSource.createdAt}
+              <OrganisationMeta
+                organisationName={dataSource.organisationName}
                 compact
               />
             </div>
-          )}
+            {(lastImportedText || dataSource.createdAt) && (
+              <div className="mt-1">
+                <LastImportedOrDateAddedMeta
+                  lastImportedText={lastImportedText}
+                  createdAt={dataSource.createdAt}
+                  compact
+                />
+              </div>
+            )}
+          </div>
 
           {columnPills.length > 0 && columnPreviewVariant === "pills" && (
             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -405,6 +438,13 @@ export function DataSourceItem({
               )}
             </div>
           ) : null}
+
+          <div className="col-span-2 pt-1">
+            <OrganisationMeta
+              organisationName={dataSource.organisationName}
+              compact
+            />
+          </div>
         </div>
       </div>
     );
@@ -463,6 +503,8 @@ export function DataSourceItem({
             </span>
           )}
         </div>
+
+        <OrganisationMeta organisationName={dataSource.organisationName} />
       </div>
 
       {showColumnPreview && columnPreviewVariant === "text" ? (

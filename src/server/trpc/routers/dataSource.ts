@@ -63,9 +63,20 @@ import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
   listPublic: superadminProcedure.query(async () => {
-    const dataSources = await findPublicDataSources();
+    const dataSources = await db
+      .selectFrom("dataSource")
+      .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
+      .where("dataSource.public", "=", true)
+      .selectAll("dataSource")
+      .select(["organisation.name as organisationName"])
+      .execute();
+
     const withImportInfo = await addImportInfo(dataSources);
-    return withImportInfo.map((ds) => ({ ...ds, organisationOverride: null }));
+    return withImportInfo.map((ds) => ({
+      ...ds,
+      organisationName: ds.organisationName ?? "",
+      organisationOverride: null,
+    }));
   }),
   updateDefaultInspectorConfig: superadminProcedure
     .input(
@@ -100,7 +111,26 @@ export const dataSourceRouter = router({
       const ids = getVisualisedDataSourceIds(map.config, view);
       if (!ids.length) return [];
       const dataSources = await findDataSourcesByIds(ids);
-      const withImportInfo = await addImportInfo(dataSources);
+      const organisationIds = [
+        ...new Set(dataSources.map((ds) => ds.organisationId).filter(Boolean)),
+      ];
+      const organisations =
+        organisationIds.length > 0
+          ? await db
+              .selectFrom("organisation")
+              .where("id", "in", organisationIds)
+              .select(["id", "name"])
+              .execute()
+          : [];
+      const organisationNameById = new Map(
+        organisations.map((o) => [o.id, o.name ?? null]),
+      );
+      const withOrg = dataSources.map((ds) => ({
+        ...ds,
+        organisationName: organisationNameById.get(ds.organisationId) ?? "",
+      }));
+
+      const withImportInfo = await addImportInfo(withOrg);
       return withImportInfo.map((ds) => ({
         ...ds,
         organisationOverride: null,
@@ -137,6 +167,7 @@ export const dataSourceRouter = router({
           return eb.or(filter);
         })
         .selectAll("dataSource")
+        .select(["organisation.name as organisationName"])
         .execute();
 
       const orgId = input?.activeOrganisationId;
@@ -162,6 +193,7 @@ export const dataSourceRouter = router({
       const withImportInfo = await addImportInfo(filteredDataSources);
       return withImportInfo.map((ds) => ({
         ...ds,
+        organisationName: ds.organisationName ?? "",
         organisationOverride: overrideMap.get(ds.id) ?? null,
       }));
     }),
@@ -172,9 +204,20 @@ export const dataSourceRouter = router({
       .selectAll("dataSource")
       .execute();
 
-    return addImportInfo(dataSources);
+    const withOrg = dataSources.map((ds) => ({
+      ...ds,
+      organisationName: ctx.organisation.name ?? "",
+    }));
+
+    return addImportInfo(withOrg);
   }),
   byId: dataSourceOwnerProcedure.query(async ({ ctx }) => {
+    const organisation = await db
+      .selectFrom("organisation")
+      .where("id", "=", ctx.dataSource.organisationId)
+      .select(["name"])
+      .executeTakeFirst();
+
     const recordCount = await db
       .selectFrom("dataRecord")
       .where("dataSourceId", "=", ctx.dataSource.id)
@@ -196,6 +239,7 @@ export const dataSourceRouter = router({
       ]);
     return {
       ...ctx.dataSource,
+      organisationName: organisation?.name ?? "",
       config: {
         ...ctx.dataSource.config,
         __SERIALIZE_CREDENTIALS: true,
@@ -760,7 +804,7 @@ export const dataSourceRouter = router({
   }),
 });
 
-const addImportInfo = async (dataSources: DataSource[]) => {
+const addImportInfo = async <T extends { id: string }>(dataSources: T[]) => {
   // Get import info for all data sources
   const importInfos = await Promise.all(
     dataSources.map((dataSource) =>

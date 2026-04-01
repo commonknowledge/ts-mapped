@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import DataRecordsPanel from "@/app/(private)/map/[id]/components/InspectorPanel/DataRecordsPanel";
 import { useInspectorDataSourceConfig } from "@/app/(private)/map/[id]/hooks/useInspectorDataSourceConfig";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
 
@@ -16,6 +17,8 @@ export function DefaultInspectorPreview({
   const trpc = useTRPC();
 
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+  const { data: dataSources } = useDataSources();
+  const dataSource = dataSources?.find((ds) => ds.id === dataSourceId);
 
   const selectedCount =
     inspectorConfig?.items.filter((i) => i.type === "column").length ?? 0;
@@ -57,6 +60,11 @@ export function DefaultInspectorPreview({
             defaultExpanded={true}
           />
         )}
+      </div>
+      <div className="shrink-0 px-3 py-2 border-t border-neutral-200">
+        <p className="text-xs text-muted-foreground">
+          Organisation: {dataSource?.organisationName ?? "—"}
+        </p>
       </div>
     </div>
   );

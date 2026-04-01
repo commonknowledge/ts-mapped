@@ -58,7 +58,14 @@ export function useDataSourceListCache() {
         (old: DataSourceByOrganisation[] | undefined) =>
           old?.map((ds) =>
             ds.id === dataSourceId
-              ? { ...ds, ...updater({ ...ds, organisationOverride: null }) }
+              ? {
+                  ...ds,
+                  ...updater({
+                    ...ds,
+                    organisationName: "",
+                    organisationOverride: null,
+                  }),
+                }
               : ds,
           ),
       );
@@ -66,7 +73,14 @@ export function useDataSourceListCache() {
         { queryKey: trpc.dataSource.byId.queryKey() },
         (old: DataSourceById | undefined) => {
           if (!old || old.id !== dataSourceId) return old;
-          return { ...old, ...updater({ ...old, organisationOverride: null }) };
+          return {
+            ...old,
+            ...updater({
+              ...old,
+              organisationName: "",
+              organisationOverride: null,
+            }),
+          };
         },
       );
     },
