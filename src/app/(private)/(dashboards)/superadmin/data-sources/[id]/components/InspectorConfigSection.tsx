@@ -1,6 +1,15 @@
 "use client";
 
-import { LayoutGrid, LayoutList } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { SortableContext, arrayMove, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, LayoutGrid, LayoutList } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
@@ -38,6 +47,24 @@ function isDivider(
   item: InspectorItem,
 ): item is { type: "divider"; id: string; label: string } {
   return item.type === "divider";
+}
+
+function getSortableId(item: InspectorItem): string {
+  return isDivider(item) ? `div:${item.id}` : `col:${item.name}`;
+}
+
+function getItemKey(item: InspectorItem): string {
+  return isDivider(item) ? `div-${item.id}` : `col-${item.name}`;
+}
+
+function inferDisplayFormatFromColumnName(
+  colName: string,
+): ColumnDisplayFormat | undefined {
+  const normalised = colName.trim().toLowerCase();
+  if (normalised.includes("%") || normalised.includes("percentage")) {
+    return ColumnDisplayFormat.Percentage;
+  }
+  return undefined;
 }
 
 interface InspectorConfigSectionProps {
@@ -86,7 +113,14 @@ export function InspectorConfigSection({
   const handleAddColumn = useCallback(
     (colName: string) => {
       onChange({
-        items: [...items, { type: "column", name: colName }],
+        items: [
+          ...items,
+          {
+            type: "column",
+            name: colName,
+            displayFormat: inferDisplayFormatFromColumnName(colName),
+          },
+        ],
       });
     },
     [items, onChange],
@@ -105,7 +139,11 @@ export function InspectorConfigSection({
 
   const handleAddAll = useCallback(() => {
     const newItems = availableColumns.map(
-      (n): InspectorItem => ({ type: "column", name: n }),
+      (n): InspectorItem => ({
+        type: "column",
+        name: n,
+        displayFormat: inferDisplayFormatFromColumnName(n),
+      }),
     );
     onChange({ items: [...items, ...newItems] });
   }, [items, availableColumns, onChange]);
@@ -120,24 +158,25 @@ export function InspectorConfigSection({
     });
   }, [items, onChange]);
 
-  const handleMoveUp = useCallback(
-    (index: number) => {
-      if (index === 0) return;
-      const next = [...items];
-      [next[index - 1], next[index]] = [next[index], next[index - 1]];
-      onChange({ items: next });
-    },
-    [items, onChange],
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
-  const handleMoveDown = useCallback(
-    (index: number) => {
-      if (index >= items.length - 1) return;
-      const next = [...items];
-      [next[index], next[index + 1]] = [next[index + 1], next[index]];
-      onChange({ items: next });
+  const sortableIds = useMemo(() => items.map(getSortableId), [items]);
+
+  const handleDragEnd = useCallback(
+    (event: { active: { id: unknown }; over: { id: unknown } | null }) => {
+      const activeId = String(event.active.id);
+      const overId = event.over ? String(event.over.id) : null;
+      if (!overId || activeId === overId) return;
+
+      const oldIndex = sortableIds.indexOf(activeId);
+      const newIndex = sortableIds.indexOf(overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      onChange({ items: arrayMove(items, oldIndex, newIndex) });
     },
-    [items, onChange],
+    [items, onChange, sortableIds],
   );
 
   const handleUpdateColumnItem = useCallback(
@@ -173,8 +212,8 @@ export function InspectorConfigSection({
   );
 
   return (
-    <div className="flex gap-6 w-full min-w-0">
-      <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 p-6 space-y-6">
+    <div className="flex gap-6 w-full min-w-0 h-[80vh] min-h-0">
+      <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 p-6 flex flex-col gap-6 min-h-0">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Colour</Label>
@@ -239,7 +278,7 @@ export function InspectorConfigSection({
         </div>
 
         {/* Column management */}
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3 min-h-0 flex-1">
           <div className="flex items-center justify-between">
             <Label className="text-muted-foreground">Columns</Label>
             <div className="flex gap-2">
@@ -269,13 +308,13 @@ export function InspectorConfigSection({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 min-h-0 flex-1">
             {/* Available columns */}
-            <div className="space-y-1">
+            <div className="space-y-1 min-h-0">
               <p className="text-xs font-medium text-muted-foreground">
                 Available ({availableColumns.length})
               </p>
-              <div className="border border-neutral-200 rounded-md max-h-64 overflow-y-auto">
+              <div className="border border-neutral-200 rounded-md overflow-y-auto min-h-0 h-full">
                 {availableColumns.length === 0 ? (
                   <p className="text-xs text-muted-foreground p-3">
                     All columns selected
@@ -297,80 +336,43 @@ export function InspectorConfigSection({
             </div>
 
             {/* Selected items */}
-            <div className="space-y-1">
+            <div className="space-y-1 min-h-0">
               <p className="text-xs font-medium text-muted-foreground">
                 Selected ({selectedColumnNames.length})
               </p>
-              <div className="border border-neutral-200 rounded-md max-h-64 overflow-y-auto">
+              <div className="border border-neutral-200 rounded-md overflow-y-auto min-h-0 h-full">
                 {items.length === 0 ? (
                   <p className="text-xs text-muted-foreground p-3">
                     No columns selected
                   </p>
                 ) : (
-                  items.map((item, index) => (
-                    <div
-                      key={
-                        isDivider(item) ? `div-${item.id}` : `col-${item.name}`
-                      }
-                      className="flex items-center gap-1 px-2 py-1 border-b border-neutral-100 last:border-0"
-                    >
-                      <div className="flex flex-col shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveUp(index)}
-                          disabled={index === 0}
-                          className="text-muted-foreground hover:text-foreground disabled:opacity-30 leading-none text-xs"
-                          aria-label="Move up"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveDown(index)}
-                          disabled={index === items.length - 1}
-                          className="text-muted-foreground hover:text-foreground disabled:opacity-30 leading-none text-xs"
-                          aria-label="Move down"
-                        >
-                          ▼
-                        </button>
-                      </div>
-
-                      {isDivider(item) ? (
-                        <div className="flex-1 flex items-center gap-2 min-w-0">
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            ——
-                          </span>
-                          <input
-                            className="flex-1 min-w-0 text-xs border border-input rounded px-1.5 py-0.5"
-                            value={item.label}
-                            placeholder="Divider label"
-                            onChange={(e) =>
-                              handleUpdateDivider(item.id, e.target.value)
-                            }
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveDivider(item.id)}
-                            className="text-xs text-muted-foreground hover:text-foreground shrink-0"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ) : (
-                        <ColumnItemRow
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext items={sortableIds}>
+                      {items.map((item) => (
+                        <SortableSelectedRow
+                          key={getItemKey(item)}
+                          id={getSortableId(item)}
+                          item={item}
                           dataSourceId={dataSourceId}
-                          name={item.name}
-                          onUpdate={(patch) =>
-                            handleUpdateColumnItem(item.name, patch)
+                          onUpdateColumn={(name, patch) =>
+                            handleUpdateColumnItem(name, patch)
                           }
-                          onRemove={() => handleRemoveColumn(item.name)}
-                          onPatchColumnMetadata={(patch) =>
-                            onPatchColumnMetadata(item.name, patch)
+                          onRemoveColumn={(name) => handleRemoveColumn(name)}
+                          onUpdateDivider={(id, label) =>
+                            handleUpdateDivider(id, label)
+                          }
+                          onRemoveDivider={(id) => handleRemoveDivider(id)}
+                          onPatchColumnMetadata={(col, patch) =>
+                            onPatchColumnMetadata(col, patch)
                           }
                         />
-                      )}
-                    </div>
-                  ))
+                      ))}
+                    </SortableContext>
+                  </DndContext>
                 )}
               </div>
             </div>
@@ -387,6 +389,98 @@ export function InspectorConfigSection({
           className="h-full min-h-[200px]"
         />
       </div>
+    </div>
+  );
+}
+
+function SortableSelectedRow({
+  id,
+  item,
+  dataSourceId,
+  onUpdateColumn,
+  onRemoveColumn,
+  onUpdateDivider,
+  onRemoveDivider,
+  onPatchColumnMetadata,
+}: {
+  id: string;
+  item: InspectorItem;
+  dataSourceId: string;
+  onUpdateColumn: (
+    name: string,
+    patch: Partial<Extract<InspectorItem, { type: "column" }>>,
+  ) => void;
+  onRemoveColumn: (name: string) => void;
+  onUpdateDivider: (id: string, label: string) => void;
+  onRemoveDivider: (id: string) => void;
+  onPatchColumnMetadata: (
+    column: string,
+    patch: Partial<Omit<ColumnMetadata, "name">>,
+  ) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-2 px-2 py-1 border-b border-neutral-100 last:border-0",
+        isDragging && "bg-neutral-50",
+      )}
+    >
+      <button
+        type="button"
+        className={cn(
+          "shrink-0 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing",
+          "p-1 -ml-1",
+        )}
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      {isDivider(item) ? (
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <span className="text-xs text-muted-foreground shrink-0">——</span>
+          <input
+            className="flex-1 min-w-0 text-xs border border-input rounded px-1.5 py-0.5"
+            value={item.label}
+            placeholder="Divider label"
+            onChange={(e) => onUpdateDivider(item.id, e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => onRemoveDivider(item.id)}
+            className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <ColumnItemRow
+          dataSourceId={dataSourceId}
+          name={item.name}
+          onUpdate={(patch) => onUpdateColumn(item.name, patch)}
+          onRemove={() => onRemoveColumn(item.name)}
+          onPatchColumnMetadata={(patch) =>
+            onPatchColumnMetadata(item.name, patch)
+          }
+        />
+      )}
     </div>
   );
 }
