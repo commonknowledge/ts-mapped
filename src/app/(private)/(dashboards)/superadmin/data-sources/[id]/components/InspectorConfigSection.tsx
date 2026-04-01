@@ -584,23 +584,25 @@ function ColumnItemRow({
             </select>
           )}
 
-        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Percentage && (
-          <select
-            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-            value={inspectorColumn?.barColor ?? DEFAULT_BAR_COLOR_VALUE}
-            onChange={(e) =>
-              onUpdate({
-                barColor: e.target.value,
-              })
-            }
-          >
-            {INSPECTOR_BAR_COLOR_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        )}
+        {inspectorColumn &&
+          (inspectorColumn.displayFormat === ColumnDisplayFormat.Percentage ||
+            inspectorColumn.displayFormat === ColumnDisplayFormat.Scale) && (
+            <select
+              className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+              value={inspectorColumn?.barColor ?? DEFAULT_BAR_COLOR_VALUE}
+              onChange={(e) =>
+                onUpdate({
+                  barColor: e.target.value,
+                })
+              }
+            >
+              {INSPECTOR_BAR_COLOR_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
 
         {inspectorColumn?.displayFormat === ColumnDisplayFormat.Scale && (
           <input
