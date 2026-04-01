@@ -94,6 +94,7 @@ Use tRPC as the bridge between client components and server logic:
 - Constants should either go in a `constants/` directory or a `constants.ts` file.
 - Utils (pure functions) should go in a `utils/` directory or a `utils.ts` file.
 - Functions with side effects, or async functions, should go in a `services/` directory, or somewhere more specific.
+- Components should be exported as a `default` export from a file with their same name.
 - Complex components that require their own directory should be in a file with the same name as the directory,
   e.g. `Choropleth/Choropleth.tsx`.
 

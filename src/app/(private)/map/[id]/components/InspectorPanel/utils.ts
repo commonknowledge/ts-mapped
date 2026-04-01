@@ -1,10 +1,13 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   type ColumnDef,
   type ColumnMetadata,
   ColumnSemanticType,
   ColumnType,
+  type DefaultInspectorConfig,
 } from "@/models/DataSource";
 import { ColumnDisplayFormat, type InspectorItem } from "@/models/shared";
+import type { InspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 
 export interface InspectorBlock {
   group?: string;
@@ -39,6 +42,50 @@ export function deriveInspectorItems(
       }
       return { type: "column" as const, name: col.name, displayFormat };
     });
+}
+
+/**
+ * Build a default inspector config for a data source, deriving items and layout
+ * from column definitions. Spreads any `defaultInspectorConfig` from the data source.
+ */
+export function buildDefaultInspectorConfig({
+  dataSourceId,
+  mapViewId,
+  position,
+  dataSource,
+}: {
+  dataSourceId: string;
+  mapViewId: string;
+  position: number;
+  dataSource:
+    | {
+        name: string;
+        columnDefs: ColumnDef[];
+        columnMetadata: ColumnMetadata[];
+        defaultInspectorConfig?: DefaultInspectorConfig | null;
+      }
+    | undefined;
+}): InspectorConfig {
+  const derivedItems = deriveInspectorItems(
+    dataSource?.columnDefs ?? [],
+    dataSource?.columnMetadata ?? [],
+  );
+  const derivedLayout = derivedItems.length > 4 ? "twoColumn" : null;
+
+  return {
+    id: uuidv4(),
+    dataSourceId,
+    mapViewId,
+    position,
+    name: dataSource?.name || "Data Source",
+    description: null,
+    icon: null,
+    screenshotUrl: null,
+    color: null,
+    items: derivedItems,
+    layout: derivedLayout,
+    ...dataSource?.defaultInspectorConfig,
+  };
 }
 
 /**
