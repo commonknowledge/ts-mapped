@@ -88,7 +88,7 @@ export default function PrivateMapControls() {
       <div
         className="absolute top-5 z-10 duration-300 pointer-events-none right-4 flex justify-between items-start gap-4"
         style={{
-          ...{ left: positionLeft + "px" },
+          ...{ left: positionLeft + "px", bottom: "100px" },
           transition: "max-width 0.3s, transform 0.3s",
         }}
       >

@@ -129,7 +129,7 @@ export default function InspectorPanel() {
   return (
     <div
       id="inspector-panel"
-      className="relative z-50 flex flex-col rounded shadow-lg bg-white text-sm font-sans min-h-0 pointer-events-auto"
+      className="relative z-50 flex flex-col rounded shadow-lg bg-white text-sm font-sans min-h-0 max-h-full pointer-events-auto"
       style={{ maxWidth: "450px", minWidth: "250px" }}
     >
       <div className="flex justify-between items-center gap-4 p-3">
