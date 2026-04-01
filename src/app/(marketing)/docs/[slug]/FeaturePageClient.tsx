@@ -84,7 +84,7 @@ export default function FeaturePageClient({
             <BreadcrumbSeparator />
             <BreadcrumbItem>{frontmatter.featureSet}</BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem className="text-neutral-900 font-medium">
+            <BreadcrumbItem className="text-foreground font-medium">
               {frontmatter.title}
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -109,7 +109,7 @@ export default function FeaturePageClient({
         <div className="hidden lg:block w-64 flex-shrink-0">
           <div className="sticky top-24">
             <div className="p-4">
-              <h3 className="text-sm font-semibold text-neutral-900 mb-3">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
                 Contents
               </h3>
               <nav className="space-y-2">

@@ -173,6 +173,11 @@ main {
   border-radius: 0.25rem;
 }
 
+/* Prose colour overrides — use brand foreground instead of Tailwind's near-black */
+.prose :where(h1, h2, h3, h4, h5, h6, p, li, td, th, strong, a, code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  color: var(--foreground);
+}
+
 /* Sentry user feedback trigger */
 #sentry-feedback {
   --actor-border-radius: calc(var(--radius) + 4px);
