@@ -30,11 +30,10 @@ export function AreasList({
       {areas.map((area) => (
         <div
           key={`${area.areaSetCode}-${area.code}`}
-          className={`px-3 py-2 font-medium ${
-            area.isSelected
-              ? "hover:bg-neutral-50 cursor-pointer pointer-events-auto"
-              : "cursor-default"
-          }`}
+          className={`px-3 py-2 font-medium ${area.isSelected
+            ? "hover:bg-neutral-50 cursor-pointer pointer-events-auto"
+            : "cursor-default"
+            }`}
           style={
             area.isSelected
               ? { borderLeft: "4px solid var(--brandGreen)" }
@@ -52,7 +51,7 @@ export function AreasList({
         >
           <div className="flex items-center gap-2">
             <div
-              className="w-4 h-4 rounded shrink-0"
+              className="w-4 h-4 rounded shrink-0 border border-neutral-200"
               style={{ backgroundColor: area.backgroundColor }}
             />
             <span>{area.name}</span>

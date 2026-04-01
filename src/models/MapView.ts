@@ -118,6 +118,7 @@ export const mapViewConfigSchema = z.object({
   areaDataSecondaryColumn: z.string().optional(),
   areaSetGroupCode: areaSetGroupCode.nullish(),
   secondaryAreaSetCode: areaSetCode.nullish(),
+  secondaryBoundaryStrokeColor: z.string().nullish(),
   choroplethOpacityPct: z.number().optional(),
   includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
