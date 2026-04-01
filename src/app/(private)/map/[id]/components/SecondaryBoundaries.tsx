@@ -38,7 +38,7 @@ function Boundaries({ config }: { config: ChoroplethLayerConfig }) {
     mapbox: { sourceId, layerId, featureCodeProperty },
   } = config;
   const secondarySourceId = `${sourceId}-secondary`;
-  const strokeColor = viewConfig.secondaryBoundaryStrokeColor || "#555";
+  const strokeColor = viewConfig.secondaryBoundaryStrokeColor || "#555555";
   return (
     <Source
       id={secondarySourceId}
