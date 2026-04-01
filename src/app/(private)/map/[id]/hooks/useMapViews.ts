@@ -188,7 +188,7 @@ export function useMapViews() {
       if (!view) return;
 
       // Re-display choropleth when the user selects a visualisation
-      if (viewConfig.calculationType || viewConfig.areaDataColumn) {
+      if (viewConfig.areaDataColumn) {
         viewConfig.showChoropleth = true;
       }
 
