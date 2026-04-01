@@ -53,7 +53,6 @@ export type InspectorItem = z.infer<typeof inspectorItemSchema>;
 /** Choropleth */
 
 export enum CalculationType {
-  Count = "Count",
   Sum = "Sum",
   Avg = "Avg",
   Mode = "Mode",

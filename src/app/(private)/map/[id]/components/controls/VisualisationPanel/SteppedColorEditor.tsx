@@ -5,6 +5,7 @@ import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType, type SteppedColorStep } from "@/models/MapView";
+import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -176,7 +177,7 @@ export default function SteppedColorEditor() {
   const { data: areaStats } = useAreaStats();
   const [isOpen, setIsOpen] = useState(false);
   const areaStatsDataKey = getChoroplethDataKey({
-    calculationType: areaStats?.calculationType,
+    calculationType: areaStats?.calculationType ?? DEFAULT_CALCULATION_TYPE,
     areaDataSourceId: areaStats?.dataSourceId || "",
     areaDataColumn: areaStats?.primary?.column || "",
     areaDataSecondaryColumn: areaStats?.secondary?.column,

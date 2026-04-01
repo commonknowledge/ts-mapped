@@ -1,5 +1,4 @@
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
-import { CalculationType } from "@/models/shared";
 import { formatNumber } from "@/utils/text";
 import type { ColumnMetadata } from "@/models/DataSource";
 
@@ -25,10 +24,10 @@ function toPercentValue(
 export const parseColumnNumber = (
   value: unknown,
   {
-    calculationType,
+    isCount,
     columnMetadata,
   }: {
-    calculationType: CalculationType | null | undefined;
+    isCount: boolean;
     columnMetadata: ColumnMetadata | null | undefined;
   },
 ): number | null => {
@@ -39,21 +38,21 @@ export const parseColumnNumber = (
   ) {
     return toPercentValue(num || 0, columnMetadata.semanticType);
   }
-  return calculationType === CalculationType.Count ? num || 0 : num;
+  return isCount ? num || 0 : num;
 };
 
 export const getDisplayValue = (
   value: unknown,
   config: {
-    calculationType: CalculationType | null | undefined;
+    isCount: boolean;
     columnMetadata: ColumnMetadata | null | undefined;
     columnType: ColumnType | null | undefined;
   },
 ): string => {
-  const { calculationType, columnType, columnMetadata } = config;
+  const { isCount, columnType, columnMetadata } = config;
   const { valueLabels, semanticType } = columnMetadata || {};
 
-  const num = parseColumnNumber(value, { calculationType, columnMetadata });
+  const num = parseColumnNumber(value, { isCount, columnMetadata });
 
   if (valueLabels && Object.keys(valueLabels).length) {
     if (value) {
@@ -66,7 +65,7 @@ export const getDisplayValue = (
   }
 
   if (value === undefined || value === null || value === "") {
-    return calculationType === CalculationType.Count ? "0" : "-";
+    return isCount ? "0" : "-";
   }
 
   if (columnType !== ColumnType.Number || num === null) {

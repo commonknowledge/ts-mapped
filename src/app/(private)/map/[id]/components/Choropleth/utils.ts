@@ -1,20 +1,16 @@
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
+import type { CalculationType } from "@/models/shared";
 
 export const getChoroplethDataKey = (viewConfig: {
-  calculationType?: CalculationType | null | undefined;
+  calculationType: CalculationType;
   areaDataSourceId: string;
   areaDataColumn: string;
   areaDataSecondaryColumn?: string | null | undefined;
 }) => {
-  const calculationType =
-    viewConfig.calculationType || DEFAULT_CALCULATION_TYPE;
   const parts: (string | null | undefined)[] = [
     viewConfig.areaDataSourceId,
-    calculationType,
+    viewConfig.calculationType,
+    viewConfig.areaDataColumn,
+    viewConfig.areaDataSecondaryColumn,
   ];
-  if (calculationType !== CalculationType.Count) {
-    parts.push(viewConfig.areaDataColumn);
-    parts.push(viewConfig.areaDataSecondaryColumn);
-  }
   return parts.filter(Boolean).join("-");
 };

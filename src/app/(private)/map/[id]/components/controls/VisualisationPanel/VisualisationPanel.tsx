@@ -1,22 +1,12 @@
-import { Palette, PieChart, X } from "lucide-react";
-import { useState } from "react";
+import { Palette, X } from "lucide-react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY } from "@/constants";
+import { DEFAULT_CUSTOM_COLOR, DUMMY_COUNT_COLUMN } from "@/constants";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType, ColorScheme } from "@/models/MapView";
-import { CalculationType } from "@/models/shared";
 import { Button } from "@/shadcn/ui/button";
-import { Checkbox } from "@/shadcn/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shadcn/ui/dialog";
-import { DialogTrigger } from "@/shadcn/ui/dialog";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -31,9 +21,7 @@ import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
-import { dataRecordsWillAggregate } from "../../Choropleth/areas";
 import SteppedColorEditor from "./SteppedColorEditor";
-import type { DataSource } from "@/models/DataSource";
 
 const SELECT_TO_BUTTON_CLASSES =
   "bg-background hover:bg-accent hover:text-accent-foreground hover:border-border font-medium cursor-pointer";
@@ -76,87 +64,6 @@ function OpacityControl({
   );
 }
 
-function IncludeColumnsModal({
-  dataSource,
-  selectedColumns,
-  onColumnsChange,
-}: {
-  dataSource: DataSource;
-  selectedColumns: string[];
-  onColumnsChange: (columns: string[]) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const numericColumns = dataSource.columnDefs.filter(
-    (c) => c.type === ColumnType.Number,
-  );
-
-  const handleToggle = (columnName: string, checked: boolean) => {
-    if (checked) {
-      onColumnsChange([...selectedColumns, columnName]);
-    } else {
-      onColumnsChange(selectedColumns.filter((c) => c !== columnName));
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">
-          Include columns (leave empty to use all numeric columns)
-        </Label>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
-            {selectedColumns.length > 0
-              ? `${selectedColumns.length} column${
-                  selectedColumns.length !== 1 ? "s" : ""
-                } selected`
-              : "Select columns to include"}
-          </Button>
-        </DialogTrigger>
-      </div>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Select columns to include</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2 py-4">
-          <p className="text-sm text-gray-500 mb-4">
-            Only selected columns will be considered when determining the
-            highest value column for each area. Leave empty to use all numeric
-            columns.
-          </p>
-          <div className="space-y-2">
-            {numericColumns.map((column) => (
-              <div
-                key={column.name}
-                className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded"
-              >
-                <Checkbox
-                  id={`column-${column.name}`}
-                  checked={selectedColumns.includes(column.name)}
-                  onCheckedChange={(checked) =>
-                    handleToggle(column.name, checked === true)
-                  }
-                />
-                <label
-                  htmlFor={`column-${column.name}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
-                >
-                  {column.name}
-                </label>
-              </div>
-            ))}
-          </div>
-          {numericColumns.length === 0 && (
-            <p className="text-sm text-gray-500">
-              No numeric columns found in this data source.
-            </p>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function SetCategoryColorsButton() {
   const { viewConfig } = useMapViews();
   const [, setEditColumnMetadata] = useEditColumnMetadata();
@@ -194,7 +101,7 @@ export default function VisualisationPanel({
 
   if (!boundariesPanelOpen) return null;
 
-  const isCount = viewConfig.calculationType === CalculationType.Count;
+  const isCount = viewConfig.areaDataColumn === DUMMY_COUNT_COLUMN;
 
   const columnOneIsNumber =
     dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
@@ -205,13 +112,6 @@ export default function VisualisationPanel({
     viewConfig.colorScaleType === ColorScaleType.Categorical ||
     columnOneIsNotNumber;
 
-  const canSelectAggregation =
-    !isCount &&
-    columnOneIsNumber &&
-    dataRecordsWillAggregate(
-      dataSource?.geocodingConfig,
-      viewConfig.areaSetGroupCode,
-    );
   const showStyle = !viewConfig.areaDataSecondaryColumn;
   const canSelectColorScale = isCount || columnOneIsNumber;
   const canSelectColorScheme = canSelectColorScale && !isCategorical;
@@ -251,71 +151,6 @@ export default function VisualisationPanel({
         </p>
       ) : (
         <>
-          <div className="space-y-2 mb-4">
-            <p className="flex gap-2 items-center text-sm font-medium">
-              <PieChart className="w-4 h-4 text-muted-foreground" />
-              Visualisation
-            </p>
-
-            <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
-              {canSelectAggregation && (
-                <>
-                  <Label
-                    htmlFor="choropleth-aggregation-select"
-                    className="text-sm text-muted-foreground font-normal"
-                  >
-                    Aggregation
-                  </Label>
-                  <Select
-                    value={viewConfig.calculationType || ""}
-                    onValueChange={(value) =>
-                      updateViewConfig({
-                        calculationType: value as CalculationType,
-                      })
-                    }
-                  >
-                    <SelectTrigger
-                      className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
-                      id="choropleth-aggregation-select"
-                    >
-                      <SelectValue placeholder="Choose an aggregation..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={CalculationType.Avg}>
-                        Average
-                      </SelectItem>
-                      <SelectItem value={CalculationType.Mode}>
-                        Most common
-                      </SelectItem>
-                      <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
-
-            {/* Include Columns Modal - only show when MAX_COLUMN_KEY is selected */}
-            {viewConfig.areaDataColumn === MAX_COLUMN_KEY && dataSource && (
-              <IncludeColumnsModal
-                dataSource={dataSource}
-                selectedColumns={
-                  viewConfig.includeColumnsString
-                    ? viewConfig.includeColumnsString
-                        .split(",")
-                        .map((v) => v.trim())
-                        .filter(Boolean)
-                    : []
-                }
-                onColumnsChange={(columns) => {
-                  updateViewConfig({
-                    includeColumnsString:
-                      columns.length > 0 ? columns.join(",") : undefined,
-                  });
-                }}
-              />
-            )}
-          </div>
-
           {showStyle && (
             <div className="space-y-2 mb-4">
               <p className="flex gap-2 items-center text-sm font-medium">

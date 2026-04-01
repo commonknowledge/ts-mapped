@@ -6,7 +6,6 @@ import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { AreaSetGroupCode } from "@/models/AreaSet";
 import { MapType, type MapViewConfig } from "@/models/MapView";
-import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
 import { createNewViewConfig } from "../utils/mapView";
@@ -189,13 +188,8 @@ export function useMapViews() {
       if (!view) return;
 
       // Re-display choropleth when the user selects a visualisation
-      if (viewConfig.calculationType || viewConfig.areaDataColumn) {
+      if (viewConfig.areaDataColumn) {
         viewConfig.showChoropleth = true;
-      }
-
-      // Fallback to the default calculation type if a data column has been selected
-      if (viewConfig.areaDataColumn && !view.config.calculationType) {
-        viewConfig.calculationType = DEFAULT_CALCULATION_TYPE;
       }
 
       // Clear the selected columns when the user changes the data source

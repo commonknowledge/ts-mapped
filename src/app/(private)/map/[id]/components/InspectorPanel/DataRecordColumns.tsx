@@ -40,7 +40,7 @@ function TextOrNumberValue({
   columnType,
 }: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
   const text = getDisplayValue(value, {
-    calculationType: null,
+    isCount: false,
     columnType: columnType ?? ColumnType.Number,
     columnMetadata,
   });
@@ -54,7 +54,7 @@ function NumberWithComparisonValue({
   columnMetadata,
 }: Omit<SubRendererProps, "columnType">) {
   const num = parseColumnNumber(value, {
-    calculationType: null,
+    isCount: false,
     columnMetadata,
   });
   const comparisonStat =
@@ -135,7 +135,7 @@ function PercentageBarValue({
   columnMetadata,
 }: Omit<SubRendererProps, "dataSourceId" | "columnType">) {
   const num = parseColumnNumber(value, {
-    calculationType: null,
+    isCount: false,
     columnMetadata,
   });
   const fill = barFill(
@@ -175,7 +175,7 @@ function ScaleValue({
   columnMetadata,
 }: Omit<SubRendererProps, "dataSourceId" | "columnType">) {
   const num = parseColumnNumber(value, {
-    calculationType: null,
+    isCount: false,
     columnMetadata,
   });
   const fill = barFill(

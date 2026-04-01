@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { afterAll, describe, expect, test } from "vitest";
 import { MapStyleName } from "@/models/MapView";
+import { CalculationType } from "@/models/shared";
 import { createMap, deleteMap, updateMap } from "@/server/repositories/Map";
 import { upsertMapView } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
@@ -26,6 +27,7 @@ const DS_NONEXISTENT = randomUUID();
 const baseViewConfig = {
   areaDataSourceId: "",
   areaDataColumn: "",
+  calculationType: CalculationType.Avg,
   mapStyleName: MapStyleName.Light,
   showBoundaryOutline: false,
   showLabels: false,

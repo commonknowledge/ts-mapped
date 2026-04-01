@@ -1,13 +1,12 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { DUMMY_COUNT_COLUMN } from "@/constants";
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { useChoropleth } from "./hooks/useChoropleth";
 import { useMapBounds } from "./hooks/useMapBounds";
 import { useMapViews } from "./hooks/useMapViews";
 import type { AreaSetCode } from "@/models/AreaSet";
 import type { ColumnType } from "@/models/DataSource";
+import type { CalculationType } from "@/models/shared";
 
 export interface CombinedAreaStat {
   areaCode: string;
@@ -51,15 +50,9 @@ export const useAreaStats = () => {
     areaSetGroupCode,
   } = viewConfig;
 
-  // Use a dummy column for counts to avoid un-necessary refetching
-  const columnOrCount =
-    calculationType === CalculationType.Count ? DUMMY_COUNT_COLUMN : column;
-
-  const isMissingDataColumn =
-    !column && calculationType !== CalculationType.Count;
+  const isMissingDataColumn = !column;
 
   const skipCondition =
-    !calculationType ||
     !dataSourceId || // Skip if user has not selected a data source
     !areaSetGroupCode || // Skip if user has not selected an area set group
     isMissingDataColumn;
@@ -111,9 +104,9 @@ export const useAreaStats = () => {
     trpc.area.stats.queryOptions(
       {
         areaSetCode: safeAreaSetCode,
-        calculationType: calculationType || DEFAULT_CALCULATION_TYPE,
+        calculationType,
         dataSourceId,
-        column: columnOrCount,
+        column,
         secondaryColumn: secondaryColumn,
         includeColumns,
         boundingBox: requiresBoundingBox ? boundingBox : null,

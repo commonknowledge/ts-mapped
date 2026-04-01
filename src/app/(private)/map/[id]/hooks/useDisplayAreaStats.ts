@@ -1,7 +1,7 @@
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo } from "react";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
-import { CalculationType } from "@/models/shared";
 import { useFillColor } from "../colors";
 import { DEFAULT_FILL_COLOR } from "../constants";
 import { useAreaStats } from "../data";
@@ -82,12 +82,12 @@ export const useDisplayAreaStats = <
       return {
         ...area,
         primaryDisplayValue: getDisplayValue(areaStat?.primary, {
-          calculationType: areaStats?.calculationType,
+          isCount: areaStats?.primary?.column === DUMMY_COUNT_COLUMN,
           columnType: areaStats?.primary?.columnType,
           columnMetadata,
         }),
         secondaryDisplayValue: getDisplayValue(areaStat?.secondary, {
-          calculationType: areaStats?.calculationType,
+          isCount: false,
           columnType: areaStats?.secondary?.columnType,
           columnMetadata: secondaryColumnMetadata,
         }),
@@ -105,7 +105,7 @@ export const useDisplayAreaStats = <
   ]);
 
   const primaryLabel = areaStats
-    ? areaStats.calculationType === CalculationType.Count
+    ? areaStats.primary?.column === DUMMY_COUNT_COLUMN
       ? `${choroplethDataSource?.name || "Unknown"} count`
       : viewConfig.areaDataColumn
     : "";
