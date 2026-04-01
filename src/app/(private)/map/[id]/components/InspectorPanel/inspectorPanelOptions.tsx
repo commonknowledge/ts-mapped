@@ -122,7 +122,7 @@ interface BarColorOption {
 }
 
 export const INSPECTOR_BAR_COLOR_OPTIONS: BarColorOption[] = [
-  { value: DEFAULT_BAR_COLOR_VALUE, label: "Default (primary)", hex: "" },
+  { value: DEFAULT_BAR_COLOR_VALUE, label: "Default", hex: "" },
   { value: SMART_MATCH_BAR_COLOR_VALUE, label: "Smart match", hex: "" },
   { value: "#3b82f6", label: "Blue", hex: "#3b82f6" },
   { value: "#22c55e", label: "Green", hex: "#22c55e" },
@@ -140,7 +140,10 @@ export function getSmartMatchInfo(
   columnName: string,
   displayName?: string,
 ): { color: string; matchLabel: string } {
-  const combined = `${displayName} ${columnName}`.toLowerCase().trim();
+  const combined = [columnName, displayName]
+    .map((s) => (s ? s.trim() : ""))
+    .join(" ")
+    .toLowerCase();
   // Exact match first (e.g. column named "ruk" or "lab")
   if (PARTY_COLORS[combined]) {
     return { color: PARTY_COLORS[combined], matchLabel: combined };
@@ -154,17 +157,39 @@ export function getSmartMatchInfo(
   return { color: "var(--primary)", matchLabel: "default" };
 }
 
-export function getBarColorForLabel(
-  columnName: string,
-  displayName?: string | undefined,
-  barColor?: string | null,
-): string {
-  if (
-    !barColor ||
-    barColor === DEFAULT_BAR_COLOR_VALUE ||
-    barColor === SMART_MATCH_BAR_COLOR_VALUE
-  ) {
+const INSPECTOR_COLOR_HEX_MAP: Record<string, string> = {
+  blue: "#3b82f6",
+  green: "#22c55e",
+  yellow: "#f59e0b",
+  red: "#ef4444",
+  purple: "#8b5cf6",
+  pink: "#ec4899",
+  orange: "#f97316",
+  teal: "#14b8a6",
+  indigo: "#6366f1",
+  gray: "#6b7280",
+};
+
+export function getBarColorForLabel({
+  columnName,
+  displayName,
+  barColor,
+  inspectorColor,
+}: {
+  columnName: string;
+  displayName?: string | undefined;
+  barColor?: string | null;
+  inspectorColor?: string | null;
+}): string {
+  if (barColor === SMART_MATCH_BAR_COLOR_VALUE) {
     return getSmartMatchInfo(columnName, displayName).color;
+  }
+  // Default / no explicit bar color: use the inspector config color
+  if (!barColor || barColor === DEFAULT_BAR_COLOR_VALUE) {
+    if (inspectorColor && INSPECTOR_COLOR_HEX_MAP[inspectorColor]) {
+      return INSPECTOR_COLOR_HEX_MAP[inspectorColor];
+    }
+    return "var(--primary)";
   }
   return barColor;
 }

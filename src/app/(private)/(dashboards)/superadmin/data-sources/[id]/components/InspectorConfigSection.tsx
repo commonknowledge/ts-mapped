@@ -13,7 +13,11 @@ import { GripVertical, LayoutGrid, LayoutList } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
-import { INSPECTOR_COLOR_OPTIONS } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import {
+  DEFAULT_BAR_COLOR_VALUE,
+  INSPECTOR_BAR_COLOR_OPTIONS,
+  INSPECTOR_COLOR_OPTIONS,
+} from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useInspectorColumn } from "@/app/(private)/map/[id]/hooks/useInspectorColumn";
 import { NULL_UUID } from "@/constants";
@@ -575,6 +579,26 @@ function ColumnItemRow({
               ].map((s) => (
                 <option key={s} value={s}>
                   {ColumnSemanticTypeLabels[s]}
+                </option>
+              ))}
+            </select>
+          )}
+
+        {inspectorColumn &&
+          (inspectorColumn.displayFormat === ColumnDisplayFormat.Percentage ||
+            inspectorColumn.displayFormat === ColumnDisplayFormat.Scale) && (
+            <select
+              className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+              value={inspectorColumn?.barColor ?? DEFAULT_BAR_COLOR_VALUE}
+              onChange={(e) =>
+                onUpdate({
+                  barColor: e.target.value,
+                })
+              }
+            >
+              {INSPECTOR_BAR_COLOR_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
                 </option>
               ))}
             </select>
