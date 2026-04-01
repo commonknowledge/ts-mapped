@@ -140,7 +140,10 @@ export function getSmartMatchInfo(
   columnName: string,
   displayName?: string,
 ): { color: string; matchLabel: string } {
-  const combined = `${displayName} ${columnName}`.toLowerCase().trim();
+  const combined = [columnName, displayName]
+    .map((s) => (s ? s.trim() : ""))
+    .join(" ")
+    .toLowerCase();
   // Exact match first (e.g. column named "ruk" or "lab")
   if (PARTY_COLORS[combined]) {
     return { color: PARTY_COLORS[combined], matchLabel: combined };
