@@ -473,8 +473,12 @@ export async function getNumericColumnRange(
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .select([
-      sql<number | null>`MIN(NULLIF(json->>${columnName}, '')::float)`.as("min"),
-      sql<number | null>`MAX(NULLIF(json->>${columnName}, '')::float)`.as("max"),
+      sql<number | null>`MIN(NULLIF(json->>${columnName}, '')::float)`.as(
+        "min",
+      ),
+      sql<number | null>`MAX(NULLIF(json->>${columnName}, '')::float)`.as(
+        "max",
+      ),
       sql<boolean>`BOOL_OR(NULLIF(json->>${columnName}, '')::float > 0 AND NULLIF(json->>${columnName}, '')::float < 1)`.as(
         "hasDecimals",
       ),
