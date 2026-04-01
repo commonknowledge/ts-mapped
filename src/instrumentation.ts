@@ -36,6 +36,8 @@ export async function register() {
     const { schedule } = await import("@/server/services/queue");
     // Run refreshWebhooks at 3:00am every day (see https://timgit.github.io/pg-boss/#/./api/scheduling)
     await schedule("0 3 * * *", "refreshWebhooks", {});
+    // Re-import all Zetkin data sources at 4:00am every day
+    await schedule("0 4 * * *", "importZetkinDataSources", {});
 
     logger.info("Started");
   }
