@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { type SanityDocument } from "next-sanity";
 import React from "react";
+import { notFound } from "next/navigation";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
 import {
@@ -10,71 +10,21 @@ import {
   TypographyMuted,
   TypographyP,
 } from "@/components/typography";
-import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
-
-interface SolutionArray {
-  title: string;
-  description: string;
-  image?: string;
-  status: string;
-  button?: {
-    text: string;
-    url: string;
-    linkType: string;
-    docsPage?: {
-      slug: {
-        current: string;
-      };
-    };
-  };
-}
-
-const POST_QUERY = `*[_type == "solutions" && slug.current == $slug][0]{
-  title,
-  subtitle,
-  slug,
-  position,
-  publishedAt,
-  status,
-  solutionsArray[]{
-    title,
-    description,
-    image,
-    button{
-      text,
-      linkType,
-      url,
-      docsPage->{
-        slug
-      }
-    }
-  }
-}`;
-const options = { next: { revalidate: 30 } };
+import { solutions } from "../../../../../solutions-content/manifest";
+import type { SolutionItem } from "../../../../../solutions-content/manifest";
 
 export default async function SolutionPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const solution = await client.fetch<SanityDocument>(
-    POST_QUERY,
-    await params,
-    options,
-  );
+  const { slug } = await params;
+  const solution = solutions.find((s) => s.slug === slug);
 
   if (!solution) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <TypographyH1>Solution Not Found</TypographyH1>
-        <TypographyP>
-          The solution you&apos;re looking for doesn&apos;t exist.
-        </TypographyP>
-      </div>
-    );
+    notFound();
   }
 
   return (
@@ -83,7 +33,6 @@ export default async function SolutionPage({
       <div className="bg-brand-background relative overflow-hidden py-10 md:py-20">
         <Container>
           <div className="relative z-10 / flex flex-col gap-6">
-            {/* Breadcrumb */}
             <TypographyMuted className="mb-2 font-mono">
               Solutions
             </TypographyMuted>
@@ -118,16 +67,14 @@ export default async function SolutionPage({
 
       {/* Content */}
       <Container className="py-10 md:py-20">
-        {solution.solutionsArray && solution.solutionsArray.length > 0 ? (
-          solution.solutionsArray.map(
-            (solution: SolutionArray, index: number) => (
-              <SolutionItemCard
-                key={solution.title}
-                solutionItem={solution}
-                isReversed={index % 2 === 1}
-              />
-            ),
-          )
+        {solution.items && solution.items.length > 0 ? (
+          solution.items.map((item, index) => (
+            <SolutionItemCard
+              key={item.title}
+              solutionItem={item}
+              isReversed={index % 2 === 1}
+            />
+          ))
         ) : (
           <div className="text-center py-12">
             <TypographyH2>No solutions available</TypographyH2>
@@ -145,9 +92,14 @@ function SolutionItemCard({
   solutionItem,
   isReversed,
 }: {
-  solutionItem: SolutionArray;
+  solutionItem: SolutionItem;
   isReversed: boolean;
 }) {
+  const buttonHref =
+    solutionItem.button?.linkType === "docs"
+      ? `/docs/${solutionItem.button.docsSlug}`
+      : (solutionItem.button?.url ?? "#");
+
   const textContent = (
     <div className="col-span-1 space-y-4">
       <TypographyH2>{solutionItem.title}</TypographyH2>
@@ -160,15 +112,7 @@ function SolutionItemCard({
       </div>
       {solutionItem.button && (
         <Button className="mt-4" variant="secondary">
-          <Link
-            href={
-              solutionItem.button.linkType === "docs"
-                ? `/docs/${solutionItem.button.docsPage?.slug?.current}`
-                : solutionItem.button.url
-            }
-          >
-            {solutionItem.button.text}
-          </Link>
+          <Link href={buttonHref}>{solutionItem.button.text}</Link>
         </Button>
       )}
     </div>
@@ -176,23 +120,13 @@ function SolutionItemCard({
 
   const imageContent = (
     <div className="col-span-2">
-      {solutionItem.image ? (
-        <Image
-          src={urlFor(solutionItem.image).url()}
-          alt={solutionItem.title}
-          width={1400}
-          height={1000}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <Image
-          src={"/screenshot-placeholder.jpeg"}
-          alt={solutionItem.title}
-          width={1400}
-          height={1000}
-          className="w-full h-full object-cover"
-        />
-      )}
+      <Image
+        src={solutionItem.image ?? "/screenshot-placeholder.jpeg"}
+        alt={solutionItem.title}
+        width={1400}
+        height={1000}
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 

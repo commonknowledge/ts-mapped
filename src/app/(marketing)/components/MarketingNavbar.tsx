@@ -4,7 +4,6 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Link } from "@/components/Link";
-import { urlFor } from "@/sanity/lib/image";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -20,13 +19,11 @@ import { cn } from "@/shadcn/utils";
 import type { CurrentUser } from "@/authTypes";
 
 interface Solution {
-  _id: string;
+  slug: string;
   title: string;
   subtitle: string;
   status: "active" | "archived" | "coming-soon";
-  slug: { current: string };
   position: number;
-  icon: string;
 }
 
 interface NavItem {
@@ -139,18 +136,11 @@ export const MarketingNavbar = ({
                       .sort((a, b) => a.position - b.position)
                       .map((solution) => (
                         <Link
-                          key={solution._id}
-                          href={`/solutions/${solution.slug?.current || solution._id}`}
+                          key={solution.slug}
+                          href={`/solutions/${solution.slug}`}
                           className="text-base py-2 pl-2 border-b border-gray-100 flex gap-1"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <Image
-                            src={urlFor(solution.icon).url()}
-                            alt={solution.title}
-                            className="w-4 h-4 mr-2 mt-1 opacity-50"
-                            width={20}
-                            height={20}
-                          />
                           <div className="flex flex-col">
                             <div className="font-medium">
                               {solution.title}&nbsp;
@@ -208,21 +198,14 @@ const DesktopNavbar = ({ solutions }: { solutions: Solution[] }) => {
                   .sort((a, b) => a.position - b.position)
                   .map((solution) => (
                     <li
-                      key={solution._id}
+                      key={solution.slug}
                       className="cursor-pointer hover:bg-neutral-100 p-2 rounded-sm"
                     >
                       <NavigationMenuLink asChild>
                         <Link
-                          href={`/solutions/${solution.slug?.current || solution._id}`}
-                          className="flex  gap-1"
+                          href={`/solutions/${solution.slug}`}
+                          className="flex gap-1"
                         >
-                          <Image
-                            src={urlFor(solution.icon).url()}
-                            alt={solution.title}
-                            className="w-4 h-4 mr-2 mt-1 opacity-50"
-                            width={20}
-                            height={20}
-                          />
                           <div className="flex flex-col">
                             <div className="font-medium">
                               {solution.title}&nbsp;
