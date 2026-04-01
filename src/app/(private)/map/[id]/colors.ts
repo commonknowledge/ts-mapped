@@ -10,13 +10,13 @@ import {
 } from "d3-scale-chromatic";
 import { useMemo } from "react";
 import { DEFAULT_CUSTOM_COLOR } from "@/constants";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
 import {
   ColorScaleType,
   ColorScheme,
   type SteppedColorStep,
 } from "@/models/MapView";
-import { CalculationType } from "@/models/shared";
 import { getCategoryColorScale } from "@/utils/colors";
 import { getChoroplethDataKey } from "./components/Choropleth/utils";
 import { DEFAULT_FILL_COLOR } from "./constants";
@@ -283,7 +283,7 @@ export const useFillColor = ({
       return getBivariateFillColor(areaStats, selectedBivariateBucket);
     }
 
-    const isCount = areaStats?.calculationType === CalculationType.Count;
+    const isCount = areaStats?.primary?.column === DUMMY_COUNT_COLUMN;
     const colorScheme = getColorScheme({
       areaStats,
       viewConfig,

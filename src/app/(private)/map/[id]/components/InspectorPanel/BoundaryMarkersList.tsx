@@ -7,6 +7,7 @@ import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorSt
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { useDataSources } from "@/hooks/useDataSources";
+import { parseAreaGeography } from "@/models/Area";
 import { AreaSetCode } from "@/models/AreaSet";
 import { DataSourceRecordType } from "@/models/DataSource";
 
@@ -38,16 +39,22 @@ export default function BoundaryMarkersList() {
     ),
   );
 
+  const geography = useMemo(
+    () =>
+      areaData?.geoJson ? parseAreaGeography(areaData.geoJson) : undefined,
+    [areaData],
+  );
+
   // frontend filtering - looking for markers within the selected boundary
   const filteredData = useMemo(() => {
-    if (!areaData || !markerQueries.data) {
+    if (!geography || !markerQueries.data) {
       return [];
     }
 
-    return getMarkersInsideBoundary(markerQueries.data, areaData.geography).map(
+    return getMarkersInsideBoundary(markerQueries.data, geography).map(
       (data) => ({ ...data, dataSource: getDataSourceById(data.dataSourceId) }),
     );
-  }, [areaData, getDataSourceById, markerQueries.data]);
+  }, [geography, getDataSourceById, markerQueries.data]);
 
   const members = useMemo(
     () =>
@@ -70,8 +77,8 @@ export default function BoundaryMarkersList() {
   );
 
   const placedMarkersInBoundary = useMemo(() => {
-    return getMarkersInsidePolygon(placedMarkers, areaData?.geography);
-  }, [areaData, placedMarkers]);
+    return getMarkersInsidePolygon(placedMarkers, geography);
+  }, [geography, placedMarkers]);
 
   const placedMarkersByFolder = useMemo(() => {
     return groupPlacedMarkersByFolder(placedMarkersInBoundary, folders);

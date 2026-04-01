@@ -11,6 +11,8 @@ interface TestCredentials extends VitestCredentials {
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
     NGROK_AUTHTOKEN: string;
+    ZETKIN_CLIENT_ID: string;
+    ZETKIN_CLIENT_SECRET: string;
   };
 }
 

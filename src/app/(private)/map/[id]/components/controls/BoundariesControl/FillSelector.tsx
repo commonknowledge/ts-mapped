@@ -1,6 +1,6 @@
 import { BarChart3, ChevronDown, Circle, Palette, Users } from "lucide-react";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { CalculationType } from "@/models/shared";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -17,12 +17,12 @@ import { useBoundariesControl } from "./useBoundariesControl";
 
 function getFillIcon(
   areaDataSourceId: string | null | undefined,
-  calculationType: CalculationType | null | undefined,
+  areaDataColumn: string | null | undefined,
 ) {
   if (!areaDataSourceId || areaDataSourceId === "") {
     return <Circle className="w-4 h-4" />;
   }
-  if (calculationType === CalculationType.Count) {
+  if (areaDataColumn === DUMMY_COUNT_COLUMN) {
     return <Users className="w-4 h-4" />;
   }
   return <BarChart3 className="w-4 h-4" />;
@@ -54,14 +54,14 @@ export default function FillSelector() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className={`w-full justify-between h-auto py-2 px-2 shadow-none ${viewConfig.calculationType ? "" : "opacity-50"}`}
+              className={`w-full justify-between h-auto py-2 px-2 shadow-none ${viewConfig.areaDataSourceId ? "" : "opacity-50"}`}
               disabled={!hasShape}
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <div className="flex-shrink-0">
                   {getFillIcon(
                     viewConfig?.areaDataSourceId,
-                    viewConfig?.calculationType,
+                    viewConfig?.areaDataColumn,
                   )}
                 </div>
                 <div className="text-left min-w-0 flex-1">

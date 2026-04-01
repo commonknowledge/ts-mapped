@@ -9,7 +9,12 @@ import {
   useChoroplethDataSource,
   useDataSources,
 } from "@/hooks/useDataSources";
-import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
+import {
+  AreaSetCodeLabels,
+  AreaSetCodeYears,
+  AreaSetGroupCodeLabels,
+  AreaSetGroupCodeYears,
+} from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import { MapType } from "@/models/MapView";
 import { CalculationType } from "@/models/shared";
@@ -31,14 +36,25 @@ import { cn } from "@/shadcn/utils";
 import { useColorScheme } from "../../colors";
 import { useAreaStats } from "../../data";
 import BivariateLegend from "../BivariateLagend";
-import { getValidAreaSetGroupCodes } from "../Choropleth/areas";
-import { getDefaultAreaSetGroupCode } from "../Choropleth/configs";
+import {
+  dataRecordsWillAggregate,
+  getValidAreaSetGroupCodes,
+} from "../Choropleth/areas";
+import {
+  CHOROPLETH_AREA_SET_CODES,
+  getDefaultAreaSetGroupCode,
+} from "../Choropleth/configs";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
+import { IncludeColumnsModal } from "../controls/VisualisationPanel/IncludeColumnsModal";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
 import { LegendBars } from "./LegendBars";
-import type { AreaSetGroupCode } from "@/models/AreaSet";
+import type { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
 
-export default function Legend() {
+export default function Legend({
+  onClearRequest,
+}: {
+  onClearRequest?: () => void;
+}) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
   const { data: dataSources, getDataSourceById } = useDataSources();
@@ -60,17 +76,13 @@ export default function Legend() {
   });
 
   const hasDataSource = Boolean(viewConfig.areaDataSourceId);
-  const hasColumn = Boolean(
-    viewConfig.areaDataColumn ||
-    viewConfig.calculationType === CalculationType.Count,
-  );
+  const hasColumn = Boolean(viewConfig.areaDataColumn);
   const isBivariate =
-    areaStats?.calculationType !== CalculationType.Count &&
+    viewConfig.areaDataColumn !== DUMMY_COUNT_COLUMN &&
     viewConfig.areaDataColumn &&
     viewConfig.areaDataSecondaryColumn;
 
-  const isCount = viewConfig.calculationType === CalculationType.Count;
-  const canSelectColumn = !isCount && hasDataSource;
+  const isCount = viewConfig.areaDataColumn === DUMMY_COUNT_COLUMN;
 
   const columnOneIsNumber =
     Boolean(viewConfig.areaDataColumn) &&
@@ -78,6 +90,13 @@ export default function Legend() {
       ?.type === ColumnType.Number;
   const canSelectSecondaryColumn =
     !isCount && Boolean(viewConfig.areaDataColumn) && columnOneIsNumber;
+  const canSelectAggregation =
+    !isCount &&
+    columnOneIsNumber &&
+    dataRecordsWillAggregate(
+      dataSource?.geocodingConfig,
+      viewConfig.areaSetGroupCode,
+    );
 
   const showSecondColumnRow =
     canSelectSecondaryColumn &&
@@ -211,7 +230,7 @@ export default function Legend() {
           <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />
         </button>
 
-        {hasDataSource && canSelectColumn && (
+        {hasDataSource && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <CornerDownRight
@@ -239,7 +258,11 @@ export default function Legend() {
                           ?.description,
                       })) || []),
                   ]}
-                  value={viewConfig.areaDataColumn || NULL_UUID}
+                  value={
+                    isCount
+                      ? DUMMY_COUNT_COLUMN
+                      : viewConfig.areaDataColumn || NULL_UUID
+                  }
                   onValueChange={(value) => {
                     const col = value === NULL_UUID ? "" : value;
                     const primaryIsNumber =
@@ -248,10 +271,6 @@ export default function Legend() {
                         ?.type === ColumnType.Number;
                     updateViewConfig({
                       areaDataColumn: col,
-                      calculationType:
-                        col === DUMMY_COUNT_COLUMN
-                          ? CalculationType.Count
-                          : viewConfig.calculationType,
                       ...(col === viewConfig.areaDataSecondaryColumn
                         ? { areaDataSecondaryColumn: undefined }
                         : {}),
@@ -268,8 +287,7 @@ export default function Legend() {
                 />
               </div>
               {viewConfig.areaDataColumn &&
-                viewConfig.areaDataColumn !== NULL_UUID &&
-                viewConfig.areaDataColumn !== MAX_COLUMN_KEY && (
+                viewConfig.areaDataColumn !== NULL_UUID && (
                   <ColumnMetadataIcons
                     dataSourceId={dataSource?.id}
                     column={viewConfig.areaDataColumn}
@@ -338,11 +356,11 @@ export default function Legend() {
           <LoaderPinwheel className="w-5 h-5 animate-spin text-neutral-400" />
         </div>
       ) : isBivariate ? (
-        <div className="px-3 pb-2">
+        <div className="px-3">
           <BivariateLegend />
         </div>
       ) : hasColumn && colorScheme ? (
-        <div className="flex px-3 pb-2">
+        <div className="flex px-3">
           <LegendBars
             colorScheme={colorScheme}
             viewConfig={viewConfig}
@@ -352,9 +370,43 @@ export default function Legend() {
         </div>
       ) : null}
 
+      {hasDataSource && onClearRequest && (
+        <div className="border-b border-neutral-100 px-3 pb-2">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground underline cursor-pointer text-left hover:text-foreground transition-colors"
+            onClick={onClearRequest}
+          >
+            Clear visualisation
+          </button>
+        </div>
+      )}
+
+      {viewConfig.areaDataColumn === MAX_COLUMN_KEY && dataSource && (
+        <div className="border-t border-neutral-100 px-3 py-3">
+          <IncludeColumnsModal
+            dataSource={dataSource}
+            selectedColumns={
+              viewConfig.includeColumnsString
+                ? viewConfig.includeColumnsString
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean)
+                : []
+            }
+            onColumnsChange={(columns) => {
+              updateViewConfig({
+                includeColumnsString:
+                  columns.length > 0 ? columns.join(",") : undefined,
+              });
+            }}
+          />
+        </div>
+      )}
+
       {viewConfig.mapType !== MapType.Hex && (
         <div className="border-t border-neutral-100 px-3 py-3">
-          <p className="text-xs text-muted-foreground font-mono font-medium uppercase  mb-1">
+          <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
             Boundaries
           </p>
           <Select
@@ -400,6 +452,81 @@ export default function Legend() {
           </Select>
         </div>
       )}
+
+      {/* Aggregation */}
+      {canSelectAggregation && (
+        <div className="border-t border-neutral-100 px-3 py-3">
+          <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
+            Aggregation
+          </p>
+          <Select
+            value={viewConfig.calculationType}
+            onValueChange={(value) =>
+              updateViewConfig({
+                calculationType: value as CalculationType,
+              })
+            }
+          >
+            <SelectTrigger
+              size="sm"
+              className="h-8 w-full text-xs font-normal shadow-xs hover:border-action-hover"
+            >
+              <SelectValue placeholder="Choose an aggregation…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={CalculationType.Avg}>Average</SelectItem>
+              <SelectItem value={CalculationType.Mode}>Most common</SelectItem>
+              <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Secondary boundaries */}
+      {viewConfig.mapType !== MapType.Hex && (
+        <div className="border-t border-neutral-100 px-3 py-3">
+          <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
+            Secondary boundaries
+          </p>
+          <Select
+            value={viewConfig.secondaryAreaSetCode || NULL_UUID}
+            onValueChange={(value) => {
+              updateViewConfig({
+                secondaryAreaSetCode:
+                  value === NULL_UUID ? null : (value as AreaSetCode),
+              });
+            }}
+          >
+            <SelectTrigger
+              size="sm"
+              className="h-8 w-full text-xs font-normal shadow-xs hover:border-action-hover"
+            >
+              <SelectValue placeholder="Secondary boundaries…">
+                {viewConfig.secondaryAreaSetCode
+                  ? AreaSetCodeLabels[viewConfig.secondaryAreaSetCode]
+                  : "No secondary boundaries"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NULL_UUID}>No secondary boundaries</SelectItem>
+              {CHOROPLETH_AREA_SET_CODES.map((code) => (
+                <SelectItem key={code} value={code}>
+                  <div className="flex flex-col">
+                    <span>{AreaSetCodeLabels[code]}</span>
+                    <span
+                      className="text-xs text-muted-foreground"
+                      dangerouslySetInnerHTML={{
+                        __html: AreaSetCodeYears[code],
+                      }}
+                    />
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {/* Data source modal */}
       <DataSourceSelectModal
         isModalOpen={isDataSourceModalOpen}

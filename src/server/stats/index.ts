@@ -1,5 +1,5 @@
 import { sql } from "kysely";
-import { MAX_COLUMN_KEY } from "@/constants";
+import { DUMMY_COUNT_COLUMN, MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
 import { CalculationType } from "@/models/shared";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -80,7 +80,7 @@ export const getAreaStats = async ({
     return areaStats;
   }
 
-  if (calculationType === CalculationType.Count) {
+  if (column === DUMMY_COUNT_COLUMN) {
     const stats = await getRecordCountByArea(
       areaSetCode,
       dataSourceId,

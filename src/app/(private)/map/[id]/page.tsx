@@ -1,4 +1,5 @@
 import { createCaller } from "@/services/trpc/server";
+import EditColumnMetadataModal from "../../components/EditColumnMetadataModal/EditColumnMetadataModal";
 import MapNavbar from "./components/MapNavbar";
 import PrivateMapOverlay from "./components/PrivateMapOverlay";
 import SharedMap from "./components/SharedMap";
@@ -67,6 +68,7 @@ export default async function MapPage({
           </div>
         </div>
       </div>
+      <EditColumnMetadataModal />
     </MapJotaiProvider>
   );
 }

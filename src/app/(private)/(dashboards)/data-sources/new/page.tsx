@@ -3,7 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -15,6 +15,7 @@ import PageHeader from "@/components/PageHeader";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { DataSourceType } from "@/models/DataSource";
+import { OAUTH_STATE_KEY, oAuthStateSchema } from "@/models/OAuth";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
@@ -31,17 +32,55 @@ import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
+import ZetkinFields from "./fields/ZetkinFields";
 
-import { type NewDataSourceConfig, defaultStateSchema } from "./schema";
+import { newDataSourceConfigSchema } from "./schema";
+import type { NewDataSourceConfig } from "./schema";
 import type {
   DataSourceConfig,
   DataSourceRecordType,
 } from "@/models/DataSource";
+import type { OAuthState } from "@/models/OAuth";
 
 export default function NewDataSourcePage() {
+  const searchParams = useSearchParams();
+  // undefined = not yet resolved; null = no OAuth state
+  const [oAuthState, setOAuthState] = useState<OAuthState | null | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    try {
+      // Google passes state as a query param; Zetkin uses sessionStorage
+      const stateParam = searchParams.get("state");
+      const stored = stateParam ?? sessionStorage.getItem(OAUTH_STATE_KEY);
+      if (stored) {
+        if (!stateParam) sessionStorage.removeItem(OAUTH_STATE_KEY);
+        setOAuthState(oAuthStateSchema.parse(JSON.parse(stored)));
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    setOAuthState(null);
+  }, [searchParams]);
+
+  return (
+    <div className="p-4 mx-auto max-w-5xl w-full">
+      <PageHeader
+        title="New data source"
+        description="Create a new data source to import into your maps."
+      />
+      {oAuthState !== undefined && (
+        <NewDataSourceForm oAuthState={oAuthState} />
+      )}
+    </div>
+  );
+}
+
+function NewDataSourceForm({ oAuthState }: { oAuthState: OAuthState | null }) {
   const { organisationId } = useOrganisations();
   const router = useRouter();
-  const oAuthState = useOAuthState();
 
   // Manually manage loading state to account for success redirect duration
   const [isLoading, setIsLoading] = useState(false);
@@ -66,11 +105,11 @@ export default function NewDataSourcePage() {
 
   const form = useForm({
     defaultValues: {
-      name: oAuthState?.dataSourceName || "",
-      recordType: oAuthState?.recordType || ("" as DataSourceRecordType),
-      config: (oAuthState?.dataSourceType
-        ? { type: oAuthState?.dataSourceType }
-        : undefined) as NewDataSourceConfig | undefined,
+      name: oAuthState?.dataSourceName ?? "",
+      recordType: (oAuthState?.recordType ?? "") as DataSourceRecordType,
+      config: oAuthState?.dataSourceType
+        ? ({ type: oAuthState.dataSourceType } as NewDataSourceConfig)
+        : undefined,
     },
     onSubmit: async ({ value }) => {
       if (!organisationId) return toast.error("No organisation selected");
@@ -85,144 +124,143 @@ export default function NewDataSourcePage() {
   const formError = error?.data?.formError;
 
   return (
-    <div className="p-4 mx-auto max-w-5xl w-full">
-      <PageHeader
-        title="New data source"
-        description="Create a new data source to import into your maps."
-      />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="flex flex-col items-start gap-6 max-w-[40ch] mt-8"
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+      className="flex flex-col items-start gap-6 max-w-[40ch] mt-8"
+    >
+      <form.Field name="name">
+        {(field) => (
+          <FormFieldWrapper
+            label="Name"
+            id={field.name}
+            error={fieldErrors?.[field.name]}
+          >
+            <Input
+              type="text"
+              autoFocus
+              id={field.name}
+              placeholder="Name"
+              value={field.state.value}
+              className="w-full"
+              onChange={(e) => field.handleChange(e.target.value)}
+              required
+            />
+          </FormFieldWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="recordType">
+        {(field) => (
+          <FormFieldWrapper
+            label="Data type"
+            id={field.name}
+            error={fieldErrors?.[field.name]}
+          >
+            <Select
+              required
+              value={field.state.value || ""}
+              onValueChange={(value) =>
+                field.handleChange(value as DataSourceRecordType)
+              }
+            >
+              <SelectTrigger className="w-full" id={field.name}>
+                <SelectValue placeholder="Choose a record type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(DataSourceRecordTypeLabels).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    <DataSourceRecordTypeIcon
+                      type={type as DataSourceRecordType}
+                    />
+                    {DataSourceRecordTypeLabels[type as DataSourceRecordType]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormFieldWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="config.type">
+        {(field) => (
+          <FormFieldWrapper
+            label="Source type"
+            id={field.name}
+            error={fieldErrors?.[field.name]}
+          >
+            <Select
+              required
+              value={field.state.value || ""}
+              onValueChange={(value) =>
+                field.handleChange(value as DataSourceType)
+              }
+            >
+              <SelectTrigger className="w-full" id={field.name}>
+                <SelectValue placeholder="Choose a type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(DataSourceType).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    <DataSourceIcon type={type} />
+                    {DataSourceTypeLabels[type as DataSourceType]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormFieldWrapper>
+        )}
+      </form.Field>
+
+      <form.Subscribe
+        selector={(state) => ({
+          config: state.values.config,
+          dataSourceName: state.values.name,
+          recordType: state.values.recordType,
+        })}
       >
-        <form.Field name="name">
-          {(field) => (
-            <FormFieldWrapper
-              label="Name"
-              id={field.name}
-              error={fieldErrors?.[field.name]}
-            >
-              <Input
-                type="text"
-                autoFocus
-                id={field.name}
-                placeholder="Name"
-                value={field.state.value}
-                className="w-full"
-                onChange={(e) => field.handleChange(e.target.value)}
-                required
-              />
-            </FormFieldWrapper>
-          )}
-        </form.Field>
+        {({ config, dataSourceName, recordType }) => (
+          <>
+            {config && (
+              <div className="flex flex-col items-start gap-6 w-full">
+                <ConfigFields
+                  config={config}
+                  dataSourceName={dataSourceName}
+                  recordType={recordType}
+                  onChange={(update) =>
+                    form.setFieldValue("config", {
+                      ...config,
+                      ...update,
+                    } as NewDataSourceConfig)
+                  }
+                />
+                <FormFieldError error={fieldErrors?.config} />
+              </div>
+            )}
+          </>
+        )}
+      </form.Subscribe>
 
-        <form.Field name="recordType">
-          {(field) => (
-            <FormFieldWrapper
-              label="Data type"
-              id={field.name}
-              error={fieldErrors?.[field.name]}
-            >
-              <Select
-                required
-                value={field.state.value || ""}
-                onValueChange={(value) =>
-                  field.handleChange(value as DataSourceRecordType)
-                }
-              >
-                <SelectTrigger className="w-full" id={field.name}>
-                  <SelectValue placeholder="Choose a record type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(DataSourceRecordTypeLabels).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      <DataSourceRecordTypeIcon
-                        type={type as DataSourceRecordType}
-                      />
-                      {DataSourceRecordTypeLabels[type as DataSourceRecordType]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormFieldWrapper>
-          )}
-        </form.Field>
-
-        <form.Field name="config.type">
-          {(field) => (
-            <FormFieldWrapper
-              label="Source type"
-              id={field.name}
-              error={fieldErrors?.[field.name]}
-            >
-              <Select
-                required
-                value={field.state.value || ""}
-                onValueChange={(value) =>
-                  field.handleChange(value as DataSourceType)
-                }
-              >
-                <SelectTrigger className="w-full" id={field.name}>
-                  <SelectValue placeholder="Choose a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(DataSourceType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      <DataSourceIcon type={type} />
-                      {DataSourceTypeLabels[type as DataSourceType]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormFieldWrapper>
-          )}
-        </form.Field>
-
-        <form.Subscribe
-          selector={(state) => ({
-            config: state.values.config,
-            dataSourceName: state.values.name,
-            recordType: state.values.recordType,
-          })}
-        >
-          {({ config, dataSourceName, recordType }) => (
-            <>
-              {config && (
-                <div className="flex flex-col items-start gap-6 w-full">
-                  <ConfigFields
-                    config={config}
-                    dataSourceName={dataSourceName}
-                    recordType={recordType}
-                    onChange={(update) =>
-                      form.setFieldValue("config", {
-                        ...config,
-                        ...update,
-                      } as NewDataSourceConfig)
-                    }
-                  />
-                  <FormFieldError error={fieldErrors?.config} />
-                </div>
-              )}
-            </>
-          )}
-        </form.Subscribe>
-
-        <form.Subscribe selector={(state) => state.isDefaultValue}>
-          {(isDefaultValue) => (
+      <form.Subscribe selector={(state) => state.values.config}>
+        {(config) => {
+          const isConfigValid =
+            Boolean(config) &&
+            newDataSourceConfigSchema.safeParse(config).success;
+          return (
             <Button
-              disabled={isLoading || isPending || isDefaultValue}
+              disabled={isLoading || isPending || !isConfigValid}
               type="submit"
             >
               {isLoading ? "Creating..." : "Configure fields"}
             </Button>
-          )}
-        </form.Subscribe>
+          );
+        }}
+      </form.Subscribe>
 
-        {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
-      </form>
-    </div>
+      {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
+    </form>
   );
 }
 
@@ -255,6 +293,15 @@ function ConfigFields({
       );
     case DataSourceType.Mailchimp:
       return <MailchimpFields config={config} onChange={onChange} />;
+    case DataSourceType.Zetkin:
+      return (
+        <ZetkinFields
+          dataSourceName={dataSourceName}
+          recordType={recordType}
+          config={config}
+          onChange={onChange}
+        />
+      );
     default:
       return null;
   }
@@ -268,14 +315,4 @@ const prepareDataSource = async (
     return { ...config, url };
   }
   return config;
-};
-
-const useOAuthState = () => {
-  const searchParams = useSearchParams();
-  try {
-    const rawState = JSON.parse(searchParams.get("state") || "{}");
-    return defaultStateSchema.parse(rawState);
-  } catch {
-    return null;
-  }
 };

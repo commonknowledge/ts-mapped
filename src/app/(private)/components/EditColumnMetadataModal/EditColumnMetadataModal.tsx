@@ -6,6 +6,7 @@ import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
+import { DUMMY_COUNT_COLUMN, MAX_COLUMN_KEY } from "@/constants";
 import { useColumnValues } from "@/hooks/useColumnValues";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
@@ -193,6 +194,12 @@ export default function EditColumnMetadataModal() {
   }, [setEditColumnMetadata, draftDescription, draftValueLabels, saveMetadata]);
 
   const isOpen = editColumnMetadata !== null;
+  const columnLabel =
+    columnName === DUMMY_COUNT_COLUMN
+      ? "count"
+      : columnName === MAX_COLUMN_KEY
+        ? "highest value column"
+        : columnName;
 
   return (
     <Dialog
@@ -208,12 +215,13 @@ export default function EditColumnMetadataModal() {
               <DialogTitle>
                 {editColumnMetadata.fields.description ? (
                   <>
-                    Metadata for <span className="font-mono">{columnName}</span>
+                    Metadata for{" "}
+                    <span className="font-mono">{columnLabel}</span>
                   </>
                 ) : (
                   <>
                     Display values for{" "}
-                    <span className="font-mono">{columnName}</span>
+                    <span className="font-mono">{columnLabel}</span>
                   </>
                 )}
               </DialogTitle>

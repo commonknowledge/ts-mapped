@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { GE_DATA_SOURCE_NAME, MAX_COLUMN_KEY } from "@/constants";
+import { DUMMY_COUNT_COLUMN, GE_DATA_SOURCE_NAME } from "@/constants";
 import { useDataSources, useMembersDataSource } from "@/hooks/useDataSources";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { AreaSetGroupCode } from "@/models/AreaSet";
 import { MapType } from "@/models/MapView";
-import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
+import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 
 export function useBoundariesControl() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -22,7 +22,7 @@ export function useBoundariesControl() {
       return "No fill";
     }
 
-    if (viewConfig.calculationType === CalculationType.Count) {
+    if (viewConfig.areaDataColumn === DUMMY_COUNT_COLUMN) {
       return "Record count";
     }
 
@@ -77,7 +77,6 @@ export function useBoundariesControl() {
           updateViewConfig({
             areaDataSourceId: "",
             areaDataColumn: "",
-            calculationType: undefined,
           });
         },
       },
@@ -90,8 +89,7 @@ export function useBoundariesControl() {
             onClick: () => {
               updateViewConfig({
                 areaDataSourceId: membersDataSource.id,
-                areaDataColumn: MAX_COLUMN_KEY,
-                calculationType: CalculationType.Count,
+                areaDataColumn: DUMMY_COUNT_COLUMN,
               });
             },
           },

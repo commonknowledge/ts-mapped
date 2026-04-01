@@ -21,12 +21,17 @@ export type Polygon = z.infer<typeof polygonSchema>;
 export type MultiPolygon = z.infer<typeof multiPolygonSchema>;
 export type PolygonOrMultiPolygon = z.infer<typeof polygonOrMultiPolygonSchema>;
 
+export function parseTurfPolygon(geoJson: string): PolygonOrMultiPolygon {
+  const parsed = JSON.parse(geoJson);
+  return polygonOrMultiPolygonSchema.parse(parsed);
+}
+
 export const turfSchema = z.object({
   id: z.string(),
   label: z.string(),
   notes: z.string(),
   area: z.number(),
-  polygon: polygonOrMultiPolygonSchema,
+  polygon: z.string(),
   mapId: z.string(),
   createdAt: z.date(),
   color: z.string().nullish(),

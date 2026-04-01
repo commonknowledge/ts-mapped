@@ -1,4 +1,5 @@
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType } from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
@@ -208,7 +209,7 @@ export function GradientBars({
             >
               <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
                 {getDisplayValue(value, {
-                  calculationType: viewConfig.calculationType,
+                  isCount: viewConfig.areaDataColumn === DUMMY_COUNT_COLUMN,
                   columnMetadata,
                   columnType: ColumnType.Number,
                 })}

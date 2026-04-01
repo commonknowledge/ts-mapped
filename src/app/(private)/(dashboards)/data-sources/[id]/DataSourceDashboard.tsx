@@ -102,6 +102,11 @@ export function DataSourceDashboard({
           }
           if (dataSourceEvent.event === "ImportFailed") {
             setImporting(false);
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataSource.byId.queryKey({
+                dataSourceId: dataSource.id,
+              }),
+            });
             toast.error("Failed to import this data source.");
           }
           if (dataSourceEvent.event === "ImportComplete") {

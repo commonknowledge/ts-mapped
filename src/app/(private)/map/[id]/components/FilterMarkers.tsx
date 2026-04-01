@@ -1,4 +1,4 @@
-import { circle } from "@turf/turf";
+import { bbox, circle } from "@turf/turf";
 import { useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
@@ -7,6 +7,7 @@ import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQuerie
 import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/(private)/map/[id]/hooks/useTurfsQuery";
+import { parseTurfPolygon } from "@/models/Turf";
 import { useMapRef } from "../hooks/useMapCore";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/models/MapView";
@@ -14,6 +15,7 @@ import type {
   Feature,
   FeatureCollection,
   GeoJsonProperties,
+  MultiPolygon,
   Polygon,
 } from "geojson";
 import type { LngLatBoundsLike } from "mapbox-gl";
@@ -115,14 +117,17 @@ export default function FilterMarkers() {
     view?.dataSourceViews,
   ]);
 
-  const filterTurfs: Polygon[] = useMemo(() => {
-    let filterTurfs: Polygon[] = [];
+  const filterTurfs: (Polygon | MultiPolygon)[] = useMemo(() => {
+    let filterTurfs: (Polygon | MultiPolygon)[] = [];
     for (const dataSourceView of view?.dataSourceViews || []) {
       const filter = dataSourceView.filter;
       const dataSourceTurfs = getFilterTurfs(filter)
-        .map((turfId) => turfs?.find((t) => t.id === turfId)?.polygon)
+        .map((turfId) => {
+          const polygon = turfs?.find((t) => t.id === turfId)?.polygon;
+          return polygon ? parseTurfPolygon(polygon) : undefined;
+        })
         .filter((t) => t !== undefined);
-      filterTurfs = filterTurfs.concat(dataSourceTurfs as Polygon[]);
+      filterTurfs = filterTurfs.concat(dataSourceTurfs);
     }
     return filterTurfs;
   }, [turfs, view?.dataSourceViews]);
@@ -139,7 +144,7 @@ export default function FilterMarkers() {
     ) {
       const allPolygons = memberFilterMarkers
         .concat(otherFilterMarkers)
-        .map((m) => m.geometry)
+        .map((m) => m.geometry as Polygon | MultiPolygon)
         .concat(filterTurfs);
       const bounds = calculateBounds(allPolygons);
       if (bounds) {
@@ -242,37 +247,23 @@ const getFilterTurfs = (filter: RecordFilterInput): string[] => {
   return filterTurfs;
 };
 
-const calculateBounds = (polygons: Polygon[]): LngLatBoundsLike | null => {
+const calculateBounds = (
+  polygons: (Polygon | MultiPolygon)[],
+): LngLatBoundsLike | null => {
   if (polygons.length === 0) {
     return null;
   }
-
-  let minLng = null;
-  let maxLng = null;
-  let minLat = null;
-  let maxLat = null;
-
-  // Iterate through all polygons
-  for (const polygon of polygons) {
-    // Iterate through all rings (exterior + holes)
-    for (const ring of polygon.coordinates) {
-      // Iterate through all coordinates in the ring
-      for (const [lng, lat] of ring) {
-        minLng = minLng === null ? lng : Math.min(minLng, lng);
-        maxLng = maxLng === null ? lng : Math.max(maxLng, lng);
-        minLat = minLat === null ? lat : Math.min(minLat, lat);
-        maxLat = maxLat === null ? lat : Math.max(maxLat, lat);
-      }
-    }
-  }
-
-  if (!minLng || !maxLng || !minLat || !maxLat) {
-    return null;
-  }
-
-  // Return in Mapbox fitBounds format: [[west, south], [east, north]]
+  const collection: FeatureCollection = {
+    type: "FeatureCollection",
+    features: polygons.map((geometry) => ({
+      type: "Feature",
+      geometry,
+      properties: null,
+    })),
+  };
+  const [west, south, east, north] = bbox(collection);
   return [
-    [minLng, minLat],
-    [maxLng, maxLat],
+    [west, south],
+    [east, north],
   ];
 };

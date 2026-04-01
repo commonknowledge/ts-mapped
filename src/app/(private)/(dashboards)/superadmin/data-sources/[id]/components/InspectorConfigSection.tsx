@@ -476,7 +476,9 @@ function SortableSelectedRow({
           name={item.name}
           onUpdate={(patch) => onUpdateColumn(item.name, patch)}
           onRemove={() => onRemoveColumn(item.name)}
-          onPatchColumnMetadata={(patch) => onPatchColumnMetadata(item.name, patch)}
+          onPatchColumnMetadata={(patch) =>
+            onPatchColumnMetadata(item.name, patch)
+          }
         />
       )}
     </div>

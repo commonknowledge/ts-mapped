@@ -1,8 +1,9 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceType } from "@/models/DataSource";
-import { getOAuthCredentials, getOAuthURL, getSheets } from "@/services/google";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import {
@@ -12,11 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import type { DefaultState } from "../schema";
 import type {
   DataSourceRecordType,
   GoogleSheetsConfig,
 } from "@/models/DataSource";
+import type { OAuthState } from "@/models/OAuth";
 
 export default function GoogleSheetsFields({
   dataSourceName,
@@ -70,6 +71,8 @@ function GoogleSheetsFieldsWithOAuth({
   // This updates immediately, so no chance of duplicate requests
   const hasCompletedOAuth = useRef<boolean>(false);
   const searchParams = useSearchParams();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
   const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
@@ -79,6 +82,10 @@ function GoogleSheetsFieldsWithOAuth({
   const code = searchParams.get("code");
   const scope = searchParams.get("scope");
 
+  const { mutateAsync: exchangeCode } = useMutation(
+    trpc.oauth.googleExchangeOAuthCode.mutationOptions(),
+  );
+
   // Complete OAuth process when code and scope are set
   useEffect(() => {
     const completeOAuth = async () => {
@@ -87,9 +94,9 @@ function GoogleSheetsFieldsWithOAuth({
           hasCompletedOAuth.current = true;
           setError("");
           setLoading(true);
-          const oAuthCredentials = await getOAuthCredentials(
-            window.location.href,
-          );
+          const oAuthCredentials = await exchangeCode({
+            redirectSuccessUrl: window.location.href,
+          });
           onChange({ oAuthCredentials });
         }
       } catch {
@@ -99,7 +106,7 @@ function GoogleSheetsFieldsWithOAuth({
       }
     };
     completeOAuth();
-  }, [code, onChange, scope]);
+  }, [code, exchangeCode, onChange, scope]);
 
   // Load sheet names if OAuth complete and Spreadsheet ID provided
   useEffect(() => {
@@ -113,11 +120,13 @@ function GoogleSheetsFieldsWithOAuth({
 
           setError("");
           setLoading(true);
-          const sheets = await getSheets(
-            config.oAuthCredentials,
-            config.spreadsheetId,
+          const result = await queryClient.fetchQuery(
+            trpc.oauth.googleGetSheets.queryOptions({
+              oAuthCredentials: config.oAuthCredentials,
+              spreadsheetId: config.spreadsheetId,
+            }),
           );
-          setSheets(sheets);
+          setSheets(result);
         }
       } catch {
         setError("Could not load sheet names.");
@@ -126,7 +135,13 @@ function GoogleSheetsFieldsWithOAuth({
       }
     };
     loadSheets();
-  }, [config.oAuthCredentials, config.spreadsheetId, spreadsheetUrl]);
+  }, [
+    config.oAuthCredentials,
+    config.spreadsheetId,
+    queryClient,
+    spreadsheetUrl,
+    trpc,
+  ]);
 
   // Extract the Spreadsheet ID from the user-provided URL
   useEffect(() => {
@@ -139,12 +154,15 @@ function GoogleSheetsFieldsWithOAuth({
   const onClickConnect = async () => {
     setLoading(true);
     try {
-      const url = await getOAuthURL({
+      const state: OAuthState = {
         dataSourceName,
-        recordType: recordType || "",
+        recordType: recordType || undefined,
         dataSourceType: DataSourceType.GoogleSheets,
-      } satisfies DefaultState);
-      window.location.href = url;
+      };
+      const result = await queryClient.fetchQuery(
+        trpc.oauth.googleGetOAuthURL.queryOptions(state),
+      );
+      window.location.href = result.url;
     } catch {
       setError("Could not authorize with Google.");
     }
