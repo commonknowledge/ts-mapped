@@ -1,0 +1,37 @@
+---
+title: Markers
+subtitle: Plot individual records as markers on the map.
+featureSet: Map Layers
+featureSetSlug: map-layers
+---
+
+The Markers layer plots individual records from a connected data source as clickable points on the map. Each marker represents one record — a person, a location, an event, or whatever your data contains.
+
+## Adding a markers layer
+
+### 1. Open the Markers layer
+
+In the map editor, find the **Markers** section in the left panel and click to expand it.
+
+### 2. Select a data source
+
+Choose a connected data source from the dropdown. All geocoded records from that source will appear as markers on the map immediately.
+
+## Marker collections vs individual markers
+
+There are two types of marker on a Mapped map:
+
+- **Marker collections** — groups of markers that come from a connected data source. These update automatically as your data changes.
+- **Individual markers** — single points you add manually by right-clicking anywhere on the map and selecting **Add marker**. These are useful for annotating specific locations that aren't in a data source.
+
+## Styling markers
+
+Right-click any marker (or the marker collection in the layer panel) to open styling options. You can change the marker colour, icon, and size. Colour can be set to a fixed value or driven by a data column for categorical colouring.
+
+## Clustering
+
+When many markers are close together, Mapped automatically clusters them into a single badge showing the count. Click a cluster to zoom in and separate the individual markers. Clustering can be toggled off in the layer settings if you prefer to see all markers at once.
+
+## Filtering markers
+
+Markers from a data source can be filtered using custom areas. Add an [Areas layer](/docs/areas-layer) and draw or import a boundary — the markers layer will then show only records that fall within your defined areas.

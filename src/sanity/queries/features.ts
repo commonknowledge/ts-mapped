@@ -1,5 +1,4 @@
 import { client } from "@/sanity/lib/client";
-import type { Feature, FeatureSet } from "@/app/(marketing)/types";
 
 export const FEATURE_SETS_QUERY = `*[_type == "featureSet"] | order(order asc) {
   _id,
@@ -37,11 +36,11 @@ export async function fetchFeatureSetsAndFeatures() {
   ]);
 
   // Group features by their feature set
-  const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const featureSetsWithFeatures = featureSets.map((featureSet: any) => ({
     ...featureSet,
-    features: allFeatures.filter(
-      (feature: Feature) => feature.featureSet?._id === featureSet._id,
-    ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    features: allFeatures.filter((feature: any) => feature.featureSet?._id === featureSet._id),
   }));
 
   return {

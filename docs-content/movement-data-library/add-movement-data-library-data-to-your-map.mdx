@@ -1,0 +1,33 @@
+---
+title: Add Movement Data Library Data to Your Map
+subtitle: Add data from the Movement Data Library to your map.
+featureSet: Movement Data Library
+featureSetSlug: movement-data-library
+---
+
+Once you've added a Movement Data Library dataset to your organisation, you can use it in any map — as a markers layer, as a choropleth data source, or combined with your own data for a [count visualisation](/docs/count-records-in-boundary) or [bivariate map](/docs/bivariate-visualisation).
+
+## Using MDL data as a choropleth layer
+
+MDL datasets often contain pre-aggregated values per boundary (e.g. deprivation scores per ward). These are ideal for colouring boundaries directly.
+
+### 1. Open the Data Visualisation layer
+
+Expand **Data Visualisation** in the left panel and select a boundary type in the Legend.
+
+### 2. Select an MDL data source
+
+In the Legend's data source dropdown, choose the MDL dataset you added to your organisation. Select the column you want to visualise.
+
+The boundaries will colour immediately. Use the [Data Visualisation Panel](/docs/data-visualisation-panel) to adjust the colour scheme and scale.
+
+## Combining MDL data with your own data
+
+MDL datasets become most powerful when combined with your own. A common use case is a [bivariate map](/docs/bivariate-visualisation) — for example:
+
+- **Primary column**: your membership count per constituency (from your own data source)
+- **Secondary column**: a deprivation index per constituency (from an MDL dataset)
+
+This shows at a glance which areas have both low membership and high deprivation — the highest-priority areas for your campaign.
+
+To set this up, follow the [Bivariate Visualisation](/docs/bivariate-visualisation) guide and select the MDL dataset as the source for the secondary column.

@@ -1,0 +1,49 @@
+---
+title: Publish a Map
+subtitle: Make your map publicly accessible.
+featureSet: Publishing & Sharing
+featureSetSlug: publishing
+---
+
+Publishing a map generates a public URL that anyone can visit — no Mapped account required. You can also embed the map on your website using an iframe. Published maps are read-only; visitors can pan, zoom, and click markers, but cannot edit anything.
+
+## Publishing your map
+
+### 1. Open the Publish panel
+
+In the map editor, click the **Publish** button in the top-right corner.
+
+### 2. Enable public access
+
+Toggle **Public** on. A public URL is generated immediately.
+
+### 3. Copy the URL
+
+Copy the public URL to share it directly. Anyone with the link can view the map.
+
+## Embedding on a website
+
+### 1. Copy the embed code
+
+In the Publish panel, click **Copy embed code**. This gives you an `<iframe>` snippet.
+
+### 2. Paste into your website
+
+Paste the snippet into your website's HTML where you want the map to appear. The map will render at the size of the iframe — adjust the `width` and `height` attributes to fit your layout.
+
+```html
+<iframe
+  src="https://app.mapped.org/public/your-map-id"
+  width="100%"
+  height="600"
+  frameborder="0"
+></iframe>
+```
+
+## Unpublishing
+
+To make a map private again, return to the Publish panel and toggle **Public** off. The public URL will stop working immediately, but the embed code on any website will just show nothing rather than an error.
+
+## What visitors see
+
+Published maps show all layers that were visible when you saved the map. The Legend is shown so visitors can understand what the colours and markers mean. The Inspector is available — visitors can click boundaries and markers to see details — but data source configurations and editing tools are hidden.

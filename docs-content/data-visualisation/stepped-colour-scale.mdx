@@ -1,0 +1,45 @@
+---
+title: Stepped Colour Scale
+subtitle: Define custom break points for discrete colour bands.
+featureSet: Data Visualisation
+featureSetSlug: data-visualisation
+---
+
+A stepped colour scale divides your data range into discrete bands, each with a solid colour. Unlike a gradient — where every value gets a slightly different shade — a stepped scale groups nearby values into the same colour bucket. This makes it easier for readers to categorise regions at a glance.
+
+## Switching to a stepped scale
+
+### 1. Open the Data Visualisation Panel
+
+With a boundary and data column already selected, click the paintbrush icon to open the panel.
+
+### 2. Select Stepped
+
+Under **Colour scale type**, choose **Stepped**. The boundaries will update immediately to show discrete colour bands.
+
+## Editing the break points
+
+### 1. Open the break-point editor
+
+Click the **Edit steps** button that appears when Stepped is selected. A dialogue opens showing a range slider with handles representing each break point.
+
+### 2. Drag the handles
+
+Each handle defines where one colour band ends and the next begins. The end of one step is always the start of the next — there are no gaps. Drag handles left or right to move the thresholds.
+
+### 3. Add or remove steps
+
+Use the **+** button to add a new step (splitting the largest band in two) or the **−** button next to a step to remove it. More steps give finer granularity; fewer steps produce a cleaner, simpler map.
+
+### 4. Confirm
+
+Click **Apply** to close the editor and update the map.
+
+## When to use stepped vs gradient
+
+| Situation | Recommendation |
+|---|---|
+| You want to highlight a specific threshold (e.g. above/below target) | Stepped |
+| You're comparing regions and want clear categories | Stepped |
+| Your data has a wide, continuous range | Gradient |
+| Precise differences between values matter | Gradient |

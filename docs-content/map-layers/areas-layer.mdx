@@ -1,0 +1,40 @@
+---
+title: Areas
+subtitle: Draw custom areas on the map.
+featureSet: Map Layers
+featureSetSlug: map-layers
+---
+
+Areas are custom polygons you define on the map. Once drawn, they can filter connected data sources to show only the markers that fall within them — useful for regional breakdowns, campaign territories, or constituency work.
+
+## Adding a custom area
+
+### 1. Open the Areas layer
+
+In the map editor, expand the **Areas** section in the left panel.
+
+### 2. Draw an area
+
+Click **Draw area** and then click on the map to place the vertices of your polygon. Click the first point again (or double-click) to close the shape. Give the area a name when prompted.
+
+## Importing boundaries as areas
+
+Rather than drawing from scratch, you can import a pre-existing boundary directly:
+
+### 1. Find a boundary on the map
+
+Use the [Data Visualisation layer](/docs/data-visualisation-panel) to load a boundary set (e.g. Westminster constituencies, local authority districts). Click any boundary on the map to open the Inspector.
+
+### 2. Use "Add to areas"
+
+In the Inspector panel, click the **Add to areas** button. The boundary's geometry is saved as a custom area in your Areas list.
+
+This is the fastest way to build a set of areas that align precisely with official boundaries.
+
+## Adjusting area styling
+
+Click an area in the Areas layer panel to select it. You can adjust the fill colour, stroke colour, and opacity in the inspector on the right. Each area can be styled independently.
+
+## Filtering data sources with areas
+
+Once you have areas defined, any Markers layer connected to a data source will respect them — only markers whose coordinates fall inside one of your areas will be shown. This filtering happens automatically; no extra configuration is needed.

@@ -1,0 +1,34 @@
+---
+title: Using the Inspector
+subtitle: Click any map element to open the Inspector.
+featureSet: Inspector
+featureSetSlug: inspector
+---
+
+The Inspector is a panel that appears in the top-right corner of the map whenever you click something — a boundary, a marker, a cluster, or a custom area. It gives you a detailed view of that element and its associated data.
+
+## Opening the Inspector
+
+Simply click any element on the map:
+
+- **A boundary** (when the Data Visualisation layer is active) — the Inspector shows the boundary name, its code, and its choropleth value.
+- **A marker** — the Inspector shows the record's name, location, and any data field values from connected data sources.
+- **A cluster** (a badge showing a count of nearby markers) — the Inspector lists all the individual markers within that cluster.
+- **A custom area** — the Inspector shows the area name and a summary of the markers within it.
+
+Click the **×** button or click elsewhere on the map to close the Inspector.
+
+## The Data tab
+
+The Data tab shows field-level information for the selected element:
+
+- For boundaries: the choropleth value and, if bivariate mode is on, the 3×3 bivariate grid with the boundary's cell highlighted.
+- For markers: the field values from your connected data sources (name, address, and any other columns you've imported).
+
+You can configure which data sources appear here — see [Configuring the Data Tab](/docs/configure-inspector-data).
+
+## The Markers tab
+
+When you've selected a boundary or custom area, the Markers tab lists all the markers from your connected data sources that fall within it. This is useful for quickly seeing who or what is present in a particular region without switching to a table view.
+
+For clusters, the Markers tab lists the individual markers that make up the cluster.

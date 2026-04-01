@@ -1,32 +1,16 @@
 export interface Feature {
-  _id: string;
+  slug: string;
   title: string;
   subtitle?: string;
-  slug: { current: string };
-  explainer?: RichTextBlock[];
-  icon?: string;
-  order?: number;
-  isActive?: boolean;
-  featureSet?: {
-    _id: string;
-    title: string;
-    slug: { current: string };
-  };
-  howToUse?: {
-    title: string;
-    steps: FeatureHowToUseSteps[];
-  };
+  featureSetSlug: string;
 }
 
 export interface FeatureSet {
-  _id: string;
+  slug: string;
   title: string;
-  subtitle?: string;
-  slug: { current: string };
   description?: string;
-  icon?: string;
   order?: number;
-  features: Feature[] | null;
+  features: Feature[];
 }
 
 export interface FeatureSetProps {
@@ -47,18 +31,6 @@ export interface ImageAsset {
   };
   alt?: string;
   caption?: string;
-}
-
-export interface FeatureHowToUseSteps {
-  title: string;
-  description: RichTextBlock[];
-  images: ImageAsset[];
-  order: number;
-}
-
-export interface FeatureHowToUseSection {
-  title?: string;
-  steps: FeatureHowToUseSteps[];
 }
 
 export interface NewsItem {

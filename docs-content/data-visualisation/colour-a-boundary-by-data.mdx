@@ -1,0 +1,40 @@
+---
+title: Colour a Boundary by Data
+subtitle: Create a choropleth to colour regions by a numeric value.
+featureSet: Data Visualisation
+featureSetSlug: data-visualisation
+---
+
+A choropleth colours geographical boundaries (constituencies, wards, local authorities, etc.) according to a value from your data. It's one of the most effective ways to show where something is concentrated or how regions compare.
+
+## Setting up a choropleth
+
+### 1. Open the Data Visualisation layer
+
+Expand the **Data Visualisation** section in the left panel of the map editor.
+
+### 2. Choose a boundary type
+
+Select the boundary set you want to colour from the dropdown in the Legend — for example, Westminster Parliamentary Constituencies or Local Authority Districts. The boundaries will appear on the map as outlines.
+
+### 3. Connect a data source
+
+Select a data source from the dropdown in the Legend. This should be a source that contains a column with one value per boundary — for example, a column of vote counts or membership numbers per constituency.
+
+### 4. Select a column
+
+Choose the column that contains the values you want to visualise. Mapped will colour the boundaries immediately using a gradient from the lowest to the highest value.
+
+### 5. Adjust the appearance
+
+Open the [Data Visualisation Panel](/docs/data-visualisation-panel) (paintbrush icon) to customise the look:
+
+- **Colour scheme** — try different palettes to find one that communicates your data clearly. Diverging works well when your data has a meaningful midpoint (e.g. swing from one party to another). Sequential works for data that goes from zero upwards.
+- **Reverse** — flip the scale if you want high values to appear in a lighter colour.
+- **Opacity** — reduce this if you want the base map to show through the boundaries.
+
+## Colour scale types
+
+- **Gradient** — a smooth, continuous colour transition from the lowest to the highest value. Good for most numeric data.
+- **Stepped** — the range is divided into discrete colour bands. Good for highlighting categories or thresholds. See [Stepped Colour Scale](/docs/stepped-colour-scale).
+- **Categorical** — each distinct value gets its own colour. Use this for non-numeric columns like region names or party affiliations.

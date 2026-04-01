@@ -1,0 +1,38 @@
+---
+title: The Data Visualisation Panel
+subtitle: Open and navigate the visualisation panel.
+featureSet: Data Visualisation
+featureSetSlug: data-visualisation
+---
+
+The Data Visualisation panel is where you control how boundary maps (choropleths) look — colour schemes, scale types, opacity, and layout. It sits on the right side of the map editor and works alongside the Legend on the left.
+
+## Opening the panel
+
+### 1. Expand the Data Visualisation layer
+
+In the left panel of the map editor, find the **Data Visualisation** section and click to expand it.
+
+### 2. Click the paintbrush icon
+
+Click the paintbrush icon next to the Data Visualisation layer. The panel will open on the right side of the screen.
+
+The Style section inside the panel only becomes active once you've selected a boundary type, data source, and column in the Legend. If the panel looks greyed out, set those up first.
+
+## What the panel contains
+
+### Layout
+
+Switch between two layout modes:
+
+- **Geographic** — boundaries are drawn in their true geographical positions and shapes (default).
+- **Hex Map** — boundaries are represented as equal-sized hexagons arranged in a rough geographic layout. Useful when smaller areas like London would otherwise be hard to see.
+
+### Style
+
+- **Colour scale type** — choose how values map to colours: [Gradient](/docs/colour-a-boundary-by-data), [Stepped](/docs/stepped-colour-scale), or Categorical.
+- **Colour scheme** — pick a palette: Sequential, Red-Blue, Green-Yellow-Red, Viridis, Plasma, Diverging, or Custom.
+- **Reverse** — flip the colour direction (e.g. make high values dark instead of light).
+- **Opacity** — slide to adjust the transparency of the boundary fill (0–100%).
+
+The Style section is hidden when a secondary column is selected for [bivariate visualisation](/docs/bivariate-visualisation), since the bivariate colour matrix takes over.

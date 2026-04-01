@@ -1,0 +1,37 @@
+---
+title: Bivariate Visualisation
+subtitle: Compare two data columns using a 3×3 colour matrix.
+featureSet: Data Visualisation
+featureSetSlug: data-visualisation
+---
+
+Bivariate visualisation lets you show two variables at once on the same boundary map. Each region is coloured according to where it sits on a 3×3 grid — one axis for your primary column, the other for a secondary column. It's particularly powerful for revealing correlation: for example, showing which constituencies have both high membership and high deprivation.
+
+## Setting up bivariate mode
+
+### 1. Set up a choropleth first
+
+Follow the steps in [Colour a Boundary by Data](/docs/colour-a-boundary-by-data) to select a boundary type, data source, and primary column.
+
+### 2. Add a secondary column
+
+In the Legend, you'll see a **Secondary column** dropdown below the primary column selector. Choose the second column you want to compare. The map immediately switches to bivariate mode — the normal colour scheme is replaced by the 3×3 colour matrix.
+
+## Reading the colour matrix
+
+The matrix is shown in the Legend and in the Inspector when you click a boundary. The axes represent:
+
+- **Horizontal axis** — the primary column (low → mid → high, left to right)
+- **Vertical axis** — the secondary column (low → mid → high, bottom to top)
+
+Each cell in the grid has a distinct colour. A region in the top-right cell scores high on both columns. A region in the bottom-left scores low on both.
+
+## Filtering by bucket
+
+In the Inspector, you'll see the 3×3 bivariate grid with the selected boundary's cell highlighted. Click any cell in the grid to filter the map — only boundaries that fall in that bucket will be fully visible, and the rest will fade. Click the same cell again to clear the filter.
+
+This makes it easy to answer questions like: "which areas have high deprivation but low membership?" — click that cell and the map highlights exactly those regions.
+
+## Removing bivariate mode
+
+To return to a standard single-column choropleth, clear the **Secondary column** selector in the Legend.

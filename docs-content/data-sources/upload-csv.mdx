@@ -1,0 +1,50 @@
+---
+title: Upload a CSV
+subtitle: Import data from a CSV file.
+featureSet: Data Sources
+featureSetSlug: data-sources
+---
+
+CSV upload is the quickest way to get data into Mapped. If your data lives in a spreadsheet, export it as a CSV and Mapped will geocode it and plot it on your map.
+
+## Preparing your CSV
+
+Your CSV needs at least one column that identifies location. Mapped supports two approaches:
+
+- **Address columns** — a column containing a street address, postcode, or place name. Mapped will geocode these automatically.
+- **Coordinate columns** — separate latitude and longitude columns. No geocoding needed; records plot instantly.
+
+Column headers should be on the first row. Remove any merged cells or summary rows before uploading.
+
+## Uploading the file
+
+### 1. Open the Data Sources dashboard
+
+Navigate to **Data Sources** from the main navigation and click **New data source**.
+
+### 2. Choose CSV
+
+Select **CSV** from the list of source types.
+
+### 3. Upload your file
+
+Drag your CSV file into the upload area or click to browse. Mapped will read the headers and show you a preview of the first few rows.
+
+### 4. Map your location fields
+
+Tell Mapped which columns contain location data:
+
+- If you have **address** data, select the column (or columns — e.g. street + postcode) from the address field dropdowns.
+- If you have **coordinates**, select your latitude and longitude columns.
+
+### 5. Name your data source and save
+
+Give the data source a name, then click **Save**. Mapped will geocode any address columns in the background — this usually takes a few seconds for small files and a minute or two for larger ones.
+
+## Adding to a map
+
+Once saved, the data source appears in your organisation's data source list. Open any map, go to the **Markers** layer, and select your CSV data source to plot the records as markers.
+
+## Updating your data
+
+CSV data sources are static — if your data changes, you'll need to re-upload a new file. For data that updates regularly, consider connecting [Airtable](/docs/connect-airtable) or [Google Sheets](/docs/connect-google-sheets) instead.

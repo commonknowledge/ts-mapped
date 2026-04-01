@@ -1,0 +1,44 @@
+---
+title: Connect Airtable
+subtitle: Sync your Airtable base into Mapped.
+featureSet: Data Sources
+featureSetSlug: data-sources
+---
+
+Connecting an Airtable base lets Mapped sync your records automatically. Any time your Airtable data changes, your map stays up to date without re-uploading a file.
+
+## Before you start
+
+You'll need:
+- An Airtable account with access to the base you want to connect
+- A table in that base containing address or coordinates columns
+
+## Connecting your base
+
+### 1. Create a new data source
+
+Go to **Data Sources** and click **New data source**, then select **Airtable**.
+
+### 2. Authenticate with Airtable
+
+Click **Connect Airtable**. You'll be redirected to Airtable to authorise Mapped's access to your bases. Select the base you want to connect and click **Allow access**.
+
+### 3. Select a table
+
+Once authenticated, choose the table within the base that contains your location data from the dropdown.
+
+### 4. Map your location fields
+
+Select which column (or columns) contain the address or postcode information. If your table has separate latitude and longitude columns, select those instead.
+
+### 5. Save and sync
+
+Name your data source and click **Save**. Mapped will perform an initial sync, geocoding any address columns. The data source will continue to sync automatically as your Airtable base is updated.
+
+## Keeping data in sync
+
+Mapped syncs with Airtable periodically. If you need to trigger a manual sync — for example after a bulk import — open the data source and click **Sync now**.
+
+## Filtering records
+
+You can use Airtable views to control which records Mapped imports. Create a filtered view in Airtable and select it when setting up the data source connection. Only records visible in that view will be synced.

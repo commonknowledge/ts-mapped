@@ -1,0 +1,34 @@
+---
+title: Count Records Within a Boundary
+subtitle: Colour boundaries by how many markers fall inside each region.
+featureSet: Data Visualisation
+featureSetSlug: data-visualisation
+---
+
+Instead of colouring boundaries by a column value in your data, you can colour them by the number of records from a marker data source that fall within each boundary. This is useful for density maps — for example, showing which constituencies have the most members, or which wards have the most event attendees.
+
+## Setting up a count visualisation
+
+### 1. Open the Data Visualisation layer
+
+Expand **Data Visualisation** in the left panel and select your boundary type from the Legend.
+
+### 2. Select a marker data source
+
+In the Legend's data source dropdown, choose a data source that contains geocoded records (e.g. your members list). These are the records that will be counted per boundary.
+
+### 3. Choose Count as the aggregation
+
+In the column selector, choose **Count** rather than a specific data column. Mapped will aggregate your markers against the boundary geometry on the backend and return the count per boundary.
+
+The map will update to colour boundaries by how many of your records fall within each one.
+
+## Combining with Movement Data Library
+
+You can also count records from the [Movement Data Library](/docs/access-movement-data-library) rather than your own data — for example, counting a publicly available dataset against your boundaries. The setup is identical: select the MDL data source and choose **Count**.
+
+## Styling the count map
+
+Use the [Data Visualisation Panel](/docs/data-visualisation-panel) to adjust the colour scheme and opacity as you would for any choropleth. A **Sequential** colour scheme typically works well for count data, since counts start at zero and increase in one direction.
+
+Consider using a [Stepped scale](/docs/stepped-colour-scale) if you want to group counts into meaningful bands (e.g. 0–10, 11–50, 51–200).

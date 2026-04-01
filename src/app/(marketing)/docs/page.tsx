@@ -33,7 +33,7 @@ export default function FeaturesPage() {
       {/* Feature Sets */}
       <div className="mt-12 space-y-12">
         {activeFeatureSets.map((featureSet: FeatureSet) => (
-          <section key={featureSet._id}>
+          <section key={featureSet.slug}>
             <TypographyH2>{featureSet.title}</TypographyH2>
             {featureSet.description && (
               <TypographyP className="mt-2 text-neutral-500 ">
@@ -45,11 +45,10 @@ export default function FeaturesPage() {
               {featureSet.features &&
                 featureSet.features.length > 0 &&
                 featureSet.features
-                  .filter((feature: Feature) => feature.isActive !== false)
                   .map((feature: Feature) => (
                     <Link
-                      key={feature._id}
-                      href={`/docs/${feature.slug.current}`}
+                      key={feature.slug}
+                      href={`/docs/${feature.slug}`}
                       className="flex flex-col p-4 font-medium gap-2 border hover:bg-neutral-50 transition-all duration-300 border-neutral-200 pb-4 rounded-md"
                     >
                       <p>{feature.title}</p>

@@ -1,0 +1,42 @@
+---
+title: Connect Google Sheets
+subtitle: Import data directly from Google Sheets.
+featureSet: Data Sources
+featureSetSlug: data-sources
+---
+
+Connecting a Google Sheet gives you a live data source that updates automatically whenever your spreadsheet changes — no manual re-uploads required.
+
+## Before you start
+
+You'll need:
+- A Google account with access to the sheet
+- A sheet with a header row and at least one column containing addresses, postcodes, or coordinates
+
+## Connecting your sheet
+
+### 1. Create a new data source
+
+Go to **Data Sources**, click **New data source**, and select **Google Sheets**.
+
+### 2. Authenticate with Google
+
+Click **Connect Google**. You'll be taken to Google's authorisation screen — sign in and grant Mapped permission to read your spreadsheets. You only need to do this once.
+
+### 3. Select your spreadsheet and sheet
+
+Choose the spreadsheet from the dropdown, then select the specific sheet (tab) within it that contains your data.
+
+### 4. Map your location fields
+
+Select which column contains location data — either an address/postcode column or separate latitude and longitude columns.
+
+### 5. Save and sync
+
+Give the data source a name and click **Save**. Mapped will import your data and geocode any address columns. From this point on, it will re-sync automatically as your sheet changes.
+
+## Tips
+
+- Make sure your header row is on row 1 with no blank rows above it.
+- If you have multiple sheets in the same spreadsheet, you can create a separate data source for each one.
+- For large sheets, only columns containing data will be imported — empty columns are ignored.
