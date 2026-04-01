@@ -8,6 +8,7 @@ import { formatNumber } from "@/utils/text";
 import { PARTY_COLORS } from "../../constants";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useInspectorColumn } from "../../hooks/useInspectorColumn";
+import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { getDisplayValue, parseColumnNumber } from "../../utils/stats";
 import { getBarColorForLabel } from "./inspectorPanelOptions";
 import { PropertyLabel } from "./PropertyLabel";
@@ -61,6 +62,7 @@ interface SubRendererProps {
   dataSourceId: string | undefined;
   columnMetadata?: ColumnMetadata | undefined;
   columnType?: ColumnType | null;
+  inspectorColor?: string | null;
 }
 
 function TextOrNumberValue({
@@ -189,17 +191,19 @@ function PercentageBarValue({
   value,
   inspectorColumn,
   columnMetadata,
+  inspectorColor,
 }: Omit<SubRendererProps, "dataSourceId" | "columnType">) {
   const num = parseColumnNumber(value, {
     isCount: false,
     columnMetadata,
   });
   const fill = barFill(
-    getBarColorForLabel(
-      inspectorColumn.name,
-      columnMetadata?.displayName,
-      inspectorColumn.barColor,
-    ),
+    getBarColorForLabel({
+      columnName: inspectorColumn.name,
+      displayName: columnMetadata?.displayName,
+      barColor: inspectorColumn.barColor,
+      inspectorColor,
+    }),
   );
 
   if (num === null) {
@@ -229,17 +233,19 @@ function ScaleValue({
   value,
   inspectorColumn,
   columnMetadata,
+  inspectorColor,
 }: Omit<SubRendererProps, "dataSourceId" | "columnType">) {
   const num = parseColumnNumber(value, {
     isCount: false,
     columnMetadata,
   });
   const fill = barFill(
-    getBarColorForLabel(
-      inspectorColumn.name,
-      columnMetadata?.displayName,
-      inspectorColumn.barColor,
-    ),
+    getBarColorForLabel({
+      columnName: inspectorColumn.name,
+      displayName: columnMetadata?.displayName,
+      barColor: inspectorColumn.barColor,
+      inspectorColor,
+    }),
   );
 
   if (num === null) {
@@ -275,6 +281,7 @@ function DataRecordPropertyValue({
 }) {
   const { columnMetadata, columnDef } = useDataSourceColumn(dataSourceId, name);
   const inspectorColumn = useInspectorColumn(dataSourceId, name);
+  const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
 
   const format = inspectorColumn?.displayFormat;
 
@@ -310,6 +317,7 @@ function DataRecordPropertyValue({
         value={value}
         inspectorColumn={inspectorColumn}
         columnMetadata={columnMetadata}
+        inspectorColor={inspectorConfig?.color}
       />
     );
   }
@@ -320,6 +328,7 @@ function DataRecordPropertyValue({
         value={value}
         inspectorColumn={inspectorColumn}
         columnMetadata={columnMetadata}
+        inspectorColor={inspectorConfig?.color}
       />
     );
   }
