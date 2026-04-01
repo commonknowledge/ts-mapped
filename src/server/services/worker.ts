@@ -2,6 +2,7 @@ import enrichDataRecords from "@/server/jobs/enrichDataRecords";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataRecords from "@/server/jobs/importDataRecords";
 import importDataSource from "@/server/jobs/importDataSource";
+import importZetkinDataSources from "@/server/jobs/importZetkinDataSources";
 import refreshWebhooks from "@/server/jobs/refreshWebhooks";
 import removeEnrichmentColumns from "@/server/jobs/removeEnrichmentColumns";
 import tagDataSource from "@/server/jobs/tagDataSource";
@@ -14,6 +15,7 @@ const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
     enrichDataRecords,
     importDataSource,
     importDataRecords,
+    importZetkinDataSources,
     refreshWebhooks,
     removeEnrichmentColumns,
     tagDataSource,
