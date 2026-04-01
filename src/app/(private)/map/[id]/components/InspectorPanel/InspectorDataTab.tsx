@@ -105,6 +105,9 @@ export default function InspectorDataTab({
   );
 
   const isBoundary = type === LayerType.Boundary;
+  const hasChoroplethVisualisation = Boolean(
+    choroplethDataSource?.id && viewConfig.areaDataColumn,
+  );
   const bivariateBucket =
     areaStats?.secondary &&
     typeof areaStat?.primary === "number" &&
@@ -146,7 +149,7 @@ export default function InspectorDataTab({
 
   return (
     <div className="flex flex-col gap-4">
-      {isBoundary ? (
+      {isBoundary && hasChoroplethVisualisation ? (
         <div className="rounded border border-neutral-200 bg-neutral-50 px-2.5 py-2 flex flex-col gap-3">
           <div className="min-w-0 flex items-center justify-between gap-2">
             <h3 className="text-[11px] uppercase font-mono tracking-wide text-muted-foreground inline-flex items-center gap-1">

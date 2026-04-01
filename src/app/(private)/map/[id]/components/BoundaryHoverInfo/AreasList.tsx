@@ -52,7 +52,7 @@ export function AreasList({
         >
           <div className="flex items-center gap-2">
             <div
-              className="w-4 h-4 rounded shrink-0"
+              className="w-4 h-4 rounded shrink-0 border border-neutral-200"
               style={{ backgroundColor: area.backgroundColor }}
             />
             <span>{area.name}</span>

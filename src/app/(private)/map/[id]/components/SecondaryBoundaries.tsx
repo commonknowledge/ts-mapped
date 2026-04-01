@@ -1,5 +1,7 @@
 import { Layer, Source } from "react-map-gl/mapbox";
+import { useMapViews } from "../hooks/useMapViews";
 import { useSecondaryAreaSetConfig } from "../hooks/useSecondaryAreaSet";
+import { DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR } from "../styles";
 import type { ChoroplethLayerConfig } from "./Choropleth/configs";
 
 const SECONDARY_TOP_LAYER_ID = "secondary-top";
@@ -32,10 +34,14 @@ export default function SecondaryBoundaries() {
 }
 
 function Boundaries({ config }: { config: ChoroplethLayerConfig }) {
+  const { viewConfig } = useMapViews();
   const {
     mapbox: { sourceId, layerId, featureCodeProperty },
   } = config;
   const secondarySourceId = `${sourceId}-secondary`;
+  const strokeColor =
+    viewConfig.secondaryBoundaryStrokeColor ||
+    DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR;
   return (
     <Source
       id={secondarySourceId}
@@ -52,8 +58,8 @@ function Boundaries({ config }: { config: ChoroplethLayerConfig }) {
         source-layer={layerId}
         type="line"
         paint={{
-          "line-color": "#555",
-          "line-width": 3,
+          "line-color": strokeColor,
+          "line-width": 1.5,
           "line-opacity": 1,
         }}
         layout={{

@@ -90,6 +90,37 @@ export const mapColors: Record<
   },
 };
 
+export interface mapPaletteColor {
+  name: string;
+  color: string;
+}
+
+export const DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR = "#555555";
+
+export const mapColorPalette: mapPaletteColor[] = [
+  // Existing named UI colours
+  { name: mapColors.member.name, color: mapColors.member.color },
+  { name: mapColors.dataSource.name, color: mapColors.dataSource.color },
+  {
+    name: mapColors.areas.name,
+    color: mapColors.areas.textColor ?? mapColors.areas.color,
+  },
+
+  // Neutrals
+  { name: "Slate", color: DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR },
+  { name: "Black", color: "#000000" },
+  { name: "White", color: "#ffffff" },
+
+  // Extra palette options (good contrast on light maps)
+  { name: "Royal blue", color: "#00749e" },
+  { name: "Purple", color: "#c026d3" },
+  { name: "Orange", color: "#ef5f00" },
+  { name: "Red", color: "#dc3b5d" },
+  { name: "Teal", color: "#0f766e" },
+  { name: "Indigo", color: "#4f46e5" },
+  { name: "Amber", color: "#d97706" },
+];
+
 export const CONTROL_PANEL_WIDTH = 280;
 export const VISUALISATION_PANEL_WIDTH = 300;
 

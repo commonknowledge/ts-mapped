@@ -12,6 +12,7 @@ import {
   useFoldersQuery,
 } from "@/app/(private)/map/[id]/hooks/useFolders";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { MapType } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
@@ -21,6 +22,7 @@ import {
   useEditAreaMode,
   useSetEditAreaMode,
 } from "../../../hooks/useMapControls";
+import { useMapViews } from "../../../hooks/useMapViews";
 import { useTurfsQuery } from "../../../hooks/useTurfsQuery";
 import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
@@ -30,6 +32,7 @@ import TurfsList from "./TurfsList";
 
 export default function AreasControl() {
   const { handleAddArea } = useTurfState();
+  const { viewConfig } = useMapViews();
   const editAreaMode = useEditAreaMode();
   const setEditAreaMode = useSetEditAreaMode();
   const [expanded, setExpanded] = useState(true);
@@ -37,6 +40,7 @@ export default function AreasControl() {
   const { data: folders = [] } = useFoldersQuery();
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const isHex = viewConfig.mapType === MapType.Hex;
 
   const turfFolders = useMemo(() => {
     return folders.filter((f) => f.type === "turf");
@@ -77,7 +81,9 @@ export default function AreasControl() {
   ];
 
   return (
-    <LayerControlWrapper>
+    <LayerControlWrapper
+      className={isHex ? "opacity-45 pointer-events-none" : undefined}
+    >
       <LayerHeader
         label="Areas"
         type={LayerType.Turf}
@@ -98,7 +104,7 @@ export default function AreasControl() {
               <p className="text-xs font-medium mb-2">Area colour</p>
               <div className="flex items-center gap-2">
                 <div
-                  className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                  className="w-10 h-10 rounded border border-neutral-300 shrink-0 relative"
                   style={{
                     backgroundColor:
                       mapConfig.turfColor ?? mapColors.areas.color,
