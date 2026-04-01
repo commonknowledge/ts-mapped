@@ -97,7 +97,7 @@ export interface mapPaletteColor {
 
 export const DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR = "#555555";
 
-export const mapColourPalette: mapPaletteColor[] = [
+export const mapColorPalette: mapPaletteColor[] = [
   // Existing named UI colours
   { name: mapColors.member.name, color: mapColors.member.color },
   { name: mapColors.dataSource.name, color: mapColors.dataSource.color },

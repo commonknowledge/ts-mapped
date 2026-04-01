@@ -36,7 +36,10 @@ import {
 import { cn } from "@/shadcn/utils";
 import { useColorScheme } from "../../colors";
 import { useAreaStats } from "../../data";
-import { mapColourPalette } from "../../styles";
+import {
+  DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR,
+  mapColorPalette,
+} from "../../styles";
 import BivariateLegend from "../BivariateLagend";
 import {
   dataRecordsWillAggregate,
@@ -78,8 +81,9 @@ export default function Legend({
   }, [viewConfig.secondaryAreaSetCode]);
 
   const secondaryBoundaryStrokeColor =
-    viewConfig.secondaryBoundaryStrokeColor || "#555555";
-  const secondaryBoundarySwatches = mapColourPalette.map((c) => c.color);
+    viewConfig.secondaryBoundaryStrokeColor ||
+    DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR;
+  const secondaryBoundarySwatches = mapColorPalette.map((c) => c.color);
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -505,7 +509,7 @@ export default function Legend({
 
       {/* Secondary boundaries */}
       {viewConfig.mapType !== MapType.Hex && (
-        <div className=" border-neutral-100 px-3 pb-3">
+        <div className="px-3 pb-3">
           {!secondaryBoundariesOpen && !viewConfig.secondaryAreaSetCode ? (
             <button
               type="button"
