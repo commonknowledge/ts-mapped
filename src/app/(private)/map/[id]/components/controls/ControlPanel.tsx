@@ -64,12 +64,8 @@ export default function ControlPanel() {
             className="flex-1 overflow-y-auto / flex flex-col"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
-            {viewConfig.mapType !== MapType.Hex && (
-              <>
-                <MarkersControl />
-                <TurfsControl />
-              </>
-            )}
+            <MarkersControl />
+            <TurfsControl />
             <BoundariesControl />
           </div>
         </div>

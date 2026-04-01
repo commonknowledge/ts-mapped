@@ -5,7 +5,7 @@ import { DEFAULT_CUSTOM_COLOR, DUMMY_COUNT_COLUMN } from "@/constants";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
-import { ColorScaleType, ColorScheme } from "@/models/MapView";
+import { ColorScaleType, ColorScheme, MapType, mapTypes } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -151,6 +151,30 @@ export default function VisualisationPanel({
         </p>
       ) : (
         <>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Layout</p>
+            <div className="flex gap-2">
+              {mapTypes.map((type) => {
+                const isDefault = !viewConfig.mapType && type === MapType.Geo;
+                const isChecked = viewConfig.mapType === type || isDefault;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    className={cn(
+                      "flex-1 rounded-md border px-3 py-2 text-xs font-medium shadow-xs transition-colors",
+                      "hover:bg-accent hover:text-accent-foreground hover:border-border",
+                      isChecked && "border-blue-300",
+                    )}
+                    onClick={() => updateViewConfig({ mapType: type })}
+                  >
+                    {type === MapType.Hex ? "Hex map" : "Geographic"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {showStyle && (
             <div className="space-y-2 mb-4">
               <p className="flex gap-2 items-center text-sm font-medium">
@@ -318,7 +342,7 @@ export default function VisualisationPanel({
                             </Label>
                             <div className="flex items-center gap-2">
                               <div
-                                className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                                className="w-10 h-10 rounded border border-neutral-300 shrink-0 relative"
                                 style={{
                                   backgroundColor:
                                     viewConfig.customColor ||

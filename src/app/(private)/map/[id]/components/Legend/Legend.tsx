@@ -505,7 +505,7 @@ export default function Legend({
 
       {/* Secondary boundaries */}
       {viewConfig.mapType !== MapType.Hex && (
-        <div className=" border-neutral-100 px-3 py-2">
+        <div className=" border-neutral-100 px-3 pb-3">
           {!secondaryBoundariesOpen && !viewConfig.secondaryAreaSetCode ? (
             <button
               type="button"
@@ -515,7 +515,7 @@ export default function Legend({
               Add secondary boundaries
             </button>
           ) : (
-            <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="flex items-center justify-between gap-2 mb-1 mt-2">
               <p className="text-xs text-muted-foreground font-mono font-medium uppercase">
                 Secondary boundaries
               </p>

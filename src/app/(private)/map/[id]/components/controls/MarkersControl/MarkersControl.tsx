@@ -20,9 +20,11 @@ import {
   useMarkerDataSources,
   useMembersDataSource,
 } from "@/hooks/useDataSources";
+import { MapType } from "@/models/MapView";
 import { DataSourceRecordType } from "@/models/DataSource";
 import { LayerType } from "@/types";
 import { CollectionIcon } from "../../Icons";
+import { useMapViews } from "../../../hooks/useMapViews";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
@@ -30,6 +32,7 @@ import MarkersList from "./MarkersList";
 export default function MarkersControl() {
   const router = useRouter();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
   const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
@@ -39,6 +42,7 @@ export default function MarkersControl() {
   const markerDataSources = useMarkerDataSources() || [];
   const membersDataSource = useMembersDataSource();
   const [expanded, setExpanded] = useState(true);
+  const isHex = viewConfig.mapType === MapType.Hex;
 
   const createFolder = () => {
     const newFolder = {
@@ -182,7 +186,9 @@ export default function MarkersControl() {
   const loading = isFoldersMutating || isPlacedMarkersMutating;
 
   return (
-    <LayerControlWrapper>
+    <LayerControlWrapper
+      className={isHex ? "opacity-45 pointer-events-none" : undefined}
+    >
       <LayerHeader
         label="Markers"
         type={LayerType.Marker}
