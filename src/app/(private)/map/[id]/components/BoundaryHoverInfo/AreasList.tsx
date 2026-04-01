@@ -30,10 +30,11 @@ export function AreasList({
       {areas.map((area) => (
         <div
           key={`${area.areaSetCode}-${area.code}`}
-          className={`px-3 py-2 font-medium ${area.isSelected
-            ? "hover:bg-neutral-50 cursor-pointer pointer-events-auto"
-            : "cursor-default"
-            }`}
+          className={`px-3 py-2 font-medium ${
+            area.isSelected
+              ? "hover:bg-neutral-50 cursor-pointer pointer-events-auto"
+              : "cursor-default"
+          }`}
           style={
             area.isSelected
               ? { borderLeft: "4px solid var(--brandGreen)" }

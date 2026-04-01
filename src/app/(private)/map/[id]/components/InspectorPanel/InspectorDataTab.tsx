@@ -110,33 +110,33 @@ export default function InspectorDataTab({
   );
   const bivariateBucket =
     areaStats?.secondary &&
-      typeof areaStat?.primary === "number" &&
-      typeof areaStat?.secondary === "number"
+    typeof areaStat?.primary === "number" &&
+    typeof areaStat?.secondary === "number"
       ? getBivariateBucket({
-        primary: areaStat.primary,
-        secondary: areaStat.secondary,
-        primaryMin: areaStats.primary?.minValue ?? 0,
-        primaryMax: areaStats.primary?.maxValue ?? 0,
-        secondaryMin: areaStats.secondary?.minValue ?? 0,
-        secondaryMax: areaStats.secondary?.maxValue ?? 0,
-      })
+          primary: areaStat.primary,
+          secondary: areaStat.secondary,
+          primaryMin: areaStats.primary?.minValue ?? 0,
+          primaryMax: areaStats.primary?.maxValue ?? 0,
+          secondaryMin: areaStats.secondary?.minValue ?? 0,
+          secondaryMax: areaStats.secondary?.maxValue ?? 0,
+        })
       : null;
 
   const bivariateBucketLabel = bivariateBucket
     ? {
-      primaryBand:
-        bivariateBucket.y === 0
-          ? "low"
-          : bivariateBucket.y === 1
-            ? "medium"
-            : "high",
-      secondaryBand:
-        bivariateBucket.x === 0
-          ? "low"
-          : bivariateBucket.x === 1
-            ? "medium"
-            : "high",
-    }
+        primaryBand:
+          bivariateBucket.y === 0
+            ? "low"
+            : bivariateBucket.y === 1
+              ? "medium"
+              : "high",
+        secondaryBand:
+          bivariateBucket.x === 0
+            ? "low"
+            : bivariateBucket.x === 1
+              ? "medium"
+              : "high",
+      }
     : null;
 
   const flyToMarker = () => {

@@ -20,11 +20,11 @@ import {
   useMarkerDataSources,
   useMembersDataSource,
 } from "@/hooks/useDataSources";
-import { MapType } from "@/models/MapView";
 import { DataSourceRecordType } from "@/models/DataSource";
+import { MapType } from "@/models/MapView";
 import { LayerType } from "@/types";
-import { CollectionIcon } from "../../Icons";
 import { useMapViews } from "../../../hooks/useMapViews";
+import { CollectionIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";

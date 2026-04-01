@@ -8,10 +8,12 @@ import {
   zetkinConfigSchema,
 } from "@/models/DataSource";
 
-export const newCSVConfigSchema = csvConfigSchema.extend({
-  file: z.instanceof(File),
-  filename: z.string().min(1, "Filename is required"),
-}).omit({ url: true });
+export const newCSVConfigSchema = csvConfigSchema
+  .extend({
+    file: z.instanceof(File),
+    filename: z.string().min(1, "Filename is required"),
+  })
+  .omit({ url: true });
 
 export type NewCSVConfig = z.infer<typeof newCSVConfigSchema>;
 

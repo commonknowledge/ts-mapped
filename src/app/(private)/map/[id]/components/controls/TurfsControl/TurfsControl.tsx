@@ -12,10 +12,10 @@ import {
   useFoldersQuery,
 } from "@/app/(private)/map/[id]/hooks/useFolders";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { MapType } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
-import { MapType } from "@/models/MapView";
 import { LayerType } from "@/types";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import {

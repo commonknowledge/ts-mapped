@@ -5,7 +5,12 @@ import { DEFAULT_CUSTOM_COLOR, DUMMY_COUNT_COLUMN } from "@/constants";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
-import { ColorScaleType, ColorScheme, MapType, mapTypes } from "@/models/MapView";
+import {
+  ColorScaleType,
+  ColorScheme,
+  MapType,
+  mapTypes,
+} from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";

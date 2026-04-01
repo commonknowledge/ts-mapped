@@ -19,13 +19,13 @@ import { ColumnType } from "@/models/DataSource";
 import { MapType } from "@/models/MapView";
 import { CalculationType } from "@/models/shared";
 import { Combobox } from "@/shadcn/ui/combobox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
   Select,
   SelectContent,
@@ -36,6 +36,7 @@ import {
 import { cn } from "@/shadcn/utils";
 import { useColorScheme } from "../../colors";
 import { useAreaStats } from "../../data";
+import { mapColourPalette } from "../../styles";
 import BivariateLegend from "../BivariateLagend";
 import {
   dataRecordsWillAggregate,
@@ -48,7 +49,6 @@ import {
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import { IncludeColumnsModal } from "../controls/VisualisationPanel/IncludeColumnsModal";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
-import { mapColourPalette, mapColors } from "../../styles";
 import { LegendBars } from "./LegendBars";
 import type { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
 
@@ -78,7 +78,7 @@ export default function Legend({
   }, [viewConfig.secondaryAreaSetCode]);
 
   const secondaryBoundaryStrokeColor =
-    viewConfig.secondaryBoundaryStrokeColor || "#555";
+    viewConfig.secondaryBoundaryStrokeColor || "#555555";
   const secondaryBoundarySwatches = mapColourPalette.map((c) => c.color);
 
   const areaStatsQuery = useAreaStats();
@@ -167,9 +167,9 @@ export default function Legend({
         areaDataSecondaryColumn: undefined,
         ...(ds?.public && ds.defaultChoroplethConfig
           ? {
-            calculationType: ds.defaultChoroplethConfig.calculationType,
-            areaDataColumn: ds.defaultChoroplethConfig.column,
-          }
+              calculationType: ds.defaultChoroplethConfig.calculationType,
+              areaDataColumn: ds.defaultChoroplethConfig.column,
+            }
           : {}),
         ...(defaultAreaSetGroupCode && !viewConfig.areaSetGroupCode
           ? { areaSetGroupCode: defaultAreaSetGroupCode }
@@ -185,9 +185,9 @@ export default function Legend({
         areaDataSecondaryColumn: undefined,
         ...(ds?.public && ds.defaultChoroplethConfig
           ? {
-            calculationType: ds.defaultChoroplethConfig.calculationType,
-            areaDataColumn: ds.defaultChoroplethConfig.column,
-          }
+              calculationType: ds.defaultChoroplethConfig.calculationType,
+              areaDataColumn: ds.defaultChoroplethConfig.column,
+            }
           : {}),
       });
       setIsDataSourceModalOpen(false);
@@ -410,9 +410,9 @@ export default function Legend({
             selectedColumns={
               viewConfig.includeColumnsString
                 ? viewConfig.includeColumnsString
-                  .split(",")
-                  .map((v) => v.trim())
-                  .filter(Boolean)
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean)
                 : []
             }
             onColumnsChange={(columns) => {
@@ -593,9 +593,7 @@ export default function Legend({
                   </button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-56 p-3">
-                  <p className="text-xs font-medium mb-2">
-                    Stroke colour
-                  </p>
+                  <p className="text-xs font-medium mb-2">Stroke colour</p>
                   <div className="flex flex-wrap gap-2">
                     {secondaryBoundarySwatches.map((c) => (
                       <button
@@ -605,7 +603,7 @@ export default function Legend({
                           "h-7 w-7 rounded-full border border-black/10",
                           "hover:scale-[1.02] transition-transform",
                           c === secondaryBoundaryStrokeColor &&
-                          "ring-2 ring-ring ring-offset-2 ring-offset-background",
+                            "ring-2 ring-ring ring-offset-2 ring-offset-background",
                         )}
                         style={{ backgroundColor: c }}
                         onClick={() =>
@@ -628,7 +626,9 @@ export default function Legend({
                       />
                       <span
                         className="absolute inset-0"
-                        style={{ backgroundColor: secondaryBoundaryStrokeColor }}
+                        style={{
+                          backgroundColor: secondaryBoundaryStrokeColor,
+                        }}
                         aria-hidden
                       />
                     </label>

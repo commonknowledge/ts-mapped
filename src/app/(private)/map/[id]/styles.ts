@@ -95,15 +95,19 @@ export interface mapPaletteColor {
   color: string;
 }
 
+export const DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR = "#555555";
+
 export const mapColourPalette: mapPaletteColor[] = [
   // Existing named UI colours
   { name: mapColors.member.name, color: mapColors.member.color },
   { name: mapColors.dataSource.name, color: mapColors.dataSource.color },
-  { name: mapColors.areas.name, color: mapColors.areas.textColor ?? mapColors.areas.color },
-
+  {
+    name: mapColors.areas.name,
+    color: mapColors.areas.textColor ?? mapColors.areas.color,
+  },
 
   // Neutrals
-  { name: "Slate", color: "#555555" },
+  { name: "Slate", color: DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR },
   { name: "Black", color: "#000000" },
   { name: "White", color: "#ffffff" },
 

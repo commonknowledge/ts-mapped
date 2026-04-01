@@ -9,7 +9,9 @@ export default function LayerControlWrapper({
   className?: string;
 }) {
   return (
-    <div className={cn("border-b border-neutral-200 last:border-b-0", className)}>
+    <div
+      className={cn("border-b border-neutral-200 last:border-b-0", className)}
+    >
       {children}
     </div>
   );
