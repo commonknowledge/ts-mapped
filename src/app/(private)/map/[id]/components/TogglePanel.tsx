@@ -27,7 +27,7 @@ export default function TogglePanel({
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={cn(wrapperClassName, "group relative rounded-sm py-2 ")}>
+    <div className={cn(wrapperClassName, "group relative rounded-sm py-2")}>
       <div className="flex items-center justify-between relative">
         <button
           onClick={() => setExpanded(!expanded)}
