@@ -94,6 +94,7 @@ Use tRPC as the bridge between client components and server logic:
 - Constants should either go in a `constants/` directory or a `constants.ts` file.
 - Utils (pure functions) should go in a `utils/` directory or a `utils.ts` file.
 - Functions with side effects, or async functions, should go in a `services/` directory, or somewhere more specific.
+- Components should be exported as a `default` export from a file with their same name.
 - Complex components that require their own directory should be in a file with the same name as the directory,
   e.g. `Choropleth/Choropleth.tsx`.
 
@@ -205,3 +206,11 @@ npm test -- tests/unit
 ```
 
 Integration tests in `tests/feature/` hit a real database and external services. Unit tests in `tests/unit/` are faster and self-contained.
+
+## Shorthands
+
+Whilst prompting, we may use certain abbreviations to save time. They include:
+
+- **ds** = Data Sources
+- **mdl** = Movement Data Library
+- **cp** = Choropleth

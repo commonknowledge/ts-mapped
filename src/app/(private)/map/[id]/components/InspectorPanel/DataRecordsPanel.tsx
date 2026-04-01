@@ -1,7 +1,9 @@
 "use client";
 
+import { Settings } from "lucide-react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { useDataSources } from "@/hooks/useDataSources";
 import { buildName } from "@/utils/dataRecord";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
@@ -18,12 +20,14 @@ export default function DataRecordsPanel({
   isLoading,
   defaultExpanded,
   hint,
+  onClickConfigure,
 }: {
   dataSourceId: string;
   records: DataRecord[];
   isLoading: boolean;
   defaultExpanded: boolean;
   hint?: string;
+  onClickConfigure?: () => void;
 }) {
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(dataSourceId);
@@ -49,6 +53,16 @@ export default function DataRecordsPanel({
       icon={panelIcon}
       defaultExpanded={defaultExpanded}
       wrapperClassName={colorClass}
+      headerRight={
+        onClickConfigure && (
+          <IconButtonWithTooltip
+            tooltip="Inspector settings"
+            onClick={onClickConfigure}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+          </IconButtonWithTooltip>
+        )
+      }
     >
       <div className="space-y-4 px-2">
         {hint && (

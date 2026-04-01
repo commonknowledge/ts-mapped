@@ -1,12 +1,11 @@
 import { useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useViewId } from "../../hooks/useMapViews";
 import { useUpdateInspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 import { useViewInspectorConfig } from "../../hooks/useViewInspectorConfig";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { InspectorConfigItem } from "./InspectorConfigItem";
-import { deriveInspectorItems } from "./utils";
+import { buildDefaultInspectorConfig } from "./utils";
 
 export default function InspectorDataConfig() {
   const viewId = useViewId();
@@ -36,28 +35,15 @@ export default function InspectorDataConfig() {
       }
 
       const dataSource = getDataSourceById(dataSourceId);
-      const derivedItems = deriveInspectorItems(
-        dataSource?.columnDefs ?? [],
-        dataSource?.columnMetadata ?? [],
-      );
-      const derivedLayout = derivedItems.length > 4 ? "twoColumn" : null;
 
       updateInspectorConfig((configs) => [
         ...configs,
-        {
-          id: uuidv4(),
+        buildDefaultInspectorConfig({
           dataSourceId,
           mapViewId: viewId,
           position: configs.length,
-          name: dataSource?.name || "Data Source",
-          description: null,
-          icon: null,
-          screenshotUrl: null,
-          color: null,
-          items: derivedItems,
-          layout: derivedLayout,
-          ...dataSource?.defaultInspectorConfig,
-        },
+          dataSource: dataSource ?? undefined,
+        }),
       ]);
     },
     [getDataSourceById, updateInspectorConfig, viewId],

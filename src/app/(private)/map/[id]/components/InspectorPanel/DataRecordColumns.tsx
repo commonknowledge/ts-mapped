@@ -5,6 +5,7 @@ import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
+import { PARTY_COLORS } from "../../constants";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useInspectorColumn } from "../../hooks/useInspectorColumn";
 import { getDisplayValue, parseColumnNumber } from "../../utils/stats";
@@ -26,6 +27,34 @@ function variancePercent(value: number, baseline: number): number | null {
   return ((value - baseline) / baseline) * 100;
 }
 
+function rgbToRgba(rgb: string, alpha: number): string | null {
+  const match = rgb
+    .trim()
+    .match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
+  if (!match) return null;
+  const r = Number(match[1]);
+  const g = Number(match[2]);
+  const b = Number(match[3]);
+  if ([r, g, b].some((n) => Number.isNaN(n))) return null;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const PARTY_LABELS: Record<string, string> = {
+  con: "Conservative",
+  lab: "Labour",
+  ld: "Liberal Democrats",
+  ruk: "Reform UK",
+  green: "Green",
+  snp: "SNP",
+  pc: "Plaid Cymru",
+  dup: "DUP",
+  sf: "Sinn Féin",
+  sdlp: "SDLP",
+  uup: "UUP",
+  apni: "Alliance",
+  ind: "Independent",
+};
+
 interface SubRendererProps {
   value: unknown;
   inspectorColumn: InspectorColumn;
@@ -44,7 +73,34 @@ function TextOrNumberValue({
     columnType: columnType ?? ColumnType.Number,
     columnMetadata,
   });
-  return <span className="font-medium tabular-nums">{text}</span>;
+  const rawString = typeof value === "string" ? value.trim() : null;
+  const rawStringLower = rawString ? rawString.toLowerCase() : null;
+  const smartColor = rawStringLower
+    ? (PARTY_COLORS[rawStringLower] ?? null)
+    : null;
+  const smartBg = smartColor ? rgbToRgba(smartColor, 0.12) : null;
+  const displayText =
+    rawStringLower && smartColor
+      ? (PARTY_LABELS[rawStringLower] ?? text)
+      : text;
+  return (
+    <span
+      className={cn(
+        "font-medium tabular-nums whitespace-normal break-all min-w-0 inline-flex items-baseline gap-2 rounded px-1.5 py-0.5",
+        smartBg ? "border border-black/5" : "px-0 py-0 rounded-none border-0",
+      )}
+      style={smartBg ? { backgroundColor: smartBg } : undefined}
+    >
+      {smartColor ? (
+        <span
+          className="h-2.5 w-2.5 rounded-sm border border-neutral-300 shrink-0 translate-y-px"
+          style={{ backgroundColor: smartColor }}
+          aria-hidden
+        />
+      ) : null}
+      <span className="min-w-0">{displayText}</span>
+    </span>
+  );
 }
 
 function NumberWithComparisonValue({
@@ -296,9 +352,9 @@ export default function DataRecordColumns({
     <>
       {safeColumns.map((column, index) => {
         return (
-          <div key={`${column}-${index}`}>
+          <div key={`${column}-${index}`} className="min-w-0">
             <PropertyLabel column={column} dataSourceId={dataSourceId} />
-            <dd>
+            <dd className="min-w-0 whitespace-normal break-all">
               <DataRecordPropertyValue
                 value={json[column]}
                 name={column}

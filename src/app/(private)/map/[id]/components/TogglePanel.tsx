@@ -27,11 +27,11 @@ export default function TogglePanel({
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={cn(wrapperClassName, "rounded-sm py-2")}>
+    <div className={cn(wrapperClassName, "group relative rounded-sm py-2")}>
       <div className="flex items-center justify-between relative">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 hover:bg-neutral-100 rounded pl-1 pr-2 / text-sm font-medium cursor-pointer"
+          className="flex items-center gap-2 rounded pl-1 pr-2 / text-sm font-medium cursor-pointer"
         >
           <ChevronDown
             size={16}
@@ -47,7 +47,7 @@ export default function TogglePanel({
         </button>
 
         {headerRight && (
-          <div className="shrink-0 ml-auto flex flex-row items-center">
+          <div className="shrink-0 ml-auto flex flex-row items-center opacity-50 group-hover:opacity-100 transition-opacity">
             {headerRight}
           </div>
         )}

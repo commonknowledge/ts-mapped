@@ -156,6 +156,7 @@ export function DataSourceItem({
   ]);
 
   if (density === "compactPreview") {
+    const showScreenshotPreview = dataSource.public;
     return (
       <div
         className={cn(
@@ -164,18 +165,25 @@ export function DataSourceItem({
           className,
         )}
       >
-        <div className="relative w-full aspect-video shrink-0">
-          <Image
-            src={resolvedPreviewUrl || "/screenshot-placeholder.jpeg"}
-            alt=""
-            fill
-            sizes="(max-width: 768px) 90vw, 640px"
-            className="rounded-md border border-neutral-200 object-cover bg-neutral-50"
-            onError={() => setImageError(true)}
-          />
-        </div>
+        {showScreenshotPreview && (
+          <div className="relative w-full aspect-video shrink-0">
+            <Image
+              src={resolvedPreviewUrl || "/screenshot-placeholder.jpeg"}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 90vw, 640px"
+              className="rounded-md border border-neutral-200 object-cover bg-neutral-50"
+              onError={() => setImageError(true)}
+            />
+          </div>
+        )}
 
-        <div className="min-w-0 flex-1 pt-2 flex flex-col">
+        <div
+          className={cn(
+            "min-w-0 flex-1 flex flex-col",
+            showScreenshotPreview ? "pt-2" : "pt-0",
+          )}
+        >
           <div
             className={cn(
               "grid gap-x-3 gap-y-1 items-start",

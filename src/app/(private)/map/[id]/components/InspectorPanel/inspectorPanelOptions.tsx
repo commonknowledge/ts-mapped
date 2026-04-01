@@ -86,7 +86,7 @@ export interface InspectorColorOption {
 }
 
 export const INSPECTOR_COLOR_OPTIONS: InspectorColorOption[] = [
-  { value: "", label: "Default", className: "" },
+  { value: "", label: "Default", className: "bg-neutral-50" },
   { value: "blue", label: "Blue", className: "bg-blue-50" },
   { value: "green", label: "Green", className: "bg-green-50" },
   { value: "yellow", label: "Yellow", className: "bg-yellow-50" },
@@ -104,8 +104,8 @@ const COLOR_CLASS_MAP: Record<string, string> = Object.fromEntries(
 );
 
 export function getInspectorColorClass(color?: string | null): string {
-  if (!color) return "";
-  return COLOR_CLASS_MAP[color] ?? "";
+  if (!color) return "bg-neutral-50";
+  return COLOR_CLASS_MAP[color] ?? "bg-neutral-50";
 }
 
 // ============================================================================
