@@ -105,7 +105,7 @@ const COLOR_CLASS_MAP: Record<string, string> = Object.fromEntries(
 
 export function getInspectorColorClass(color?: string | null): string {
   if (!color) return "bg-neutral-50";
-  return COLOR_CLASS_MAP[color] ?? "";
+  return COLOR_CLASS_MAP[color] ?? "bg-neutral-50";
 }
 
 // ============================================================================
