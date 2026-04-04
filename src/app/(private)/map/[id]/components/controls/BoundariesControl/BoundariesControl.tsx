@@ -1,8 +1,6 @@
-import { PaintbrushIcon } from "lucide-react";
 import { useState } from "react";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import {
   AlertDialog,
@@ -24,7 +22,7 @@ export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const { hasDataSource } = useBoundariesControl();
-  const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
+  const { setBoundariesPanelOpen } = useChoropleth();
   const { updateViewConfig } = useMapViews();
 
   const handleClear = () => {
@@ -52,20 +50,7 @@ export default function BoundariesControl() {
         expanded={expanded}
         setExpanded={setExpanded}
         enableVisibilityToggle={hasDataSource}
-      >
-        {hasDataSource && (
-          <IconButtonWithTooltip
-            tooltip={
-              boundariesPanelOpen
-                ? "Close style settings"
-                : "Open style settings"
-            }
-            onClick={() => setBoundariesPanelOpen(!boundariesPanelOpen)}
-          >
-            <PaintbrushIcon size={16} />
-          </IconButtonWithTooltip>
-        )}
-      </LayerHeader>
+      />
 
       {expanded && (
         <div className="px-4 pt-2 pb-3 space-y-2">
