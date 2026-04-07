@@ -67,14 +67,18 @@ const refreshWebhooks = async (args: object | null): Promise<boolean> => {
       config.sheetName,
       config.oAuthCredentials,
     );
+    const enable = source.autoEnrich || source.autoImport;
     try {
-      const hasErrors = await adaptor.hasWebhookErrors();
-      if (hasErrors) {
-        await adaptor.repairWebhook();
+      await adaptor.toggleWebhook(enable);
+      if (enable) {
+        const hasErrors = await adaptor.hasWebhookErrors();
+        if (hasErrors) {
+          await adaptor.repairWebhook();
+        }
       }
     } catch (error) {
       logger.warn(
-        `Failed to repair Google Sheets webhook for data source ${source.id}`,
+        `Failed to refresh Google Sheets webhook for data source ${source.id}`,
         { error },
       );
       continue;
