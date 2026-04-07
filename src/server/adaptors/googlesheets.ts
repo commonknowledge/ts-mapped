@@ -353,7 +353,8 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
       // Get main sheet row count (column A, same as prepareWebhookSheet)
       const mainSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(`${this.sheetName}!A:A`)}`;
-      const mainSheetResponse = await this.makeGoogleSheetsRequest(mainSheetUrl);
+      const mainSheetResponse =
+        await this.makeGoogleSheetsRequest(mainSheetUrl);
       const mainSheetData = mainSheetResponse.ok
         ? ((await mainSheetResponse.json()) as { values: string[][] })
         : { values: [] };
