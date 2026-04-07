@@ -1,5 +1,10 @@
-import { DataSourceType, airtableConfigSchema } from "@/models/DataSource";
+import {
+  DataSourceType,
+  airtableConfigSchema,
+  googleSheetsConfigSchema,
+} from "@/models/DataSource";
 import { AirtableAdaptor } from "@/server/adaptors/airtable";
+import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
 import {
   findDataSourceById,
   findDataSourcesByType,
@@ -42,6 +47,40 @@ const refreshWebhooks = async (args: object | null): Promise<boolean> => {
       continue;
     }
   }
+
+  const googleSheetsDataSources = await findDataSourcesByType(
+    DataSourceType.GoogleSheets,
+  );
+  for (const source of googleSheetsDataSources) {
+    const result = googleSheetsConfigSchema.safeParse(source.config);
+    if (!result.success) {
+      logger.warn(
+        `Failed to parse Google Sheets config for data source ${source.id}`,
+        { error: result.error },
+      );
+      continue;
+    }
+    const config = result.data;
+    const adaptor = new GoogleSheetsAdaptor(
+      source.id,
+      config.spreadsheetId,
+      config.sheetName,
+      config.oAuthCredentials,
+    );
+    try {
+      const hasErrors = await adaptor.hasWebhookErrors();
+      if (hasErrors) {
+        await adaptor.repairWebhook();
+      }
+    } catch (error) {
+      logger.warn(
+        `Failed to repair Google Sheets webhook for data source ${source.id}`,
+        { error },
+      );
+      continue;
+    }
+  }
+
   return true;
 };
 

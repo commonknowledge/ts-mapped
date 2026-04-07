@@ -339,8 +339,9 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   }
 
   /**
-   * Checks if the webhook sheet contains formula errors.
-   * Returns true if #ERROR! or other error values are detected.
+   * Checks if the webhook sheet contains formula errors or is missing rows.
+   * Returns true if #ERROR! or other error values are detected, or if the
+   * webhook sheet has fewer rows than the main sheet (excluding the header row).
    */
   async hasWebhookErrors(): Promise<boolean> {
     try {
@@ -350,9 +351,18 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       const notificationDomain = new URL(notificationUrl).hostname;
       const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
 
-      // Read first few cells from webhook sheet to check for errors
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(webhookSheetName)}!A1:B5`;
-      const response = await this.makeGoogleSheetsRequest(url);
+      // Get main sheet row count (column A, same as prepareWebhookSheet)
+      const mainSheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(`${this.sheetName}!A:A`)}`;
+      const mainSheetResponse = await this.makeGoogleSheetsRequest(mainSheetUrl);
+      const mainSheetData = mainSheetResponse.ok
+        ? ((await mainSheetResponse.json()) as { values: string[][] })
+        : { values: [] };
+      // Subtract 1 for the header row
+      const mainRowCount = Math.max(0, (mainSheetData.values?.length || 0) - 1);
+
+      // Read all rows from webhook sheet column A to check for errors and count rows
+      const webhookUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(webhookSheetName)}!A:B`;
+      const response = await this.makeGoogleSheetsRequest(webhookUrl);
 
       if (!response.ok) {
         return false; // Sheet doesn't exist or can't be read
@@ -374,6 +384,14 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
             return true;
           }
         }
+      }
+
+      // Check if webhook sheet is missing rows relative to the main sheet
+      if (rows.length < mainRowCount) {
+        logger.warn(
+          `Webhook sheet for ${this.dataSourceId} has ${rows.length} rows but main sheet has ${mainRowCount} data rows`,
+        );
+        return true;
       }
 
       return false;
