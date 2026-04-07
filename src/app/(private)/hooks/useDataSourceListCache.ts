@@ -62,7 +62,6 @@ export function useDataSourceListCache() {
                   ...ds,
                   ...updater({
                     ...ds,
-                    organisationName: "",
                     organisationOverride: null,
                   }),
                 }
@@ -77,7 +76,6 @@ export function useDataSourceListCache() {
             ...old,
             ...updater({
               ...old,
-              organisationName: "",
               organisationOverride: null,
             }),
           };
