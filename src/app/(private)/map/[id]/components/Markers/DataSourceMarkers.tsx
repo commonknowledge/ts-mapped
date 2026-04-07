@@ -116,18 +116,11 @@ export function DataSourceMarkers({
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
-        ids: [
-          "concat",
-          [
-            "concat",
-            ["get", "id"],
-            ":",
-            ["get", "dataSourceId"],
-            ":",
-            ["get", "name"],
-            ",",
-          ],
-        ],
+        // Concatenate each feature's pre-serialised JSON string with a trailing
+        // comma so the cluster accumulates a ","-joined list that can be wrapped
+        // in "[]" and parsed as a JSON array on click. Using JSON encoding avoids
+        // breakage when field values (e.g. name) contain commas or colons.
+        asJson: ["concat", ["concat", ["get", "asJson"], ","]],
       }}
     >
       {displayMode === MarkerDisplayMode.Clusters && (

@@ -193,10 +193,19 @@ export function useMapClickEffect({
         const properties = markerFeatures[0].properties;
 
         if (properties?.cluster) {
-          const ids = properties ? properties.ids : "";
+          // asJson is a ","-joined list of JSON objects built by clusterProperties.
+          // slice(0, -1) strips the trailing comma, then wrapping in "[]" gives a
+          // valid JSON array that can be parsed directly.
+          const asJson: string = properties?.asJson ?? "";
+          const parsedRecords = asJson
+            ? (JSON.parse("[" + asJson.slice(0, -1) + "]") as {
+                id: string;
+                dataSourceId: string;
+                name: string;
+              }[])
+            : [];
           const records = [];
-          for (const idAndDataSource of ids.split(",").filter(Boolean)) {
-            const [id, dataSourceId, name] = idAndDataSource.split(":");
+          for (const { id, dataSourceId, name } of parsedRecords) {
             records.push({
               id,
               dataSourceId,

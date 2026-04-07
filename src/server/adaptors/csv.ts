@@ -9,6 +9,31 @@ import { getBaseDir } from "../utils";
 import type { DataSourceAdaptor } from "./abstract";
 import type { ExternalRecord } from "@/types";
 
+export function decodeBuffer(buffer: Buffer): Buffer {
+  // UTF-8 BOM: EF BB BF
+  if (buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
+    return buffer.subarray(3);
+  }
+  // UTF-16 LE BOM: FF FE
+  if (buffer[0] === 0xff && buffer[1] === 0xfe) {
+    const text = new TextDecoder("utf-16le").decode(buffer.subarray(2));
+    return Buffer.from(text, "utf8");
+  }
+  // UTF-16 BE BOM: FE FF
+  if (buffer[0] === 0xfe && buffer[1] === 0xff) {
+    const text = new TextDecoder("utf-16be").decode(buffer.subarray(2));
+    return Buffer.from(text, "utf8");
+  }
+  // No BOM: try strict UTF-8; fall back to Latin-1
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+    return buffer;
+  } catch {
+    const text = new TextDecoder("latin1").decode(buffer);
+    return Buffer.from(text, "utf8");
+  }
+}
+
 export class CSVAdaptor implements DataSourceAdaptor {
   private url: string;
 
@@ -62,13 +87,14 @@ export class CSVAdaptor implements DataSourceAdaptor {
     // Buffer the entire response to avoid Render's proxy killing
     // long-lived HTTP connections during slow stream consumption
     const buffer = Buffer.from(await response.arrayBuffer());
-    return Readable.from(buffer);
+    return Readable.from(decodeBuffer(buffer));
   }
 
   createFileReadStream(url: string) {
     const relativePath = url.replace(/^file:\/\//, "").split("?")[0];
     const absolutePath = join(getBaseDir(), relativePath);
-    return fs.createReadStream(absolutePath);
+    const buffer = fs.readFileSync(absolutePath);
+    return Readable.from(decodeBuffer(buffer));
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {

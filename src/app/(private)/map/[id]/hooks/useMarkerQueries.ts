@@ -52,9 +52,20 @@ export function useMarkerQueries() {
           const data =
             (await response.json()) as MarkerFeatureWithoutDataSourceId[];
           // Add dataSourceId to the marker properties, ultimately to support marker click handlers
+          // asJson pre-serialises each feature's key fields so the Mapbox
+          // clusterProperties concat expression can aggregate them safely,
+          // without any field values (e.g. names with commas) breaking the encoding.
           return data.map((d) => ({
             ...d,
-            properties: { ...d.properties, dataSourceId },
+            properties: {
+              ...d.properties,
+              dataSourceId,
+              asJson: JSON.stringify({
+                id: d.properties.id,
+                dataSourceId,
+                name: d.properties.name,
+              }),
+            },
           }));
         },
       };
