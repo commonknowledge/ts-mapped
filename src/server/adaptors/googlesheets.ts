@@ -387,9 +387,12 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       }
 
       // Check if webhook sheet is missing rows relative to the main sheet
-      if (rows.length < mainRowCount) {
+      // Row 1 in the webhook sheet contains the row-count formula, so exclude it
+      // to compare webhook data rows against main-sheet data rows.
+      const webhookDataRowCount = Math.max(0, rows.length - 1);
+      if (webhookDataRowCount < mainRowCount) {
         logger.warn(
-          `Webhook sheet for ${this.dataSourceId} has ${rows.length} rows but main sheet has ${mainRowCount} data rows`,
+          `Webhook sheet for ${this.dataSourceId} has ${webhookDataRowCount} data rows but main sheet has ${mainRowCount} data rows`,
         );
         return true;
       }
