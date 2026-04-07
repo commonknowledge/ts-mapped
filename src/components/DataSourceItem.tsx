@@ -259,8 +259,6 @@ export function DataSourceItem({
           )}
 
           <div className="flex items-center gap-4">
-
-
             <div className="mt-1">
               <OrganisationMeta
                 organisationName={dataSource.organisationName}

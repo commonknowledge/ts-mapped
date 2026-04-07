@@ -28,7 +28,6 @@ import {
   deleteDataSource,
   findDataSourceById,
   findDataSourcesByIds,
-  findPublicDataSources,
   getJobInfo,
   getUniqueColumnValues,
   updateDataSource,
@@ -57,7 +56,6 @@ import {
   router,
   superadminProcedure,
 } from "../index";
-import type { DataSource } from "@/models/DataSource";
 import type { DataSourceEvent } from "@/server/events";
 import type { DataSourceUpdate } from "@/server/models/DataSource";
 

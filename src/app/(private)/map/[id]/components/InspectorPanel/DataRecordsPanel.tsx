@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, BookOpenIcon, Settings } from "lucide-react";
+import { BookOpen, Settings } from "lucide-react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";

@@ -17,8 +17,8 @@ export function DefaultInspectorPreview({
   const trpc = useTRPC();
 
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
-  const { data: dataSources } = useDataSources();
-  const dataSource = dataSources?.find((ds) => ds.id === dataSourceId);
+  const { getDataSourceById } = useDataSources();
+  const dataSource = getDataSourceById(dataSourceId);
 
   const selectedCount =
     inspectorConfig?.items.filter((i) => i.type === "column").length ?? 0;
