@@ -93,6 +93,45 @@ export default function Map({
       .concat(["search-history-pins", "search-history-labels"]);
   }, [mapConfig]);
 
+  // Move draw (turf) layers to sit just after the choropleth-top-line position
+  // layer, keeping them above choropleth fills but below everything else.
+  const repositionDrawLayers = useCallback(() => {
+    const map = mapRef?.current?.getMap();
+    if (!map) {
+      return;
+    }
+    const allLayerIds = map.getStyle()?.layers?.map((l) => l.id) ?? [];
+    const drawLayerIds = allLayerIds.filter((id) => id.startsWith("gl-draw"));
+
+    // The Choropleth component always renders a choropleth-top-line position
+    // layer. If it's absent the style isn't ready yet, so skip.
+    const anchorIndex = allLayerIds.indexOf("choropleth-top-line");
+    if (anchorIndex === -1) return;
+
+    // Find the first non-draw layer after the anchor — draw layers should
+    // sit between the anchor and this layer.
+    const insertBeforeId = allLayerIds
+      .slice(anchorIndex + 1)
+      .find((id) => !id.startsWith("gl-draw"));
+
+    // No non-draw layer after the anchor means draw layers are already at
+    // the correct position; nothing to do.
+    if (!insertBeforeId) return;
+
+    // Only move if a draw layer is out of position, to avoid an infinite
+    // loop (moveLayer itself fires another styledata event).
+    const insertBeforeIndex = allLayerIds.indexOf(insertBeforeId);
+    const anyDrawOutOfPlace = drawLayerIds.some((id) => {
+      const idx = allLayerIds.indexOf(id);
+      return idx < anchorIndex + 1 || idx >= insertBeforeIndex;
+    });
+    if (anyDrawOutOfPlace) {
+      for (const id of drawLayerIds) {
+        map.moveLayer(id, insertBeforeId);
+      }
+    }
+  }, [mapRef]);
+
   // Sync draw mode to atom so PrivateMapControls can read it
   useEffect(() => {
     setDrawMode(currentMode);
@@ -542,21 +581,8 @@ export default function Map({
 
           const map = mapRef?.current?.getMap();
           if (map) {
-            // Move draw (turf) layers above choropleth layers after a style change.
-            // Only move if a draw layer is not already the topmost layer to avoid
-            // an infinite loop (moveLayer fires another styledata event).
             if (draw) {
-              const allLayerIds =
-                map.getStyle()?.layers?.map((l) => l.id) || [];
-              const lastLayerId = allLayerIds[allLayerIds.length - 1];
-              if (lastLayerId && !lastLayerId.startsWith("gl-draw")) {
-                const drawLayerIds = allLayerIds.filter((id) =>
-                  id.startsWith("gl-draw"),
-                );
-                for (const id of drawLayerIds) {
-                  map.moveLayer(id);
-                }
-              }
+              repositionDrawLayers();
             }
 
             const layers = map.getStyle().layers;
