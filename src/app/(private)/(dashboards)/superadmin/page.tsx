@@ -311,6 +311,7 @@ export default function SuperadminPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Organisation</TableHead>
                 <TableHead>Record type</TableHead>
                 <TableHead>Records</TableHead>
                 <TableHead>Inspector config</TableHead>
@@ -331,6 +332,7 @@ export default function SuperadminPage() {
                 publicDataSources?.map((ds) => (
                   <TableRow key={ds.id}>
                     <TableCell className="font-medium">{ds.name}</TableCell>
+                    <TableCell>{ds.organisationName ?? "-"}</TableCell>
                     <TableCell>{ds.recordType}</TableCell>
                     <TableCell>{ds.recordCount.toLocaleString()}</TableCell>
                     <TableCell>

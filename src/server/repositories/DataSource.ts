@@ -179,14 +179,6 @@ export async function updateDefaultChoroplethConfig(
     .execute();
 }
 
-export async function findPublicDataSources() {
-  return await db
-    .selectFrom("dataSource")
-    .where("public", "=", true)
-    .selectAll()
-    .execute();
-}
-
 export async function updateColumnDefsWithEnrichment(
   dataSourceId: string,
   enrichedColumnDefs: ColumnDef[],
