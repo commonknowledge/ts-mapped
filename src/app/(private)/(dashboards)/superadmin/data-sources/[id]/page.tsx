@@ -51,15 +51,14 @@ export default function DataSourceConfigPage() {
   const getDataSourceByIdRef = useRef(getDataSourceById);
   getDataSourceByIdRef.current = getDataSourceById;
 
-  const { mutateAsync: saveInspectorConfig, isPending: isSavingInspector } =
-    useMutation(
-      trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({
-        onError: (err) => {
-          toast.error(err.message || "Failed to save inspector settings.");
-          void invalidateAll();
-        },
-      }),
-    );
+  const { mutateAsync: saveInspectorConfig } = useMutation(
+    trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({
+      onError: (err) => {
+        toast.error(err.message || "Failed to save inspector settings.");
+        void invalidateAll();
+      },
+    }),
+  );
 
   const { mutate: patchColumnMetadata } = useMutation(
     trpc.dataSource.patchColumnMetadataSuperadmin.mutationOptions({
@@ -176,7 +175,6 @@ export default function DataSourceConfigPage() {
         name={dataSource.defaultInspectorConfig?.name ?? ""}
         description={dataSource.defaultInspectorConfig?.description ?? ""}
         icon={dataSource.defaultInspectorConfig?.icon ?? ""}
-        disabled={isSavingInspector}
         onChange={handleInspectorConfigChange}
       />
 

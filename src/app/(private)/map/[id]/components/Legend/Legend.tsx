@@ -1,14 +1,22 @@
-import { ChevronDown, CornerDownRight, LoaderPinwheel } from "lucide-react";
+import {
+  ChevronDown,
+  CornerDownRight,
+  LoaderPinwheel,
+  Settings2Icon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { InspectorPanelIcon } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DUMMY_COUNT_COLUMN, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import {
   useChoroplethDataSource,
   useDataSources,
 } from "@/hooks/useDataSources";
+import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import {
   AreaSetCodeLabels,
   AreaSetCodeYears,
@@ -25,6 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
   Select,
@@ -61,6 +70,8 @@ export default function Legend({
   onClearRequest?: () => void;
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
+  const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
+  const [, setEditColumnMetadata] = useEditColumnMetadata();
   const dataSource = useChoroplethDataSource();
   const { data: dataSources, getDataSourceById } = useDataSources();
   const { columnMetadata } = useDataSourceColumns(dataSource?.id);
@@ -307,15 +318,50 @@ export default function Legend({
               </div>
               {viewConfig.areaDataColumn &&
                 viewConfig.areaDataColumn !== NULL_UUID && (
-                  <ColumnMetadataIcons
-                    dataSourceId={dataSource?.id}
-                    column={viewConfig.areaDataColumn}
-                    fields={{
-                      description: true,
-                      valueLabels: true,
-                      valueColors: colorScheme?.colorSchemeType === "categoric",
-                    }}
-                  />
+                  <>
+                    <ColumnMetadataIcons
+                      dataSourceId={dataSource?.id}
+                      column={viewConfig.areaDataColumn}
+                      fields={{
+                        description: true,
+                        valueLabels: true,
+                        valueColors:
+                          colorScheme?.colorSchemeType === "categoric",
+                      }}
+                      showSettings={false}
+                    />
+                    <IconButtonWithTooltip
+                      tooltip="Column settings"
+                      dropdownLabel="Column settings"
+                      align="start"
+                      side="right"
+                      dropdownItems={[
+                        {
+                          type: "item",
+                          label: "Edit style",
+                          onClick: () =>
+                            setBoundariesPanelOpen(!boundariesPanelOpen),
+                        },
+                        {
+                          type: "item",
+                          label: "Edit metadata",
+                          onClick: () =>
+                            setEditColumnMetadata({
+                              dataSourceId: dataSource?.id ?? "",
+                              column: viewConfig.areaDataColumn,
+                              fields: {
+                                description: true,
+                                valueLabels: true,
+                                valueColors:
+                                  colorScheme?.colorSchemeType === "categoric",
+                              },
+                            }),
+                        },
+                      ]}
+                    >
+                      <Settings2Icon className="h-3.5 w-3.5 shrink-0" />
+                    </IconButtonWithTooltip>
+                  </>
                 )}
             </div>
 
@@ -346,11 +392,43 @@ export default function Legend({
                   />
                 </div>
                 {viewConfig.areaDataSecondaryColumn && (
-                  <ColumnMetadataIcons
-                    dataSourceId={dataSource?.id}
-                    column={viewConfig.areaDataSecondaryColumn}
-                    fields={{ description: true, valueLabels: true }}
-                  />
+                  <>
+                    <ColumnMetadataIcons
+                      dataSourceId={dataSource?.id}
+                      column={viewConfig.areaDataSecondaryColumn}
+                      fields={{ description: true, valueLabels: true }}
+                      showSettings={false}
+                    />
+                    <IconButtonWithTooltip
+                      tooltip="Column settings"
+                      dropdownLabel="Column settings"
+                      align="start"
+                      side="right"
+                      dropdownItems={[
+                        {
+                          type: "item",
+                          label: "Edit style",
+                          onClick: () =>
+                            setBoundariesPanelOpen(!boundariesPanelOpen),
+                        },
+                        {
+                          type: "item",
+                          label: "Edit metadata",
+                          onClick: () =>
+                            setEditColumnMetadata({
+                              dataSourceId: dataSource?.id ?? "",
+                              column: viewConfig.areaDataSecondaryColumn ?? "",
+                              fields: {
+                                description: true,
+                                valueLabels: true,
+                              },
+                            }),
+                        },
+                      ]}
+                    >
+                      <Settings2Icon className="h-3.5 w-3.5 shrink-0" />
+                    </IconButtonWithTooltip>
+                  </>
                 )}
               </div>
             )}
