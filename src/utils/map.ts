@@ -3,13 +3,13 @@ import type { MapView } from "@/models/MapView";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
 
 export const getMarkerDataSourceIds = (mapConfig: MapConfig) => {
-  return new Set(
-    [mapConfig.membersDataSourceId]
-      .concat(mapConfig.markerDataSourceIds)
-      .filter(Boolean),
-  )
-    .values()
-    .toArray();
+  return Array.from(
+    new Set(
+      [mapConfig.membersDataSourceId]
+        .concat(mapConfig.markerDataSourceIds)
+        .filter(Boolean),
+    ),
+  );
 };
 
 /**

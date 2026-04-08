@@ -39,7 +39,7 @@ export const getValidAreaSetGroupCodes = (
         }
       }
     }
-    return validAreaGroups.values().toArray();
+    return Array.from(validAreaGroups);
   }
 
   // Default to all options
