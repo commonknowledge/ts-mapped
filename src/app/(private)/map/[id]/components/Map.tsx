@@ -158,13 +158,17 @@ export default function Map({
     }
 
     // Add existing polygons from your array
-    visibleTurfs.forEach((turf) => {
-      draw.add({
-        type: "Feature",
-        properties: { ...turf },
-        geometry: parseTurfPolygon(turf.polygon),
+    try {
+      visibleTurfs.forEach((turf) => {
+        draw.add({
+          type: "Feature",
+          properties: { ...turf },
+          geometry: parseTurfPolygon(turf.polygon),
+        });
       });
-    });
+    } catch {
+      // Draw store is not ready yet; the effect will re-run when draw is re-initialised
+    }
   }, [visibleTurfs, draw, viewConfig.showTurf, mapMode]);
 
   // Update draw layer colors when turfColor changes
@@ -347,7 +351,7 @@ export default function Map({
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       <MapGL
-        key={viewConfig.mapType}
+        key={viewConfig.mapType ?? MapType.Geo}
         maxBounds={
           viewConfig.mapType === MapType.Hex
             ? [

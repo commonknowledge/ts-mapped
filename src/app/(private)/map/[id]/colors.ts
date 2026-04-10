@@ -110,7 +110,7 @@ export const calculateStepColor = (
 ) => {
   const { colorScheme, customColor, reverseColorScheme } = viewConfig;
   const interpolator = getInterpolator(
-    colorScheme || ColorScheme.RedBlue,
+    colorScheme || ColorScheme.Sequential,
     customColor,
   );
   const gradientPosition = totalSteps > 1 ? index / (totalSteps - 1) : 0;

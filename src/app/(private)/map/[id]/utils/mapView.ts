@@ -14,7 +14,7 @@ export const createNewViewConfig = (): MapViewConfig => {
     showLocations: true,
     showTurf: true,
     calculationType: DEFAULT_CALCULATION_TYPE,
-    colorScheme: ColorScheme.RedBlue,
+    colorScheme: ColorScheme.Sequential,
     reverseColorScheme: false,
     hideFilteredMarkers: true,
   };

@@ -107,18 +107,18 @@ export default function VisualisationPanel({
   if (!boundariesPanelOpen) return null;
 
   const isCount = viewConfig.areaDataColumn === DUMMY_COUNT_COLUMN;
-
-  const columnOneIsNumber =
+  const columnIsNumber =
     dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
       ?.type === ColumnType.Number;
-  const columnOneIsNotNumber = viewConfig.areaDataColumn && !columnOneIsNumber;
-
-  const isCategorical =
-    viewConfig.colorScaleType === ColorScaleType.Categorical ||
-    columnOneIsNotNumber;
+  const columnIsNumeric = isCount || columnIsNumber;
+  const columnIsSelected = Boolean(viewConfig.areaDataColumn);
+  const userSetCategorical =
+    viewConfig.colorScaleType === ColorScaleType.Categorical && !isCount;
+  const columnIsCategorical = columnIsSelected && !columnIsNumeric;
 
   const showStyle = !viewConfig.areaDataSecondaryColumn;
-  const canSelectColorScale = isCount || columnOneIsNumber;
+  const canSelectColorScale = columnIsNumeric;
+  const isCategorical = columnIsCategorical || userSetCategorical;
   const canSelectColorScheme = canSelectColorScale && !isCategorical;
   const canSetCategoryColors = isCategorical;
 
@@ -290,7 +290,7 @@ export default function VisualisationPanel({
                         </Label>
 
                         <Select
-                          value={viewConfig.colorScheme || ColorScheme.RedBlue}
+                          value={viewConfig.colorScheme || ColorScheme.Sequential}
                           onValueChange={(value) =>
                             updateViewConfig({
                               colorScheme: value as ColorScheme,
