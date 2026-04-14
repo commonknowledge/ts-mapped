@@ -373,6 +373,57 @@ describe("copyMapsToOrganisation", () => {
     });
   });
 
+  describe("with data source not referenced by map", () => {
+    test("does not copy a data source that the source map does not reference", async () => {
+      const sourceOrg = await createTestOrg(`Unrelated Source ${uuidv4()}`);
+      const otherOrg = await createTestOrg(`Unrelated Other ${uuidv4()}`);
+      const targetOrg = await createTestOrg(`Unrelated Target ${uuidv4()}`);
+
+      const mapDs = await createTestDataSource(sourceOrg.id, "Map DS");
+      // A data source the caller should NOT be able to smuggle in
+      const unrelatedDs = await createTestDataSource(
+        otherOrg.id,
+        "Unrelated DS",
+      );
+
+      const sourceMap = await createTestMap(sourceOrg.id, "Protected Map");
+      await updateMap(sourceMap.id, {
+        config: {
+          markerDataSourceIds: [mapDs.id],
+          membersDataSourceId: null,
+        },
+      });
+
+      await copyMapsToOrganisation(
+        [
+          {
+            mapId: sourceMap.id,
+            dataSourceIds: [mapDs.id, unrelatedDs.id],
+          },
+        ],
+        targetOrg.id,
+      );
+
+      const targetMaps = await findMapsByOrganisationId(targetOrg.id);
+      expect(targetMaps.length).toBe(1);
+      cleanup.mapIds.push(targetMaps[0].id);
+
+      // The referenced DS was copied
+      expect(targetMaps[0].config.markerDataSourceIds.length).toBe(1);
+      const copiedDsId = targetMaps[0].config.markerDataSourceIds[0];
+      cleanup.dataSourceIds.push(copiedDsId);
+
+      // No other data source from either org was copied to target
+      const copiedDs = await findDataSourceById(copiedDsId);
+      expect(copiedDs?.name).toBe("Map DS");
+
+      // The unrelated DS should still belong to its original org only —
+      // nothing in the target org should reference it or a copy of it
+      const unrelated = await findDataSourceById(unrelatedDs.id);
+      expect(unrelated?.organisationId).toBe(otherOrg.id);
+    });
+  });
+
   describe("with non-existent IDs", () => {
     test("skips non-existent maps gracefully", async () => {
       const targetOrg = await createTestOrg(`FakeMap Target ${uuidv4()}`);

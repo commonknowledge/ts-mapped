@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
 import { UserRole } from "@/models/User";
+import { findPendingInvitationsByEmail } from "@/server/repositories/Invitation";
 import {
   deleteUser,
   findUserById,
@@ -68,6 +69,37 @@ describe("invitation.list", () => {
 });
 
 describe("invitation.create", () => {
+  test("advocate can create an invitation with a new organisation", async () => {
+    const advocate = await createTestUser(UserRole.Advocate);
+    const caller = makeCaller(advocate);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      organisationName: `New Org ${uuidv4()}`,
+    });
+
+    const pending = await findPendingInvitationsByEmail(email);
+    expect(pending.length).toBe(1);
+    expect(pending[0].name).toBe("Invitee");
+  });
+
+  test("superadmin can create an invitation with a new organisation", async () => {
+    const superadmin = await createTestUser(UserRole.Superadmin);
+    const caller = makeCaller(superadmin);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      organisationName: `New Org ${uuidv4()}`,
+    });
+
+    const pending = await findPendingInvitationsByEmail(email);
+    expect(pending.length).toBe(1);
+  });
+
   test("regular user cannot create invitations", async () => {
     const regular = await createTestUser();
     const caller = makeCaller(regular);

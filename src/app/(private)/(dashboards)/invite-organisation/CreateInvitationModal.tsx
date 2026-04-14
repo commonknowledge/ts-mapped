@@ -37,7 +37,7 @@ export default function CreateInvitationModal() {
   const [organisationId, setOrganisationId] = useState("");
   const [organisationName, setOrganisationName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isCreatingNewOrg, setIsCreatingNewOrg] = useState(false);
+  const [isCreatingNewOrg, setIsCreatingNewOrg] = useState(true);
   const [selectedMapIds, setSelectedMapIds] = useState<Set<string>>(new Set());
   const [selectedDataSourceIds, setSelectedDataSourceIds] = useState<
     Set<string>
@@ -79,7 +79,7 @@ export default function CreateInvitationModal() {
     setEmail("");
     setOrganisationId("");
     setOrganisationName("");
-    setIsCreatingNewOrg(false);
+    setIsCreatingNewOrg(true);
     setSelectedMapIds(new Set());
     setSelectedDataSourceIds(new Set());
   };
@@ -252,7 +252,9 @@ export default function CreateInvitationModal() {
                   onClick={toggleOrganisationMode}
                   className="h-auto p-0 text-xs"
                 >
-                  {isCreatingNewOrg ? "or select one" : "or create a new one"}
+                  {isCreatingNewOrg
+                    ? "or select existing"
+                    : "or create a new one"}
                 </Button>
               </div>
             }
@@ -289,7 +291,7 @@ export default function CreateInvitationModal() {
           </FormFieldWrapper>
 
           {mapData && mapsByOrg.length > 0 && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 mt-4">
               <Label>Maps to copy</Label>
               <p className="text-xs text-muted-foreground">
                 Select maps to copy to the new organisation. Untick data sources

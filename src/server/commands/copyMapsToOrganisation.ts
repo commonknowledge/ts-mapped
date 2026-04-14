@@ -32,12 +32,43 @@ const copyMapsToOrganisation = async (
       continue;
     }
 
+    // Collect all data source IDs actually referenced by the source map,
+    // so callers can't smuggle arbitrary IDs from other organisations.
+    const views = await findMapViewsByMapId(originalMap.id);
+    const referencedDsIds = new Set<string>();
+    for (const id of originalMap.config.markerDataSourceIds) {
+      if (id) referencedDsIds.add(id);
+    }
+    if (originalMap.config.membersDataSourceId) {
+      referencedDsIds.add(originalMap.config.membersDataSourceId);
+    }
+    for (const view of views) {
+      if (view.config.areaDataSourceId) {
+        referencedDsIds.add(view.config.areaDataSourceId);
+      }
+      for (const dsv of view.dataSourceViews) {
+        referencedDsIds.add(dsv.dataSourceId);
+      }
+    }
+
     // Copy selected data sources and build ID mapping
     const dataSourceIdMap = new Map<string, string>();
     for (const dsId of selection.dataSourceIds) {
+      if (!referencedDsIds.has(dsId)) {
+        logger.warn(
+          `Data source ${dsId} is not referenced by map ${selection.mapId}, skipping`,
+        );
+        continue;
+      }
       const original = await findDataSourceById(dsId);
       if (!original) {
         logger.warn(`Data source ${dsId} not found, skipping`);
+        continue;
+      }
+      if (original.organisationId !== originalMap.organisationId) {
+        logger.warn(
+          `Data source ${dsId} does not belong to source map organisation, skipping`,
+        );
         continue;
       }
 
@@ -71,7 +102,6 @@ const copyMapsToOrganisation = async (
     await updateMap(newMap.id, { config: remappedConfig });
 
     // Copy and remap views
-    const views = await findMapViewsByMapId(originalMap.id);
     for (const view of views) {
       const remappedAreaDataSourceId = dataSourceIdMap.get(
         view.config.areaDataSourceId,
