@@ -79,6 +79,7 @@ export const invitationRouter = router({
           `Created invitation for ${input.email}, ID ${invitation.id}`,
         );
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         logger.error("Could not create invitation", { error });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

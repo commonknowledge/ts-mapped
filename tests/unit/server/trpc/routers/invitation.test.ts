@@ -1,7 +1,25 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
+import {
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/models/DataSource";
 import { UserRole } from "@/models/User";
+import {
+  createDataSource,
+  deleteDataSource,
+  findDataSourceById,
+} from "@/server/repositories/DataSource";
 import { findPendingInvitationsByEmail } from "@/server/repositories/Invitation";
+import {
+  createMap,
+  deleteMap,
+  findMapsByOrganisationId,
+  updateMap,
+} from "@/server/repositories/Map";
+import { findMapViewsByMapId } from "@/server/repositories/MapView";
+import { upsertOrganisation } from "@/server/repositories/Organisation";
 import {
   deleteUser,
   findUserById,
@@ -11,6 +29,8 @@ import {
 import { invitationRouter } from "@/server/trpc/routers/invitation";
 
 const userIds: string[] = [];
+const mapIds: string[] = [];
+const dataSourceIds: string[] = [];
 
 async function createTestUser(role?: UserRole | null) {
   const user = await upsertUser({
@@ -100,6 +120,75 @@ describe("invitation.create", () => {
     expect(pending.length).toBe(1);
   });
 
+  test("advocate can create an invitation with mapSelections (copies the map + DS)", async () => {
+    const advocate = await createTestUser(UserRole.Advocate);
+    const caller = makeCaller(advocate);
+
+    const sourceOrg = await upsertOrganisation({
+      name: `Src Org ${uuidv4()}`,
+    });
+    const sourceDs = await createDataSource({
+      name: "Src DS",
+      organisationId: sourceOrg.id,
+      autoEnrich: false,
+      autoImport: false,
+      config: {
+        type: DataSourceType.CSV,
+        url: `file://tests/resources/stats.csv?${uuidv4()}`,
+      },
+      columnDefs: [],
+      columnMetadata: [],
+      columnRoles: { nameColumns: ["Name"] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
+      public: false,
+      recordType: DataSourceRecordType.Data,
+    });
+    dataSourceIds.push(sourceDs.id);
+
+    const sourceMap = await createMap(sourceOrg.id, "Map To Copy");
+    mapIds.push(sourceMap.id);
+    await updateMap(sourceMap.id, {
+      config: {
+        markerDataSourceIds: [sourceDs.id],
+        membersDataSourceId: null,
+      },
+    });
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    const targetOrgName = `Target Org ${uuidv4()}`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      organisationName: targetOrgName,
+      mapSelections: [{ mapId: sourceMap.id, dataSourceIds: [sourceDs.id] }],
+    });
+
+    const pending = await findPendingInvitationsByEmail(email);
+    expect(pending.length).toBe(1);
+    const targetOrgId = pending[0].organisationId;
+    expect(targetOrgId).toBeTruthy();
+    if (!targetOrgId) return;
+
+    const targetMaps = await findMapsByOrganisationId(targetOrgId);
+    expect(targetMaps.length).toBe(1);
+    expect(targetMaps[0].name).toBe("Map To Copy");
+    mapIds.push(targetMaps[0].id);
+
+    const copiedDsIds = targetMaps[0].config.markerDataSourceIds;
+    expect(copiedDsIds.length).toBe(1);
+    expect(copiedDsIds[0]).not.toBe(sourceDs.id);
+    dataSourceIds.push(copiedDsIds[0]);
+
+    const copiedDs = await findDataSourceById(copiedDsIds[0]);
+    expect(copiedDs?.organisationId).toBe(targetOrgId);
+
+    // ensureOrganisationMap would have created an additional default map —
+    // confirm only the copied map exists in the new org
+    const views = await findMapViewsByMapId(targetMaps[0].id);
+    expect(Array.isArray(views)).toBe(true);
+  });
+
   test("regular user cannot create invitations", async () => {
     const regular = await createTestUser();
     const caller = makeCaller(regular);
@@ -127,6 +216,20 @@ describe("invitation.create", () => {
 });
 
 afterAll(async () => {
+  for (const id of mapIds) {
+    try {
+      await deleteMap(id);
+    } catch {
+      // already deleted
+    }
+  }
+  for (const id of dataSourceIds) {
+    try {
+      await deleteDataSource(id);
+    } catch {
+      // already deleted
+    }
+  }
   for (const id of userIds) {
     try {
       await deleteUser(id);
