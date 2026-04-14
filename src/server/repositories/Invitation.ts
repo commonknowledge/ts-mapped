@@ -26,7 +26,8 @@ export function listPendingInvitations() {
       "invitation.createdAt",
       "organisation.name as organisationName",
     ])
-    .orderBy("invitation.createdAt", "desc")
+    .orderBy("organisation.name", "asc")
+    .orderBy("invitation.name", "asc")
     .execute();
 }
 
