@@ -373,6 +373,61 @@ describe("copyMapsToOrganisation", () => {
     });
   });
 
+  describe("with a data source shared across multiple maps", () => {
+    test("copies the shared data source only once and reuses the copy", async () => {
+      const sourceOrg = await createTestOrg(`Shared Source ${uuidv4()}`);
+      const targetOrg = await createTestOrg(`Shared Target ${uuidv4()}`);
+
+      const sharedDs = await createTestDataSource(sourceOrg.id, "Shared DS");
+
+      const sourceMapA = await createTestMap(sourceOrg.id, "Map A");
+      const sourceMapB = await createTestMap(sourceOrg.id, "Map B");
+      await updateMap(sourceMapA.id, {
+        config: {
+          markerDataSourceIds: [sharedDs.id],
+          membersDataSourceId: null,
+        },
+      });
+      await updateMap(sourceMapB.id, {
+        config: {
+          markerDataSourceIds: [sharedDs.id],
+          membersDataSourceId: null,
+        },
+      });
+
+      await copyMapsToOrganisation(
+        [
+          { mapId: sourceMapA.id, dataSourceIds: [sharedDs.id] },
+          { mapId: sourceMapB.id, dataSourceIds: [sharedDs.id] },
+        ],
+        targetOrg.id,
+      );
+
+      const targetMaps = await findMapsByOrganisationId(targetOrg.id);
+      expect(targetMaps.length).toBe(2);
+      for (const m of targetMaps) {
+        cleanup.mapIds.push(m.id);
+      }
+
+      const [copiedA] = targetMaps.filter((m) => m.name === "Map A");
+      const [copiedB] = targetMaps.filter((m) => m.name === "Map B");
+      expect(copiedA.config.markerDataSourceIds.length).toBe(1);
+      expect(copiedB.config.markerDataSourceIds.length).toBe(1);
+
+      const copiedDsIdA = copiedA.config.markerDataSourceIds[0];
+      const copiedDsIdB = copiedB.config.markerDataSourceIds[0];
+      expect(copiedDsIdA).toBe(copiedDsIdB);
+      cleanup.dataSourceIds.push(copiedDsIdA);
+
+      const copiedDs = await findDataSourceById(copiedDsIdA);
+      expect(copiedDs?.organisationId).toBe(targetOrg.id);
+      expect(copiedDs?.name).toBe("Shared DS");
+
+      const jobInfo = await getJobInfo(copiedDsIdA, "importDataSource");
+      expect(jobInfo.status).not.toBe(JobStatus.None);
+    });
+  });
+
   describe("with data source not referenced by map", () => {
     test("does not copy a data source that the source map does not reference", async () => {
       const sourceOrg = await createTestOrg(`Unrelated Source ${uuidv4()}`);

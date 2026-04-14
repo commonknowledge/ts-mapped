@@ -25,6 +25,10 @@ const copyMapsToOrganisation = async (
   mapSelections: MapSelection[],
   targetOrgId: string,
 ): Promise<void> => {
+  // Shared across all selections so a data source referenced by multiple
+  // maps is copied only once into the target org.
+  const dataSourceIdMap = new Map<string, string>();
+
   for (const selection of mapSelections) {
     const originalMap = await findMapById(selection.mapId);
     if (!originalMap) {
@@ -52,8 +56,8 @@ const copyMapsToOrganisation = async (
     }
 
     // Copy selected data sources and build ID mapping
-    const dataSourceIdMap = new Map<string, string>();
     for (const dsId of selection.dataSourceIds) {
+      if (dataSourceIdMap.has(dsId)) continue;
       if (!referencedDsIds.has(dsId)) {
         logger.warn(
           `Data source ${dsId} is not referenced by map ${selection.mapId}, skipping`,
