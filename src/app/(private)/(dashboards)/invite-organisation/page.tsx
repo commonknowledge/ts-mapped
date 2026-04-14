@@ -18,15 +18,15 @@ import CreateInvitationModal from "./CreateInvitationModal";
 export default function InviteOrganisationPage() {
   const { currentUser } = useCurrentUser();
   const trpc = useTRPC();
+  const isAllowed =
+    currentUser?.role === UserRole.Advocate ||
+    currentUser?.role === UserRole.Superadmin;
 
   const { data: invitations, isPending: invitationsLoading } = useQuery(
-    trpc.invitation.list.queryOptions(),
+    trpc.invitation.list.queryOptions(undefined, { enabled: isAllowed }),
   );
 
-  if (
-    currentUser?.role !== UserRole.Advocate &&
-    currentUser?.role !== UserRole.Superadmin
-  ) {
+  if (!isAllowed) {
     redirect("/");
   }
 
