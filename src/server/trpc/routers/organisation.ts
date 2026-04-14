@@ -26,6 +26,7 @@ import { findUserByEmail } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import {
+  advocateProcedure,
   organisationProcedure,
   protectedProcedure,
   router,
@@ -36,7 +37,7 @@ export const organisationRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     return findOrganisationsByUserId(ctx.user.id);
   }),
-  listAll: superadminProcedure.query(() => {
+  listAll: advocateProcedure.query(() => {
     return listOrganisations();
   }),
   listUsers: organisationProcedure.query(async ({ ctx }) => {

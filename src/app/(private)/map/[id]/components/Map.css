@@ -12,7 +12,7 @@
   overflow: hidden;
 }
 
-/* search inout styles */
+/* search input styles */
 .map-wrapper .mapboxgl-ctrl-geocoder.mapboxgl-ctrl {
   background: transparent;
   box-shadow: none;

@@ -5,7 +5,6 @@ import { NoResultError } from "kysely";
 import z from "zod";
 import { setJWT } from "@/auth/jwt";
 import { passwordSchema } from "@/models/User";
-import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/ForgotPassword";
 import {
   findAndUseInvitation,
@@ -54,9 +53,6 @@ export const authRouter = router({
         });
 
         await updateInvitation(invitation.id, { userId: user.id });
-
-        // Ensure organisation map exists
-        await ensureOrganisationMap(invitation.organisationId);
 
         // Set JWT cookie and log user in
         await setJWT(user.id, user.email);

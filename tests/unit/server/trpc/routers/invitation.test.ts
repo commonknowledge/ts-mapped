@@ -1,0 +1,240 @@
+import { v4 as uuidv4 } from "uuid";
+import { afterAll, describe, expect, test } from "vitest";
+import {
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/models/DataSource";
+import { UserRole } from "@/models/User";
+import {
+  createDataSource,
+  deleteDataSource,
+  findDataSourceById,
+} from "@/server/repositories/DataSource";
+import { findPendingInvitationsByEmail } from "@/server/repositories/Invitation";
+import {
+  createMap,
+  deleteMap,
+  findMapsByOrganisationId,
+  updateMap,
+} from "@/server/repositories/Map";
+import { findMapViewsByMapId } from "@/server/repositories/MapView";
+import { upsertOrganisation } from "@/server/repositories/Organisation";
+import {
+  deleteUser,
+  findUserById,
+  updateUserRole,
+  upsertUser,
+} from "@/server/repositories/User";
+import { invitationRouter } from "@/server/trpc/routers/invitation";
+
+const userIds: string[] = [];
+const mapIds: string[] = [];
+const dataSourceIds: string[] = [];
+
+async function createTestUser(role?: UserRole | null) {
+  const user = await upsertUser({
+    email: `test-${uuidv4()}@example.com`,
+    password: "test-password-123",
+    name: "Test User",
+    avatarUrl: null,
+  });
+  userIds.push(user.id);
+  if (role) {
+    await updateUserRole(user.id, role);
+    const updated = await findUserById(user.id);
+    if (!updated) throw new Error("User not found after role update");
+    return updated;
+  }
+  return user;
+}
+
+function makeCaller(user: Awaited<ReturnType<typeof createTestUser>> | null) {
+  return invitationRouter.createCaller({ user, ip: "127.0.0.1" });
+}
+
+describe("invitation.list", () => {
+  test("superadmin can list invitations", async () => {
+    const superadmin = await createTestUser(UserRole.Superadmin);
+    const caller = makeCaller(superadmin);
+
+    const result = await caller.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  test("advocate can list invitations", async () => {
+    const advocate = await createTestUser(UserRole.Advocate);
+    const caller = makeCaller(advocate);
+
+    const result = await caller.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  test("regular user cannot list invitations", async () => {
+    const regular = await createTestUser();
+    const caller = makeCaller(regular);
+
+    await expect(caller.list()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  test("unauthenticated user cannot list invitations", async () => {
+    const caller = makeCaller(null);
+
+    await expect(caller.list()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+});
+
+describe("invitation.create", () => {
+  test("advocate can create an invitation with a new organisation", async () => {
+    const advocate = await createTestUser(UserRole.Advocate);
+    const caller = makeCaller(advocate);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      organisationName: `New Org ${uuidv4()}`,
+    });
+
+    const pending = await findPendingInvitationsByEmail(email);
+    expect(pending.length).toBe(1);
+    expect(pending[0].name).toBe("Invitee");
+  });
+
+  test("superadmin can create an invitation with a new organisation", async () => {
+    const superadmin = await createTestUser(UserRole.Superadmin);
+    const caller = makeCaller(superadmin);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      organisationName: `New Org ${uuidv4()}`,
+    });
+
+    const pending = await findPendingInvitationsByEmail(email);
+    expect(pending.length).toBe(1);
+  });
+
+  test("advocate can create an invitation with mapSelections (copies the map + DS)", async () => {
+    const advocate = await createTestUser(UserRole.Advocate);
+    const caller = makeCaller(advocate);
+
+    const sourceOrg = await upsertOrganisation({
+      name: `Src Org ${uuidv4()}`,
+    });
+    const sourceDs = await createDataSource({
+      name: "Src DS",
+      organisationId: sourceOrg.id,
+      autoEnrich: false,
+      autoImport: false,
+      config: {
+        type: DataSourceType.CSV,
+        url: `file://tests/resources/stats.csv?${uuidv4()}`,
+      },
+      columnDefs: [],
+      columnMetadata: [],
+      columnRoles: { nameColumns: ["Name"] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
+      public: false,
+      recordType: DataSourceRecordType.Data,
+    });
+    dataSourceIds.push(sourceDs.id);
+
+    const sourceMap = await createMap(sourceOrg.id, "Map To Copy");
+    mapIds.push(sourceMap.id);
+    await updateMap(sourceMap.id, {
+      config: {
+        markerDataSourceIds: [sourceDs.id],
+        membersDataSourceId: null,
+      },
+    });
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    const targetOrgName = `Target Org ${uuidv4()}`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      organisationName: targetOrgName,
+      mapSelections: [{ mapId: sourceMap.id, dataSourceIds: [sourceDs.id] }],
+    });
+
+    const pending = await findPendingInvitationsByEmail(email);
+    expect(pending.length).toBe(1);
+    const targetOrgId = pending[0].organisationId;
+    expect(targetOrgId).toBeTruthy();
+    if (!targetOrgId) return;
+
+    const targetMaps = await findMapsByOrganisationId(targetOrgId);
+    expect(targetMaps.length).toBe(1);
+    expect(targetMaps[0].name).toBe("Map To Copy");
+    mapIds.push(targetMaps[0].id);
+
+    const copiedDsIds = targetMaps[0].config.markerDataSourceIds;
+    expect(copiedDsIds.length).toBe(1);
+    expect(copiedDsIds[0]).not.toBe(sourceDs.id);
+    dataSourceIds.push(copiedDsIds[0]);
+
+    const copiedDs = await findDataSourceById(copiedDsIds[0]);
+    expect(copiedDs?.organisationId).toBe(targetOrgId);
+
+    // ensureOrganisationMap would have created an additional default map —
+    // confirm only the copied map exists in the new org
+    const views = await findMapViewsByMapId(targetMaps[0].id);
+    expect(Array.isArray(views)).toBe(true);
+  });
+
+  test("regular user cannot create invitations", async () => {
+    const regular = await createTestUser();
+    const caller = makeCaller(regular);
+
+    await expect(
+      caller.create({
+        name: "Test",
+        email: "test@example.com",
+        organisationName: "Test Org",
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  test("unauthenticated user cannot create invitations", async () => {
+    const caller = makeCaller(null);
+
+    await expect(
+      caller.create({
+        name: "Test",
+        email: "test@example.com",
+        organisationName: "Test Org",
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+afterAll(async () => {
+  for (const id of mapIds) {
+    try {
+      await deleteMap(id);
+    } catch {
+      // already deleted
+    }
+  }
+  for (const id of dataSourceIds) {
+    try {
+      await deleteDataSource(id);
+    } catch {
+      // already deleted
+    }
+  }
+  for (const id of userIds) {
+    try {
+      await deleteUser(id);
+    } catch {
+      // already deleted
+    }
+  }
+});

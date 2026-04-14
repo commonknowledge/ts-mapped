@@ -1,12 +1,26 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import { passwordSchema, userSchema } from "@/models/User";
-import { listUsers, updateUser } from "@/server/repositories/User";
+import { UserRole, passwordSchema, userSchema } from "@/models/User";
+import {
+  listUsers,
+  updateUser,
+  updateUserRole,
+} from "@/server/repositories/User";
 import { verifyPassword } from "@/server/utils/auth";
 import { protectedProcedure, router, superadminProcedure } from "../index";
 
 export const userRouter = router({
   list: superadminProcedure.query(() => listUsers()),
+  updateRole: superadminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        role: z.nativeEnum(UserRole).nullable(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return updateUserRole(input.userId, input.role);
+    }),
   update: protectedProcedure
     .input(
       userSchema.pick({ email: true, name: true, avatarUrl: true }).partial(),

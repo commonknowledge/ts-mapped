@@ -10,9 +10,9 @@ import { toast } from "sonner";
 import EditColumnMetadataModal from "@/app/(private)/components/EditColumnMetadataModal/EditColumnMetadataModal";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
-import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser } from "@/hooks";
 import { useDataSources } from "@/hooks/useDataSources";
+import { UserRole } from "@/models/User";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { DefaultChoroplethSection } from "./components/DefaultChoroplethSection";
@@ -41,7 +41,7 @@ export default function DataSourceConfigPage() {
 
   const { data: dataSources, isPending, getDataSourceById } = useDataSources();
 
-  if (currentUser && currentUser.email !== ADMIN_USER_EMAIL) redirect("/");
+  if (currentUser && currentUser.role !== UserRole.Superadmin) redirect("/");
 
   const dataSource = dataSources?.find((ds) => ds.id === id);
 

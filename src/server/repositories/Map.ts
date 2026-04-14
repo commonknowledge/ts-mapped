@@ -46,6 +46,17 @@ export function findMapsByOrganisationId(organisationId: string) {
     .execute();
 }
 
+export function listAllMaps() {
+  return db
+    .selectFrom("map")
+    .innerJoin("organisation", "map.organisationId", "organisation.id")
+    .selectAll("map")
+    .select("organisation.name as organisationName")
+    .orderBy("organisation.name")
+    .orderBy("map.name")
+    .execute();
+}
+
 export function updateMap(id: string, map: MapUpdate) {
   return db
     .updateTable("map")

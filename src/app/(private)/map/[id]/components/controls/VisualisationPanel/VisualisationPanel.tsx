@@ -290,7 +290,9 @@ export default function VisualisationPanel({
                         </Label>
 
                         <Select
-                          value={viewConfig.colorScheme || ColorScheme.Sequential}
+                          value={
+                            viewConfig.colorScheme || ColorScheme.Sequential
+                          }
                           onValueChange={(value) =>
                             updateViewConfig({
                               colorScheme: value as ColorScheme,

@@ -2,6 +2,7 @@ import { jwtVerify } from "jose";
 import { sql } from "kysely";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
+import type { UserRole } from "@/models/User";
 import type { NewUser, UserUpdate } from "@/server/models/User";
 
 export async function upsertUser(
@@ -80,6 +81,15 @@ export function listUsers() {
     .groupBy("user.id")
     .orderBy("email")
     .execute();
+}
+
+export async function updateUserRole(id: string, role: UserRole | null) {
+  return db
+    .updateTable("user")
+    .where("id", "=", id)
+    .set({ role })
+    .returning(["id", "email", "name", "avatarUrl", "role", "createdAt"])
+    .executeTakeFirstOrThrow();
 }
 
 export async function updateUser(
