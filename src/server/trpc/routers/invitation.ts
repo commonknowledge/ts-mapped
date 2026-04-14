@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
+import copyMapsToOrganisation from "@/server/commands/copyMapsToOrganisation";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import Invite from "@/server/emails/Invite";
 import {
@@ -14,10 +15,10 @@ import {
 } from "@/server/repositories/Organisation";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
-import { protectedProcedure, router, superadminProcedure } from "..";
+import { advocateProcedure, protectedProcedure, router } from "..";
 
 export const invitationRouter = router({
-  create: superadminProcedure
+  create: advocateProcedure
     .input(
       z
         .object({
@@ -25,6 +26,14 @@ export const invitationRouter = router({
           email: z.string().email(),
           organisationId: z.string().nullish(),
           organisationName: z.string().nullish(),
+          mapSelections: z
+            .array(
+              z.object({
+                mapId: z.string(),
+                dataSourceIds: z.array(z.string()),
+              }),
+            )
+            .optional(),
         })
         .refine((data) => data.organisationId || data.organisationName, {
           message: "Either organisationId or organisationName must be provided",
@@ -47,7 +56,11 @@ export const invitationRouter = router({
           });
         }
 
-        await ensureOrganisationMap(org.id);
+        if (input.mapSelections && input.mapSelections.length > 0) {
+          await copyMapsToOrganisation(input.mapSelections, org.id);
+        } else {
+          await ensureOrganisationMap(org.id);
+        }
 
         const invitation = await createInvitation({
           email: input.email.toLowerCase().trim(),
@@ -73,7 +86,7 @@ export const invitationRouter = router({
         });
       }
     }),
-  list: superadminProcedure.query(() => listPendingInvitations()),
+  list: advocateProcedure.query(() => listPendingInvitations()),
   listForUser: protectedProcedure.query(async ({ ctx }) => {
     return findPendingInvitationsByEmail(ctx.user.email);
   }),

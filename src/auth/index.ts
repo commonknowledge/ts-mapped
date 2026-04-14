@@ -18,6 +18,7 @@ export const getServerSession = cache(async (): Promise<ServerSession> => {
         email: user.email,
         name: user.name,
         avatarUrl: user.avatarUrl,
+        role: user.role,
       },
     };
   }

@@ -5,12 +5,16 @@ import { DataSourceRecordType } from "@/models/DataSource";
 import { mapConfigSchema, mapSchema } from "@/models/Map";
 import { MapStyleName, mapViewSchema } from "@/models/MapView";
 import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
-import { findDataSourceById } from "@/server/repositories/DataSource";
+import {
+  findDataSourceById,
+  findDataSourcesByIds,
+} from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
   createMap,
   deleteMap,
   findMapsByOrganisationId,
+  listAllMaps,
   updateMap,
 } from "@/server/repositories/Map";
 import {
@@ -21,6 +25,7 @@ import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import { findTurfsByMapId } from "@/server/repositories/Turf";
 import { deleteFile } from "@/server/services/minio";
 import {
+  advocateProcedure,
   mapReadProcedure,
   mapWriteProcedure,
   organisationProcedure,
@@ -28,6 +33,44 @@ import {
 } from "../index";
 
 export const mapRouter = router({
+  listAll: advocateProcedure.query(async () => {
+    const maps = await listAllMaps();
+    const allViews = await Promise.all(
+      maps.map((map) => findMapViewsByMapId(map.id)),
+    );
+
+    // Collect all data source IDs referenced by maps and views
+    const allDataSourceIds = new Set<string>();
+    for (let i = 0; i < maps.length; i++) {
+      const map = maps[i];
+      for (const id of map.config.markerDataSourceIds) {
+        if (id) allDataSourceIds.add(id);
+      }
+      if (map.config.membersDataSourceId) {
+        allDataSourceIds.add(map.config.membersDataSourceId);
+      }
+      for (const view of allViews[i]) {
+        if (view.config.areaDataSourceId) {
+          allDataSourceIds.add(view.config.areaDataSourceId);
+        }
+        for (const dsv of view.dataSourceViews) {
+          allDataSourceIds.add(dsv.dataSourceId);
+        }
+      }
+    }
+
+    // Resolve data source names
+    const dataSources = await findDataSourcesByIds([...allDataSourceIds]);
+    const dataSourceNames: Record<string, string> = {};
+    for (const ds of dataSources) {
+      dataSourceNames[ds.id] = ds.name;
+    }
+
+    return {
+      maps: maps.map((map, i) => ({ ...map, views: allViews[i] })),
+      dataSourceNames,
+    };
+  }),
   list: organisationProcedure.query(async ({ ctx }) => {
     return findMapsByOrganisationId(ctx.organisation.id);
   }),

@@ -5,6 +5,7 @@ import {
   Clock2,
   DatabaseIcon,
   LockIcon,
+  MailPlusIcon,
   MapIcon,
   UserCogIcon,
 } from "lucide-react";
@@ -13,10 +14,10 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Link } from "@/components/Link";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
-import { ADMIN_USER_EMAIL } from "@/constants";
 import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { Feature } from "@/models/Organisation";
+import { UserRole } from "@/models/User";
 import { cn } from "@/shadcn/utils";
 
 export default function Sidebar() {
@@ -77,7 +78,18 @@ export default function Sidebar() {
     });
   }
 
-  if (currentUser?.email === ADMIN_USER_EMAIL) {
+  if (
+    currentUser?.role === UserRole.Advocate ||
+    currentUser?.role === UserRole.Superadmin
+  ) {
+    navItems.push({
+      label: "Invite organisation",
+      href: "/invite-organisation",
+      icon: <MailPlusIcon className="w-4 h-4" />,
+    });
+  }
+
+  if (currentUser?.role === UserRole.Superadmin) {
     navItems.push({
       label: "Superadmin",
       href: "/superadmin",

@@ -65,6 +65,7 @@ export interface User {
   passwordHash: string; // text, NOT NULL
   name: string; // text, NOT NULL, DEFAULT ''
   avatarUrl: string | null; // text, NULL
+  role: string | null; // text, NULL — 'Advocate' or 'Superadmin'
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 }
 

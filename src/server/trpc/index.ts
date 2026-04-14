@@ -2,7 +2,7 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
-import { ADMIN_USER_EMAIL } from "@/constants";
+import { UserRole } from "@/models/User";
 import { getClientIp } from "@/server/services/ratelimit";
 import { canReadDataSource } from "@/server/utils/auth";
 import {
@@ -76,7 +76,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 
 const enforceUserIsSuperadmin = t.middleware(({ ctx, next }) => {
-  if (ctx.user?.email !== ADMIN_USER_EMAIL)
+  if (ctx.user?.role !== UserRole.Superadmin)
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be a superadmin to perform this action.",
@@ -85,6 +85,20 @@ const enforceUserIsSuperadmin = t.middleware(({ ctx, next }) => {
 });
 
 export const superadminProcedure = t.procedure.use(enforceUserIsSuperadmin);
+
+const enforceUserIsAdvocate = t.middleware(({ ctx, next }) => {
+  if (
+    ctx.user?.role !== UserRole.Advocate &&
+    ctx.user?.role !== UserRole.Superadmin
+  )
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be an advocate or superadmin to perform this action.",
+    });
+  return next({ ctx: { user: ctx.user } });
+});
+
+export const advocateProcedure = t.procedure.use(enforceUserIsAdvocate);
 
 export const organisationProcedure = protectedProcedure
   .input(z.object({ organisationId: z.string() }))
