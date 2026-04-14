@@ -155,8 +155,8 @@ function remapMapConfig(
     markerDataSourceIds,
     markerDisplayModes: remapRecord(config.markerDisplayModes, dataSourceIdMap),
     markerColors: remapRecord(config.markerColors, dataSourceIdMap),
-    placedMarkerColors: remapRecord(config.placedMarkerColors, dataSourceIdMap),
-    folderColors: remapRecord(config.folderColors, dataSourceIdMap),
+    placedMarkerColors: undefined,
+    folderColors: undefined,
   };
 }
 
