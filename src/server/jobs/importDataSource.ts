@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from "node:util";
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -14,8 +15,10 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
+import type { GeocodeResult } from "@/models/DataRecord";
 import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
+import type { Point } from "@/models/shared";
 import type { ExternalRecord } from "@/types";
 
 const importDataSource = async (args: object | null): Promise<boolean> => {
@@ -58,7 +61,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     const batches = batchAsync(records, DATA_SOURCE_JOB_BATCH_SIZE);
 
     for await (const batch of batches) {
-      await importBatch(batch, dataSource, columnDefsAccumulator);
+      await importBatch({ batch, dataSource, columnDefsAccumulator });
       count += batch.length;
       if (total) {
         const percentComplete = Math.floor((count * 100) / total);
@@ -110,25 +113,46 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   return false;
 };
 
-export const importBatch = async (
-  batch: ExternalRecord[],
-  dataSource: DataSource,
-  columnDefsAccumulator: ColumnDef[],
-) => {
+export const importBatch = async ({
+  batch,
+  dataSource,
+  columnDefsAccumulator,
+  existingRecords,
+}: {
+  batch: ExternalRecord[];
+  dataSource: DataSource;
+  columnDefsAccumulator: ColumnDef[];
+  existingRecords?: Map<
+    string,
+    {
+      json: Record<string, unknown>;
+      geocodeResult: GeocodeResult | null;
+      geocodePoint: Point | null;
+    }
+  >;
+}) => {
   const naIsNull = Boolean(dataSource.naIsNull);
   const updatedRecords = await Promise.all(
     batch.map(async (record) => {
       const { columnDefs, typedJson } = typeJson(record.json, naIsNull);
       addColumnDefs(columnDefsAccumulator, columnDefs);
-      const geocodeResult = await geocodeRecord(
-        record,
-        dataSource.geocodingConfig,
-      );
+
+      const existing = existingRecords?.get(record.externalId);
+      const jsonUnchanged =
+        existing && isDeepStrictEqual(typedJson, existing.json);
+
+      let geocodeResult: GeocodeResult | null;
+      if (jsonUnchanged) {
+        geocodeResult = existing.geocodeResult;
+      } else {
+        geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
+      }
+
       return {
         externalId: record.externalId,
         json: typedJson,
-        geocodeResult: geocodeResult,
-        geocodePoint: geocodeResult?.centralPoint,
+        geocodeResult,
+        geocodePoint: geocodeResult?.centralPoint ?? null,
         dataSourceId: dataSource.id,
       };
     }),
@@ -232,7 +256,7 @@ const cleanNumber = (value: string): string => {
   return value.trim().replace(/%$/, "").replace(/,/g, "").replace(/ /g, "");
 };
 
-const addColumnDefs = (
+export const addColumnDefs = (
   columnDefsAccumulator: ColumnDef[],
   recordColumnDefs: ColumnDef[],
 ): void => {
