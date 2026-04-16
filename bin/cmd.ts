@@ -3,6 +3,7 @@ import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importAreaSet from "@/server/commands/importAreaSet";
 import importPostcodes from "@/server/commands/importPostcodes";
+import populateGeocodeCache from "@/server/commands/populateGeocodeCache";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/Invite";
@@ -77,6 +78,15 @@ program
   .description("Import a data source by its ID")
   .action(async (dataSourceId) => {
     await importDataSource({ dataSourceId });
+  });
+
+program
+  .command("populateGeocodeCache")
+  .description(
+    "Populate the geocode cache from existing address-geocoded data sources",
+  )
+  .action(async () => {
+    await populateGeocodeCache();
   });
 
 program

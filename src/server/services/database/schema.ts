@@ -374,6 +374,16 @@ export interface DataSourceOrganisationOverride {
   inspectorColumns: unknown[]; // jsonb, NOT NULL, DEFAULT []
 }
 
+/**
+ * geocodeCache Table
+ * Caches Mapbox geocoding API responses to avoid redundant requests
+ */
+export interface GeocodeCache {
+  address: string; // text, PRIMARY KEY
+  point: unknown; // geography, NULLABLE
+  createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
+}
+
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
@@ -396,6 +406,9 @@ export interface Database {
 
   // Webhooks & Integrations
   airtableWebhook: AirtableWebhook;
+
+  // Caches
+  geocodeCache: GeocodeCache;
 
   // Maps & Views
   map: Map;

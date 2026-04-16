@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { getBooleanEnvVar } from "@/env";
 import { AreaSetCode } from "@/models/AreaSet";
 import {
@@ -12,6 +13,7 @@ import {
   findAreaByName,
   findAreasByPoint,
 } from "@/server/repositories/Area";
+import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { geojsonPointToPoint } from "../utils/geo";
 import type { GeocodeResult } from "@/models/DataRecord";
@@ -199,32 +201,10 @@ const geocodeRecordByAddress = async (
   }
 
   if (!point) {
-    const geocodeUrl = new URL(
-      "https://api.mapbox.com/search/geocode/v6/forward",
-    );
-    geocodeUrl.searchParams.set("q", address);
-    geocodeUrl.searchParams.set("country", "GB");
-    geocodeUrl.searchParams.set(
-      "access_token",
-      process.env.MAPBOX_SECRET_TOKEN || "",
-    );
-
-    const response = await fetch(geocodeUrl);
-    if (!response.ok) {
-      throw new Error(`Geocode request failed: ${response.status}`);
-    }
-    const results = (await response.json()) as {
-      features?: { id: string; geometry: GeoJSONPoint }[];
-    };
-    if (!results.features?.length) {
+    point = await mapboxGeocode(address);
+    if (!point) {
       throw new Error(`Geocode request returned no features`);
     }
-
-    const feature = results.features[0];
-    point = {
-      lng: feature.geometry.coordinates[0],
-      lat: feature.geometry.coordinates[1],
-    };
   }
 
   const geocodeResult: GeocodeResult = {
@@ -351,4 +331,54 @@ const postcodesIOLookup = async (
       longitude: postcodesData.result.longitude,
     },
   };
+};
+
+const mapboxGeocode = async (address: string): Promise<Point | null> => {
+  const cached = await db
+    .selectFrom("geocodeCache")
+    .select("point")
+    .where("address", "=", address)
+    .where("createdAt", ">", sql<Date>`now() - interval '4 weeks'`)
+    .executeTakeFirst();
+
+  if (cached) {
+    logger.debug(`Geocode cache hit for "${address}"`);
+    return cached.point;
+  }
+
+  logger.info(`Geocode cache miss for "${address}", calling Mapbox API`);
+  const geocodeUrl = new URL(
+    "https://api.mapbox.com/search/geocode/v6/forward",
+  );
+  geocodeUrl.searchParams.set("q", address);
+  geocodeUrl.searchParams.set("country", "GB");
+  geocodeUrl.searchParams.set(
+    "access_token",
+    process.env.MAPBOX_SECRET_TOKEN || "",
+  );
+
+  const response = await fetch(geocodeUrl);
+  if (!response.ok) {
+    throw new Error(`Geocode request failed: ${response.status}`);
+  }
+  const results = (await response.json()) as {
+    features?: { id: string; geometry: GeoJSONPoint }[];
+  };
+
+  const point: Point | null = results.features?.length
+    ? {
+        lng: results.features[0].geometry.coordinates[0],
+        lat: results.features[0].geometry.coordinates[1],
+      }
+    : null;
+
+  await db
+    .insertInto("geocodeCache")
+    .values({ address, point })
+    .onConflict((oc) =>
+      oc.column("address").doUpdateSet({ point, createdAt: sql`now()` }),
+    )
+    .execute();
+
+  return point;
 };
