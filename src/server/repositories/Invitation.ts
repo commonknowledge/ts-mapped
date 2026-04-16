@@ -18,6 +18,7 @@ export function listPendingInvitations(senderOrganisationId: string) {
     .selectFrom("invitation")
     .leftJoin("organisation", "invitation.organisationId", "organisation.id")
     .where("invitation.userId", "is", null)
+    .where("invitation.used", "=", false)
     .where("invitation.senderOrganisationId", "=", senderOrganisationId)
     .select([
       "invitation.id",
