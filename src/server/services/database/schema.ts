@@ -380,7 +380,7 @@ export interface DataSourceOrganisationOverride {
  */
 export interface GeocodeCache {
   address: string; // text, PRIMARY KEY
-  point: unknown; // geography, NOT NULL
+  point: unknown; // geography, NULLABLE
   createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
 }
 
