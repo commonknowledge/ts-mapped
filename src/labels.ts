@@ -37,6 +37,7 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   SDZ22: "Scottish Data Zone",
   SIZ22: "Scottish Intermediate Zone",
   COED26: "Church of England Diocese",
+  ICB22: "NHS Integrated Care Board",
 };
 
 export const AreaSetCodeYears: Record<AreaSetCode, string> = {
@@ -57,6 +58,7 @@ export const AreaSetCodeYears: Record<AreaSetCode, string> = {
   SDZ22: "2022 &mdash; present",
   SIZ22: "2022 &mdash; present",
   COED26: "2026 &mdash; present",
+  ICB22: "2022 &mdash; present",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
@@ -73,6 +75,7 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   SENC22: "Senedd Constituency",
   SOA22: "Scottish Inter. Zone ➔ Data Zone ➔ Output Area",
   COED26: "Church of England Diocese",
+  ICB22: "NHS Integrated Care Board",
 };
 
 export const AreaSetGroupCodeYears: Record<AreaSetGroupCode, string> = {
@@ -89,6 +92,7 @@ export const AreaSetGroupCodeYears: Record<AreaSetGroupCode, string> = {
   SENC22: "2022 &mdash; present",
   SOA22: "2022 &mdash; present",
   COED26: "2026 &mdash; present",
+  ICB22: "2022 &mdash; present",
 };
 
 export const FilterTypeLabels: Record<

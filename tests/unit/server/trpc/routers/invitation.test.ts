@@ -70,7 +70,7 @@ describe("invitation.list", () => {
     const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
     const caller = makeCaller(superadmin);
 
-    const result = await caller.list({ organisationId: senderOrg.id });
+    const result = await caller.list({ senderOrganisationId: senderOrg.id });
     expect(Array.isArray(result)).toBe(true);
   });
 
@@ -79,7 +79,7 @@ describe("invitation.list", () => {
     const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
     const caller = makeCaller(advocate);
 
-    const result = await caller.list({ organisationId: senderOrg.id });
+    const result = await caller.list({ senderOrganisationId: senderOrg.id });
     expect(Array.isArray(result)).toBe(true);
   });
 
@@ -89,7 +89,7 @@ describe("invitation.list", () => {
     const caller = makeCaller(regular);
 
     await expect(
-      caller.list({ organisationId: senderOrg.id }),
+      caller.list({ senderOrganisationId: senderOrg.id }),
     ).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
@@ -133,14 +133,14 @@ describe("invitation.list", () => {
     });
 
     // List for orgA should only contain orgA's invitations
-    const resultA = await caller.list({ organisationId: orgA.id });
+    const resultA = await caller.list({ senderOrganisationId: orgA.id });
     const emailsA = resultA.map((inv) => inv.email);
     expect(emailsA).toContain(emailA1);
     expect(emailsA).toContain(emailA2);
     expect(emailsA).not.toContain(emailB);
 
     // List for orgB should only contain orgB's invitation
-    const resultB = await caller.list({ organisationId: orgB.id });
+    const resultB = await caller.list({ senderOrganisationId: orgB.id });
     const emailsB = resultB.map((inv) => inv.email);
     expect(emailsB).toContain(emailB);
     expect(emailsB).not.toContain(emailA1);
@@ -152,7 +152,7 @@ describe("invitation.list", () => {
     const caller = makeCaller(null);
 
     await expect(
-      caller.list({ organisationId: senderOrg.id }),
+      caller.list({ senderOrganisationId: senderOrg.id }),
     ).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });

@@ -162,4 +162,13 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
     codeKey: "DioNumber",
     nameKey: "Diocese",
   },
+  {
+    code: AreaSetCode.ICB22,
+    name: "NHS Integrated Care Boards 2022",
+    filename: "icb_2022.geojson",
+    link: "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/92362df594aa408aaa7a581ac83fb348/geojson?layers=0",
+    isNationalGridSRID: true,
+    codeKey: "ICB22CD",
+    nameKey: "ICB22NM",
+  },
 ];

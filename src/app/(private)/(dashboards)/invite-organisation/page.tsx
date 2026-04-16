@@ -26,7 +26,7 @@ export default function InviteOrganisationPage() {
 
   const { data: invitations, isPending: invitationsLoading } = useQuery(
     trpc.invitation.list.queryOptions(
-      { organisationId: organisationId ?? "" },
+      { senderOrganisationId: organisationId ?? "" },
       { enabled: isAllowed && Boolean(organisationId) },
     ),
   );
