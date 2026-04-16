@@ -2,7 +2,6 @@ import { getServerSession } from "@/auth";
 import { redirectToLogin } from "@/auth/redirectToLogin";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import TrialBanner from "@/components/TrialBanner";
-import TrialExpired from "./TrialExpired";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -20,13 +19,9 @@ export default async function PrivateLayout({
   }
 
   const { trialEndsAt } = serverSession.currentUser ?? {};
-  if (trialEndsAt && new Date(trialEndsAt) < new Date()) {
-    return <TrialExpired />;
-  }
-
   return (
     <>
-      <TrialBanner />
+      {trialEndsAt && <TrialBanner trialEndsAt={trialEndsAt} />}
       {children}
       <SentryFeedbackWidget />
     </>

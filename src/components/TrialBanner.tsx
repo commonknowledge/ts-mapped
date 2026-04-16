@@ -1,28 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useCurrentUser } from "@/atoms/sessionAtoms";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 
 const DISMISSED_KEY = "mapped-trial-banner-dismissed";
 
-function getDaysRemaining(trialEndsAt: Date | null | undefined) {
-  if (!trialEndsAt) return null;
-  const trialEnd = new Date(trialEndsAt);
-  const ms = trialEnd.getTime() - Date.now();
+function getDaysRemaining(trialEndsAt: Date) {
+  const ms = new Date(trialEndsAt).getTime() - Date.now();
   if (ms <= 0) return null;
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
-export default function TrialBanner() {
-  const currentUser = useCurrentUser();
+export default function TrialBanner({ trialEndsAt }: { trialEndsAt: Date }) {
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem(DISMISSED_KEY) === "true";
   });
-  const [daysRemaining] = useState(() =>
-    getDaysRemaining(currentUser?.trialEndsAt),
-  );
+  // useState (not useMemo) because Date.now() triggers the react-hooks/purity lint rule
+  const [daysRemaining] = useState(() => getDaysRemaining(trialEndsAt));
 
   if (daysRemaining === null || dismissed) {
     return null;
