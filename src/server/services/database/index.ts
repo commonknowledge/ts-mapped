@@ -11,6 +11,7 @@ import type { DataRecordTable } from "@/server/models/DataRecord";
 import type { DataSourceTable } from "@/server/models/DataSource";
 import type { DataSourceOrganisationOverrideTable } from "@/server/models/DataSourceOrganisationOverride";
 import type { FolderTable } from "@/server/models/Folder";
+import type { GeocodeCacheTable } from "@/server/models/GeocodeCache";
 import type { InspectorDataSourceConfigTable } from "@/server/models/InspectorDataSourceConfig";
 import type { InvitationTable } from "@/server/models/Invitation";
 import type { JobTable } from "@/server/models/Job";
@@ -62,6 +63,7 @@ export interface Database {
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;
   folder: FolderTable;
+  geocodeCache: GeocodeCacheTable;
   invitation: InvitationTable;
   map: MapTable;
   mapView: MapViewTable;
