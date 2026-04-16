@@ -113,6 +113,12 @@ export default function CreateInvitationModal() {
           dsIds.add(dsv.dataSourceId);
         }
       }
+      // Only include data sources that actually exist
+      for (const id of dsIds) {
+        if (!mapData.dataSourceNames[id]) {
+          dsIds.delete(id);
+        }
+      }
       result.set(map.id, dsIds);
     }
     return result;
