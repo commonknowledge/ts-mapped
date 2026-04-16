@@ -70,6 +70,12 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
       code: "UNAUTHORIZED",
       message: "You must be logged in to perform this action.",
     });
+  if (ctx.user.trialEndsAt && new Date(ctx.user.trialEndsAt) < new Date()) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Your trial has expired.",
+    });
+  }
   return next({ ctx: { user: ctx.user } });
 });
 

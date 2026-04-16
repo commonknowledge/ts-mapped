@@ -11,6 +11,7 @@ import { observable } from "@trpc/server/observable";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
+import { DEFAULT_AUTH_REDIRECT } from "@/constants";
 import {
   clientDataSourceSerializer,
   hasPasswordHashSerializer,
@@ -59,16 +60,18 @@ const errorLink: TRPCLink<AppRouter> = () => {
           observer.next(value);
         },
         error(err) {
-          if (
-            err instanceof TRPCClientError &&
-            err.data?.code === "UNAUTHORIZED" &&
-            typeof window !== "undefined"
-          ) {
-            const redirectTo = encodeURIComponent(
-              window.location.pathname + window.location.search,
-            );
-            window.location.href = `/login?redirectTo=${redirectTo}`;
-            return;
+          if (err instanceof TRPCClientError && typeof window !== "undefined") {
+            if (err.data?.code === "UNAUTHORIZED") {
+              const redirectTo = encodeURIComponent(
+                window.location.pathname + window.location.search,
+              );
+              window.location.href = `/login?redirectTo=${redirectTo}`;
+              return;
+            }
+            if (err.data?.code === "FORBIDDEN") {
+              window.location.href = DEFAULT_AUTH_REDIRECT;
+              return;
+            }
           }
           observer.error(err);
         },

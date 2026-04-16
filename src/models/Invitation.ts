@@ -10,6 +10,7 @@ export const invitationSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   used: z.boolean(),
+  isTrial: z.boolean(),
 });
 
 export type Invitation = z.infer<typeof invitationSchema>;

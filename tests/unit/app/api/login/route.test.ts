@@ -118,6 +118,7 @@ describe("POST /api/login", () => {
         passwordHash: "",
         avatarUrl: undefined,
         role: undefined,
+        trialEndsAt: null,
       });
       const request = makeRequest(
         { email: "user@example.com", password: "correctpassword" },

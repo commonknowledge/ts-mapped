@@ -19,6 +19,7 @@ export const getServerSession = cache(async (): Promise<ServerSession> => {
         name: user.name,
         avatarUrl: user.avatarUrl,
         role: user.role,
+        trialEndsAt: user.trialEndsAt,
       },
     };
   }

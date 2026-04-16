@@ -4,6 +4,7 @@ import { JWTExpired } from "jose/errors";
 import { NoResultError } from "kysely";
 import z from "zod";
 import { setJWT } from "@/auth/jwt";
+import { DEFAULT_TRIAL_PERIOD_DAYS } from "@/constants";
 import { passwordSchema } from "@/models/User";
 import ForgotPassword from "@/server/emails/ForgotPassword";
 import {
@@ -15,6 +16,7 @@ import {
   findUserByEmail,
   findUserByToken,
   updateUser,
+  updateUserTrialEndsAt,
   upsertUser,
 } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
@@ -45,6 +47,14 @@ export const authRouter = router({
           name: invitation.name,
           password,
         });
+
+        // Set trial end date for trial invitations
+        if (invitation.isTrial && !user.trialEndsAt) {
+          const trialEndsAt = new Date(
+            Date.now() + DEFAULT_TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000,
+          );
+          await updateUserTrialEndsAt(user.id, trialEndsAt);
+        }
 
         // Link user to organisation
         await upsertOrganisationUser({
