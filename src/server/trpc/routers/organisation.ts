@@ -106,6 +106,7 @@ export const organisationRouter = router({
           email,
           name: input.name,
           organisationId: ctx.organisation.id,
+          senderOrganisationId: ctx.organisation.id,
         });
 
         if (existingUser) {

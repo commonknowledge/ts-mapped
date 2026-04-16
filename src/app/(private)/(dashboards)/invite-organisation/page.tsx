@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 import { useCurrentUser } from "@/hooks";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { UserRole } from "@/models/User";
 import { useTRPC } from "@/services/trpc/react";
 import {
@@ -17,13 +18,17 @@ import CreateInvitationModal from "./CreateInvitationModal";
 
 export default function InviteOrganisationPage() {
   const { currentUser } = useCurrentUser();
+  const { organisationId } = useOrganisations();
   const trpc = useTRPC();
   const isAllowed =
     currentUser?.role === UserRole.Advocate ||
     currentUser?.role === UserRole.Superadmin;
 
   const { data: invitations, isPending: invitationsLoading } = useQuery(
-    trpc.invitation.list.queryOptions(undefined, { enabled: isAllowed }),
+    trpc.invitation.list.queryOptions(
+      { organisationId: organisationId ?? "" },
+      { enabled: isAllowed && Boolean(organisationId) },
+    ),
   );
 
   if (!isAllowed) {

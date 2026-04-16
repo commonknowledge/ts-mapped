@@ -20,6 +20,7 @@ import {
 } from "@/server/repositories/Map";
 import { findMapViewsByMapId } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
+import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import {
   deleteUser,
   findUserById,
@@ -32,7 +33,11 @@ const userIds: string[] = [];
 const mapIds: string[] = [];
 const dataSourceIds: string[] = [];
 
-async function createTestUser(role?: UserRole | null) {
+async function createSenderOrg() {
+  return upsertOrganisation({ name: `Sender Org ${uuidv4()}` });
+}
+
+async function createTestUser(role?: UserRole | null, organisationId?: string) {
   const user = await upsertUser({
     email: `test-${uuidv4()}@example.com`,
     password: "test-password-123",
@@ -44,6 +49,12 @@ async function createTestUser(role?: UserRole | null) {
     await updateUserRole(user.id, role);
     const updated = await findUserById(user.id);
     if (!updated) throw new Error("User not found after role update");
+    if (organisationId) {
+      await upsertOrganisationUser({
+        organisationId,
+        userId: updated.id,
+      });
+    }
     return updated;
   }
   return user;
@@ -55,34 +66,42 @@ function makeCaller(user: Awaited<ReturnType<typeof createTestUser>> | null) {
 
 describe("invitation.list", () => {
   test("superadmin can list invitations", async () => {
-    const superadmin = await createTestUser(UserRole.Superadmin);
+    const senderOrg = await createSenderOrg();
+    const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
     const caller = makeCaller(superadmin);
 
-    const result = await caller.list();
+    const result = await caller.list({ organisationId: senderOrg.id });
     expect(Array.isArray(result)).toBe(true);
   });
 
   test("advocate can list invitations", async () => {
-    const advocate = await createTestUser(UserRole.Advocate);
+    const senderOrg = await createSenderOrg();
+    const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
     const caller = makeCaller(advocate);
 
-    const result = await caller.list();
+    const result = await caller.list({ organisationId: senderOrg.id });
     expect(Array.isArray(result)).toBe(true);
   });
 
   test("regular user cannot list invitations", async () => {
+    const senderOrg = await createSenderOrg();
     const regular = await createTestUser();
     const caller = makeCaller(regular);
 
-    await expect(caller.list()).rejects.toMatchObject({
+    await expect(
+      caller.list({ organisationId: senderOrg.id }),
+    ).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
   });
 
   test("unauthenticated user cannot list invitations", async () => {
+    const senderOrg = await createSenderOrg();
     const caller = makeCaller(null);
 
-    await expect(caller.list()).rejects.toMatchObject({
+    await expect(
+      caller.list({ organisationId: senderOrg.id }),
+    ).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
   });
@@ -90,13 +109,15 @@ describe("invitation.list", () => {
 
 describe("invitation.create", () => {
   test("advocate can create an invitation with a new organisation", async () => {
-    const advocate = await createTestUser(UserRole.Advocate);
+    const senderOrg = await createSenderOrg();
+    const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
     const caller = makeCaller(advocate);
 
     const email = `invitee-${uuidv4()}@example.com`;
     await caller.create({
       name: "Invitee",
       email,
+      senderOrganisationId: senderOrg.id,
       organisationName: `New Org ${uuidv4()}`,
     });
 
@@ -106,13 +127,15 @@ describe("invitation.create", () => {
   });
 
   test("superadmin can create an invitation with a new organisation", async () => {
-    const superadmin = await createTestUser(UserRole.Superadmin);
+    const senderOrg = await createSenderOrg();
+    const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
     const caller = makeCaller(superadmin);
 
     const email = `invitee-${uuidv4()}@example.com`;
     await caller.create({
       name: "Invitee",
       email,
+      senderOrganisationId: senderOrg.id,
       organisationName: `New Org ${uuidv4()}`,
     });
 
@@ -121,7 +144,8 @@ describe("invitation.create", () => {
   });
 
   test("advocate can create an invitation with mapSelections (copies the map + DS)", async () => {
-    const advocate = await createTestUser(UserRole.Advocate);
+    const senderOrg = await createSenderOrg();
+    const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
     const caller = makeCaller(advocate);
 
     const sourceOrg = await upsertOrganisation({
@@ -160,6 +184,7 @@ describe("invitation.create", () => {
     await caller.create({
       name: "Invitee",
       email,
+      senderOrganisationId: senderOrg.id,
       organisationName: targetOrgName,
       mapSelections: [{ mapId: sourceMap.id, dataSourceIds: [sourceDs.id] }],
     });
@@ -190,6 +215,7 @@ describe("invitation.create", () => {
   });
 
   test("regular user cannot create invitations", async () => {
+    const senderOrg = await createSenderOrg();
     const regular = await createTestUser();
     const caller = makeCaller(regular);
 
@@ -197,18 +223,21 @@ describe("invitation.create", () => {
       caller.create({
         name: "Test",
         email: "test@example.com",
+        senderOrganisationId: senderOrg.id,
         organisationName: "Test Org",
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
   test("unauthenticated user cannot create invitations", async () => {
+    const senderOrg = await createSenderOrg();
     const caller = makeCaller(null);
 
     await expect(
       caller.create({
         name: "Test",
         email: "test@example.com",
+        senderOrganisationId: senderOrg.id,
         organisationName: "Test Org",
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });

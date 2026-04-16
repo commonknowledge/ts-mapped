@@ -109,6 +109,18 @@ Use tRPC as the bridge between client components and server logic:
 
 All database access belongs in `src/server/repositories/`. Build queries with Kysely's query builder; avoid raw SQL (`sql` template tag) unless there is no alternative.
 
+### CamelCasePlugin
+
+A `CamelCasePlugin` translates between camelCase (used in the Kysely query builder) and snake_case (used in the actual PostgreSQL columns). Use **camelCase** in the query builder API and **snake_case** in raw SQL (`sql` template tag / migrations with raw SQL).
+
+```ts
+// ✅ Query builder — camelCase
+db.selectFrom("invitation").where("invitation.senderOrganisationId", "=", id);
+
+// ✅ Raw SQL — snake_case
+sql`UPDATE invitation SET sender_organisation_id = ${id}`;
+```
+
 ### JSONPlugin
 
 The database is configured with a custom `JSONPlugin` that automatically serialises JavaScript objects and arrays into JSONB when writing to the database. **Do not call `JSON.stringify()` on values passed to Kysely queries** — it's handled for you and double-encoding will corrupt the data.
