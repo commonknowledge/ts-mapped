@@ -26,7 +26,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       ["senderOrganisationId"],
       "organisation",
       ["id"],
-      (cb) => cb.onDelete("set null").onUpdate("cascade"),
+      (cb) => cb.onDelete("cascade").onUpdate("cascade"),
     )
     .execute();
 

@@ -95,6 +95,58 @@ describe("invitation.list", () => {
     });
   });
 
+  test("only returns invitations from the requested sender organisation", async () => {
+    const orgA = await createSenderOrg();
+    const orgB = await createSenderOrg();
+
+    const superadmin = await createTestUser(UserRole.Superadmin, orgA.id);
+    await upsertOrganisationUser({
+      organisationId: orgB.id,
+      userId: superadmin.id,
+    });
+
+    const caller = makeCaller(superadmin);
+
+    // Create invitations under orgA
+    const emailA1 = `invitee-${uuidv4()}@example.com`;
+    const emailA2 = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee A1",
+      email: emailA1,
+      senderOrganisationId: orgA.id,
+      organisationName: `Target Org ${uuidv4()}`,
+    });
+    await caller.create({
+      name: "Invitee A2",
+      email: emailA2,
+      senderOrganisationId: orgA.id,
+      organisationName: `Target Org ${uuidv4()}`,
+    });
+
+    // Create invitation under orgB
+    const emailB = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee B",
+      email: emailB,
+      senderOrganisationId: orgB.id,
+      organisationName: `Target Org ${uuidv4()}`,
+    });
+
+    // List for orgA should only contain orgA's invitations
+    const resultA = await caller.list({ organisationId: orgA.id });
+    const emailsA = resultA.map((inv) => inv.email);
+    expect(emailsA).toContain(emailA1);
+    expect(emailsA).toContain(emailA2);
+    expect(emailsA).not.toContain(emailB);
+
+    // List for orgB should only contain orgB's invitation
+    const resultB = await caller.list({ organisationId: orgB.id });
+    const emailsB = resultB.map((inv) => inv.email);
+    expect(emailsB).toContain(emailB);
+    expect(emailsB).not.toContain(emailA1);
+    expect(emailsB).not.toContain(emailA2);
+  });
+
   test("unauthenticated user cannot list invitations", async () => {
     const senderOrg = await createSenderOrg();
     const caller = makeCaller(null);
