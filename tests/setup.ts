@@ -6,7 +6,6 @@ import { getPubSub } from "@/server/services/pubsub";
 import { boss } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
 import { startPublicTunnel, stopPublicTunnel } from "@/server/services/urls";
-import { runWorker } from "@/server/services/worker";
 
 export async function setup() {
   // Load sampleAreas.psql into the test database
@@ -30,7 +29,6 @@ export async function setup() {
   // if it does not return an OK response, which causes some tests to fail.
   let server = null;
   try {
-    await runWorker();
     await startPublicTunnel("http");
     server = http.createServer((req, res) => {
       res.writeHead(200, { "Content-Type": "text/plain" });

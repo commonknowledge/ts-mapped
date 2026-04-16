@@ -128,9 +128,21 @@ export class CSVAdaptor implements DataSourceAdaptor {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
-    throw new Error("Method not implemented.");
+  async fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
+    const idSet = new Set(externalIds);
+    const results: ExternalRecord[] = [];
+    const content = await this.createReadStream();
+    const parser = content.pipe(parse({ columns: true }));
+    let row = 1;
+    for await (const record of parser) {
+      if (Object.keys(record).length) {
+        if (idSet.has(String(row))) {
+          results.push({ externalId: String(row), json: record });
+        }
+        row++;
+      }
+    }
+    return results;
   }
 
   removeDevWebhooks(): Promise<void> {
