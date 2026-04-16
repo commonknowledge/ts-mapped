@@ -5,6 +5,7 @@ import { PlusIcon } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -43,6 +44,7 @@ export default function CreateInvitationModal() {
     Set<string>
   >(new Set());
 
+  const { organisationId: senderOrganisationId } = useOrganisations();
   const trpc = useTRPC();
   const client = useQueryClient();
 
@@ -62,9 +64,7 @@ export default function CreateInvitationModal() {
         client.invalidateQueries({
           queryKey: trpc.organisation.listAll.queryKey(),
         });
-        client.invalidateQueries({
-          queryKey: trpc.invitation.list.queryKey(),
-        });
+        client.invalidateQueries(trpc.invitation.list.queryFilter());
       },
       onError: (error) => {
         toast.error("Failed to create invitation.", {
@@ -169,6 +169,7 @@ export default function CreateInvitationModal() {
     }
 
     createInvitationMutate({
+      senderOrganisationId: senderOrganisationId ?? "",
       organisationId,
       organisationName,
       email,

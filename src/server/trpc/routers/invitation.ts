@@ -11,6 +11,7 @@ import {
 } from "@/server/repositories/Invitation";
 import {
   findOrganisationById,
+  findOrganisationForUser,
   upsertOrganisation,
 } from "@/server/repositories/Organisation";
 import logger from "@/server/services/logger";
@@ -24,6 +25,7 @@ export const invitationRouter = router({
         .object({
           name: z.string(),
           email: z.string().email(),
+          senderOrganisationId: z.string(),
           organisationId: z.string().nullish(),
           organisationName: z.string().nullish(),
           mapSelections: z
@@ -40,8 +42,19 @@ export const invitationRouter = router({
           path: ["organisationId", "organisationName"],
         }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
+        const senderOrg = await findOrganisationForUser(
+          input.senderOrganisationId,
+          ctx.user.id,
+        );
+        if (!senderOrg) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You do not belong to the sender organisation",
+          });
+        }
+
         let org;
         if (input.organisationId) {
           org = await findOrganisationById(input.organisationId);
@@ -66,6 +79,7 @@ export const invitationRouter = router({
           email: input.email.toLowerCase().trim(),
           name: input.name,
           organisationId: org.id,
+          senderOrganisationId: senderOrg.id,
         });
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
@@ -87,7 +101,21 @@ export const invitationRouter = router({
         });
       }
     }),
-  list: advocateProcedure.query(() => listPendingInvitations()),
+  list: advocateProcedure
+    .input(z.object({ senderOrganisationId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      const org = await findOrganisationForUser(
+        input.senderOrganisationId,
+        ctx.user.id,
+      );
+      if (!org) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not belong to this organisation",
+        });
+      }
+      return listPendingInvitations(org.id);
+    }),
   listForUser: protectedProcedure.query(async ({ ctx }) => {
     return findPendingInvitationsByEmail(ctx.user.email);
   }),

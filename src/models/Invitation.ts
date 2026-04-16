@@ -5,6 +5,7 @@ export const invitationSchema = z.object({
   email: z.string().email().trim().toLowerCase(),
   name: z.string().trim(),
   organisationId: z.string(),
+  senderOrganisationId: z.string(),
   userId: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),

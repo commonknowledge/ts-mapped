@@ -13,11 +13,13 @@ export function createInvitation(invitation: NewInvitation) {
     .executeTakeFirstOrThrow();
 }
 
-export function listPendingInvitations() {
+export function listPendingInvitations(senderOrganisationId: string) {
   return db
     .selectFrom("invitation")
     .leftJoin("organisation", "invitation.organisationId", "organisation.id")
     .where("invitation.userId", "is", null)
+    .where("invitation.used", "=", false)
+    .where("invitation.senderOrganisationId", "=", senderOrganisationId)
     .select([
       "invitation.id",
       "invitation.email",

@@ -112,12 +112,15 @@ program
   .option("--email <email>")
   .option("--name <name>")
   .option("--organisationId <organisationId>")
+  .option("--senderOrganisationId <senderOrganisationId>")
   .description("Create an invitation for a user")
   .action(async (options) => {
     const invitation = await createInvitation({
       email: options.email,
       name: options.name,
       organisationId: options.organisationId,
+      senderOrganisationId:
+        options.senderOrganisationId || options.organisationId,
     });
 
     logger.info(`Created invitation ${invitation.id}`);
@@ -151,6 +154,7 @@ program
         email: user.email,
         name: user.name,
         organisationId: orgs[0].id,
+        senderOrganisationId: orgs[0].id,
       });
 
       logger.info(`Created invitation ${invitation.id}`);

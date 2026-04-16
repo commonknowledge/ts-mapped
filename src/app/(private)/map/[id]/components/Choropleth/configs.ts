@@ -256,6 +256,19 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  ICB22: [
+    {
+      areaSetCode: AreaSetCode.ICB22,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "ICB22CD",
+        featureNameProperty: "ICB22NM",
+        layerId: "icb_2022-7ehb90",
+        sourceId: "commonknowledge.4x90o7q9",
+      },
+    },
+  ],
 };
 
 export const HEX_CHOROPLETH_LAYER_CONFIG: ChoroplethLayerConfig = {
