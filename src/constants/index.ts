@@ -13,6 +13,8 @@ export const DATA_RECORDS_JOB_BATCH_SIZE = 100;
 
 export const DEFAULT_AUTH_REDIRECT = "/maps";
 
+export const DEFAULT_TRIAL_PERIOD_DAYS = 30;
+
 export const DEFAULT_ZOOM = 5;
 
 export const DEFAULT_CUSTOM_COLOR = "#3b82f6";
@@ -42,3 +44,5 @@ export const ORGANISATION_COOKIE_NAME = "MappedOrgId";
 export const SORT_BY_LOCATION = "__location";
 // Special sort column to sort by `dataSource.columnRoles.nameColumns`
 export const SORT_BY_NAME_COLUMNS = "__name";
+
+export const TRIAL_EXPIRED_MESSAGE = "Your trial has expired.";

@@ -18,6 +18,7 @@ export const userSchema = z.object({
   avatarUrl: z.string().url().trim().nullish(),
   passwordHash: z.string(),
   role: z.nativeEnum(UserRole).nullish(),
+  trialEndsAt: z.date().nullish(),
 });
 
 export type User = z.infer<typeof userSchema>;

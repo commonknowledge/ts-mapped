@@ -66,6 +66,7 @@ export interface User {
   name: string; // text, NOT NULL, DEFAULT ''
   avatarUrl: string | null; // text, NULL
   role: string | null; // text, NULL — 'Advocate' or 'Superadmin'
+  trialEndsAt: string | null; // text, NULL — ISO timestamp when trial expires
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 }
 
@@ -107,6 +108,7 @@ export interface Invitation {
   organisationId: string; // uuid, NOT NULL
   userId: string | null; // uuid, NULL
   used: boolean; // boolean, NOT NULL, DEFAULT false
+  isTrial: boolean; // boolean, NOT NULL, DEFAULT false
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
   updatedAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 

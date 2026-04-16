@@ -10,6 +10,7 @@ import type {
 export type InvitationTable = Invitation & {
   id: GeneratedAlways<string>;
   used: Generated<boolean>;
+  isTrial: Generated<boolean>;
   createdAt: ColumnType<Date, string | undefined, never>;
   updatedAt: ColumnType<Date, string | undefined, string>;
 };

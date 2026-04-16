@@ -83,6 +83,15 @@ export function listUsers() {
     .execute();
 }
 
+export async function updateUserTrialEndsAt(id: string, trialEndsAt: Date) {
+  return db
+    .updateTable("user")
+    .where("id", "=", id)
+    .set({ trialEndsAt: trialEndsAt.toISOString() })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
 export async function updateUserRole(id: string, role: UserRole | null) {
   return db
     .updateTable("user")

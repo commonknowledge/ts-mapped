@@ -2,6 +2,7 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
+import { TRIAL_EXPIRED_MESSAGE } from "@/constants";
 import { UserRole } from "@/models/User";
 import { getClientIp } from "@/server/services/ratelimit";
 import { canReadDataSource } from "@/server/utils/auth";
@@ -70,6 +71,12 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
       code: "UNAUTHORIZED",
       message: "You must be logged in to perform this action.",
     });
+  if (ctx.user.trialEndsAt && new Date(ctx.user.trialEndsAt) < new Date()) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: TRIAL_EXPIRED_MESSAGE,
+    });
+  }
   return next({ ctx: { user: ctx.user } });
 });
 

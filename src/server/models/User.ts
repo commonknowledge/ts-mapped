@@ -9,6 +9,7 @@ import type {
 export type UserTable = User & {
   id: GeneratedAlways<string>;
   createdAt: ColumnType<Date, string | undefined, never>;
+  trialEndsAt: ColumnType<Date | null, string | undefined, string | undefined>;
 };
 export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;

@@ -1,5 +1,4 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import { getServerSession } from "@/auth";
 import { ORGANISATION_COOKIE_NAME } from "@/constants";
@@ -11,26 +10,10 @@ import { TRPCReactProvider } from "@/services/trpc/react";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
 import { getAbsoluteUrl } from "@/utils/appUrl";
+import HTMLBody from "./HTMLBody";
 import type { Organisation } from "@/models/Organisation";
 import type { Metadata, Viewport } from "next";
 import "nprogress/nprogress.css";
-import "./global.css";
-
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-ibm-plex-sans",
-  display: "swap",
-  preload: true,
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-ibm-plex-mono",
-  display: "swap",
-  preload: true,
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(getAbsoluteUrl()),
@@ -65,31 +48,24 @@ export default async function RootLayout({
   const storedOrgId = cookieStore.get(ORGANISATION_COOKIE_NAME)?.value ?? null;
 
   return (
-    <html
-      lang="en"
-      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
-    >
-      <body className={ibmPlexSans.className + " antialiased"}>
-        <TRPCReactProvider>
-          <HydrationBoundary state={dehydrate(queryClient)}>
-            <SessionProvider serverSession={serverSession}>
-              <PostHogProvider>
-                <OrganisationProvider
-                  organisations={organisations}
-                  storedOrgId={storedOrgId}
-                >
-                  <NProgressProvider>
-                    <main className="min-h-screen relative z-10">
-                      {children}
-                    </main>
-                    <Toaster position="top-center" />
-                  </NProgressProvider>
-                </OrganisationProvider>
-              </PostHogProvider>
-            </SessionProvider>
-          </HydrationBoundary>
-        </TRPCReactProvider>
-      </body>
-    </html>
+    <HTMLBody>
+      <TRPCReactProvider>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <SessionProvider serverSession={serverSession}>
+            <PostHogProvider>
+              <OrganisationProvider
+                organisations={organisations}
+                storedOrgId={storedOrgId}
+              >
+                <NProgressProvider>
+                  <main className="min-h-screen relative z-10">{children}</main>
+                  <Toaster position="top-center" />
+                </NProgressProvider>
+              </OrganisationProvider>
+            </PostHogProvider>
+          </SessionProvider>
+        </HydrationBoundary>
+      </TRPCReactProvider>
+    </HTMLBody>
   );
 }

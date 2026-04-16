@@ -6,6 +6,7 @@ export interface CurrentUser {
   name: string;
   avatarUrl?: string | null;
   role?: UserRole | null;
+  trialEndsAt?: Date | null;
 }
 
 export interface ServerSession {

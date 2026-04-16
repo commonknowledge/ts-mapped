@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
+import { UserRole } from "@/models/User";
 import copyMapsToOrganisation from "@/server/commands/copyMapsToOrganisation";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import Invite from "@/server/emails/Invite";
@@ -80,6 +81,7 @@ export const invitationRouter = router({
           name: input.name,
           organisationId: org.id,
           senderOrganisationId: senderOrg.id,
+          isTrial: ctx.user.role !== UserRole.Superadmin,
         });
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
