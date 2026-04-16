@@ -27,6 +27,7 @@ import {
   updateUserRole,
   upsertUser,
 } from "@/server/repositories/User";
+import { db } from "@/server/services/database";
 import { invitationRouter } from "@/server/trpc/routers/invitation";
 
 const userIds: string[] = [];
@@ -293,6 +294,50 @@ describe("invitation.create", () => {
         organisationName: "Test Org",
       }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("invitation.create isTrial", () => {
+  test("advocate invitation is marked as trial", async () => {
+    const senderOrg = await createSenderOrg();
+    const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
+    const caller = makeCaller(advocate);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      senderOrganisationId: senderOrg.id,
+      organisationName: `New Org ${uuidv4()}`,
+    });
+
+    const invitation = await db
+      .selectFrom("invitation")
+      .where("email", "=", email)
+      .selectAll()
+      .executeTakeFirstOrThrow();
+    expect(invitation.isTrial).toBe(true);
+  });
+
+  test("superadmin invitation is not marked as trial", async () => {
+    const senderOrg = await createSenderOrg();
+    const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
+    const caller = makeCaller(superadmin);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      senderOrganisationId: senderOrg.id,
+      organisationName: `New Org ${uuidv4()}`,
+    });
+
+    const invitation = await db
+      .selectFrom("invitation")
+      .where("email", "=", email)
+      .selectAll()
+      .executeTakeFirstOrThrow();
+    expect(invitation.isTrial).toBe(false);
   });
 });
 

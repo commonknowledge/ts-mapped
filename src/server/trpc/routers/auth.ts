@@ -42,7 +42,7 @@ export const authRouter = router({
         const invitation = await findAndUseInvitation(payload.invitationId);
 
         // Create user with provided password
-        const user = await upsertUser({
+        let user = await upsertUser({
           email: invitation.email,
           name: invitation.name,
           password,
@@ -53,7 +53,7 @@ export const authRouter = router({
           const trialEndsAt = new Date(
             Date.now() + DEFAULT_TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000,
           );
-          await updateUserTrialEndsAt(user.id, trialEndsAt);
+          user = await updateUserTrialEndsAt(user.id, trialEndsAt);
         }
 
         // Link user to organisation
