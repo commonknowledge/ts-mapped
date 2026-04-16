@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
+import { DEFAULT_TRIAL_PERIOD_DAYS } from "@/constants";
 import { UserRole } from "@/models/User";
 import copyMapsToOrganisation from "@/server/commands/copyMapsToOrganisation";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
@@ -37,6 +38,8 @@ export const invitationRouter = router({
               }),
             )
             .optional(),
+          isTrial: z.boolean().optional(),
+          trialDays: z.number().int().min(1).optional(),
         })
         .refine((data) => data.organisationId || data.organisationName, {
           message: "Either organisationId or organisationName must be provided",
@@ -76,12 +79,19 @@ export const invitationRouter = router({
           await ensureOrganisationMap(org.id);
         }
 
+        const isSuperadmin = ctx.user.role === UserRole.Superadmin;
+        const isTrial = isSuperadmin ? Boolean(input.isTrial) : true;
+        const trialDays = isTrial
+          ? (input.trialDays ?? DEFAULT_TRIAL_PERIOD_DAYS)
+          : null;
+
         const invitation = await createInvitation({
           email: input.email.toLowerCase().trim(),
           name: input.name,
           organisationId: org.id,
           senderOrganisationId: senderOrg.id,
-          isTrial: ctx.user.role !== UserRole.Superadmin,
+          isTrial,
+          trialDays,
         });
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");

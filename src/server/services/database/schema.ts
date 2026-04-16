@@ -109,6 +109,7 @@ export interface Invitation {
   userId: string | null; // uuid, NULL
   used: boolean; // boolean, NOT NULL, DEFAULT false
   isTrial: boolean; // boolean, NOT NULL, DEFAULT false
+  trialDays: number | null; // integer, NULL
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
   updatedAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 

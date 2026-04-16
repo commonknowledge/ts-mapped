@@ -298,7 +298,7 @@ describe("invitation.create", () => {
 });
 
 describe("invitation.create isTrial", () => {
-  test("advocate invitation is marked as trial", async () => {
+  test("advocate invitation is marked as trial with default trial days", async () => {
     const senderOrg = await createSenderOrg();
     const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
     const caller = makeCaller(advocate);
@@ -317,9 +317,10 @@ describe("invitation.create isTrial", () => {
       .selectAll()
       .executeTakeFirstOrThrow();
     expect(invitation.isTrial).toBe(true);
+    expect(invitation.trialDays).toBe(30);
   });
 
-  test("superadmin invitation is not marked as trial", async () => {
+  test("superadmin invitation is not marked as trial by default", async () => {
     const senderOrg = await createSenderOrg();
     const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
     const caller = makeCaller(superadmin);
@@ -338,6 +339,54 @@ describe("invitation.create isTrial", () => {
       .selectAll()
       .executeTakeFirstOrThrow();
     expect(invitation.isTrial).toBe(false);
+    expect(invitation.trialDays).toBeNull();
+  });
+
+  test("superadmin can create a trial invitation with custom days", async () => {
+    const senderOrg = await createSenderOrg();
+    const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
+    const caller = makeCaller(superadmin);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      senderOrganisationId: senderOrg.id,
+      organisationName: `New Org ${uuidv4()}`,
+      isTrial: true,
+      trialDays: 14,
+    });
+
+    const invitation = await db
+      .selectFrom("invitation")
+      .where("email", "=", email)
+      .selectAll()
+      .executeTakeFirstOrThrow();
+    expect(invitation.isTrial).toBe(true);
+    expect(invitation.trialDays).toBe(14);
+  });
+
+  test("superadmin trial invitation defaults to 30 days", async () => {
+    const senderOrg = await createSenderOrg();
+    const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
+    const caller = makeCaller(superadmin);
+
+    const email = `invitee-${uuidv4()}@example.com`;
+    await caller.create({
+      name: "Invitee",
+      email,
+      senderOrganisationId: senderOrg.id,
+      organisationName: `New Org ${uuidv4()}`,
+      isTrial: true,
+    });
+
+    const invitation = await db
+      .selectFrom("invitation")
+      .where("email", "=", email)
+      .selectAll()
+      .executeTakeFirstOrThrow();
+    expect(invitation.isTrial).toBe(true);
+    expect(invitation.trialDays).toBe(30);
   });
 });
 

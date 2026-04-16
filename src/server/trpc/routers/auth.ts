@@ -4,7 +4,6 @@ import { JWTExpired } from "jose/errors";
 import { NoResultError } from "kysely";
 import z from "zod";
 import { setJWT } from "@/auth/jwt";
-import { DEFAULT_TRIAL_PERIOD_DAYS } from "@/constants";
 import { passwordSchema } from "@/models/User";
 import ForgotPassword from "@/server/emails/ForgotPassword";
 import {
@@ -49,9 +48,9 @@ export const authRouter = router({
         });
 
         // Set trial end date for trial invitations
-        if (invitation.isTrial && !user.trialEndsAt) {
+        if (invitation.trialDays && !user.trialEndsAt) {
           const trialEndsAt = new Date(
-            Date.now() + DEFAULT_TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000,
+            Date.now() + invitation.trialDays * 24 * 60 * 60 * 1000,
           );
           user = await updateUserTrialEndsAt(user.id, trialEndsAt);
         }
