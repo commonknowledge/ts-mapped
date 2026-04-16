@@ -4,10 +4,10 @@ import type { Kysely } from "kysely";
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("invitation")
-    .addColumn("trial_days", "integer")
+    .addColumn("trialDays", "integer")
     .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.alterTable("invitation").dropColumn("trial_days").execute();
+  await db.schema.alterTable("invitation").dropColumn("trialDays").execute();
 }
