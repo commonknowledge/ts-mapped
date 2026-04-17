@@ -82,9 +82,7 @@ export const invitationRouter = router({
         const isSuperadmin = ctx.user.role === UserRole.Superadmin;
         const isTrial = isSuperadmin ? Boolean(input.isTrial) : true;
         const trialDays = isTrial
-          ? isSuperadmin
-            ? (input.trialDays ?? DEFAULT_TRIAL_PERIOD_DAYS)
-            : DEFAULT_TRIAL_PERIOD_DAYS
+          ? (input.trialDays ?? DEFAULT_TRIAL_PERIOD_DAYS)
           : null;
 
         const invitation = await createInvitation({
@@ -92,7 +90,6 @@ export const invitationRouter = router({
           name: input.name,
           organisationId: org.id,
           senderOrganisationId: senderOrg.id,
-          isTrial,
           trialDays,
         });
 

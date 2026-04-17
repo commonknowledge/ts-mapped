@@ -42,7 +42,6 @@ describe("auth.confirmInvite", () => {
       name: "Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
       trialDays: DEFAULT_TRIAL_PERIOD_DAYS,
     });
 
@@ -76,7 +75,6 @@ describe("auth.confirmInvite", () => {
       name: "Regular User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: false,
     });
 
     const token = await createInviteToken(invitation.id);
@@ -100,7 +98,6 @@ describe("auth.confirmInvite", () => {
       name: "Custom Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
       trialDays: customDays,
     });
 
@@ -135,7 +132,6 @@ describe("auth.confirmInvite", () => {
       name: "Existing Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
       trialDays: DEFAULT_TRIAL_PERIOD_DAYS,
     });
 
@@ -154,7 +150,6 @@ describe("auth.confirmInvite", () => {
       name: "Existing Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
       trialDays: DEFAULT_TRIAL_PERIOD_DAYS,
     });
 

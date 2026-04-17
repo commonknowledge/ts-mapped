@@ -297,8 +297,8 @@ describe("invitation.create", () => {
   });
 });
 
-describe("invitation.create isTrial", () => {
-  test("advocate invitation is marked as trial with default trial days", async () => {
+describe("invitation.create trialDays", () => {
+  test("advocate invitation has default trial days", async () => {
     const senderOrg = await createSenderOrg();
     const advocate = await createTestUser(UserRole.Advocate, senderOrg.id);
     const caller = makeCaller(advocate);
@@ -316,11 +316,10 @@ describe("invitation.create isTrial", () => {
       .where("email", "=", email)
       .selectAll()
       .executeTakeFirstOrThrow();
-    expect(invitation.isTrial).toBe(true);
     expect(invitation.trialDays).toBe(30);
   });
 
-  test("superadmin invitation is not marked as trial by default", async () => {
+  test("superadmin invitation has no trial days by default", async () => {
     const senderOrg = await createSenderOrg();
     const superadmin = await createTestUser(UserRole.Superadmin, senderOrg.id);
     const caller = makeCaller(superadmin);
@@ -338,7 +337,6 @@ describe("invitation.create isTrial", () => {
       .where("email", "=", email)
       .selectAll()
       .executeTakeFirstOrThrow();
-    expect(invitation.isTrial).toBe(false);
     expect(invitation.trialDays).toBeNull();
   });
 
@@ -362,7 +360,6 @@ describe("invitation.create isTrial", () => {
       .where("email", "=", email)
       .selectAll()
       .executeTakeFirstOrThrow();
-    expect(invitation.isTrial).toBe(true);
     expect(invitation.trialDays).toBe(14);
   });
 
@@ -385,7 +382,6 @@ describe("invitation.create isTrial", () => {
       .where("email", "=", email)
       .selectAll()
       .executeTakeFirstOrThrow();
-    expect(invitation.isTrial).toBe(true);
     expect(invitation.trialDays).toBe(30);
   });
 });
