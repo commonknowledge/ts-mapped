@@ -92,6 +92,15 @@ export async function updateUserTrialEndsAt(id: string, trialEndsAt: Date) {
     .executeTakeFirstOrThrow();
 }
 
+export async function clearUserTrial(id: string) {
+  return db
+    .updateTable("user")
+    .where("id", "=", id)
+    .set({ trialEndsAt: null })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
 export async function updateUserRole(id: string, role: UserRole | null) {
   return db
     .updateTable("user")

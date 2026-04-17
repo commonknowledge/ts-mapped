@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks";
 import { UserRole } from "@/models/User";
 import { useTRPC } from "@/services/trpc/react";
+import { Button } from "@/shadcn/ui/button";
 import {
   Select,
   SelectContent,
@@ -49,6 +51,17 @@ export default function SuperadminPage() {
       },
     }),
   );
+  const { mutate: clearTrial } = useMutation(
+    trpc.user.clearTrial.mutationOptions({
+      onSuccess: () => {
+        client.invalidateQueries({ queryKey: trpc.user.list.queryKey() });
+        toast.success("Trial cleared");
+      },
+      onError: (error) => {
+        toast.error("Failed to clear trial.", { description: error.message });
+      },
+    }),
+  );
 
   if (currentUser?.role !== UserRole.Superadmin) redirect("/");
 
@@ -78,8 +91,9 @@ export default function SuperadminPage() {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Organisation</TableHead>
+                <TableHead className="max-w-xs">Organisation</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Trial</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -87,7 +101,9 @@ export default function SuperadminPage() {
                 <TableRow key={u.id}>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.name}</TableCell>
-                  <TableCell>{u.organisations.join(", ")}</TableCell>
+                  <TableCell className="max-w-xs">
+                    {u.organisations.join(", ")}
+                  </TableCell>
                   <TableCell>
                     <Select
                       value={u.role ?? "none"}
@@ -111,6 +127,25 @@ export default function SuperadminPage() {
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    {u.trialEndsAt ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Expires{" "}
+                          {format(new Date(u.trialEndsAt), "d MMM yyyy")}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => clearTrial({ userId: u.id })}
+                        >
+                          Upgrade
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

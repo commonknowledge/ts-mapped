@@ -42,7 +42,7 @@ describe("auth.confirmInvite", () => {
       name: "Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
+      trialDays: DEFAULT_TRIAL_PERIOD_DAYS,
     });
 
     const token = await createInviteToken(invitation.id);
@@ -75,7 +75,6 @@ describe("auth.confirmInvite", () => {
       name: "Regular User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: false,
     });
 
     const token = await createInviteToken(invitation.id);
@@ -86,6 +85,40 @@ describe("auth.confirmInvite", () => {
     });
 
     expect(result.trialEndsAt).toBeNull();
+  });
+
+  test("trial invitation with custom days sets correct trialEndsAt", async () => {
+    const org = await upsertOrganisation({ name: `Org ${uuidv4()}` });
+    const email = `custom-trial-${uuidv4()}@example.com`;
+    userEmails.push(email);
+
+    const customDays = 14;
+    const invitation = await createInvitation({
+      email,
+      name: "Custom Trial User",
+      organisationId: org.id,
+      senderOrganisationId: org.id,
+      trialDays: customDays,
+    });
+
+    const token = await createInviteToken(invitation.id);
+    const caller = makeCaller();
+    const result = await caller.confirmInvite({
+      token,
+      password: "test-password-123",
+    });
+
+    expect(result.trialEndsAt).toBeTruthy();
+    if (!result.trialEndsAt) return;
+    const trialEndsAt = new Date(result.trialEndsAt);
+    const expectedMin = new Date(
+      Date.now() + (customDays - 1) * 24 * 60 * 60 * 1000,
+    );
+    const expectedMax = new Date(
+      Date.now() + (customDays + 1) * 24 * 60 * 60 * 1000,
+    );
+    expect(trialEndsAt.getTime()).toBeGreaterThan(expectedMin.getTime());
+    expect(trialEndsAt.getTime()).toBeLessThan(expectedMax.getTime());
   });
 
   test("trial invitation does not overwrite existing trialEndsAt", async () => {
@@ -99,7 +132,7 @@ describe("auth.confirmInvite", () => {
       name: "Existing Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
+      trialDays: DEFAULT_TRIAL_PERIOD_DAYS,
     });
 
     const token1 = await createInviteToken(invitation1.id);
@@ -117,7 +150,7 @@ describe("auth.confirmInvite", () => {
       name: "Existing Trial User",
       organisationId: org.id,
       senderOrganisationId: org.id,
-      isTrial: true,
+      trialDays: DEFAULT_TRIAL_PERIOD_DAYS,
     });
 
     const token2 = await createInviteToken(invitation2.id);

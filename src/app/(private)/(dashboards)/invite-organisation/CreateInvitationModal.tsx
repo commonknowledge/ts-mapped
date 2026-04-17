@@ -5,7 +5,10 @@ import { PlusIcon } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { DEFAULT_TRIAL_PERIOD_DAYS } from "@/constants";
+import { useCurrentUser } from "@/hooks";
 import { useOrganisations } from "@/hooks/useOrganisations";
+import { UserRole } from "@/models/User";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -43,7 +46,11 @@ export default function CreateInvitationModal() {
   const [selectedDataSourceIds, setSelectedDataSourceIds] = useState<
     Set<string>
   >(new Set());
+  const [isTrial, setIsTrial] = useState(false);
+  const [trialDays, setTrialDays] = useState(DEFAULT_TRIAL_PERIOD_DAYS);
 
+  const { currentUser } = useCurrentUser();
+  const isSuperadmin = currentUser?.role === UserRole.Superadmin;
   const { organisationId: senderOrganisationId } = useOrganisations();
   const trpc = useTRPC();
   const client = useQueryClient();
@@ -82,6 +89,8 @@ export default function CreateInvitationModal() {
     setIsCreatingNewOrg(true);
     setSelectedMapIds(new Set());
     setSelectedDataSourceIds(new Set());
+    setIsTrial(false);
+    setTrialDays(DEFAULT_TRIAL_PERIOD_DAYS);
   };
 
   // Collect data source IDs for each map
@@ -102,6 +111,12 @@ export default function CreateInvitationModal() {
         }
         for (const dsv of view.dataSourceViews) {
           dsIds.add(dsv.dataSourceId);
+        }
+      }
+      // Only include data sources that actually exist
+      for (const id of dsIds) {
+        if (!mapData.dataSourceNames[id]) {
+          dsIds.delete(id);
         }
       }
       result.set(map.id, dsIds);
@@ -175,6 +190,9 @@ export default function CreateInvitationModal() {
       email,
       name,
       mapSelections: mapSelections.length > 0 ? mapSelections : undefined,
+      ...(isSuperadmin
+        ? { isTrial, trialDays: isTrial ? trialDays : undefined }
+        : {}),
     });
   };
 
@@ -290,6 +308,35 @@ export default function CreateInvitationModal() {
               </Select>
             )}
           </FormFieldWrapper>
+
+          {isSuperadmin && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="is-trial"
+                  checked={isTrial}
+                  onCheckedChange={(checked) => setIsTrial(Boolean(checked))}
+                />
+                <Label
+                  htmlFor="is-trial"
+                  className="font-normal cursor-pointer"
+                >
+                  Trial account
+                </Label>
+              </div>
+              {isTrial && (
+                <FormFieldWrapper id="trial-days" label="Trial duration (days)">
+                  <Input
+                    id="trial-days"
+                    type="number"
+                    min={1}
+                    value={trialDays}
+                    onChange={(e) => setTrialDays(Number(e.target.value))}
+                  />
+                </FormFieldWrapper>
+              )}
+            </div>
+          )}
 
           {mapData && mapsByOrg.length > 0 && (
             <div className="flex flex-col gap-2 mt-4">

@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { UserRole, passwordSchema, userSchema } from "@/models/User";
 import {
+  clearUserTrial,
   listUsers,
   updateUser,
   updateUserRole,
@@ -11,6 +12,11 @@ import { protectedProcedure, router, superadminProcedure } from "../index";
 
 export const userRouter = router({
   list: superadminProcedure.query(() => listUsers()),
+  clearTrial: superadminProcedure
+    .input(z.object({ userId: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      return clearUserTrial(input.userId);
+    }),
   updateRole: superadminProcedure
     .input(
       z.object({
