@@ -4,6 +4,7 @@ import {
   INSPECTOR_ICON_OPTIONS,
   InspectorPanelIcon,
 } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
+import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -26,6 +27,9 @@ export function GeneralSection({
   onChange,
   showDescription = true,
   headerDescription,
+  adminApproved,
+  isSuperadmin,
+  onAdminApprovedChange,
 }: {
   dataSourceName: string;
   name: string;
@@ -39,6 +43,9 @@ export function GeneralSection({
   }) => void;
   showDescription?: boolean;
   headerDescription?: string;
+  adminApproved?: boolean;
+  isSuperadmin?: boolean;
+  onAdminApprovedChange?: (value: boolean) => void;
 }) {
   return (
     <div className="rounded-lg border border-neutral-200 p-6 mb-6 space-y-4">
@@ -104,6 +111,22 @@ export function GeneralSection({
             onChange={(e) => onChange({ description: e.target.value })}
             disabled={disabled}
           />
+        </div>
+      ) : null}
+
+      {isSuperadmin && onAdminApprovedChange !== undefined ? (
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="adminApproved"
+            checked={adminApproved ?? false}
+            onCheckedChange={(checked) =>
+              onAdminApprovedChange(Boolean(checked))
+            }
+            disabled={disabled}
+          />
+          <Label htmlFor="adminApproved" className="text-muted-foreground">
+            Admin approved
+          </Label>
         </div>
       ) : null}
     </div>

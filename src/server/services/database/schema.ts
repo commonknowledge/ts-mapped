@@ -138,6 +138,7 @@ export interface DataSource {
   autoImport: boolean; // boolean, NOT NULL, DEFAULT false
   autoEnrich: boolean; // boolean, NOT NULL, DEFAULT false
   public: boolean; // boolean, NOT NULL, DEFAULT false
+  adminApproved: boolean; // boolean, NOT NULL, DEFAULT false
   recordType: string; // text, NOT NULL, DEFAULT 'Other' (Members, People, Locations, Events, Data, Other)
   dateFormat: string; // text, NOT NULL, DEFAULT 'yyyy-MM-dd'
   recordCount: number; // integer, NOT NULL, DEFAULT 0
