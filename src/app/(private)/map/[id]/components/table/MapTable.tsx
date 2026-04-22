@@ -111,7 +111,7 @@ export default function MapTable() {
   // This prevents other state changes from re-triggering the lookup
   // Open to other solutions to this, double useEffect doesn't feel right
   useEffect(() => {
-    if (selectedDataSourceId && focusedRecord) {
+    if (selectedDataSourceId && focusedRecord?.dataSourceId) {
       setLookingUpPage(true);
     }
   }, [focusedRecord, selectedDataSourceId]);
