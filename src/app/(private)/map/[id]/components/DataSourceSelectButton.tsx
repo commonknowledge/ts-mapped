@@ -106,7 +106,9 @@ export function DataSourceSelectModal({
   onSelect: (dataSourceId: string) => void;
   title?: string | null | undefined;
 }) {
-  const [activeTab, setActiveTab] = useState<"movement" | "user">("user");
+  const [activeTab, setActiveTab] = useState<
+    "movement" | "user" | "other-public"
+  >("user");
   const [searchQuery, setSearchQuery] = useState("");
   const {
     data: dataSources,
@@ -128,7 +130,9 @@ export function DataSourceSelectModal({
     const active = dataSources?.find((ds) => ds.id === activeId);
     if (!active) return;
 
-    setActiveTab(active.public ? "movement" : "user");
+    if (active.public && active.adminApproved) setActiveTab("movement");
+    else if (active.public) setActiveTab("other-public");
+    else setActiveTab("user");
   }, [dataSources, isModalOpen, viewConfig.areaDataSourceId]);
 
   // Update the filtering logic to include search
@@ -145,10 +149,11 @@ export function DataSourceSelectModal({
       );
     }
 
-    sources =
-      activeTab === "movement"
-        ? sources.filter((ds) => ds.public)
-        : sources.filter((ds) => !ds.public);
+    if (activeTab === "movement")
+      sources = sources.filter((ds) => ds.public && ds.adminApproved);
+    else if (activeTab === "other-public")
+      sources = sources.filter((ds) => ds.public && !ds.adminApproved);
+    else sources = sources.filter((ds) => !ds.public);
 
     return sources;
   }, [activeTab, dataSources, searchQuery]);
@@ -181,6 +186,9 @@ export function DataSourceSelectModal({
                 <TabsTrigger value="movement" className="text-xs">
                   Movement data library
                 </TabsTrigger>
+                <TabsTrigger value="other-public" className="text-xs">
+                  Other public data
+                </TabsTrigger>
               </TabsList>
             </Tabs>
             <Input
@@ -192,7 +200,7 @@ export function DataSourceSelectModal({
           </div>
 
           {/* Data Source Grid */}
-          <div className="flex-1 overflow-auto min-h-[28rem]">
+          <div className="flex-1 overflow-auto min-h-0">
             {dataSourcesPending ? (
               <div className="text-sm text-muted-foreground py-6">
                 Loading data sources…
@@ -211,7 +219,12 @@ export function DataSourceSelectModal({
             ) : filteredCount === 0 ? (
               <div className="text-sm text-muted-foreground py-6">
                 No matches ({fetchedCount} fetched, 0 shown for{" "}
-                {activeTab === "user" ? "User data" : "Movement data library"}).
+                {activeTab === "user"
+                  ? "User data"
+                  : activeTab === "movement"
+                    ? "Movement data library"
+                    : "Other public data"}
+                ).
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
@@ -232,12 +245,12 @@ export function DataSourceSelectModal({
                           : "hover:border-blue-300"
                       }
                       density={
-                        activeTab === "user" ? "compact" : "compactPreview"
+                        activeTab === "movement" ? "compactPreview" : "compact"
                       }
                       showColumnPreview={true}
                       columnPreviewVariant={"pills"}
-                      singleLineColumnPreview={activeTab === "user"}
-                      maxColumnPills={activeTab === "user" ? 6 : 8}
+                      singleLineColumnPreview={activeTab !== "movement"}
+                      maxColumnPills={activeTab === "movement" ? 8 : 6}
                       hideTypeLabel={activeTab === "movement"}
                       hidePublishedBadge={activeTab === "movement"}
                       dataSource={ds}

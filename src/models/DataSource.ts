@@ -316,6 +316,7 @@ export const dataSourceSchema = z.object({
   geocodingConfig: geocodingConfigSchema,
   organisationId: z.string(),
   public: z.boolean(),
+  adminApproved: z.boolean(),
   recordCount: z.number(),
   createdAt: z.date(),
   dateFormat: z.string(),

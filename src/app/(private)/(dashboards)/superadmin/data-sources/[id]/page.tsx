@@ -68,6 +68,24 @@ export default function DataSourceConfigPage() {
     }),
   );
 
+  const { mutate: saveAdminApproved } = useMutation(
+    trpc.dataSource.updateAdminApproved.mutationOptions({
+      onSuccess: () => void invalidateAll(),
+      onError: (err) => {
+        toast.error(err.message || "Failed to save admin approved setting.");
+        void invalidateAll();
+      },
+    }),
+  );
+
+  const handleAdminApprovedChange = useCallback(
+    (adminApproved: boolean) => {
+      updateDataSource(id, (ds) => ({ ...ds, adminApproved }));
+      saveAdminApproved({ dataSourceId: id, adminApproved });
+    },
+    [id, updateDataSource, saveAdminApproved],
+  );
+
   const { mutateAsync: saveChoroplethConfig } = useMutation(
     trpc.dataSource.updateDefaultChoroplethConfig.mutationOptions({
       onError: (err) => {
@@ -176,6 +194,9 @@ export default function DataSourceConfigPage() {
         description={dataSource.defaultInspectorConfig?.description ?? ""}
         icon={dataSource.defaultInspectorConfig?.icon ?? ""}
         onChange={handleInspectorConfigChange}
+        adminApproved={dataSource.adminApproved}
+        isSuperadmin={currentUser?.role === UserRole.Superadmin}
+        onAdminApprovedChange={handleAdminApprovedChange}
       />
 
       <ScreenshotSection
