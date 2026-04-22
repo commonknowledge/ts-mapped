@@ -46,6 +46,6 @@ export const schedule = async (
   queue: string = DEFAULT_QUEUE,
 ) => {
   await ensureQueue(queue);
-  await boss.schedule(queue, cronSpec, { task, args });
+  await boss.schedule(queue, cronSpec, { task, args }, { key: task });
   logger.info(`Scheduled job: ${cronSpec}, ${task}, ${JSON.stringify(args)}`);
 };
