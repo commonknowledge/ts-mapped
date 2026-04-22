@@ -175,7 +175,7 @@ export default function SuperadminPage() {
               {publicDataSources?.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="text-center text-muted-foreground"
                   >
                     No movement data library data sources
