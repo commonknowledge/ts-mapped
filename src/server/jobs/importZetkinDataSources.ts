@@ -17,7 +17,7 @@ const importZetkinDataSources = async (): Promise<boolean> => {
       );
       continue;
     }
-    if (source.enrichments.length > 0) {
+    if (source.autoEnrich && source.enrichments.length > 0) {
       try {
         await enqueue("enrichDataSource", source.id, {
           dataSourceId: source.id,
