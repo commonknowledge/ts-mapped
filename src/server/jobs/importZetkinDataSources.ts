@@ -17,6 +17,18 @@ const importZetkinDataSources = async (): Promise<boolean> => {
       );
       continue;
     }
+    if (source.enrichments.length > 0) {
+      try {
+        await enqueue("enrichDataSource", source.id, {
+          dataSourceId: source.id,
+        });
+      } catch (error) {
+        logger.warn(
+          `Failed to enqueue enrichment for Zetkin data source ${source.id}`,
+          { error },
+        );
+      }
+    }
   }
   return true;
 };
