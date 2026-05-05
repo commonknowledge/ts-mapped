@@ -50,10 +50,34 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
     const batches = batchAsync(records, DATA_SOURCE_JOB_BATCH_SIZE);
     const allEnrichedColumnDefs = new Map<string, ColumnDef>();
 
+    let batchIndex = 0;
     for await (const batch of batches) {
+      const batchStart = Date.now();
+      logger.debug(
+        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} start, size=${batch.length}`,
+      );
+
+      const t1 = Date.now();
       const enrichedRecords = await enrichBatch(batch, dataSource);
+      logger.debug(
+        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} enrichBatch: ${Date.now() - t1}ms`,
+      );
+
+      const t2 = Date.now();
       await adaptor.updateRecords(enrichedRecords);
+      logger.debug(
+        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} adaptor.updateRecords (CRM write): ${Date.now() - t2}ms`,
+      );
+
+      const t3 = Date.now();
       await updateDataRecordJsonWithEnrichment(enrichedRecords, dataSource.id);
+      logger.debug(
+        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} updateDataRecordJsonWithEnrichment (DB write): ${Date.now() - t3}ms`,
+      );
+      logger.debug(
+        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} total: ${Date.now() - batchStart}ms`,
+      );
+      batchIndex++;
 
       for (const record of enrichedRecords) {
         for (const col of record.columns) {
