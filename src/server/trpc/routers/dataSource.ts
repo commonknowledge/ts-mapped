@@ -76,6 +76,16 @@ export const dataSourceRouter = router({
       organisationOverride: null,
     }));
   }),
+  updateAdminApproved: superadminProcedure
+    .input(z.object({ dataSourceId: z.string(), adminApproved: z.boolean() }))
+    .mutation(async ({ input }) => {
+      await db
+        .updateTable("dataSource")
+        .set({ adminApproved: input.adminApproved })
+        .where("id", "=", input.dataSourceId)
+        .execute();
+      return true;
+    }),
   updateDefaultInspectorConfig: superadminProcedure
     .input(
       z.object({

@@ -76,7 +76,9 @@ export default function SuperadminPage() {
           <h1 className="text-3xl font-medium tracking-tight">Superadmin</h1>
           <TabsList>
             <TabsTrigger value="users">All Users</TabsTrigger>
-            <TabsTrigger value="public-library">Public Library</TabsTrigger>
+            <TabsTrigger value="public-library">
+              Movement Data Library
+            </TabsTrigger>
             <TabsTrigger value="features">Feature Access</TabsTrigger>
           </TabsList>
         </div>
@@ -153,10 +155,10 @@ export default function SuperadminPage() {
           </Table>
         </TabsContent>
         <TabsContent value="public-library" className="mt-6">
-          <h2 className="text-2xl font-medium mb-4">Public Library</h2>
+          <h2 className="text-2xl font-medium mb-4">Movement Data Library</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Configure how public data sources appear in the inspector for all
-            users.
+            Configure how movement data library data sources appear in the
+            inspector for all users.
           </p>
           <Table>
             <TableHeader>
@@ -165,7 +167,7 @@ export default function SuperadminPage() {
                 <TableHead>Organisation</TableHead>
                 <TableHead>Record type</TableHead>
                 <TableHead>Records</TableHead>
-                <TableHead>Inspector config</TableHead>
+                <TableHead>Admin approved</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -173,10 +175,10 @@ export default function SuperadminPage() {
               {publicDataSources?.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="text-center text-muted-foreground"
                   >
-                    No public data sources
+                    No movement data library data sources
                   </TableCell>
                 </TableRow>
               ) : (
@@ -187,13 +189,13 @@ export default function SuperadminPage() {
                     <TableCell>{ds.recordType}</TableCell>
                     <TableCell>{ds.recordCount.toLocaleString()}</TableCell>
                     <TableCell>
-                      {ds.defaultInspectorConfig ? (
+                      {ds.adminApproved ? (
                         <span className="text-green-700 text-xs font-medium">
-                          Configured
+                          Yes
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-xs">
-                          Not configured
+                          No
                         </span>
                       )}
                     </TableCell>
