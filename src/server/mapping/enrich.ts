@@ -61,7 +61,7 @@ export const enrichRecord = async (
   logger.debug(
     `[enrichRecord ${record.externalId}] total: ${Date.now() - recordStart}ms`,
   );
-  logger.info(
+  logger.silly(
     `Enriched record ${record.externalId}: ${JSON.stringify(enrichedColumns)}`,
   );
   return { externalRecord: record, columns: enrichedColumns };

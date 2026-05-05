@@ -342,11 +342,11 @@ const mapboxGeocode = async (address: string): Promise<Point | null> => {
     .executeTakeFirst();
 
   if (cached) {
-    logger.debug(`Geocode cache hit for "${address}"`);
+    logger.silly(`Geocode cache hit for "${address}"`);
     return cached.point;
   }
 
-  logger.info(`Geocode cache miss for "${address}", calling Mapbox API`);
+  logger.silly(`Geocode cache miss for "${address}", calling Mapbox API`);
   const geocodeUrl = new URL(
     "https://api.mapbox.com/search/geocode/v6/forward",
   );
