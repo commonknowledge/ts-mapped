@@ -22,8 +22,13 @@ export const enrichRecord = async (
   record: ExternalRecord,
   dataSource: DataSource,
 ): Promise<EnrichedRecord> => {
-  logger.info(`Enriching record ${record.externalId}`);
+  const recordStart = Date.now();
+  logger.debug(`[enrichRecord ${record.externalId}] start`);
+  const tGeo = Date.now();
   const geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
+  logger.debug(
+    `[enrichRecord ${record.externalId}] geocodeRecord: ${Date.now() - tGeo}ms (type=${dataSource.geocodingConfig.type})`,
+  );
   if (!geocodeResult) {
     logger.warn(
       `Enrichment failed for record ${record.externalId}: could not geocode`,
@@ -33,10 +38,14 @@ export const enrichRecord = async (
 
   const enrichedColumns = [];
   for (const enrichment of dataSource.enrichments) {
+    const tCol = Date.now();
     const enrichedColumn = await getEnrichedColumn(
       record,
       geocodeResult,
       enrichment,
+    );
+    logger.debug(
+      `[enrichRecord ${record.externalId}] getEnrichedColumn ${enrichment.sourceType}/${enrichment.name}: ${Date.now() - tCol}ms`,
     );
     if (enrichedColumn) {
       enrichedColumns.push({
@@ -49,6 +58,9 @@ export const enrichRecord = async (
     }
   }
 
+  logger.debug(
+    `[enrichRecord ${record.externalId}] total: ${Date.now() - recordStart}ms`,
+  );
   logger.info(
     `Enriched record ${record.externalId}: ${JSON.stringify(enrichedColumns)}`,
   );
