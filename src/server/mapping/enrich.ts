@@ -23,10 +23,10 @@ export const enrichRecord = async (
   dataSource: DataSource,
 ): Promise<EnrichedRecord> => {
   const recordStart = Date.now();
-  logger.debug(`[enrichRecord ${record.externalId}] start`);
+  logger.silly(`[enrichRecord ${record.externalId}] start`);
   const tGeo = Date.now();
   const geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
-  logger.debug(
+  logger.silly(
     `[enrichRecord ${record.externalId}] geocodeRecord: ${Date.now() - tGeo}ms (type=${dataSource.geocodingConfig.type})`,
   );
   if (!geocodeResult) {
@@ -44,7 +44,7 @@ export const enrichRecord = async (
       geocodeResult,
       enrichment,
     );
-    logger.debug(
+    logger.silly(
       `[enrichRecord ${record.externalId}] getEnrichedColumn ${enrichment.sourceType}/${enrichment.name}: ${Date.now() - tCol}ms`,
     );
     if (enrichedColumn) {
@@ -58,7 +58,7 @@ export const enrichRecord = async (
     }
   }
 
-  logger.debug(
+  logger.silly(
     `[enrichRecord ${record.externalId}] total: ${Date.now() - recordStart}ms`,
   );
   logger.silly(
