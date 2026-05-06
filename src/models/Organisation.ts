@@ -3,7 +3,6 @@ import { z } from "zod";
 export enum Feature {
   PublicMaps = "PublicMaps",
   Enrichment = "Enrichment",
-  MovementDataLibrary = "MovementDataLibrary",
   InviteUsers = "InviteUsers",
   SyncToCrm = "SyncToCrm",
 }

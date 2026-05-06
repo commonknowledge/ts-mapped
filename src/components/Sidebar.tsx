@@ -30,10 +30,6 @@ export default function Sidebar() {
     Feature.PublicMaps,
     currentOrganisation?.features,
   );
-  const showMovementDataLibrary = useFeatureFlagEnabled(
-    Feature.MovementDataLibrary,
-    currentOrganisation?.features,
-  );
 
   useEffect(() => setMounted(true), []);
 
@@ -70,13 +66,11 @@ export default function Sidebar() {
         },
       ];
 
-  if (showMovementDataLibrary) {
-    navItems.push({
-      label: "Movement data library",
-      href: "/data-library",
-      icon: <BookOpenIcon className="w-4 h-4" />,
-    });
-  }
+  navItems.push({
+    label: "Movement data library",
+    href: "/data-library",
+    icon: <BookOpenIcon className="w-4 h-4" />,
+  });
 
   if (
     currentUser?.role === UserRole.Advocate ||
