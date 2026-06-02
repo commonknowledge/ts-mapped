@@ -1,6 +1,7 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { DATE_FORMAT_OPTIONS } from "@/constants";
 import { useDataSources } from "@/hooks/useDataSources";
 import { PublicMapColumnType } from "@/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
@@ -171,6 +172,7 @@ export default function EditorDataSettings() {
                       dataSourceId={dataSourceConfig.dataSourceId}
                       badge="2"
                       title="Listing Subtitle "
+                      singleSelect
                       value={
                         dataSourceConfig.descriptionColumn
                           ? [dataSourceConfig.descriptionColumn]
@@ -178,8 +180,7 @@ export default function EditorDataSettings() {
                       }
                       onValueChange={(value) =>
                         updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                          descriptionColumn:
-                            value.length > 0 ? value[0] : undefined,
+                          descriptionColumn: value.length > 0 ? value[0] : "",
                         })
                       }
                       additionalColumns={dataSourceConfig.additionalColumns}
@@ -189,6 +190,57 @@ export default function EditorDataSettings() {
                         })
                       }
                     />
+
+                    {/* Listing Date */}
+                    <ColumnCard
+                      dataSourceId={dataSourceConfig.dataSourceId}
+                      badge="3"
+                      title="Listing Date"
+                      singleSelect
+                      showLabel={false}
+                      value={
+                        dataSourceConfig.dateColumn
+                          ? [dataSourceConfig.dateColumn]
+                          : []
+                      }
+                      onValueChange={(value) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          dateColumn: value.length > 0 ? value[0] : "",
+                        })
+                      }
+                      additionalColumns={dataSourceConfig.additionalColumns}
+                      onAdditionalColumnsChange={(columns) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          additionalColumns: columns,
+                        })
+                      }
+                    >
+                      <div className="flex gap-2 items-center">
+                        <Label className="text-xs font-medium w-20">
+                          Format:
+                        </Label>
+                        <Select
+                          value={dataSourceConfig.dateFormat || ""}
+                          onValueChange={(v) =>
+                            updateDataSourceConfig(
+                              dataSourceConfig.dataSourceId,
+                              { dateFormat: v },
+                            )
+                          }
+                        >
+                          <SelectTrigger className="flex-1 text-xs">
+                            <SelectValue placeholder="Select format" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DATE_FORMAT_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>
+                                {o.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </ColumnCard>
                   </div>
 
                   <Separator />

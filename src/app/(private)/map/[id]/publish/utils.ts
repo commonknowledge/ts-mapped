@@ -1,7 +1,12 @@
 import distance from "@turf/distance";
 import { point } from "@turf/helpers";
+import { buildPublicMapName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/models/DataRecord";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
+
+// Re-exported from the shared (server-safe) util so existing consumers
+// importing from "../utils" keep working.
+export { buildPublicMapName };
 
 // TODO: make this configurable in public map config
 const UNKNOWN_VALUES = ["Unknown", "I didn't ask", "Not applicable"];
@@ -11,27 +16,6 @@ export interface RecordGroup {
   geocodePoint: { lat: number; lng: number } | null;
   children: DataRecord[];
 }
-
-export const buildPublicMapName = (
-  dataSourceConfig: PublicMapDataSourceConfig | null | undefined,
-  record: { json: Record<string, unknown> },
-) => {
-  if (!dataSourceConfig) {
-    return "Unknown";
-  }
-  const nameColumns = dataSourceConfig.nameColumns;
-  const name = nameColumns
-    .map((c) => String(record.json[c] || "").trim())
-    .filter(Boolean)
-    .join(" ");
-  if (name) {
-    return name;
-  }
-  const description = String(
-    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
-  );
-  return description || "Unknown";
-};
 
 export const toBoolean = (val: unknown): boolean => {
   if (!val) {

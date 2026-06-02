@@ -10,6 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/shadcn/ui/select";
+import type { ReactNode } from "react";
 
 interface ColumnCardProps {
   dataSourceId: string;
@@ -17,6 +18,14 @@ interface ColumnCardProps {
   title: string;
   value: string[] | undefined; // Changed to array to support multiple columns
   onValueChange: (value: string[]) => void; // Changed to array
+  // When true, selecting a column replaces the current selection instead of
+  // appending — used for single-column fields like the Listing Subtitle.
+  singleSelect?: boolean;
+  // When false, hide the additional-columns label input (e.g. the Listing Date
+  // card uses `children` for its own controls instead).
+  showLabel?: boolean;
+  // Extra controls rendered inside the card body when a column is selected.
+  children?: ReactNode;
   additionalColumns: {
     label: string;
     sourceColumns: string[];
@@ -39,6 +48,9 @@ export default function ColumnCard({
   onValueChange,
   additionalColumns,
   onAdditionalColumnsChange,
+  singleSelect = false,
+  showLabel = true,
+  children,
 }: ColumnCardProps) {
   const { getDataSourceById } = useDataSources();
 
@@ -47,7 +59,12 @@ export default function ColumnCard({
   const hasColumns = selectedColumns.length > 0;
 
   const addColumn = (columnName: string) => {
-    if (columnName && !selectedColumns.includes(columnName)) {
+    if (!columnName) return;
+    if (singleSelect) {
+      onValueChange([columnName]);
+      return;
+    }
+    if (!selectedColumns.includes(columnName)) {
       onValueChange([...selectedColumns, columnName]);
     }
   };
@@ -167,7 +184,7 @@ export default function ColumnCard({
           </div>
 
           {/* Label Input - Only show when columns are selected */}
-          {hasColumns && (
+          {showLabel && hasColumns && (
             <div className="flex gap-2 items-center">
               <Label className="text-xs font-medium w-20">Label:</Label>
               <Input
@@ -178,6 +195,9 @@ export default function ColumnCard({
               />
             </div>
           )}
+
+          {/* Extra controls (e.g. date format select) */}
+          {hasColumns && children}
         </div>
       </div>
     </div>

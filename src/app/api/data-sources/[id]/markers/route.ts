@@ -3,10 +3,13 @@ import { getServerSession } from "@/auth";
 import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findOrganisationForUser } from "@/server/repositories/Organisation";
+import { findPublicMapByViewId } from "@/server/repositories/PublicMap";
 import { canReadDataSource } from "@/server/utils/auth";
-import { buildName } from "@/utils/dataRecord";
+import { buildName, buildPublicMapName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/models/DataRecord";
 import type { RecordFilterInput } from "@/models/MapView";
+import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 import type { NextRequest } from "next/server";
 
@@ -35,6 +38,18 @@ export async function GET(
   ) as RecordFilterInput | null;
   const search = request?.nextUrl?.searchParams.get("search") || "";
 
+  // On the public map (and its editor preview), marker labels should use the
+  // public map config's "Listing Title" rather than the data source's own
+  // nameColumns. The columns are read from the server-loaded config (never from
+  // client-supplied params) so anonymous requests can't surface non-public columns.
+  const publicMapDataSourceConfig = await resolvePublicMapDataSourceConfig({
+    dataSourceId: dataSource.id,
+    organisationId: dataSource.organisationId,
+    publicMapViewId:
+      request?.nextUrl?.searchParams.get("publicMapViewId") || null,
+    userId: currentUser?.id,
+  });
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -61,7 +76,9 @@ export async function GET(
             // Minimal properties to support large numbers of markers (1000+)
             properties: {
               id: dr.id,
-              name: buildName(dataSource, dr),
+              name: publicMapDataSourceConfig
+                ? buildPublicMapName(publicMapDataSourceConfig, dr)
+                : buildName(dataSource, dr),
               matched: dr[MARKER_MATCHED_COLUMN],
             },
             geometry: {
@@ -91,3 +108,45 @@ export async function GET(
 }
 
 const checkAccess = canReadDataSource;
+
+/**
+ * Resolve the public map data source config to use for marker labels.
+ * Returns null when there is no public map context (normal private map),
+ * in which case the caller falls back to `buildName`.
+ *
+ * Org members editing the map see the unsaved draft config (live preview);
+ * everyone else (the public site) sees the live published config.
+ */
+async function resolvePublicMapDataSourceConfig({
+  dataSourceId,
+  organisationId,
+  publicMapViewId,
+  userId,
+}: {
+  dataSourceId: string;
+  organisationId: string;
+  publicMapViewId: string | null;
+  userId: string | null | undefined;
+}): Promise<PublicMapDataSourceConfig | null> {
+  if (!publicMapViewId) {
+    return null;
+  }
+
+  const publicMap = await findPublicMapByViewId(publicMapViewId);
+  if (!publicMap) {
+    return null;
+  }
+
+  let useDraft = false;
+  if (userId && publicMap.draft) {
+    const organisation = await findOrganisationForUser(organisationId, userId);
+    useDraft = Boolean(organisation);
+  }
+
+  const configs =
+    useDraft && publicMap.draft
+      ? publicMap.draft.dataSourceConfigs
+      : publicMap.dataSourceConfigs;
+
+  return configs.find((c) => c.dataSourceId === dataSourceId) || null;
+}

@@ -1,5 +1,6 @@
 import { parse } from "date-fns";
 import type { DataSource } from "@/models/DataSource";
+import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
 
 export function buildName(
   dataSource: DataSource | null | undefined,
@@ -13,16 +14,46 @@ export function buildName(
   return name || `ID: ${dataRecord.externalId}`;
 }
 
-export function parseDate(
-  dataSource: DataSource | null | undefined,
-  dataRecord: { createdAt: Date; json: Record<string, unknown> },
-) {
+export const buildPublicMapName = (
+  dataSourceConfig: PublicMapDataSourceConfig | null | undefined,
+  record: { json: Record<string, unknown> },
+) => {
+  if (!dataSourceConfig) {
+    return "Unknown";
+  }
+  const nameColumns = dataSourceConfig.nameColumns;
+  const name = nameColumns
+    .map((c) => String(record.json[c] || "").trim())
+    .filter(Boolean)
+    .join(" ");
+  if (name) {
+    return name;
+  }
+  const description = String(
+    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
+  );
+  return description || "Unknown";
+};
+
+export function parseDate({
+  dataSource,
+  dataRecord,
+  dataSourceConfig,
+}: {
+  dataSource: DataSource | null | undefined;
+  dataRecord: { createdAt: Date; json: Record<string, unknown> };
+  // Public map config that overrides the data source's date column/format when set.
+  dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
+}) {
   let date = dataRecord.createdAt;
-  const dateColumn = dataSource?.columnRoles.dateColumn;
+  const dateColumn =
+    dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn;
+  const dateFormat =
+    dataSourceConfig?.dateFormat || dataSource?.dateFormat || "yyyy-MM-dd";
   if (dateColumn && dataRecord.json[dateColumn]) {
     const dateOverride = parse(
       String(dataRecord.json[dateColumn]),
-      dataSource.dateFormat || "yyyy-MM-dd",
+      dateFormat,
       new Date(),
     );
     if (!isNaN(dateOverride.getTime())) {

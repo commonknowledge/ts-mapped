@@ -65,8 +65,16 @@ export default function DataRecordSidebar() {
       return {
         ...g,
         children: g.children.toSorted((a, b) => {
-          const aDate = parseDate(dataSource, a);
-          const bDate = parseDate(dataSource, b);
+          const aDate = parseDate({
+            dataSource,
+            dataRecord: a,
+            dataSourceConfig,
+          });
+          const bDate = parseDate({
+            dataSource,
+            dataRecord: b,
+            dataSourceConfig,
+          });
           return aDate < bDate ? 1 : -1;
         }),
       };
@@ -106,7 +114,11 @@ export default function DataRecordSidebar() {
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
-  const date = parseDate(dataSource, selectedRecordDetails);
+  const date = parseDate({
+    dataSource,
+    dataRecord: selectedRecordDetails,
+    dataSourceConfig,
+  });
 
   return (
     <div
