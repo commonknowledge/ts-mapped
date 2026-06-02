@@ -31,6 +31,8 @@ export const publicMapDataSourceConfigSchema = z.object({
   descriptionLabel: z.string(),
   dateColumn: z.string().optional(),
   dateFormat: z.string().optional(),
+  sortBy: z.enum(["name", "date"]).optional(),
+  sortDirection: z.enum(["asc", "desc"]).optional(),
   additionalColumns: z.array(publicMapColumnSchema),
   positiveTooltip: z.string().optional(),
   negativeTooltip: z.string().optional(),

@@ -1,12 +1,53 @@
 import distance from "@turf/distance";
 import { point } from "@turf/helpers";
-import { buildPublicMapName } from "@/utils/dataRecord";
+import {
+  buildPublicMapName,
+  getListingSort,
+  parseDate,
+} from "@/utils/dataRecord";
 import type { DataRecord } from "@/models/DataRecord";
+import type { DataSource } from "@/models/DataSource";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
 
 // Re-exported from the shared (server-safe) util so existing consumers
 // importing from "../utils" keep working.
 export { buildPublicMapName };
+
+// Sort records for a public map listing according to the data source config's
+// `sortBy` / `sortDirection`. Done client-side because:
+// - the name sort must use the public map config's name columns (via
+//   buildPublicMapName), not the data source's own columnRoles.nameColumns
+// - the date sort must parse configurable date formats (via parseDate), which
+//   a lexical JSON column sort cannot do correctly.
+export const sortRecordsForListing = ({
+  records,
+  dataSource,
+  dataSourceConfig,
+}: {
+  records: DataRecord[];
+  dataSource: DataSource | null | undefined;
+  dataSourceConfig: PublicMapDataSourceConfig | null | undefined;
+}): DataRecord[] => {
+  const { sortBy, sortDirection } = getListingSort({
+    dataSource,
+    dataSourceConfig,
+  });
+  const sign = sortDirection === "desc" ? -1 : 1;
+
+  if (sortBy === "date") {
+    return records.toSorted((a, b) => {
+      const aDate = parseDate({ dataSource, dataRecord: a, dataSourceConfig });
+      const bDate = parseDate({ dataSource, dataRecord: b, dataSourceConfig });
+      return sign * (aDate.getTime() - bDate.getTime());
+    });
+  }
+
+  return records.toSorted((a, b) => {
+    const aName = buildPublicMapName(dataSourceConfig, a);
+    const bName = buildPublicMapName(dataSourceConfig, b);
+    return sign * aName.localeCompare(bName);
+  });
+};
 
 // TODO: make this configurable in public map config
 const UNKNOWN_VALUES = ["Unknown", "I didn't ask", "Not applicable"];

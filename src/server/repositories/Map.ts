@@ -65,3 +65,35 @@ export function updateMap(id: string, map: MapUpdate) {
     .returningAll()
     .executeTakeFirstOrThrow();
 }
+
+/**
+ * Removes all references to a (deleted) data source from the configs of every
+ * map in the given organisation. Only rewrites rows that actually change.
+ */
+export async function removeDataSourceFromMaps({
+  organisationId,
+  dataSourceId,
+}: {
+  organisationId: string;
+  dataSourceId: string;
+}) {
+  const maps = await findMapsByOrganisationId(organisationId);
+  for (const map of maps) {
+    const { config } = map;
+    const markerDataSourceIds = config.markerDataSourceIds.filter(
+      (id) => id !== dataSourceId,
+    );
+    const membersDataSourceId =
+      config.membersDataSourceId === dataSourceId
+        ? ""
+        : config.membersDataSourceId;
+    const changed =
+      markerDataSourceIds.length !== config.markerDataSourceIds.length ||
+      membersDataSourceId !== config.membersDataSourceId;
+    if (changed) {
+      await updateMap(map.id, {
+        config: { ...config, markerDataSourceIds, membersDataSourceId },
+      });
+    }
+  }
+}

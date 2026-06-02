@@ -6,8 +6,12 @@ import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorSt
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
 import { useFilteredRecords } from "../hooks/usePublicFilters";
-import { usePublicMapValue } from "../hooks/usePublicMap";
-import { buildPublicMapName, groupRecords } from "../utils";
+import { usePublicMapValue, useSearchLocation } from "../hooks/usePublicMap";
+import {
+  buildPublicMapName,
+  groupRecords,
+  sortRecordsForListing,
+} from "../utils";
 import type { RecordGroup } from "../utils";
 import type { PublicMapColorScheme } from "@/app/(private)/map/[id]/styles";
 import type { SelectedRecord } from "@/app/(private)/map/[id]/types/inspector";
@@ -32,6 +36,7 @@ export default function DataRecordsList({
   const { setSelectedRecords, focusedRecord } = useInspectorState();
   const mapRef = useMapRef();
   const filteredRecords = useFilteredRecords();
+  const searchLocation = useSearchLocation();
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -50,10 +55,23 @@ export default function DataRecordsList({
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
 
-  const recordGroups = useMemo(
-    () => groupRecords(dataSourceConfig, filteredRecords),
-    [dataSourceConfig, filteredRecords],
-  );
+  const recordGroups = useMemo(() => {
+    // While a location search is active, keep the server's distance order
+    // (nearest first). Otherwise apply the configured name/date sort.
+    const sortedRecords = searchLocation
+      ? filteredRecords
+      : sortRecordsForListing({
+          records: filteredRecords,
+          dataSource: dataRecordsQuery.data,
+          dataSourceConfig,
+        });
+    return groupRecords(dataSourceConfig, sortedRecords);
+  }, [
+    dataRecordsQuery.data,
+    dataSourceConfig,
+    filteredRecords,
+    searchLocation,
+  ]);
 
   if (!recordGroups?.length) {
     return <></>;

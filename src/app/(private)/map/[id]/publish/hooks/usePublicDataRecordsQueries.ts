@@ -1,6 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
+import { SORT_BY_LOCATION } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { usePublicDataSourceIds, useSearchLocation } from "./usePublicMap";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -18,9 +18,11 @@ export function usePublicDataRecordsQueries() {
         (dsv) => dsv.dataSourceId === dataSourceId,
       )?.filter;
 
+      // Listing order is decided client-side (see sortRecordsForListing), so
+      // we only need a server sort for proximity, which requires PostGIS.
       const sort = searchLocation
         ? [{ name: SORT_BY_LOCATION, location: searchLocation, desc: false }]
-        : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
+        : [];
 
       return trpc.dataSource.byIdWithRecords.queryOptions({
         dataSourceId,
