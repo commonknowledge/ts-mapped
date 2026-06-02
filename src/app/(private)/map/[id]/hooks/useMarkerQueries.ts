@@ -7,6 +7,7 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import {
   useIsPublicMapRoute,
   usePublicDataSourceIds,
+  usePublicMapValue,
 } from "@/app/(private)/map/[id]/publish/hooks/usePublicMap";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
@@ -16,6 +17,7 @@ export function useMarkerQueries() {
   const { view } = useMapViews();
   const isPublicMapRoute = useIsPublicMapRoute();
   const publicDataSourceIds = usePublicDataSourceIds();
+  const publicMap = usePublicMapValue();
 
   const dataSourceIds = useMemo(() => {
     return isPublicMapRoute
@@ -33,6 +35,15 @@ export function useMarkerQueries() {
       );
       const filter = JSON.stringify(dsv?.filter || null);
       const search = dsv?.search || "";
+
+      // When a public map exists, marker labels are built server-side from its
+      // "Listing Title" config. Pass the viewId so the server loads the
+      // authoritative config. The refetch on config change is driven by
+      // useAutoSaveDraft invalidating ["markers"] *after* the draft is saved —
+      // keeping the config out of the query key avoids refetching against a
+      // not-yet-persisted draft.
+      const publicMapViewId = publicMap?.viewId || null;
+
       return {
         enabled: Boolean(view), // Prevent duplicate marker query while view is loading
         queryKey: ["markers", dataSourceId, filter, search],
@@ -40,6 +51,9 @@ export function useMarkerQueries() {
           const params = new URLSearchParams();
           params.set("filter", filter);
           params.set("search", search);
+          if (publicMapViewId) {
+            params.set("publicMapViewId", publicMapViewId);
+          }
           const response = await fetch(
             `/api/data-sources/${dataSourceId}/markers?${params.toString()}`,
           );

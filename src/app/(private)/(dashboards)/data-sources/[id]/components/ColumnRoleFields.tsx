@@ -1,6 +1,6 @@
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
-import { NULL_UUID } from "@/constants";
+import { DATE_FORMAT_OPTIONS, NULL_UUID } from "@/constants";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function ColumnRoleFields({
@@ -64,20 +64,7 @@ export function ColumnRoleFields({
           label="Date format (optional)"
           hint="Select a date format (if yours is not listed, contact us)."
           value={dateFormat}
-          options={[
-            {
-              label: "ISO Format (YYYY-MM-DD)",
-              value: "yyyy-MM-dd",
-            },
-            {
-              label: "UK Format (DD/MM/YYYY)",
-              value: "dd/MM/yyyy",
-            },
-            {
-              label: "US Format (MM/DD/YYYY)",
-              value: "MM/dd/yyyy",
-            },
-          ]}
+          options={DATE_FORMAT_OPTIONS}
           onValueChange={(v) => setDateFormat(v)}
         />
       )}

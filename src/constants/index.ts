@@ -4,6 +4,13 @@ export const ADMIN_ORGANISATION_NAME = "Common Knowledge";
 
 export const DATA_RECORDS_PAGE_SIZE = 100;
 
+// Supported date formats (date-fns tokens) offered when configuring a date column.
+export const DATE_FORMAT_OPTIONS = [
+  { label: "ISO Format (YYYY-MM-DD)", value: "yyyy-MM-dd" },
+  { label: "UK Format (DD/MM/YYYY)", value: "dd/MM/yyyy" },
+  { label: "US Format (MM/DD/YYYY)", value: "MM/dd/yyyy" },
+];
+
 export const DATA_SOURCE_JOB_BATCH_SIZE = 100;
 
 // This is smaller than the external data source

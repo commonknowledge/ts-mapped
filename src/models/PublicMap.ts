@@ -29,6 +29,8 @@ export const publicMapDataSourceConfigSchema = z.object({
   nameLabel: z.string(),
   descriptionColumn: z.string(),
   descriptionLabel: z.string(),
+  dateColumn: z.string().optional(),
+  dateFormat: z.string().optional(),
   additionalColumns: z.array(publicMapColumnSchema),
   positiveTooltip: z.string().optional(),
   negativeTooltip: z.string().optional(),

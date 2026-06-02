@@ -27,7 +27,8 @@ interface DataSource {
   id: string;
   name: string;
   columnDefs: ColumnDef[];
-  columnRoles: { nameColumns?: string[] | null };
+  columnRoles: { nameColumns?: string[] | null; dateColumn?: string | null };
+  dateFormat?: string;
 }
 
 export function extractDraft(
@@ -314,6 +315,8 @@ export const createDataSourceConfig = (
     nameColumns: dataSource.columnRoles.nameColumns || [],
     descriptionLabel: "",
     descriptionColumn: "",
+    dateColumn: dataSource.columnRoles.dateColumn || "",
+    dateFormat: dataSource.dateFormat || "",
     additionalColumns: [],
   };
 };
