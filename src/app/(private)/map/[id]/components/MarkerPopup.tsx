@@ -18,6 +18,8 @@ function WrappedMarkerPopup({
   coordinates: [number, number];
   properties: Record<string, unknown>;
 }) {
+  const date = properties.date ? String(properties.date) : "";
+
   return (
     <Popup
       longitude={coordinates[0]}
@@ -27,6 +29,9 @@ function WrappedMarkerPopup({
       <p className="font-sans font-semibold text-sm">
         {String(properties.name)}
       </p>
+      {date && (
+        <p className="font-sans text-xs text-muted-foreground">{date}</p>
+      )}
     </Popup>
   );
 }

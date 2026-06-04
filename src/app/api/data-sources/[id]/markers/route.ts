@@ -6,7 +6,12 @@ import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
 import { findPublicMapByViewId } from "@/server/repositories/PublicMap";
 import { canReadDataSource } from "@/server/utils/auth";
-import { buildName, buildPublicMapName } from "@/utils/dataRecord";
+import {
+  buildName,
+  buildPublicMapName,
+  formatRecordDate,
+  getListingSort,
+} from "@/utils/dataRecord";
 import type { DataRecord } from "@/models/DataRecord";
 import type { RecordFilterInput } from "@/models/MapView";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
@@ -50,6 +55,13 @@ export async function GET(
     userId: currentUser?.id,
   });
 
+  // When the public map listing is sorted by date, include the parsed and
+  // formatted record date on each marker so the popup can display it.
+  const includeDate =
+    Boolean(publicMapDataSourceConfig) &&
+    getListingSort({ dataSource, dataSourceConfig: publicMapDataSourceConfig })
+      .sortBy === "date";
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -80,6 +92,15 @@ export async function GET(
                 ? buildPublicMapName(publicMapDataSourceConfig, dr)
                 : buildName(dataSource, dr),
               matched: dr[MARKER_MATCHED_COLUMN],
+              ...(includeDate
+                ? {
+                    date: formatRecordDate({
+                      dataSource,
+                      dataRecord: dr,
+                      dataSourceConfig: publicMapDataSourceConfig,
+                    }),
+                  }
+                : {}),
             },
             geometry: {
               type: "Point",

@@ -1,4 +1,4 @@
-import { parse } from "date-fns";
+import { format, parse } from "date-fns";
 import { DataSourceRecordType } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
@@ -84,4 +84,16 @@ export function parseDate({
     }
   }
   return date;
+}
+
+// Human-readable display format for record dates, shared by the listing,
+// the record detail sidebar and the marker popup.
+export const RECORD_DATE_DISPLAY_FORMAT = "d MMMM yyyy";
+
+export function formatRecordDate(input: {
+  dataSource: DataSource | null | undefined;
+  dataRecord: { createdAt: Date; json: Record<string, unknown> };
+  dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
+}): string {
+  return format(parseDate(input), RECORD_DATE_DISPLAY_FORMAT);
 }

@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
+import { formatRecordDate, getListingSort } from "@/utils/dataRecord";
 import { useFilteredRecords } from "../hooks/usePublicFilters";
 import { usePublicMapValue, useSearchLocation } from "../hooks/usePublicMap";
 import {
@@ -91,6 +92,7 @@ export default function DataRecordsList({
           <RecordGroupItem
             key={id}
             colorScheme={colorScheme}
+            dataSource={dataRecordsQuery.data}
             dataSourceConfig={dataSourceConfig}
             id={id}
             isSelected={isSelected}
@@ -107,6 +109,7 @@ export default function DataRecordsList({
 // memo(...) ensures that the function is only re-run when the props change
 const RecordGroupItem = memo(function RecordGroupItem({
   colorScheme,
+  dataSource,
   dataSourceConfig,
   id,
   isSelected,
@@ -115,6 +118,7 @@ const RecordGroupItem = memo(function RecordGroupItem({
   setSelectedRecords,
 }: {
   colorScheme: PublicMapColorScheme;
+  dataSource: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
   dataSourceConfig: PublicMapDataSourceConfig | undefined;
   id: string;
   isSelected: boolean;
@@ -132,6 +136,23 @@ const RecordGroupItem = memo(function RecordGroupItem({
   // Show first non-empty description
   const descriptions = recordGroup.children.map((c) => getDescription(c));
   const description = descriptions.find(Boolean);
+  const baseDescription =
+    description && description !== recordGroup.name ? description : "";
+
+  // When the listing is sorted by date, prepend the parsed + formatted record
+  // date (of the group's leading record) to the description automatically.
+  const { sortBy } = getListingSort({ dataSource, dataSourceConfig });
+  const dateText =
+    sortBy === "date" && recordGroup.children[0]
+      ? formatRecordDate({
+          dataSource,
+          dataRecord: recordGroup.children[0],
+          dataSourceConfig,
+        })
+      : "";
+  const displayDescription = [dateText, baseDescription]
+    .filter(Boolean)
+    .join(" · ");
 
   const handleRecordClick = useCallback(
     (recordGroup: RecordGroup) => {
@@ -180,8 +201,8 @@ const RecordGroupItem = memo(function RecordGroupItem({
           />
           <span className="font-medium flex-1">{recordGroup.name}</span>
         </div>
-        {description && description !== recordGroup.name && (
-          <span className="text-sm ml-[1.1rem]">{description}</span>
+        {displayDescription && (
+          <span className="text-sm ml-[1.1rem]">{displayDescription}</span>
         )}
       </button>
     </li>

@@ -6,7 +6,9 @@ import { cn } from "@/shadcn/utils";
 import { getActiveFilters } from "../filtersHelpers";
 import {
   useFilteredRecords,
+  usePublicDateFilter,
   usePublicFilters,
+  useSetPublicDateFilter,
   useSetPublicFilters,
 } from "../hooks/usePublicFilters";
 import {
@@ -17,6 +19,7 @@ import {
 } from "../hooks/usePublicMap";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
+import DateQuickFilters from "./DateQuickFilters";
 import Filters from "./Filters";
 import FiltersList from "./FiltersList";
 import type { PublicMapColorScheme } from "@/app/(private)/map/[id]/styles";
@@ -139,12 +142,15 @@ function SingleDataSourceContent({
   const filteredRecords = useFilteredRecords();
   const publicFilters = usePublicFilters();
   const setPublicFilters = useSetPublicFilters();
+  const publicDateFilter = usePublicDateFilter();
+  const setPublicDateFilter = useSetPublicDateFilter();
   const publicMap = usePublicMapValue();
 
   const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(
     dataSourceId ? publicFilters[dataSourceId] : [],
   );
+  const hasDateFilter = Boolean(dataSourceId && publicDateFilter[dataSourceId]);
 
   const config = publicMap?.dataSourceConfigs.find(
     (c) => c.dataSourceId === dataSourceId,
@@ -168,6 +174,10 @@ function SingleDataSourceContent({
         ...publicFilters,
         [dataSourceId]: [],
       });
+      setPublicDateFilter({
+        ...publicDateFilter,
+        [dataSourceId]: undefined,
+      });
     }
   };
 
@@ -182,7 +192,7 @@ function SingleDataSourceContent({
         <div className="flex justify-between items-center gap-4 px-2">
           <Filters />
 
-          {activeFilters?.length > 0 && (
+          {(activeFilters?.length > 0 || hasDateFilter) && (
             <Button
               type="button"
               variant="ghost"
@@ -194,6 +204,12 @@ function SingleDataSourceContent({
         </div>
 
         <FiltersList />
+        <DateQuickFilters
+          dataSourceId={dataSourceId}
+          dataSource={dataRecordsQuery.data}
+          dataSourceConfig={config}
+          colorScheme={colorScheme}
+        />
         <h2 className="px-4 mt-2 text-xs">{getListingsLabel()}</h2>
       </div>
 

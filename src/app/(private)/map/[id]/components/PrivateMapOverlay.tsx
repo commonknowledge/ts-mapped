@@ -13,7 +13,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { useAreaStats } from "../data";
 import { useInfoPopupOpen } from "../hooks/useInfoPopup";
