@@ -515,6 +515,11 @@ export default function EditorDataSettings() {
                                           >
                                             Positive/Negative
                                           </SelectItem>
+                                          <SelectItem
+                                            value={PublicMapColumnType.Link}
+                                          >
+                                            Link
+                                          </SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </div>

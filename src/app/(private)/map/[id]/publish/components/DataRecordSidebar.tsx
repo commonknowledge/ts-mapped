@@ -6,14 +6,19 @@ import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorSt
 import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
 import { useIsMobileEffect } from "@/hooks/useIsMobile";
 import { PublicMapColumnType } from "@/models/PublicMap";
-import { Button } from "@/shadcn/ui/button";
+import { Button, buttonVariants } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { parseDate } from "@/utils/dataRecord";
 import { TRANS_FRIENDLY_HOST } from "../const";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import { useColorScheme, usePublicMapValue } from "../hooks/usePublicMap";
+import {
+  useColorScheme,
+  useEditable,
+  usePublicMapValue,
+  useUpdateAdditionalColumn,
+} from "../hooks/usePublicMap";
 import {
   buildPublicMapName,
   groupRecords,
@@ -274,6 +279,14 @@ export default function DataRecordSidebar() {
                   json={selectedRecordDetails.json}
                 />
               </div>
+            ) : columnConfig.type === PublicMapColumnType.Link ? (
+              <LinkColumn
+                columnIndex={i}
+                dataSourceId={selectedRecordDetails.dataSourceId}
+                label={columnConfig.label}
+                sourceColumns={columnConfig.sourceColumns}
+                json={selectedRecordDetails.json}
+              />
             ) : (
               <div className="flex flex-col gap-1">
                 <EditablePublicMapProperty
@@ -380,6 +393,58 @@ function CheckList({
         </div>
       ))}
     </>
+  );
+}
+
+function LinkColumn({
+  columnIndex,
+  dataSourceId,
+  label,
+  sourceColumns,
+  json,
+}: {
+  columnIndex: number;
+  dataSourceId: string;
+  label: string;
+  sourceColumns: string[];
+  json: Record<string, unknown>;
+}) {
+  const editable = useEditable();
+  const updateAdditionalColumn = useUpdateAdditionalColumn();
+
+  // In the editor, edit the button text inline while keeping the button look.
+  if (editable) {
+    return (
+      <div className={cn(buttonVariants(), "w-full")}>
+        <input
+          value={label}
+          placeholder="Button text"
+          onChange={(e) =>
+            updateAdditionalColumn(dataSourceId, columnIndex, {
+              label: e.target.value,
+            })
+          }
+          className="w-full cursor-text bg-transparent text-center text-primary-foreground outline-none placeholder:text-primary-foreground/60"
+        />
+      </div>
+    );
+  }
+
+  const url = sourceColumns
+    .map((c) => json[c])
+    .filter(Boolean)
+    .join("");
+
+  if (!url) {
+    return null;
+  }
+
+  return (
+    <Button asChild className="w-full">
+      <a href={String(url)} target="_blank" rel="noreferrer">
+        {label || "Link"}
+      </a>
+    </Button>
   );
 }
 

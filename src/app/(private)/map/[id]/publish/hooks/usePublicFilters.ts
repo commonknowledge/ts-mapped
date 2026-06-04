@@ -66,6 +66,10 @@ export function useFilterFields() {
     }));
 
     for (const additionalColumn of dataSourceConfig.additionalColumns) {
+      // Link columns are display-only (rendered as a button), not filterable.
+      if (additionalColumn.type === PublicMapColumnType.Link) {
+        continue;
+      }
       for (const sourceColumn of additionalColumn.sourceColumns) {
         typedColumns.push({
           name: sourceColumn,
