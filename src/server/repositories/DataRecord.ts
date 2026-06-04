@@ -3,7 +3,6 @@ import {
   DATA_RECORDS_PAGE_SIZE,
   MARKER_MATCHED_COLUMN,
   SORT_BY_LOCATION,
-  SORT_BY_NAME_COLUMNS,
 } from "@/constants";
 import { FilterOperator, FilterType } from "@/models/MapView";
 import { InspectorComparisonStat } from "@/models/shared";
@@ -183,22 +182,8 @@ export async function findPageForDataRecord(
     .where((eb) => applyFilterAndSearch(eb, filter, search))
     .select("id");
 
-  // Async work required for sorting has to be done here, as applySort()
-  // cannot return a query builder and be async (Kysely throws an error
-  // when awaiting an un-executed expression.)
-  let nameColumns: string[] = [];
-  const hasSortByName = sort.some((s) => s.name === SORT_BY_NAME_COLUMNS);
-  if (hasSortByName) {
-    const dataSource = await db
-      .selectFrom("dataSource")
-      .where("id", "=", dataSourceId)
-      .select("columnRoles")
-      .executeTakeFirstOrThrow();
-    nameColumns = dataSource.columnRoles.nameColumns || [];
-  }
-
   for (const s of sort) {
-    q = applySort(q, s, nameColumns);
+    q = applySort(q, s);
   }
 
   // Default sort by ID
@@ -271,22 +256,8 @@ export async function findDataRecordsByDataSource(
     q = q.limit(DATA_RECORDS_PAGE_SIZE).offset(page * DATA_RECORDS_PAGE_SIZE);
   }
 
-  // Async work required for sorting has to be done here, as applySort()
-  // cannot return a query builder and be async (Kysely throws an error
-  // when awaiting an un-executed expression.)
-  let nameColumns: string[] = [];
-  const hasSortByName = sort.some((s) => s.name === SORT_BY_NAME_COLUMNS);
-  if (hasSortByName) {
-    const dataSource = await db
-      .selectFrom("dataSource")
-      .where("id", "=", dataSourceId)
-      .select("columnRoles")
-      .executeTakeFirstOrThrow();
-    nameColumns = dataSource.columnRoles.nameColumns || [];
-  }
-
   for (const s of sort) {
-    q = applySort(q, s, nameColumns);
+    q = applySort(q, s);
   }
 
   // Default sort by ID
@@ -298,16 +269,8 @@ export async function findDataRecordsByDataSource(
 function applySort<T>(
   q: SelectQueryBuilder<Database, "dataRecord", T>,
   sort: SortInput,
-  nameColumns: string[],
 ) {
   const order = sort.desc ? "desc" : "asc";
-
-  if (sort.name === SORT_BY_NAME_COLUMNS) {
-    for (const c of nameColumns) {
-      q = q.orderBy(({ ref }) => ref("json", "->>").key(c), order);
-    }
-    return q;
-  }
 
   if (sort.name === SORT_BY_LOCATION) {
     if (!sort.location) {

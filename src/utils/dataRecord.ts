@@ -1,6 +1,29 @@
-import { parse } from "date-fns";
+import { format, parse } from "date-fns";
+import { DataSourceRecordType } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
+
+// Resolve the effective listing sort for a public map data source, applying
+// defaults when the config hasn't set them explicitly. Events data sources
+// default to chronological order (date, ascending); everything else defaults
+// to name (ascending), or newest-first when sorting by date.
+export const getListingSort = ({
+  dataSource,
+  dataSourceConfig,
+}: {
+  dataSource: { recordType?: DataSourceRecordType } | null | undefined;
+  dataSourceConfig:
+    | Pick<PublicMapDataSourceConfig, "sortBy" | "sortDirection">
+    | null
+    | undefined;
+}): { sortBy: "name" | "date"; sortDirection: "asc" | "desc" } => {
+  const isEvents = dataSource?.recordType === DataSourceRecordType.Events;
+  const sortBy = dataSourceConfig?.sortBy ?? (isEvents ? "date" : "name");
+  const sortDirection =
+    dataSourceConfig?.sortDirection ??
+    (sortBy === "date" && !isEvents ? "desc" : "asc");
+  return { sortBy, sortDirection };
+};
 
 export function buildName(
   dataSource: DataSource | null | undefined,
@@ -61,4 +84,16 @@ export function parseDate({
     }
   }
   return date;
+}
+
+// Human-readable display format for record dates, shared by the listing,
+// the record detail sidebar and the marker popup.
+export const RECORD_DATE_DISPLAY_FORMAT = "d MMMM yyyy";
+
+export function formatRecordDate(input: {
+  dataSource: DataSource | null | undefined;
+  dataRecord: { createdAt: Date; json: Record<string, unknown> };
+  dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
+}): string {
+  return format(parseDate(input), RECORD_DATE_DISPLAY_FORMAT);
 }

@@ -1,7 +1,11 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-import { DATE_FORMAT_OPTIONS } from "@/constants";
+import {
+  DATE_FORMAT_OPTIONS,
+  SORT_BY_OPTIONS,
+  SORT_DIRECTION_OPTIONS,
+} from "@/constants";
 import { useDataSources } from "@/hooks/useDataSources";
 import { PublicMapColumnType } from "@/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
@@ -17,6 +21,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { getListingSort } from "@/utils/dataRecord";
 import {
   useActiveDataSourceId,
   usePublicDataSourceIds,
@@ -241,6 +246,76 @@ export default function EditorDataSettings() {
                         </Select>
                       </div>
                     </ColumnCard>
+
+                    {/* Listing Sort */}
+                    {(() => {
+                      const { sortBy, sortDirection } = getListingSort({
+                        dataSource: getDataSourceById(
+                          dataSourceConfig.dataSourceId,
+                        ),
+                        dataSourceConfig,
+                      });
+                      return (
+                        <div className="flex flex-col gap-2 rounded-md border border-neutral-200 p-3">
+                          <Label className="text-sm font-medium">
+                            Sort listings
+                          </Label>
+                          <div className="flex gap-2 items-center">
+                            <Label className="text-xs font-medium w-20">
+                              Sort by:
+                            </Label>
+                            <Select
+                              value={sortBy}
+                              onValueChange={(v) =>
+                                updateDataSourceConfig(
+                                  dataSourceConfig.dataSourceId,
+                                  { sortBy: v === "date" ? "date" : "name" },
+                                )
+                              }
+                            >
+                              <SelectTrigger className="flex-1 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SORT_BY_OPTIONS.map((o) => (
+                                  <SelectItem key={o.value} value={o.value}>
+                                    {o.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Label className="text-xs font-medium w-20">
+                              Direction:
+                            </Label>
+                            <Select
+                              value={sortDirection}
+                              onValueChange={(v) =>
+                                updateDataSourceConfig(
+                                  dataSourceConfig.dataSourceId,
+                                  {
+                                    sortDirection:
+                                      v === "desc" ? "desc" : "asc",
+                                  },
+                                )
+                              }
+                            >
+                              <SelectTrigger className="flex-1 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SORT_DIRECTION_OPTIONS.map((o) => (
+                                  <SelectItem key={o.value} value={o.value}>
+                                    {o.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <Separator />

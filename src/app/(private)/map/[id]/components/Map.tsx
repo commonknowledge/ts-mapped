@@ -1,6 +1,10 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
+// Base Mapbox styles (popups, controls, etc.). Imported here — the single
+// component rendered in every map context — so the styles load on the public
+// route too, not only where PrivateMapOverlay happens to be imported.
+import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";

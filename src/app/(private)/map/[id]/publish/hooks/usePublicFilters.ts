@@ -1,8 +1,13 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useMemo } from "react";
 import { PublicMapColumnType } from "@/models/PublicMap";
-import { publicFiltersAtom } from "../atoms/publicFiltersAtoms";
+import { getListingSort, parseDate } from "@/utils/dataRecord";
+import {
+  publicDateFilterAtom,
+  publicFiltersAtom,
+} from "../atoms/publicFiltersAtoms";
 import { ALLOWED_FILTERS, TRANS_FRIENDLY_HOST } from "../const";
+import { getDateFilterRange } from "../dateFilters";
 import { filterRecords, getActiveFilters } from "../filtersHelpers";
 import { usePublicDataRecordsQueries } from "./usePublicDataRecordsQueries";
 import {
@@ -18,6 +23,14 @@ export function usePublicFilters() {
 
 export function useSetPublicFilters() {
   return useSetAtom(publicFiltersAtom);
+}
+
+export function usePublicDateFilter() {
+  return useAtomValue(publicDateFilterAtom);
+}
+
+export function useSetPublicDateFilter() {
+  return useSetAtom(publicDateFilterAtom);
 }
 
 export function useFilterFields() {
@@ -109,6 +122,7 @@ export function useFilteredRecords() {
   const publicDataSourceIds = usePublicDataSourceIds();
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const publicFilters = usePublicFilters();
+  const publicDateFilter = usePublicDateFilter();
 
   return useMemo(() => {
     if (!publicMap) {
@@ -123,21 +137,47 @@ export function useFilteredRecords() {
       return [];
     }
 
-    const allRecords = dataRecordsQuery.data?.records || [];
-    const dataSourceId = dataRecordsQuery.data?.id;
+    const dataSource = dataRecordsQuery.data;
+    const allRecords = dataSource?.records || [];
+    const dataSourceId = dataSource?.id;
+    const dataSourceConfig = dataSourceId
+      ? publicMap.dataSourceConfigs.find((c) => c.dataSourceId === dataSourceId)
+      : undefined;
     const activeFilters = getActiveFilters(
       dataSourceId ? publicFilters[dataSourceId] : undefined,
     );
 
     const useUnknownValues = publicMap.host === TRANS_FRIENDLY_HOST;
-    return activeFilters?.length
+    let records = activeFilters?.length
       ? filterRecords(activeFilters, allRecords, useUnknownValues)
       : allRecords;
+
+    // Apply the date quick-filter, but only when the listing is sorted by date
+    // (the buttons are only shown then).
+    const dateFilterKey = dataSourceId
+      ? publicDateFilter[dataSourceId]
+      : undefined;
+    const sortedByDate =
+      getListingSort({ dataSource, dataSourceConfig }).sortBy === "date";
+    if (dateFilterKey && sortedByDate) {
+      const { start, end } = getDateFilterRange(dateFilterKey);
+      records = records.filter((record) => {
+        const date = parseDate({
+          dataSource,
+          dataRecord: record,
+          dataSourceConfig,
+        });
+        return date >= start && date <= end;
+      });
+    }
+
+    return records;
   }, [
     activeDataSourceId,
     publicDataSourceIds,
     dataRecordsQueries,
     publicFilters,
+    publicDateFilter,
     publicMap,
   ]);
 }

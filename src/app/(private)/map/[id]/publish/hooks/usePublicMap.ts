@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useMemo } from "react";
 import { isPublicMapRouteAtom } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
+import { useDataSources } from "@/hooks/useDataSources";
 import { getPublicDataSourceIds } from "@/utils/map";
 import {
   activeDataSourceIdAtom,
@@ -59,13 +60,21 @@ export function useSetSearchLocation() {
 export function usePublicDataSourceIds(): string[] {
   const { mapConfig } = useMapConfig();
   const publicMap = usePublicMapValue();
-  return useMemo(
-    () =>
-      publicMap
-        ? getPublicDataSourceIds(mapConfig, publicMap.dataSourceConfigs)
-        : [],
-    [mapConfig, publicMap],
-  );
+  const { data: dataSources } = useDataSources();
+  return useMemo(() => {
+    if (!publicMap) {
+      return [];
+    }
+    const ids = getPublicDataSourceIds(mapConfig, publicMap.dataSourceConfigs);
+    // Hide references to data sources that no longer exist (e.g. deleted),
+    // mirroring how private maps filter via useMarkerDataSources. While the
+    // data sources are still loading, keep the unfiltered list to avoid a flash.
+    if (!dataSources) {
+      return ids;
+    }
+    const existingIds = new Set(dataSources.map((ds) => ds.id));
+    return ids.filter((id) => existingIds.has(id));
+  }, [mapConfig, publicMap, dataSources]);
 }
 
 export function useActiveDataSourceId() {

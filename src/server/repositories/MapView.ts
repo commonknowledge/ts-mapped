@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { NewMapView } from "../models/MapView";
+import type { MapViewUpdate, NewMapView } from "../models/MapView";
 
 export function findMapViewById(viewId: string) {
   return db
@@ -30,6 +30,51 @@ export async function upsertMapView(view: NewMapView) {
 
 export async function deleteMapView(id: string) {
   return db.deleteFrom("mapView").where("id", "=", id).execute();
+}
+
+export function updateMapView(id: string, view: MapViewUpdate) {
+  return db
+    .updateTable("mapView")
+    .where("id", "=", id)
+    .set(view)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+/**
+ * Removes all references to a (deleted) data source from the views of every
+ * map in the given organisation: both `dataSourceViews` entries and a view's
+ * choropleth `areaDataSourceId`. Only rewrites rows that actually change.
+ */
+export async function removeDataSourceFromMapViews({
+  organisationId,
+  dataSourceId,
+}: {
+  organisationId: string;
+  dataSourceId: string;
+}) {
+  const views = await db
+    .selectFrom("mapView")
+    .innerJoin("map", "map.id", "mapView.mapId")
+    .where("map.organisationId", "=", organisationId)
+    .selectAll("mapView")
+    .execute();
+  for (const view of views) {
+    const dataSourceViews = view.dataSourceViews.filter(
+      (dsv) => dsv.dataSourceId !== dataSourceId,
+    );
+    const clearArea = view.config.areaDataSourceId === dataSourceId;
+    const changed =
+      dataSourceViews.length !== view.dataSourceViews.length || clearArea;
+    if (changed) {
+      await updateMapView(view.id, {
+        dataSourceViews,
+        config: clearArea
+          ? { ...view.config, areaDataSourceId: "" }
+          : view.config,
+      });
+    }
+  }
 }
 
 export async function assertViewBelongsToMap({

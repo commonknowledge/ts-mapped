@@ -3,9 +3,9 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
+import { useMapMode } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import {
-  useIsPublicMapRoute,
   usePublicDataSourceIds,
   usePublicMapValue,
 } from "@/app/(private)/map/[id]/publish/hooks/usePublicMap";
@@ -15,15 +15,18 @@ import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 export function useMarkerQueries() {
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
-  const isPublicMapRoute = useIsPublicMapRoute();
+  const mapMode = useMapMode();
   const publicDataSourceIds = usePublicDataSourceIds();
   const publicMap = usePublicMapValue();
 
+  // In public mode (the publish editor as well as the standalone public page)
+  // markers follow the public map config; in private mode they follow the
+  // full private marker data source list.
   const dataSourceIds = useMemo(() => {
-    return isPublicMapRoute
+    return mapMode === "public"
       ? publicDataSourceIds
       : getMarkerDataSourceIds(mapConfig);
-  }, [mapConfig, isPublicMapRoute, publicDataSourceIds]);
+  }, [mapConfig, mapMode, publicDataSourceIds]);
 
   // Using the `combine` option in this useQueries call makes `markerQueries`
   // only update when the data updates. This prevents infinite loops

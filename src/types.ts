@@ -39,6 +39,8 @@ export interface MarkerFeature {
     name: string;
     dataSourceId: string;
     matched: boolean;
+    // Formatted record date, only set when the listing is sorted by date.
+    date?: string;
   };
   geometry: { coordinates: [number, number]; type: "Point" };
 }
@@ -52,6 +54,8 @@ export interface MarkerFeatureWithoutDataSourceId {
     id: string;
     name: string;
     matched: boolean;
+    // Formatted record date, only set when the listing is sorted by date.
+    date?: string;
   };
   geometry: { coordinates: [number, number]; type: "Point" };
 }

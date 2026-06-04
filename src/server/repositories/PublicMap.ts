@@ -4,6 +4,7 @@ import { db } from "@/server/services/database";
 import type { MapConfig } from "@/models/Map";
 import type { MapViewConfig } from "@/models/MapView";
 import type { PublicMapDraft } from "@/models/PublicMap";
+import type { PublicMapUpdate } from "@/server/models/PublicMap";
 
 export function findPublicMapByHost(host: string) {
   if (!host) return Promise.resolve(undefined);
@@ -181,6 +182,60 @@ export function checkHostAvailability(host: string, excludeViewId?: string) {
   }
 
   return query.executeTakeFirst();
+}
+
+export function updatePublicMap(
+  id: string,
+  fields: Pick<PublicMapUpdate, "dataSourceConfigs" | "draft">,
+) {
+  return db
+    .updateTable("publicMap")
+    .where("id", "=", id)
+    .set(fields)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+/**
+ * Removes all references to a (deleted) data source from the dataSourceConfigs
+ * of every public map in the given organisation — both the live configs and
+ * any draft. Only rewrites rows that actually change.
+ */
+export async function removeDataSourceFromPublicMaps({
+  organisationId,
+  dataSourceId,
+}: {
+  organisationId: string;
+  dataSourceId: string;
+}) {
+  const publicMaps = await findPublicMapsByOrganisationId(organisationId);
+  for (const publicMap of publicMaps) {
+    const dataSourceConfigs = publicMap.dataSourceConfigs.filter(
+      (c) => c.dataSourceId !== dataSourceId,
+    );
+    const configsChanged =
+      dataSourceConfigs.length !== publicMap.dataSourceConfigs.length;
+
+    const { draft } = publicMap;
+    let draftChanged = false;
+    let newDraft = draft;
+    if (draft) {
+      const draftConfigs = draft.dataSourceConfigs.filter(
+        (c) => c.dataSourceId !== dataSourceId,
+      );
+      if (draftConfigs.length !== draft.dataSourceConfigs.length) {
+        draftChanged = true;
+        newDraft = { ...draft, dataSourceConfigs: draftConfigs };
+      }
+    }
+
+    if (configsChanged || draftChanged) {
+      await updatePublicMap(publicMap.id, {
+        ...(configsChanged ? { dataSourceConfigs } : {}),
+        ...(draftChanged ? { draft: newDraft } : {}),
+      });
+    }
+  }
 }
 
 export function deletePublicMap(publicMapId: string) {

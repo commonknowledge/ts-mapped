@@ -5,9 +5,14 @@ import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
+import { formatRecordDate, getListingSort } from "@/utils/dataRecord";
 import { useFilteredRecords } from "../hooks/usePublicFilters";
-import { usePublicMapValue } from "../hooks/usePublicMap";
-import { buildPublicMapName, groupRecords } from "../utils";
+import { usePublicMapValue, useSearchLocation } from "../hooks/usePublicMap";
+import {
+  buildPublicMapName,
+  groupRecords,
+  sortRecordsForListing,
+} from "../utils";
 import type { RecordGroup } from "../utils";
 import type { PublicMapColorScheme } from "@/app/(private)/map/[id]/styles";
 import type { SelectedRecord } from "@/app/(private)/map/[id]/types/inspector";
@@ -32,6 +37,7 @@ export default function DataRecordsList({
   const { setSelectedRecords, focusedRecord } = useInspectorState();
   const mapRef = useMapRef();
   const filteredRecords = useFilteredRecords();
+  const searchLocation = useSearchLocation();
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -50,10 +56,23 @@ export default function DataRecordsList({
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
 
-  const recordGroups = useMemo(
-    () => groupRecords(dataSourceConfig, filteredRecords),
-    [dataSourceConfig, filteredRecords],
-  );
+  const recordGroups = useMemo(() => {
+    // While a location search is active, keep the server's distance order
+    // (nearest first). Otherwise apply the configured name/date sort.
+    const sortedRecords = searchLocation
+      ? filteredRecords
+      : sortRecordsForListing({
+          records: filteredRecords,
+          dataSource: dataRecordsQuery.data,
+          dataSourceConfig,
+        });
+    return groupRecords(dataSourceConfig, sortedRecords);
+  }, [
+    dataRecordsQuery.data,
+    dataSourceConfig,
+    filteredRecords,
+    searchLocation,
+  ]);
 
   if (!recordGroups?.length) {
     return <></>;
@@ -73,6 +92,7 @@ export default function DataRecordsList({
           <RecordGroupItem
             key={id}
             colorScheme={colorScheme}
+            dataSource={dataRecordsQuery.data}
             dataSourceConfig={dataSourceConfig}
             id={id}
             isSelected={isSelected}
@@ -89,6 +109,7 @@ export default function DataRecordsList({
 // memo(...) ensures that the function is only re-run when the props change
 const RecordGroupItem = memo(function RecordGroupItem({
   colorScheme,
+  dataSource,
   dataSourceConfig,
   id,
   isSelected,
@@ -97,6 +118,7 @@ const RecordGroupItem = memo(function RecordGroupItem({
   setSelectedRecords,
 }: {
   colorScheme: PublicMapColorScheme;
+  dataSource: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
   dataSourceConfig: PublicMapDataSourceConfig | undefined;
   id: string;
   isSelected: boolean;
@@ -114,6 +136,23 @@ const RecordGroupItem = memo(function RecordGroupItem({
   // Show first non-empty description
   const descriptions = recordGroup.children.map((c) => getDescription(c));
   const description = descriptions.find(Boolean);
+  const baseDescription =
+    description && description !== recordGroup.name ? description : "";
+
+  // When the listing is sorted by date, prepend the parsed + formatted record
+  // date (of the group's leading record) to the description automatically.
+  const { sortBy } = getListingSort({ dataSource, dataSourceConfig });
+  const dateText =
+    sortBy === "date" && recordGroup.children[0]
+      ? formatRecordDate({
+          dataSource,
+          dataRecord: recordGroup.children[0],
+          dataSourceConfig,
+        })
+      : "";
+  const displayDescription = [dateText, baseDescription]
+    .filter(Boolean)
+    .join(" · ");
 
   const handleRecordClick = useCallback(
     (recordGroup: RecordGroup) => {
@@ -162,8 +201,8 @@ const RecordGroupItem = memo(function RecordGroupItem({
           />
           <span className="font-medium flex-1">{recordGroup.name}</span>
         </div>
-        {description && description !== recordGroup.name && (
-          <span className="text-sm ml-[1.1rem]">{description}</span>
+        {displayDescription && (
+          <span className="text-sm ml-[1.1rem]">{displayDescription}</span>
         )}
       </button>
     </li>

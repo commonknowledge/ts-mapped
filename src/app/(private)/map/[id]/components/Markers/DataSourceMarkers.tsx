@@ -6,6 +6,7 @@ import { MarkerDisplayMode } from "@/models/Map";
 import { useMapMode } from "../../hooks/useMapCore";
 import {
   useFilteredRecords,
+  usePublicDateFilter,
   usePublicFilters,
 } from "../../publish/hooks/usePublicFilters";
 import {
@@ -35,6 +36,7 @@ export function DataSourceMarkers({
 }) {
   const filteredRecords = useFilteredRecords();
   const publicFilters = usePublicFilters();
+  const publicDateFilter = usePublicDateFilter();
   const publicMap = usePublicMapValue();
   const colorScheme = useColorScheme();
   const mapMode = useMapMode();
@@ -44,7 +46,9 @@ export function DataSourceMarkers({
     MarkerDisplayMode.Clusters;
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
-    const hasClientFilters = Object.keys(publicFilters).length > 0;
+    const hasClientFilters =
+      Object.keys(publicFilters).length > 0 ||
+      Object.values(publicDateFilter).some(Boolean);
 
     let features = dataSourceMarkers.markers;
 
@@ -80,6 +84,7 @@ export function DataSourceMarkers({
     dataSourceMarkers.markers,
     filteredRecords,
     publicFilters,
+    publicDateFilter,
     hideFilteredMarkers,
   ]);
 

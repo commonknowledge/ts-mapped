@@ -39,8 +39,13 @@ import {
   findDataSourceOrganisationOverridesByOrg,
   upsertDataSourceOrganisationOverride,
 } from "@/server/repositories/DataSourceOrganisationOverride";
-import { findMapViewById } from "@/server/repositories/MapView";
+import { removeDataSourceFromMaps } from "@/server/repositories/Map";
+import {
+  findMapViewById,
+  removeDataSourceFromMapViews,
+} from "@/server/repositories/MapView";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
+import { removeDataSourceFromPublicMaps } from "@/server/repositories/PublicMap";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
@@ -675,6 +680,15 @@ export const dataSourceRouter = router({
 
   delete: dataSourceOwnerProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);
+    // Purge references to the deleted data source from the org's maps,
+    // map views, and public maps so they don't linger as orphans.
+    const ref = {
+      organisationId: ctx.dataSource.organisationId,
+      dataSourceId: ctx.dataSource.id,
+    };
+    await removeDataSourceFromMaps(ref);
+    await removeDataSourceFromMapViews(ref);
+    await removeDataSourceFromPublicMaps(ref);
     return true;
   }),
 

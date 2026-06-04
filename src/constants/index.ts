@@ -11,6 +11,17 @@ export const DATE_FORMAT_OPTIONS = [
   { label: "US Format (MM/DD/YYYY)", value: "MM/dd/yyyy" },
 ];
 
+// Sort options offered when configuring how a public map listing is ordered.
+export const SORT_BY_OPTIONS = [
+  { label: "Record name", value: "name" },
+  { label: "Record date", value: "date" },
+];
+
+export const SORT_DIRECTION_OPTIONS = [
+  { label: "Ascending (A–Z / oldest first)", value: "asc" },
+  { label: "Descending (Z–A / newest first)", value: "desc" },
+];
+
 export const DATA_SOURCE_JOB_BATCH_SIZE = 100;
 
 // This is smaller than the external data source
@@ -49,7 +60,5 @@ export const ORGANISATION_COOKIE_NAME = "MappedOrgId";
 
 // Special sort columns
 export const SORT_BY_LOCATION = "__location";
-// Special sort column to sort by `dataSource.columnRoles.nameColumns`
-export const SORT_BY_NAME_COLUMNS = "__name";
 
 export const TRIAL_EXPIRED_MESSAGE = "Your trial has expired.";
