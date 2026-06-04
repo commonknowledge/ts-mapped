@@ -28,7 +28,7 @@ describe("buildCsp", () => {
   });
 
   describe("minioDomain", () => {
-    test("includes minioDomain in img-src and connect-src when provided", () => {
+    test("includes minioDomain in connect-src when provided", () => {
       const csp = buildCsp({
         frameAncestors: "'self'",
         isProd: false,
@@ -37,7 +37,8 @@ describe("buildCsp", () => {
       const directives = Object.fromEntries(
         csp.split("; ").map((d) => [d.split(" ")[0], d]),
       );
-      expect(directives["img-src"]).toContain("https://minio.example.com");
+      // img-src allows any HTTPS host, so MinIO images are covered by `https:`.
+      expect(directives["img-src"]).toContain("https:");
       expect(directives["connect-src"]).toContain("https://minio.example.com");
     });
 

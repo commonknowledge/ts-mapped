@@ -3,6 +3,7 @@ import z from "zod";
 export enum PublicMapColumnType {
   Boolean = "Boolean",
   CommaSeparatedList = "CommaSeparatedList",
+  ImageUrl = "ImageUrl",
   Link = "Link",
   String = "String",
 }

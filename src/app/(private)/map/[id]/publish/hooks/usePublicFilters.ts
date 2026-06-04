@@ -66,8 +66,11 @@ export function useFilterFields() {
     }));
 
     for (const additionalColumn of dataSourceConfig.additionalColumns) {
-      // Link columns are display-only (rendered as a button), not filterable.
-      if (additionalColumn.type === PublicMapColumnType.Link) {
+      // Link and Image columns are display-only, not filterable.
+      if (
+        additionalColumn.type === PublicMapColumnType.Link ||
+        additionalColumn.type === PublicMapColumnType.ImageUrl
+      ) {
         continue;
       }
       for (const sourceColumn of additionalColumn.sourceColumns) {

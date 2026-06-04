@@ -456,7 +456,9 @@ export default function EditorDataSettings() {
                                         placeholder="Column label"
                                         disabled={
                                           columnConfig.type ===
-                                          PublicMapColumnType.Boolean
+                                            PublicMapColumnType.Boolean ||
+                                          columnConfig.type ===
+                                            PublicMapColumnType.ImageUrl
                                         }
                                       />
                                     </div>
@@ -519,6 +521,11 @@ export default function EditorDataSettings() {
                                             value={PublicMapColumnType.Link}
                                           >
                                             Link
+                                          </SelectItem>
+                                          <SelectItem
+                                            value={PublicMapColumnType.ImageUrl}
+                                          >
+                                            Image
                                           </SelectItem>
                                         </SelectContent>
                                       </Select>

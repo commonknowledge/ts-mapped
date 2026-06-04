@@ -146,6 +146,16 @@ export default function DataRecordSidebar() {
             &lt; Back
           </Button>
         )}
+        {/* Image columns render at the top of the sidebar */}
+        {additionalColumns
+          .filter((c) => c.type === PublicMapColumnType.ImageUrl)
+          .map((columnConfig, i) => (
+            <ImageColumn
+              key={i}
+              sourceColumns={columnConfig.sourceColumns}
+              json={selectedRecordDetails.json}
+            />
+          ))}
         {/* Name */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-1">
@@ -253,7 +263,9 @@ export default function DataRecordSidebar() {
 
         {additionalColumns.map((columnConfig, i) => (
           <Fragment key={i}>
-            {columnConfig.type === PublicMapColumnType.Boolean ? (
+            {columnConfig.type ===
+            PublicMapColumnType.ImageUrl ? null : columnConfig.type ===
+              PublicMapColumnType.Boolean ? (
               <CheckList
                 dataSourceConfig={dataSourceConfig}
                 sourceColumns={columnConfig.sourceColumns}
@@ -393,6 +405,36 @@ function CheckList({
         </div>
       ))}
     </>
+  );
+}
+
+function ImageColumn({
+  sourceColumns,
+  json,
+}: {
+  sourceColumns: string[];
+  json: Record<string, unknown>;
+}) {
+  const editable = useEditable();
+
+  const url = sourceColumns
+    .map((c) => json[c])
+    .filter(Boolean)
+    .join("");
+
+  if (!url) {
+    // Show a placeholder in the editor so the image slot is visible.
+    return editable ? (
+      <div className="flex h-32 w-full items-center justify-center rounded-md border border-dashed border-neutral-300 text-xs text-muted-foreground">
+        Image
+      </div>
+    ) : null;
+  }
+
+  return (
+    // The URL is arbitrary/user-supplied, so a plain img is used over next/image.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={String(url)} alt="" className="w-full rounded-md object-cover" />
   );
 }
 

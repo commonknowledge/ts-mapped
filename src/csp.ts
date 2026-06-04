@@ -15,12 +15,10 @@ export function buildCsp({
     "style-src 'self' 'unsafe-inline'",
     // next/font/google self-hosts fonts — no external font CDN needed
     "font-src 'self'",
-    [
-      "img-src 'self' data: blob: https://cdn.sanity.io https://image.mux.com",
-      minioDomain ? `https://${minioDomain}` : null,
-    ]
-      .filter(Boolean)
-      .join(" "),
+    // Images are passive (no script/DOM/cookie access); allow any HTTPS host so
+    // public-map editors can use arbitrary image URLs (e.g. the "Image URL"
+    // column). data:/blob: remain for inline + Mapbox-generated images.
+    "img-src 'self' data: blob: https:",
     [
       // PostHog proxied via /ingest/*, Sentry proxied via /monitoring — both hit 'self'
       // Mapbox tiles + events, Postcodes.io, Google Sheets/OAuth, MinIO, Mux, Google Cast, Zetkin
