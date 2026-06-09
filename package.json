@@ -150,7 +150,7 @@
     "typescript": "^5",
     "typescript-eslint": "^8.26.1",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
   },
   "optionalDependencies": {
     "@floating-ui/core": "^1.7.3",
