@@ -212,6 +212,12 @@ describe("Airtable adaptor tests", () => {
     result = await adaptor.listWebhooks(await getPublicUrl());
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(0);
+
+    // Disabling again when nothing is left is a no-op, not a removal
+    const noop = await adaptor.toggleWebhook(false);
+    expect(noop.action).toBe("noop");
+    expect(noop.oldWebhookIds).toEqual([]);
+    expect(noop.newWebhookIds).toEqual([]);
   }, 30000);
 
   test("updateRecords updates a record", async () => {

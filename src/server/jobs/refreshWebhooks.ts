@@ -173,7 +173,28 @@ const refreshWebhook = async (dataSourceId: string): Promise<boolean> => {
     );
     return false;
   }
-  await adaptor.toggleWebhook(enable);
+
+  const runId = uuidv4();
+  const dataSourceType = dataSource.config.type;
+  try {
+    const result = await adaptor.toggleWebhook(enable);
+    await logRefresh({
+      runId,
+      dataSourceId,
+      dataSourceType,
+      enabled: enable,
+      result,
+    });
+  } catch (error) {
+    await logRefresh({
+      runId,
+      dataSourceId,
+      dataSourceType,
+      enabled: enable,
+      error,
+    });
+    throw error;
+  }
   return true;
 };
 

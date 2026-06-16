@@ -426,7 +426,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         `Removing Mailchimp webhooks for data source ${this.dataSourceId}`,
       );
       await this.removeWebhooks(webhooks);
-      return { action: "removed", oldWebhookIds, newWebhookIds: [] };
+      return {
+        action: oldWebhookIds.length ? "removed" : "noop",
+        oldWebhookIds,
+        newWebhookIds: [],
+      };
     }
 
     // If we already have a webhook, don't create another

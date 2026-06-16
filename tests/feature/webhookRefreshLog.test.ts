@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { afterAll, describe, expect, inject, test } from "vitest";
+import { afterAll, afterEach, describe, expect, inject, test } from "vitest";
 import {
   DataSourceRecordType,
   DataSourceType,
@@ -22,8 +22,10 @@ const credentials = inject("credentials");
 describe("webhookRefreshLog tests", () => {
   const toRemove: string[] = [];
 
-  afterAll(async () => {
-    // Remove any Airtable webhook created during the orchestrator test
+  afterEach(async () => {
+    // Webhooks are filtered by public URL (not data source id), so a webhook
+    // left over from one test would leak into the next on the same base.
+    // Clear them after each test so every test starts from a clean base.
     try {
       await new AirtableAdaptor(
         "webhook-log-cleanup",
@@ -34,6 +36,9 @@ describe("webhookRefreshLog tests", () => {
     } catch {
       // best-effort cleanup
     }
+  });
+
+  afterAll(async () => {
     // Deleting the data sources cascades to their webhookRefreshLog rows
     for (const id of toRemove) {
       await deleteDataSource(id);
@@ -128,5 +133,40 @@ describe("webhookRefreshLog tests", () => {
     // recreated/kept if one already existed for this base + public URL)
     expect(["created", "recreated", "kept"]).toContain(log.action);
     expect(log.newWebhookIds.length).toBeGreaterThanOrEqual(1);
+  }, 30000);
+
+  test("refreshWebhooks logs a row when invoked for a single data source", async () => {
+    const org = await upsertOrganisation({ name: "Webhook Single Test Org" });
+    const dataSource = await createDataSource({
+      name: "Webhook Single Airtable Source",
+      autoEnrich: false,
+      autoImport: true,
+      recordType: DataSourceRecordType.Members,
+      config: {
+        type: DataSourceType.Airtable,
+        apiKey: credentials.airtable.apiKey,
+        baseId: credentials.airtable.baseId,
+        tableId: credentials.airtable.tableId,
+      },
+      columnDefs: [],
+      columnMetadata: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
+      organisationId: org.id,
+      public: false,
+    });
+    toRemove.push(dataSource.id);
+
+    // This is the path the Google Sheets adaptor enqueues on row-count changes
+    await refreshWebhooks({ dataSourceId: dataSource.id });
+
+    const logs = await findWebhookRefreshLogsByDataSourceId(dataSource.id);
+    expect(logs.length).toBeGreaterThanOrEqual(1);
+    const log = logs[0];
+    expect(log.dataSourceType).toBe(DataSourceType.Airtable);
+    expect(log.enabled).toBe(true);
+    expect(log.success).toBe(true);
+    expect(["created", "recreated", "kept"]).toContain(log.action);
   }, 30000);
 });

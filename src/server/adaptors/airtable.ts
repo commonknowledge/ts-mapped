@@ -422,7 +422,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         `Removing Airtable webhooks for data source ${this.dataSourceId}`,
       );
       await this.removeWebhooks(webhooks);
-      return { action: "removed", oldWebhookIds, newWebhookIds: [] };
+      return {
+        action: oldWebhookIds.length ? "removed" : "noop",
+        oldWebhookIds,
+        newWebhookIds: [],
+      };
     }
 
     // Skip recreating webhook that has at least 2 days of validity
