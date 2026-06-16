@@ -184,18 +184,35 @@ describe("Airtable adaptor tests", () => {
       credentials.airtable.baseId,
       credentials.airtable.tableId,
     );
-    await adaptor.toggleWebhook(true);
+
+    // Start from a clean slate so the reported lifecycle is deterministic
+    await adaptor.toggleWebhook(false);
+
+    // Enabling with no existing webhook creates one and reports the new id
+    const created = await adaptor.toggleWebhook(true);
+    expect(created.action).toBe("created");
+    expect(created.oldWebhookIds).toEqual([]);
+    expect(created.newWebhookIds).toHaveLength(1);
 
     let result = await adaptor.listWebhooks(await getPublicUrl());
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBeGreaterThan(0);
 
-    await adaptor.toggleWebhook(false);
+    // Enabling again keeps the freshly-created webhook (well over 2 days valid)
+    const kept = await adaptor.toggleWebhook(true);
+    expect(kept.action).toBe("kept");
+    expect(kept.newWebhookIds).toEqual(created.newWebhookIds);
+
+    // Disabling removes it and reports the removed id as an old id
+    const removed = await adaptor.toggleWebhook(false);
+    expect(removed.action).toBe("removed");
+    expect(removed.oldWebhookIds).toEqual(created.newWebhookIds);
+    expect(removed.newWebhookIds).toEqual([]);
 
     result = await adaptor.listWebhooks(await getPublicUrl());
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(0);
-  });
+  }, 30000);
 
   test("updateRecords updates a record", async () => {
     const adaptor = new AirtableAdaptor(

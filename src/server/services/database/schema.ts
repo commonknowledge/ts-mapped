@@ -195,6 +195,25 @@ export interface AirtableWebhook {
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 }
 
+/**
+ * webhookRefreshLog Table
+ * Audit log of refreshWebhooks cron runs, one row per (run, data source)
+ */
+export interface WebhookRefreshLog {
+  id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+  runId: string; // uuid, NOT NULL
+  dataSourceId: string; // uuid, NOT NULL, FK -> dataSource(id) ON DELETE CASCADE
+  dataSourceType: string; // text, NOT NULL
+  enabled: boolean; // boolean, NOT NULL
+  success: boolean; // boolean, NOT NULL
+  action: string; // text, NOT NULL (created | recreated | kept | removed | noop | failed)
+  oldWebhookIds: string[]; // jsonb, NOT NULL, DEFAULT '[]'
+  newWebhookIds: string[]; // jsonb, NOT NULL, DEFAULT '[]'
+  details: Record<string, unknown> | null; // jsonb, nullable
+  error: string | null; // text, nullable
+  createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
+}
+
 // ============================================================================
 // MAPS & VIEWS
 // ============================================================================
@@ -409,6 +428,7 @@ export interface Database {
 
   // Webhooks & Integrations
   airtableWebhook: AirtableWebhook;
+  webhookRefreshLog: WebhookRefreshLog;
 
   // Caches
   geocodeCache: GeocodeCache;

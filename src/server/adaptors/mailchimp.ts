@@ -7,7 +7,7 @@ import {
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import type { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
@@ -415,9 +415,10 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     await this.removeWebhooks(webhooks);
   }
 
-  async toggleWebhook(enable: boolean): Promise<void> {
+  async toggleWebhook(enable: boolean): Promise<WebhookToggleResult> {
     const publicUrl = await getPublicUrl();
     const webhooks = await this.listWebhooks(publicUrl);
+    const oldWebhookIds = webhooks.map((wh) => wh.id);
 
     // Remove webhooks on user request
     if (!enable) {
@@ -425,7 +426,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         `Removing Mailchimp webhooks for data source ${this.dataSourceId}`,
       );
       await this.removeWebhooks(webhooks);
-      return;
+      return { action: "removed", oldWebhookIds, newWebhookIds: [] };
     }
 
     // If we already have a webhook, don't create another
@@ -433,7 +434,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       logger.info(
         `Mailchimp webhook already exists for data source ${this.dataSourceId}`,
       );
-      return;
+      return {
+        action: "kept",
+        oldWebhookIds: [],
+        newWebhookIds: oldWebhookIds,
+      };
     }
 
     const url = `${this.getListUrl()}/webhooks`;
@@ -477,6 +482,12 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     logger.info(
       `Created Mailchimp webhook for data source ${this.dataSourceId}: ${webhook.id}`,
     );
+
+    return {
+      action: "created",
+      oldWebhookIds,
+      newWebhookIds: webhook.id ? [webhook.id] : [],
+    };
   }
 
   async removeWebhooks(webhooks: Webhook[]): Promise<void> {

@@ -1,6 +1,13 @@
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
+export interface WebhookToggleResult {
+  action: "created" | "recreated" | "kept" | "removed" | "noop";
+  oldWebhookIds: string[];
+  newWebhookIds: string[];
+  details?: Record<string, unknown>;
+}
+
 export interface DataSourceAdaptor {
   extractExternalRecordIdsFromWebhookBody(
     body: unknown,
@@ -10,7 +17,7 @@ export interface DataSourceAdaptor {
   fetchFirst(): Promise<ExternalRecord | null>;
   fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]>;
   removeDevWebhooks(): Promise<void>;
-  toggleWebhook(enable: boolean): Promise<void>;
+  toggleWebhook(enable: boolean): Promise<WebhookToggleResult>;
   updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
   tagRecords(records: TaggedRecord[]): Promise<void>;
   deleteColumn(columnName: string): Promise<void>;

@@ -23,6 +23,7 @@ import type { PlacedMarkerTable } from "@/server/models/PlacedMarker";
 import type { PublicMapTable } from "@/server/models/PublicMap";
 import type { TurfTable } from "@/server/models/Turf";
 import type { UserTable } from "@/server/models/User";
+import type { WebhookRefreshLogTable } from "@/server/models/WebhookRefreshLog";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -74,6 +75,7 @@ export interface Database {
   publicMap: PublicMapTable;
   turf: TurfTable;
   user: UserTable;
+  webhookRefreshLog: WebhookRefreshLogTable;
   "pgboss.job": JobTable;
 }
 

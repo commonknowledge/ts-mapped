@@ -4,7 +4,7 @@ import {
   ENRICHMENT_COLUMN_PREFIX,
 } from "@/constants";
 import logger from "@/server/services/logger";
-import type { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
@@ -277,8 +277,9 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async toggleWebhook(enable: boolean): Promise<void> {
+  async toggleWebhook(enable: boolean): Promise<WebhookToggleResult> {
     logger.debug("Cannot toggle webhooks for Action Network data source");
+    return { action: "noop", oldWebhookIds: [], newWebhookIds: [] };
   }
 
   async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {

@@ -8,7 +8,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import { enqueue } from "../services/queue";
-import type { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { googleOAuthCredentialsSchema } from "@/models/DataSource";
 import type { ExternalRecord, TaggedRecord } from "@/types";
@@ -431,7 +431,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     }
   }
 
-  async toggleWebhook(enable: boolean): Promise<void> {
+  async toggleWebhook(enable: boolean): Promise<WebhookToggleResult> {
     try {
       const notificationUrl = await getPublicUrl(
         `/api/data-sources/${this.dataSourceId}/webhook`,
@@ -441,13 +441,37 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       const notificationDomain = new URL(notificationUrl).hostname;
       const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
 
+      const existingSheets = await this.listSheets();
+      const oldSheet = existingSheets.find(
+        (sheet) => sheet.properties.title === webhookSheetName,
+      );
+      const oldWebhookIds = oldSheet ? [oldSheet.properties.sheetId] : [];
+
       if (!enable) {
         await this.deleteSheet(webhookSheetName);
-        return;
+        return {
+          action: oldSheet ? "removed" : "noop",
+          oldWebhookIds,
+          newWebhookIds: [],
+          details: { sheetName: webhookSheetName },
+        };
       }
 
       await this.ensureSheet(webhookSheetName);
       await this.prepareWebhookSheet(webhookSheetName, notificationUrl);
+
+      const refreshedSheets = await this.listSheets();
+      const newSheet = refreshedSheets.find(
+        (sheet) => sheet.properties.title === webhookSheetName,
+      );
+      const newSheetId = newSheet?.properties.sheetId;
+
+      return {
+        action: oldSheet ? "kept" : "created",
+        oldWebhookIds,
+        newWebhookIds: newSheetId ? [newSheetId] : [],
+        details: { sheetName: webhookSheetName, sheetId: newSheetId },
+      };
     } catch (e) {
       if (e instanceof Error && e.message.includes("PERMISSION_DENIED")) {
         throw new Error(

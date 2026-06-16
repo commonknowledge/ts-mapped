@@ -6,7 +6,7 @@ import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import logger from "@/server/services/logger";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import { getBaseDir } from "../utils";
-import type { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { ExternalRecord } from "@/types";
 
 export function decodeBuffer(buffer: Buffer): Buffer {
@@ -152,7 +152,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
   async toggleWebhook(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enable: boolean,
-  ): Promise<void> {
+  ): Promise<WebhookToggleResult> {
     throw new Error("Unimplemented");
   }
 
