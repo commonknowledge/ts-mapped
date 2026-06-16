@@ -7,7 +7,7 @@ import { DataSourceType } from "@/models/DataSource";
 import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { slugify } from "@/utils/text";
-import type { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ZetkinOAuthCredentials } from "@/models/DataSource";
 import type { ExternalRecord, TaggedRecord } from "@/types";
@@ -235,8 +235,9 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
     // Zetkin does not support webhooks
   }
 
-  async toggleWebhook(): Promise<void> {
+  async toggleWebhook(): Promise<WebhookToggleResult> {
     logger.debug("Cannot toggle webhooks for Zetkin data source");
+    return { action: "noop", oldWebhookIds: [], newWebhookIds: [] };
   }
 
   async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {

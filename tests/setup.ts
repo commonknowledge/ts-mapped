@@ -27,16 +27,25 @@ export async function setup() {
   // Start a server to handle webhooks (does nothing and returns OK)
   // Required because some CRMs do not allow the webhook to be created
   // if it does not return an OK response, which causes some tests to fail.
-  let server = null;
+  let server: http.Server | null = null;
   try {
     await startPublicTunnel("http");
     server = http.createServer((req, res) => {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("OK");
     });
-    server.listen(3000);
+    // listen() reports failures (e.g. EADDRINUSE when a dev server is already
+    // on port 3000) via an async "error" event, which a plain try/catch cannot
+    // catch — left unhandled it crashes the whole test run. Await it explicitly
+    // so a busy port degrades gracefully instead of aborting collection.
+    const webhookServer = server;
+    await new Promise<void>((resolve, reject) => {
+      webhookServer.once("error", reject);
+      webhookServer.listen(3000, resolve);
+    });
   } catch (error) {
     logger.warn("Could not start public tunnel", { error });
+    server = null;
   }
 
   return async () => {

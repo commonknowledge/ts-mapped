@@ -11,7 +11,7 @@ import {
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import type { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
@@ -411,9 +411,10 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     await this.removeWebhooks(webhooks);
   }
 
-  async toggleWebhook(enable: boolean): Promise<void> {
+  async toggleWebhook(enable: boolean): Promise<WebhookToggleResult> {
     const publicUrl = await getPublicUrl();
     const webhooks = await this.listWebhooks(publicUrl);
+    const oldWebhookIds = webhooks.map((wh) => wh.id);
 
     // Remove webhooks on user request
     if (!enable) {
@@ -421,7 +422,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         `Removing Airtable webhooks for data source ${this.dataSourceId}`,
       );
       await this.removeWebhooks(webhooks);
-      return;
+      return {
+        action: oldWebhookIds.length ? "removed" : "noop",
+        oldWebhookIds,
+        newWebhookIds: [],
+      };
     }
 
     // Skip recreating webhook that has at least 2 days of validity
@@ -435,7 +440,12 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       logger.info(
         `Airtable webhook exists for data source ${this.dataSourceId}`,
       );
-      return;
+      return {
+        action: "kept",
+        oldWebhookIds: [],
+        newWebhookIds: [webhooks[0].id],
+        details: { expirationTime: webhooks[0].expirationTime.toISOString() },
+      };
     }
 
     // Cleanup expired webhooks
@@ -478,6 +488,18 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       }
       throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
     }
+
+    const created = (await response.json()) as {
+      id: string;
+      expirationTime?: string;
+    };
+
+    return {
+      action: oldWebhookIds.length ? "recreated" : "created",
+      oldWebhookIds,
+      newWebhookIds: created.id ? [created.id] : [],
+      details: { expirationTime: created.expirationTime },
+    };
   }
 
   async removeWebhooks(webhooks: Webhook[]): Promise<void> {

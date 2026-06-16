@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   DataSourceType,
   airtableConfigSchema,
@@ -9,13 +10,53 @@ import {
   findDataSourceById,
   findDataSourcesByType,
 } from "@/server/repositories/DataSource";
+import { createWebhookRefreshLog } from "@/server/repositories/WebhookRefreshLog";
 import { getDataSourceAdaptor } from "../adaptors";
 import logger from "../services/logger";
+import type { WebhookToggleResult } from "@/server/adaptors/abstract";
+
+const logRefresh = async ({
+  runId,
+  dataSourceId,
+  dataSourceType,
+  enabled,
+  result,
+  error,
+}: {
+  runId: string;
+  dataSourceId: string;
+  dataSourceType: DataSourceType;
+  enabled: boolean;
+  result?: WebhookToggleResult;
+  error?: unknown;
+}): Promise<void> => {
+  try {
+    await createWebhookRefreshLog({
+      runId,
+      dataSourceId,
+      dataSourceType,
+      enabled,
+      success: !error,
+      action: error ? "failed" : result?.action || "noop",
+      oldWebhookIds: result?.oldWebhookIds || [],
+      newWebhookIds: result?.newWebhookIds || [],
+      details: result?.details,
+      error: error ? String(error) : undefined,
+    });
+  } catch (logError) {
+    logger.warn(
+      `Failed to write webhook refresh log for data source ${dataSourceId}`,
+      { error: logError },
+    );
+  }
+};
 
 const refreshWebhooks = async (args: object | null): Promise<boolean> => {
   if (args && "dataSourceId" in args && typeof args.dataSourceId === "string") {
     return refreshWebhook(args.dataSourceId);
   }
+
+  const runId = uuidv4();
 
   const airtableDataSources = await findDataSourcesByType(
     DataSourceType.Airtable,
@@ -38,12 +79,26 @@ const refreshWebhooks = async (args: object | null): Promise<boolean> => {
     );
     const enable = source.autoEnrich || source.autoImport;
     try {
-      await adaptor.toggleWebhook(enable);
+      const toggleResult = await adaptor.toggleWebhook(enable);
+      await logRefresh({
+        runId,
+        dataSourceId: source.id,
+        dataSourceType: DataSourceType.Airtable,
+        enabled: enable,
+        result: toggleResult,
+      });
     } catch (error) {
       logger.warn(
         `Failed to refresh airtable webhook for data source ${source.id}`,
         { error },
       );
+      await logRefresh({
+        runId,
+        dataSourceId: source.id,
+        dataSourceType: DataSourceType.Airtable,
+        enabled: enable,
+        error,
+      });
       continue;
     }
   }
@@ -69,18 +124,32 @@ const refreshWebhooks = async (args: object | null): Promise<boolean> => {
     );
     const enable = source.autoEnrich || source.autoImport;
     try {
-      await adaptor.toggleWebhook(enable);
+      const toggleResult = await adaptor.toggleWebhook(enable);
       if (enable) {
         const hasErrors = await adaptor.hasWebhookErrors();
         if (hasErrors) {
           await adaptor.repairWebhook();
         }
       }
+      await logRefresh({
+        runId,
+        dataSourceId: source.id,
+        dataSourceType: DataSourceType.GoogleSheets,
+        enabled: enable,
+        result: toggleResult,
+      });
     } catch (error) {
       logger.warn(
         `Failed to refresh Google Sheets webhook for data source ${source.id}`,
         { error },
       );
+      await logRefresh({
+        runId,
+        dataSourceId: source.id,
+        dataSourceType: DataSourceType.GoogleSheets,
+        enabled: enable,
+        error,
+      });
       continue;
     }
   }
@@ -104,7 +173,28 @@ const refreshWebhook = async (dataSourceId: string): Promise<boolean> => {
     );
     return false;
   }
-  await adaptor.toggleWebhook(enable);
+
+  const runId = uuidv4();
+  const dataSourceType = dataSource.config.type;
+  try {
+    const result = await adaptor.toggleWebhook(enable);
+    await logRefresh({
+      runId,
+      dataSourceId,
+      dataSourceType,
+      enabled: enable,
+      result,
+    });
+  } catch (error) {
+    await logRefresh({
+      runId,
+      dataSourceId,
+      dataSourceType,
+      enabled: enable,
+      error,
+    });
+    throw error;
+  }
   return true;
 };
 
