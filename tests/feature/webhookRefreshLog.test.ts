@@ -70,7 +70,7 @@ describe("webhookRefreshLog tests", () => {
     const inserted = await createWebhookRefreshLog({
       runId,
       dataSourceId: dataSource.id,
-      dataSourceType: DataSourceType.Airtable,
+      dataSourceType: DataSourceType.CSV,
       enabled: true,
       success: true,
       action: "recreated",
