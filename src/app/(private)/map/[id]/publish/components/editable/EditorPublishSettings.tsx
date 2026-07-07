@@ -72,7 +72,14 @@ export default function EditorPublishSettings() {
   const { data: availability, isFetching: isChecking } = useQuery(
     trpc.publicMap.checkHostAvailability.queryOptions(
       { host: debouncedHost ?? "", viewId: publicMap?.viewId },
-      { enabled: Boolean(debouncedHost) },
+      // Availability must never be served from a stale cache: a subdomain
+      // freed elsewhere (e.g. by deleting another public map) would otherwise
+      // show as taken until a full page reload.
+      {
+        enabled: Boolean(debouncedHost),
+        staleTime: 0,
+        refetchOnMount: "always",
+      },
     ),
   );
 
