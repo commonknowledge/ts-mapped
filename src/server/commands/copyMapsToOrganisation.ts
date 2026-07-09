@@ -128,6 +128,11 @@ const copyMapsToOrganisation = async (
         config: {
           ...view.config,
           areaDataSourceId: remappedAreaDataSourceId,
+          markerColors: remapRecord(view.config.markerColors, dataSourceIdMap),
+          markerVisualisations: remapRecord(
+            view.config.markerVisualisations,
+            dataSourceIdMap,
+          ),
         },
         dataSourceViews: remappedDataSourceViews,
       });
@@ -154,7 +159,6 @@ function remapMapConfig(
     membersDataSourceId,
     markerDataSourceIds,
     markerDisplayModes: remapRecord(config.markerDisplayModes, dataSourceIdMap),
-    markerColors: remapRecord(config.markerColors, dataSourceIdMap),
     placedMarkerColors: undefined,
     folderColors: undefined,
   };

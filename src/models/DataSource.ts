@@ -278,6 +278,10 @@ export const columnMetadataSchema = z.object({
   valueLabels: z.record(z.string(), z.string()),
   semanticType: z.nativeEnum(ColumnSemanticType).optional(),
   valueColors: z.record(z.string(), z.string()).optional(),
+  // Explicit ordinal ordering of column values (e.g. Low < Moderate < High).
+  // When unset, consumers fall back to range parsing then alphabetical order
+  // (see sortColumnValues).
+  valueOrder: z.array(z.string()).optional(),
 });
 
 export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;

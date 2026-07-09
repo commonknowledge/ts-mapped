@@ -28,6 +28,9 @@ export function _resolveColumnMetadata(
         ? { ...base.valueColors, ...override.valueColors }
         : base.valueColors,
       semanticType: override.semanticType ?? base.semanticType,
+      // An ordering is only coherent as a whole, so an override replaces the
+      // base order entirely rather than merging with it
+      valueOrder: override.valueOrder ?? base.valueOrder,
     };
   });
 }

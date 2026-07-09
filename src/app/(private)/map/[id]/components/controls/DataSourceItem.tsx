@@ -65,7 +65,7 @@ export default function DataSourceItem({
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const { view } = useMapViews();
+  const { view, viewConfig, updateViewConfig } = useMapViews();
   const trpc = useTRPC();
   const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
 
@@ -99,7 +99,7 @@ export default function DataSourceItem({
     mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters;
 
   // Get current color (defaults to layer color)
-  const currentColor = mapConfig.markerColors?.[dataSource.id] ?? layerColor;
+  const currentColor = viewConfig.markerColors?.[dataSource.id] ?? layerColor;
 
   const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
     updateMapConfig({
@@ -111,9 +111,9 @@ export default function DataSourceItem({
   };
 
   const handleColorChange = (color: string) => {
-    updateMapConfig({
+    updateViewConfig({
       markerColors: {
-        ...mapConfig.markerColors,
+        ...viewConfig.markerColors,
         [dataSource.id]: color,
       },
     });

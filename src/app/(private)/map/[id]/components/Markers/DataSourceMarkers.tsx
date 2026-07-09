@@ -24,14 +24,15 @@ export function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
   mapConfig,
+  markerColors,
   hideFilteredMarkers = false,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
   mapConfig: {
     markerDisplayModes?: Record<string, MarkerDisplayMode>;
-    markerColors?: Record<string, string>;
   };
+  markerColors?: Record<string, string>;
   hideFilteredMarkers?: boolean;
 }) {
   const filteredRecords = useFilteredRecords();
@@ -94,7 +95,7 @@ export function DataSourceMarkers({
       ? publicMapColorSchemes[colorScheme]?.primary
       : "";
 
-  const customColor = mapConfig.markerColors?.[dataSourceMarkers.dataSourceId];
+  const customColor = markerColors?.[dataSourceMarkers.dataSourceId];
   const defaultColor = isMembers
     ? mapColors.member.color
     : mapColors.dataSource.color;

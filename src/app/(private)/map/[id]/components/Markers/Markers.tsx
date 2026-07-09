@@ -36,6 +36,7 @@ export default function Markers() {
           dataSourceMarkers={memberMarkers}
           isMembers
           mapConfig={mapConfig}
+          markerColors={viewConfig.markerColors}
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
         />
       )}
@@ -53,6 +54,7 @@ export default function Markers() {
             dataSourceMarkers={markers}
             isMembers={false}
             mapConfig={mapConfig}
+            markerColors={viewConfig.markerColors}
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
           />
         );

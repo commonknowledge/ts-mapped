@@ -91,10 +91,6 @@ describe("copyMapsToOrganisation", () => {
         config: {
           markerDataSourceIds: [includedDs.id, excludedDs.id],
           membersDataSourceId: membersDs.id,
-          markerColors: {
-            [includedDs.id]: "#ff0000",
-            [excludedDs.id]: "#00ff00",
-          },
           markerDisplayModes: {
             [includedDs.id]: MarkerDisplayMode.Clusters,
             [excludedDs.id]: MarkerDisplayMode.Heatmap,
@@ -117,6 +113,14 @@ describe("copyMapsToOrganisation", () => {
           showMembers: true,
           showTurf: true,
           calculationType: CalculationType.Avg,
+          markerColors: {
+            [includedDs.id]: "#ff0000",
+            [excludedDs.id]: "#00ff00",
+          },
+          markerVisualisations: {
+            [includedDs.id]: { colorColumn: "Severity Level" },
+            [excludedDs.id]: { colorColumn: "Type of threat" },
+          },
         },
         dataSourceViews: [
           {
@@ -212,11 +216,6 @@ describe("copyMapsToOrganisation", () => {
       }
 
       // Config keyed records
-      if (copiedMap.config.markerColors) {
-        for (const originalId of originalDsIds) {
-          expect(copiedMap.config.markerColors).not.toHaveProperty(originalId);
-        }
-      }
       if (copiedMap.config.markerDisplayModes) {
         for (const originalId of originalDsIds) {
           expect(copiedMap.config.markerDisplayModes).not.toHaveProperty(
@@ -231,11 +230,21 @@ describe("copyMapsToOrganisation", () => {
         for (const dsv of view.dataSourceViews) {
           expect(originalDsIds).not.toContain(dsv.dataSourceId);
         }
+        for (const originalId of originalDsIds) {
+          if (view.config.markerColors) {
+            expect(view.config.markerColors).not.toHaveProperty(originalId);
+          }
+          if (view.config.markerVisualisations) {
+            expect(view.config.markerVisualisations).not.toHaveProperty(
+              originalId,
+            );
+          }
+        }
       }
     });
 
-    test("remaps markerColors only for included data sources", () => {
-      const markerColors = copiedMap.config.markerColors;
+    test("remaps view markerColors only for included data sources", () => {
+      const markerColors = copiedViews[0]?.config.markerColors;
       expect(markerColors).toBeDefined();
       if (!markerColors) return;
 
@@ -244,6 +253,19 @@ describe("copyMapsToOrganisation", () => {
 
       const copiedIncludedDsId = copiedMap.config.markerDataSourceIds[0];
       expect(markerColors[copiedIncludedDsId]).toBe("#ff0000");
+    });
+
+    test("remaps view markerVisualisations only for included data sources", () => {
+      const markerVisualisations = copiedViews[0]?.config.markerVisualisations;
+      expect(markerVisualisations).toBeDefined();
+      if (!markerVisualisations) return;
+
+      expect(Object.keys(markerVisualisations).length).toBe(1);
+
+      const copiedIncludedDsId = copiedMap.config.markerDataSourceIds[0];
+      expect(markerVisualisations[copiedIncludedDsId]?.colorColumn).toBe(
+        "Severity Level",
+      );
     });
 
     test("remaps markerDisplayModes only for included data sources", () => {
