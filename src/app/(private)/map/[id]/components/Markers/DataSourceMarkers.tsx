@@ -3,6 +3,12 @@ import { Source } from "react-map-gl/mapbox";
 
 import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
 import { MarkerDisplayMode } from "@/models/Map";
+import {
+  MarkerColorMode,
+  MarkerIconMode,
+  MarkerSizeMode,
+} from "@/models/MapView";
+import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useMapMode } from "../../hooks/useMapCore";
 import {
   useFilteredRecords,
@@ -16,9 +22,23 @@ import {
 import { mapColors } from "../../styles";
 import { ClustersLayer } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
+import {
+  buildColorExpression,
+  buildIconImageExpression,
+  buildSizeFactorExpression,
+  getDistinctFeatureValues,
+} from "./markerStyle";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
+import type { MarkerPinStyle } from "./ClustersLayer";
+import type { MarkerVisualisation } from "@/models/MapView";
 import type { MarkerFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
+
+const NOT_MATCHED_CASE = [
+  "any",
+  ["!", ["get", "matched"]],
+  ["==", ["get", MARKER_CLIENT_EXCLUDED_KEY], true],
+];
 
 export function DataSourceMarkers({
   dataSourceMarkers,
@@ -26,6 +46,8 @@ export function DataSourceMarkers({
   mapConfig,
   markerColors,
   defaultMarkerColor,
+  markerVisualisation,
+  colorMappings,
   hideFilteredMarkers = false,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
@@ -35,6 +57,8 @@ export function DataSourceMarkers({
   };
   markerColors?: Record<string, string>;
   defaultMarkerColor?: string | null;
+  markerVisualisation?: MarkerVisualisation;
+  colorMappings?: Record<string, string>;
   hideFilteredMarkers?: boolean;
 }) {
   const filteredRecords = useFilteredRecords();
@@ -44,9 +68,10 @@ export function DataSourceMarkers({
   const colorScheme = useColorScheme();
   const mapMode = useMapMode();
 
+  const dataSourceId = dataSourceMarkers.dataSourceId;
+
   const displayMode =
-    mapConfig.markerDisplayModes?.[dataSourceMarkers.dataSourceId] ??
-    MarkerDisplayMode.Clusters;
+    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Clusters;
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     const hasClientFilters =
@@ -91,17 +116,14 @@ export function DataSourceMarkers({
     hideFilteredMarkers,
   ]);
 
-  const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
+  const sourceId = `${dataSourceId}-markers`;
   const publicMapColor =
     publicMap?.id && colorScheme
       ? publicMapColorSchemes[colorScheme]?.primary
       : "";
 
   // View override, then the data source's default colour
-  const customColor =
-    markerColors?.[dataSourceMarkers.dataSourceId] ??
-    defaultMarkerColor ??
-    undefined;
+  const customColor = markerColors?.[dataSourceId] ?? defaultMarkerColor;
   const defaultColor = isMembers
     ? mapColors.member.color
     : mapColors.dataSource.color;
@@ -111,11 +133,82 @@ export function DataSourceMarkers({
       ? publicMapColor || defaultColor
       : customColor || defaultColor;
 
-  const NOT_MATCHED_CASE = [
-    "any",
-    ["!", ["get", "matched"]],
-    ["==", ["get", MARKER_CLIENT_EXCLUDED_KEY], true],
-  ];
+  // Column-driven styling (private editor only)
+  const visualisation = mapMode === "public" ? undefined : markerVisualisation;
+  const iconColumn =
+    visualisation?.iconMode === MarkerIconMode.Categories
+      ? visualisation.iconColumn
+      : undefined;
+  const colorColumn =
+    visualisation?.colorMode === MarkerColorMode.Categories
+      ? visualisation.colorColumn
+      : undefined;
+  const sizeColumn =
+    visualisation?.sizeMode === MarkerSizeMode.Scaled
+      ? visualisation.sizeColumn
+      : undefined;
+
+  const { columnMetadata: iconColumnMetadata } = useDataSourceColumn(
+    dataSourceId,
+    iconColumn || "",
+  );
+  const { columnMetadata: colorColumnMetadata } = useDataSourceColumn(
+    dataSourceId,
+    colorColumn || "",
+  );
+  const { columnMetadata: sizeColumnMetadata } = useDataSourceColumn(
+    dataSourceId,
+    sizeColumn || "",
+  );
+
+  const pinStyle = useMemo<MarkerPinStyle | undefined>(() => {
+    if (!visualisation) {
+      return undefined;
+    }
+    const features = dataSourceMarkers.markers;
+    return {
+      useIcons: Boolean(iconColumn),
+      iconImage: iconColumn
+        ? buildIconImageExpression({
+            column: iconColumn,
+            values: getDistinctFeatureValues(features, iconColumn),
+            columnMetadata: iconColumnMetadata,
+          })
+        : undefined,
+      color: colorColumn
+        ? buildColorExpression({
+            dataSourceId,
+            column: colorColumn,
+            values: getDistinctFeatureValues(features, colorColumn),
+            colorMappings,
+            columnMetadata: colorColumnMetadata,
+            fallbackColor: color,
+          })
+        : color,
+      sizeFactor: sizeColumn
+        ? buildSizeFactorExpression({
+            column: sizeColumn,
+            values: getDistinctFeatureValues(features, sizeColumn),
+            columnMetadata: sizeColumnMetadata,
+            descending: visualisation.sizeSortDesc,
+          })
+        : 1,
+      opacity: (visualisation.opacityPct ?? 100) / 100,
+      showLabels: visualisation.showLabels !== false,
+    };
+  }, [
+    visualisation,
+    dataSourceMarkers.markers,
+    dataSourceId,
+    iconColumn,
+    colorColumn,
+    sizeColumn,
+    iconColumnMetadata,
+    colorColumnMetadata,
+    sizeColumnMetadata,
+    colorMappings,
+    color,
+  ]);
 
   return (
     <Source
@@ -136,7 +229,7 @@ export function DataSourceMarkers({
       }}
     >
       {displayMode === MarkerDisplayMode.Clusters && (
-        <ClustersLayer sourceId={sourceId} color={color} />
+        <ClustersLayer sourceId={sourceId} color={color} pinStyle={pinStyle} />
       )}
       {displayMode === MarkerDisplayMode.Heatmap && (
         <HeatmapLayer sourceId={sourceId} color={color} />

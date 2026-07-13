@@ -39,6 +39,22 @@ export function useMarkerQueries() {
       const filter = JSON.stringify(dsv?.filter || null);
       const search = dsv?.search || "";
 
+      // Columns used by this view's marker styling must be present on the
+      // marker features for Mapbox match expressions to read them. Only
+      // honoured by the server for authenticated readers. Sorted so the
+      // query key is stable regardless of config field order.
+      const visualisation = view?.config.markerVisualisations?.[dataSourceId];
+      const propertyColumns = [
+        ...new Set(
+          [
+            visualisation?.iconColumn,
+            visualisation?.sizeColumn,
+            visualisation?.colorColumn,
+          ].filter((c): c is string => Boolean(c)),
+        ),
+      ].sort();
+      const properties = JSON.stringify(propertyColumns);
+
       // When a public map exists, marker labels are built server-side from its
       // "Listing Title" config. Pass the viewId so the server loads the
       // authoritative config. The refetch on config change is driven by
@@ -49,11 +65,14 @@ export function useMarkerQueries() {
 
       return {
         enabled: Boolean(view), // Prevent duplicate marker query while view is loading
-        queryKey: ["markers", dataSourceId, filter, search],
+        queryKey: ["markers", dataSourceId, filter, search, properties],
         queryFn: async () => {
           const params = new URLSearchParams();
           params.set("filter", filter);
           params.set("search", search);
+          if (propertyColumns.length > 0) {
+            params.set("properties", properties);
+          }
           if (publicMapViewId) {
             params.set("publicMapViewId", publicMapViewId);
           }

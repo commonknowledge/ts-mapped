@@ -6,6 +6,7 @@ import {
   EyeOffIcon,
   FilterIcon,
   PencilIcon,
+  SlidersHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -44,6 +45,7 @@ import { useDataRecords } from "../../hooks/useDataRecords";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
+import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/models/DataSource";
@@ -75,6 +77,7 @@ export default function DataSourceItem({
   } = useDataSourceListCache();
   const { getDataSourceById } = useDataSources();
   const organisationId = useOrganisationId();
+  const { setMarkerSettingsDataSourceId } = useMarkerSettings();
 
   const fullDataSource = getDataSourceById(dataSource.id);
   const isDataSourceOwner = Boolean(
@@ -323,6 +326,12 @@ export default function DataSourceItem({
               )}
             </ContextMenuItem>
             <ContextMenuSeparator />
+            <ContextMenuItem
+              onClick={() => setMarkerSettingsDataSourceId(dataSource.id)}
+            >
+              <SlidersHorizontalIcon size={12} />
+              Marker settings
+            </ContextMenuItem>
             <ContextMenuSub>
               <ContextMenuSubTrigger>
                 <div className="flex items-center gap-2">

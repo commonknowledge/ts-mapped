@@ -26,6 +26,7 @@ import {
 import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import ControlPanel from "./controls/ControlPanel";
+import MarkerSettingsPanel from "./controls/MarkersControl/MarkerSettingsPanel";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
 import Loading from "./Loading";
 import MapInfoPopup from "./MapInfoPopup";
@@ -118,6 +119,11 @@ export default function PrivateMapOverlay() {
         </div>
         <div className="pointer-events-auto">
           <VisualisationPanel
+            positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
+          />
+        </div>
+        <div className="pointer-events-auto">
+          <MarkerSettingsPanel
             positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
           />
         </div>

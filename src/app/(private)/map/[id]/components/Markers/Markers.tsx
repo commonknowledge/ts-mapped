@@ -1,11 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
+import { useMapRef } from "../../hooks/useMapCore";
 import { DataSourceMarkers } from "./DataSourceMarkers";
+import { isMarkerIconImageId, registerMarkerIcons } from "./markerIcons";
 
 export default function Markers() {
   const { viewConfig } = useMapViews();
@@ -13,6 +15,29 @@ export default function Markers() {
   const markerQueries = useMarkerQueries();
   const { getDataSourceVisibility } = useLayers();
   const { getDataSourceById } = useDataSources();
+  const mapRef = useMapRef();
+
+  // Register the SDF icon sprites; map styles discard added images, so
+  // re-register on style changes and on demand via styleimagemissing.
+  useEffect(() => {
+    const map = mapRef?.current?.getMap();
+    if (!map) {
+      return;
+    }
+    registerMarkerIcons(map);
+    const onStyleLoad = () => registerMarkerIcons(map);
+    const onStyleImageMissing = (e: { id: string }) => {
+      if (isMarkerIconImageId(e.id)) {
+        registerMarkerIcons(map);
+      }
+    };
+    map.on("style.load", onStyleLoad);
+    map.on("styleimagemissing", onStyleImageMissing);
+    return () => {
+      map.off("style.load", onStyleLoad);
+      map.off("styleimagemissing", onStyleImageMissing);
+    };
+  }, [mapRef]);
 
   const memberMarkers = useMemo(
     () =>
@@ -42,6 +67,10 @@ export default function Markers() {
           defaultMarkerColor={
             getDataSourceById(memberMarkers.dataSourceId)?.defaultMarkerColor
           }
+          markerVisualisation={
+            viewConfig.markerVisualisations?.[memberMarkers.dataSourceId]
+          }
+          colorMappings={viewConfig.colorMappings}
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
         />
       )}
@@ -63,6 +92,10 @@ export default function Markers() {
             defaultMarkerColor={
               getDataSourceById(markers.dataSourceId)?.defaultMarkerColor
             }
+            markerVisualisation={
+              viewConfig.markerVisualisations?.[markers.dataSourceId]
+            }
+            colorMappings={viewConfig.colorMappings}
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
           />
         );
