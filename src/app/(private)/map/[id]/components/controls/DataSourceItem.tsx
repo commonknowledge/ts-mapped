@@ -135,17 +135,16 @@ export default function DataSourceItem({
   );
 
   const handleColorChange = (color: string) => {
+    // Set the colour for this view; views with their own colour keep it
+    updateViewConfig({
+      markerColors: {
+        ...viewConfig.markerColors,
+        [dataSource.id]: color,
+      },
+    });
     if (isDataSourceOwner) {
-      // Owners set the data source's default colour, used by every view and
-      // map that has no override. Clear this view's override so the new
-      // default is visible immediately.
-      const viewMarkerColors: Record<string, string> = {};
-      for (const [id, c] of Object.entries(viewConfig.markerColors ?? {})) {
-        if (id !== dataSource.id) {
-          viewMarkerColors[id] = c;
-        }
-      }
-      updateViewConfig({ markerColors: viewMarkerColors });
+      // Owners also update the data source's default colour, used by any
+      // view or map that has not set its own (including future ones)
       patchDataSourceCache(dataSource.id, (ds) => ({
         ...ds,
         defaultMarkerColor: color,
@@ -153,14 +152,6 @@ export default function DataSourceItem({
       updateDefaultMarkerColor({
         dataSourceId: dataSource.id,
         defaultMarkerColor: color,
-      });
-    } else {
-      // Non-owners can only override the colour for this view
-      updateViewConfig({
-        markerColors: {
-          ...viewConfig.markerColors,
-          [dataSource.id]: color,
-        },
       });
     }
   };
