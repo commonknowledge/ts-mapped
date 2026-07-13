@@ -18,6 +18,7 @@ export interface MarkerPinStyle {
   iconImage?: string | ExpressionSpecification;
   color: string | ExpressionSpecification;
   sizeFactor: number | ExpressionSpecification;
+  sortKey: number | ExpressionSpecification;
   opacity: number;
   showLabels: boolean;
 }
@@ -111,6 +112,7 @@ export function ClustersLayer({
             ],
             "icon-allow-overlap": true,
             "icon-ignore-placement": true,
+            "symbol-sort-key": pinStyle.sortKey,
           }}
           paint={{
             "icon-color": pinColor,
@@ -126,6 +128,9 @@ export function ClustersLayer({
           type="circle"
           source={sourceId}
           filter={UNCLUSTERED_FILTER}
+          layout={{
+            "circle-sort-key": pinStyle?.sortKey ?? 0,
+          }}
           paint={{
             "circle-radius": [
               "interpolate",

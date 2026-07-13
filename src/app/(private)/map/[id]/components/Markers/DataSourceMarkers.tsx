@@ -30,6 +30,7 @@ import {
   buildColorExpression,
   buildIconImageExpression,
   buildSizeFactorExpression,
+  buildSortKeyExpression,
   getDistinctFeatureValues,
 } from "./markerStyle";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
@@ -219,6 +220,17 @@ export function DataSourceMarkers({
             descending: visualisation.sizeSortDesc,
           })
         : 1,
+      // When markers overlap, higher-ordered colour categories (e.g.
+      // Critical severity) draw on top of lower ones
+      sortKey: colorColumn
+        ? buildSortKeyExpression({
+            column: colorColumn,
+            values:
+              colorColumnValues ??
+              getDistinctFeatureValues(features, colorColumn),
+            columnMetadata: colorColumnMetadata,
+          })
+        : 0,
       opacity: (visualisation.opacityPct ?? 100) / 100,
       showLabels: visualisation.showLabels !== false,
     };

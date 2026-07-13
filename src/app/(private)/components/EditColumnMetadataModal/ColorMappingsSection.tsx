@@ -5,6 +5,7 @@ import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetad
 import { getCategoryColorsKey } from "@/app/(private)/map/[id]/colors";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import ColorMappingsEditor from "@/components/ColorMappingsEditor";
+import { sortColumnValues } from "@/utils/sortColumnValues";
 import type { ColumnMetadata } from "@/models/DataSource";
 
 interface ColorMappingsSectionProps {
@@ -146,6 +147,44 @@ export default function ColorMappingsSection({
     updateViewConfig,
   ]);
 
+  // Rows display in the canonical value order; dragging persists a new
+  // valueOrder, which also controls marker draw order (later = on top),
+  // legend order and default colour assignment
+  const orderedValues = useMemo(() => {
+    if (mergedValues === null || mergedValues === undefined) {
+      return mergedValues;
+    }
+    return sortColumnValues({
+      values: mergedValues,
+      columnMetadata: existingMeta,
+    });
+  }, [mergedValues, existingMeta]);
+
+  const handleReorder = useCallback(
+    (ordered: string[]) => {
+      if (!dataSourceId) return;
+      const patch = { valueOrder: ordered };
+      if (isOwner) {
+        patchColumnMetadata({ dataSourceId, column: columnName, patch });
+      } else if (organisationId) {
+        patchColumnMetadataOverride({
+          organisationId,
+          dataSourceId,
+          column: columnName,
+          patch,
+        });
+      }
+    },
+    [
+      dataSourceId,
+      columnName,
+      isOwner,
+      organisationId,
+      patchColumnMetadata,
+      patchColumnMetadataOverride,
+    ],
+  );
+
   const handleSaveAsDefaults = useCallback(() => {
     if (!dataSourceId) return;
     const mergedColorMappings = {
@@ -184,7 +223,7 @@ export default function ColorMappingsSection({
       <label className="text-sm font-medium">Colour mappings</label>
       <div className="rounded-md border">
         <ColorMappingsEditor
-          values={mergedValues}
+          values={orderedValues}
           colorMappings={mapViewColorMappings}
           fallbackColors={existingMeta?.valueColors}
           onChange={handleColorChangeDebounced}
@@ -194,6 +233,8 @@ export default function ColorMappingsSection({
           onUseSourceColors={
             hasSourceColors ? handleUseSourceColors : undefined
           }
+          onReorder={handleReorder}
+          reorderHint="Drag to reorder. When markers overlap on the map, values lower in this list are drawn on top — put the most important values (e.g. Critical) last."
         />
       </div>
     </div>

@@ -141,6 +141,37 @@ export const buildSizeFactorExpression = ({
 };
 
 /**
+ * Draw-order sort key by column value: values later in the canonical order
+ * (valueOrder -> range parsing -> alphabetical) get higher keys, so e.g.
+ * Critical renders above Low when markers overlap. Unknown/empty values sit
+ * underneath everything.
+ */
+export const buildSortKeyExpression = ({
+  column,
+  values,
+  columnMetadata,
+}: {
+  column: string;
+  values: string[];
+  columnMetadata: ColumnMetadata | undefined;
+}): number | ExpressionSpecification => {
+  if (values.length === 0) {
+    return 0;
+  }
+  const ordered = sortColumnValues({ values, columnMetadata });
+  const branches: (string | number)[] = [];
+  for (let i = 0; i < ordered.length; i++) {
+    branches.push(ordered[i], i + 1);
+  }
+  return [
+    "match",
+    ["to-string", ["get", column]],
+    ...branches,
+    0,
+  ] as ExpressionSpecification;
+};
+
+/**
  * Display label for a category value: its valueLabel if set, otherwise the
  * value itself, with empty/whitespace values shown as "(blank)".
  */
