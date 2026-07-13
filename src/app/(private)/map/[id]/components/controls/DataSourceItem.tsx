@@ -368,7 +368,7 @@ export default function DataSourceItem({
                     5
                   </span>
                 </div>
-                <span>Cluster</span>
+                <span>Markers</span>
               </div>
             </ContextMenuCheckboxItem>
             <ContextMenuCheckboxItem
