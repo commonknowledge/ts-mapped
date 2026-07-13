@@ -25,6 +25,7 @@ export function DataSourceMarkers({
   isMembers,
   mapConfig,
   markerColors,
+  defaultMarkerColor,
   hideFilteredMarkers = false,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
@@ -33,6 +34,7 @@ export function DataSourceMarkers({
     markerDisplayModes?: Record<string, MarkerDisplayMode>;
   };
   markerColors?: Record<string, string>;
+  defaultMarkerColor?: string | null;
   hideFilteredMarkers?: boolean;
 }) {
   const filteredRecords = useFilteredRecords();
@@ -95,7 +97,11 @@ export function DataSourceMarkers({
       ? publicMapColorSchemes[colorScheme]?.primary
       : "";
 
-  const customColor = markerColors?.[dataSourceMarkers.dataSourceId];
+  // View override, then the data source's default colour
+  const customColor =
+    markerColors?.[dataSourceMarkers.dataSourceId] ??
+    defaultMarkerColor ??
+    undefined;
   const defaultColor = isMembers
     ? mapColors.member.color
     : mapColors.dataSource.color;

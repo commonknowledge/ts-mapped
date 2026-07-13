@@ -11,9 +11,11 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
+import { useOrganisationId } from "@/atoms/organisationAtoms";
 import ColorPalette from "@/components/ColorPalette";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { useDataSources } from "@/hooks/useDataSources";
 import { MarkerDisplayMode } from "@/models/Map";
 import { useTRPC } from "@/services/trpc/react";
 import {
@@ -67,7 +69,17 @@ export default function DataSourceItem({
   const { mapConfig, updateMapConfig } = useMapConfig();
   const { view, viewConfig, updateViewConfig } = useMapViews();
   const trpc = useTRPC();
-  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
+  const {
+    invalidateAll: invalidateDataSources,
+    updateDataSource: patchDataSourceCache,
+  } = useDataSourceListCache();
+  const { getDataSourceById } = useDataSources();
+  const organisationId = useOrganisationId();
+
+  const fullDataSource = getDataSourceById(dataSource.id);
+  const isDataSourceOwner = Boolean(
+    organisationId && fullDataSource?.organisationId === organisationId,
+  );
 
   const dataSourceView = useMemo(
     () =>
@@ -98,8 +110,11 @@ export default function DataSourceItem({
   const currentDisplayMode =
     mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters;
 
-  // Get current color (defaults to layer color)
-  const currentColor = viewConfig.markerColors?.[dataSource.id] ?? layerColor;
+  // Get current color: view override, then data source default, then layer color
+  const currentColor =
+    viewConfig.markerColors?.[dataSource.id] ??
+    fullDataSource?.defaultMarkerColor ??
+    layerColor;
 
   const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
     updateMapConfig({
@@ -110,13 +125,44 @@ export default function DataSourceItem({
     });
   };
 
-  const handleColorChange = (color: string) => {
-    updateViewConfig({
-      markerColors: {
-        ...viewConfig.markerColors,
-        [dataSource.id]: color,
+  const { mutate: updateDefaultMarkerColor } = useMutation(
+    trpc.dataSource.updateConfig.mutationOptions({
+      onError: () => {
+        toast.error("Failed to update marker colour");
+        void invalidateDataSources();
       },
-    });
+    }),
+  );
+
+  const handleColorChange = (color: string) => {
+    if (isDataSourceOwner) {
+      // Owners set the data source's default colour, used by every view and
+      // map that has no override. Clear this view's override so the new
+      // default is visible immediately.
+      const viewMarkerColors: Record<string, string> = {};
+      for (const [id, c] of Object.entries(viewConfig.markerColors ?? {})) {
+        if (id !== dataSource.id) {
+          viewMarkerColors[id] = c;
+        }
+      }
+      updateViewConfig({ markerColors: viewMarkerColors });
+      patchDataSourceCache(dataSource.id, (ds) => ({
+        ...ds,
+        defaultMarkerColor: color,
+      }));
+      updateDefaultMarkerColor({
+        dataSourceId: dataSource.id,
+        defaultMarkerColor: color,
+      });
+    } else {
+      // Non-owners can only override the colour for this view
+      updateViewConfig({
+        markerColors: {
+          ...viewConfig.markerColors,
+          [dataSource.id]: color,
+        },
+      });
+    }
   };
 
   // Focus management for rename input

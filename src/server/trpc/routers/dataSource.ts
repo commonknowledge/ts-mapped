@@ -490,6 +490,7 @@ export const dataSourceRouter = router({
         public: input.public,
         naIsNull: input.naIsNull,
         nullIsZero: input.nullIsZero,
+        defaultMarkerColor: input.defaultMarkerColor,
       } as DataSourceUpdate;
 
       logger.info(

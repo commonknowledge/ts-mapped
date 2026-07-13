@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
 import { DataSourceMarkers } from "./DataSourceMarkers";
 
@@ -11,6 +12,7 @@ export default function Markers() {
   const { mapConfig } = useMapConfig();
   const markerQueries = useMarkerQueries();
   const { getDataSourceVisibility } = useLayers();
+  const { getDataSourceById } = useDataSources();
 
   const memberMarkers = useMemo(
     () =>
@@ -37,6 +39,9 @@ export default function Markers() {
           isMembers
           mapConfig={mapConfig}
           markerColors={viewConfig.markerColors}
+          defaultMarkerColor={
+            getDataSourceById(memberMarkers.dataSourceId)?.defaultMarkerColor
+          }
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
         />
       )}
@@ -55,6 +60,9 @@ export default function Markers() {
             isMembers={false}
             mapConfig={mapConfig}
             markerColors={viewConfig.markerColors}
+            defaultMarkerColor={
+              getDataSourceById(markers.dataSourceId)?.defaultMarkerColor
+            }
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
           />
         );

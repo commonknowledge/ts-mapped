@@ -317,6 +317,11 @@ export const dataSourceSchema = z.object({
   columnMetadata: z.array(columnMetadataSchema),
   defaultInspectorConfig: defaultInspectorConfigSchema.nullish(),
   defaultChoroplethConfig: defaultChoroplethConfigSchema.nullish(),
+  // Default marker layer colour on maps; map views can override it
+  defaultMarkerColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .nullish(),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,

@@ -91,6 +91,7 @@ const copyMapsToOrganisation = async (
         recordType: original.recordType,
         defaultInspectorConfig: original.defaultInspectorConfig,
         defaultChoroplethConfig: original.defaultChoroplethConfig,
+        defaultMarkerColor: original.defaultMarkerColor,
         dateFormat: original.dateFormat,
         naIsNull: original.naIsNull,
         nullIsZero: original.nullIsZero,
