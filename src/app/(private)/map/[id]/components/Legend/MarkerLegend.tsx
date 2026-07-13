@@ -14,7 +14,10 @@ import { sortColumnValues } from "@/utils/sortColumnValues";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapViews } from "../../hooks/useMapViews";
-import { buildCategoryColorMap } from "../Markers/markerStyle";
+import {
+  buildCategoryColorMap,
+  formatCategoryValue,
+} from "../Markers/markerStyle";
 import MarkerShapeIcon from "../MarkerShapeIcon";
 import type { MarkerVisualisation } from "@/models/MapView";
 
@@ -134,7 +137,7 @@ function DataSourceMarkerLegend({
                 color="#404040"
               />
               <span className="text-xs truncate">
-                {iconColumnMetadata?.valueLabels?.[value] || value}
+                {formatCategoryValue(value, iconColumnMetadata?.valueLabels)}
               </span>
             </div>
           ))}
@@ -149,7 +152,7 @@ function DataSourceMarkerLegend({
                 style={{ backgroundColor: colorMap[value] }}
               />
               <span className="text-xs truncate">
-                {colorColumnMetadata?.valueLabels?.[value] || value}
+                {formatCategoryValue(value, colorColumnMetadata?.valueLabels)}
               </span>
             </div>
           ))}

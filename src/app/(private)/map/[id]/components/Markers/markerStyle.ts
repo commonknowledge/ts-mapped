@@ -141,6 +141,15 @@ export const buildSizeFactorExpression = ({
 };
 
 /**
+ * Display label for a category value: its valueLabel if set, otherwise the
+ * value itself, with empty/whitespace values shown as "(blank)".
+ */
+export const formatCategoryValue = (
+  value: string,
+  valueLabels?: Record<string, string>,
+): string => valueLabels?.[value] || value.trim() || "(blank)";
+
+/**
  * Distinct scalar values of a column across loaded marker features, capped
  * to keep expressions small.
  */

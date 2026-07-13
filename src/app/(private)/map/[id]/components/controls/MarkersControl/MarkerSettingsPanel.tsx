@@ -29,6 +29,7 @@ import { useDataSourceColumn } from "../../../hooks/useDataSourceColumn";
 import { useMarkerSettings } from "../../../hooks/useMarkerSettings";
 import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
 import { markerIconShapes } from "../../Markers/markerIcons";
+import { formatCategoryValue } from "../../Markers/markerStyle";
 import MarkerShapeIcon from "../../MarkerShapeIcon";
 
 const NONE_VALUE = "__none__";
@@ -217,7 +218,10 @@ export default function MarkerSettingsPanel({
                       className="flex items-center justify-between gap-2"
                     >
                       <span className="text-xs truncate" title={value}>
-                        {iconColumnMetadata?.valueLabels?.[value] || value}
+                        {formatCategoryValue(
+                          value,
+                          iconColumnMetadata?.valueLabels,
+                        )}
                       </span>
                       <span className="flex gap-0.5 shrink-0">
                         {markerIconShapes.map((shape) => (
