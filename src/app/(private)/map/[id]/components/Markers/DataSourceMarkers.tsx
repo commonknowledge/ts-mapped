@@ -220,8 +220,8 @@ export function DataSourceMarkers({
             descending: visualisation.sizeSortDesc,
           })
         : 1,
-      // When markers overlap, higher-ordered colour categories (e.g.
-      // Critical severity) draw on top of lower ones
+      // When markers overlap, colour categories earlier in the value order
+      // (top of the colour list) draw on top of later ones
       sortKey: colorColumn
         ? buildSortKeyExpression({
             column: colorColumn,

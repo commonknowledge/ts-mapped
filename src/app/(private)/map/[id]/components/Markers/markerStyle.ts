@@ -141,10 +141,10 @@ export const buildSizeFactorExpression = ({
 };
 
 /**
- * Draw-order sort key by column value: values later in the canonical order
- * (valueOrder -> range parsing -> alphabetical) get higher keys, so e.g.
- * Critical renders above Low when markers overlap. Unknown/empty values sit
- * underneath everything.
+ * Draw-order sort key by column value: values earlier in the canonical order
+ * (valueOrder -> range parsing -> alphabetical) get higher keys, so the value
+ * at the top of the ordered list renders above the others when markers
+ * overlap. Unknown/empty values sit underneath everything.
  */
 export const buildSortKeyExpression = ({
   column,
@@ -161,7 +161,7 @@ export const buildSortKeyExpression = ({
   const ordered = sortColumnValues({ values, columnMetadata });
   const branches: (string | number)[] = [];
   for (let i = 0; i < ordered.length; i++) {
-    branches.push(ordered[i], i + 1);
+    branches.push(ordered[i], ordered.length - i);
   }
   return [
     "match",

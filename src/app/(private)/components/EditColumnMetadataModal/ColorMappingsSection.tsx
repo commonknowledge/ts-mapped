@@ -234,7 +234,7 @@ export default function ColorMappingsSection({
             hasSourceColors ? handleUseSourceColors : undefined
           }
           onReorder={handleReorder}
-          reorderHint="Drag to reorder. When markers overlap on the map, values lower in this list are drawn on top — put the most important values (e.g. Critical) last."
+          reorderHint="Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first."
         />
       </div>
     </div>
