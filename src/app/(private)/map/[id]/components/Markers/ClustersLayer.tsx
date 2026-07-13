@@ -89,6 +89,9 @@ export function ClustersLayer({
       />
       {pinStyle?.useIcons && pinStyle.iconImage ? (
         <Layer
+          // Keyed by layer type: react-map-gl cannot change a layer's type in
+          // place, so switching circle <-> symbol must remount the component
+          key={`${sourceId}-pins-symbol`}
           id={`${sourceId}-pins`}
           type="symbol"
           source={sourceId}
@@ -118,6 +121,7 @@ export function ClustersLayer({
         />
       ) : (
         <Layer
+          key={`${sourceId}-pins-circle`}
           id={`${sourceId}-pins`}
           type="circle"
           source={sourceId}
