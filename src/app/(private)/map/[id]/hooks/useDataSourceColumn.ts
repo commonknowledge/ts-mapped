@@ -27,6 +27,9 @@ export function _resolveColumnMetadata(
       valueColors: override.valueColors
         ? { ...base.valueColors, ...override.valueColors }
         : base.valueColors,
+      valueIcons: override.valueIcons
+        ? { ...base.valueIcons, ...override.valueIcons }
+        : base.valueIcons,
       semanticType: override.semanticType ?? base.semanticType,
       // An ordering is only coherent as a whole, so an override replaces the
       // base order entirely rather than merging with it

@@ -133,10 +133,11 @@ export enum MarkerColorMode {
 export const markerColorModes = Object.values(MarkerColorMode);
 
 export const markerVisualisationSchema = z.object({
+  // Per-view display choices only. Durable value->shape/colour/order mappings
+  // live on the data source's columnMetadata (valueIcons, valueColors,
+  // valueOrder), so they are shared across views and maps.
   iconMode: z.nativeEnum(MarkerIconMode).optional(),
   iconColumn: z.string().optional(),
-  // Column value -> shape name (see marker icon sprites)
-  categoryIcons: z.record(z.string(), z.string()).optional(),
   sizeMode: z.nativeEnum(MarkerSizeMode).optional(),
   sizeColumn: z.string().optional(),
   sizeSortDesc: z.boolean().optional(),
