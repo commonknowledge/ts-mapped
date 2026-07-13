@@ -1,3 +1,4 @@
+import { getCategoryColorScale } from "@/utils/colors";
 import { sortColumnValues } from "@/utils/sortColumnValues";
 import { getCategoryColorsKey } from "../../colors";
 import { MarkerIconShape, getMarkerIconImageId } from "./markerIcons";
@@ -5,30 +6,36 @@ import type { ColumnMetadata } from "@/models/DataSource";
 import type { ExpressionSpecification } from "mapbox-gl";
 
 /**
- * Resolve the colour for one column value: per-view override, then the
- * column's durable valueColors, then the layer fallback colour.
+ * Map each column value to its display colour: per-view override, then the
+ * column's durable valueColors, then a default from the shared categorical
+ * scale. Values are resolved in canonical order so default assignment is
+ * deterministic — pass the same value list everywhere (map + legend) to get
+ * matching colours.
  */
-export const resolveCategoryColor = ({
+export const buildCategoryColorMap = ({
   dataSourceId,
   column,
-  value,
+  values,
   colorMappings,
   columnMetadata,
-  fallbackColor,
 }: {
   dataSourceId: string;
   column: string;
-  value: string;
+  values: string[];
   colorMappings: Record<string, string> | undefined;
   columnMetadata: ColumnMetadata | undefined;
-  fallbackColor: string;
-}): string => {
-  const mappingKey = getCategoryColorsKey(dataSourceId, column, value);
-  return (
-    colorMappings?.[mappingKey] ??
-    columnMetadata?.valueColors?.[value] ??
-    fallbackColor
-  );
+}): Record<string, string> => {
+  const ordered = sortColumnValues({ values, columnMetadata });
+  const defaultColor = getCategoryColorScale(ordered);
+  const colorMap: Record<string, string> = {};
+  for (const value of ordered) {
+    const mappingKey = getCategoryColorsKey(dataSourceId, column, value);
+    colorMap[value] =
+      colorMappings?.[mappingKey] ??
+      columnMetadata?.valueColors?.[value] ??
+      defaultColor(value);
+  }
+  return colorMap;
 };
 
 /**
@@ -36,36 +43,21 @@ export const resolveCategoryColor = ({
  * unknown/empty values.
  */
 export const buildColorExpression = ({
-  dataSourceId,
+  colorMap,
   column,
-  values,
-  colorMappings,
-  columnMetadata,
   fallbackColor,
 }: {
-  dataSourceId: string;
+  colorMap: Record<string, string>;
   column: string;
-  values: string[];
-  colorMappings: Record<string, string> | undefined;
-  columnMetadata: ColumnMetadata | undefined;
   fallbackColor: string;
 }): string | ExpressionSpecification => {
-  if (values.length === 0) {
+  const entries = Object.entries(colorMap);
+  if (entries.length === 0) {
     return fallbackColor;
   }
   const branches: string[] = [];
-  for (const value of values) {
-    branches.push(
-      value,
-      resolveCategoryColor({
-        dataSourceId,
-        column,
-        value,
-        colorMappings,
-        columnMetadata,
-        fallbackColor,
-      }),
-    );
+  for (const [value, color] of entries) {
+    branches.push(value, color);
   }
   return [
     "match",

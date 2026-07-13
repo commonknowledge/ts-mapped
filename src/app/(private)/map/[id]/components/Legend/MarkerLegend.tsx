@@ -2,7 +2,9 @@
 
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
+import { useColumnValues } from "@/hooks/useColumnValues";
 import { useDataSources, useMarkerDataSources } from "@/hooks/useDataSources";
+import { ColumnType } from "@/models/DataSource";
 import {
   MarkerColorMode,
   MarkerIconMode,
@@ -12,10 +14,8 @@ import { sortColumnValues } from "@/utils/sortColumnValues";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapViews } from "../../hooks/useMapViews";
-import { mapColors } from "../../styles";
-import { resolveCategoryColor } from "../Markers/markerStyle";
+import { buildCategoryColorMap } from "../Markers/markerStyle";
 import MarkerShapeIcon from "../MarkerShapeIcon";
-import type { ColumnMetadata } from "@/models/DataSource";
 import type { MarkerVisualisation } from "@/models/MapView";
 
 /**
@@ -81,34 +81,38 @@ function DataSourceMarkerLegend({
     dataSourceId,
     iconColumn || "",
   );
-  const { columnMetadata: colorColumnMetadata } = useDataSourceColumn(
+  const { columnMetadata: colorColumnMetadata, columnDef: colorColumnDef } =
+    useDataSourceColumn(dataSourceId, colorColumn || "");
+
+  // Same canonical value list as the marker colour expression, so legend
+  // swatches (including auto-assigned defaults) match the map exactly
+  const colorColumnValues = useColumnValues({
     dataSourceId,
-    colorColumn || "",
-  );
+    column: colorColumn || "",
+    columnType: colorColumnDef?.type ?? ColumnType.Unknown,
+    nullIsZero: dataSource?.nullIsZero,
+    enabled: Boolean(colorColumn),
+  });
 
   if (!dataSource) {
     return null;
   }
-
-  const fallbackColor =
-    dataSource.defaultMarkerColor ?? mapColors.dataSource.color;
 
   const iconValues = sortColumnValues({
     values: Object.keys(iconColumnMetadata?.valueIcons ?? {}),
     columnMetadata: iconColumnMetadata,
   });
 
-  const colorValues = colorColumn
-    ? sortColumnValues({
-        values: getColorLegendValues({
-          dataSourceId,
-          column: colorColumn,
-          columnMetadata: colorColumnMetadata,
-          colorMappings,
-        }),
+  const colorMap = colorColumn
+    ? buildCategoryColorMap({
+        dataSourceId,
+        column: colorColumn,
+        values: colorColumnValues ?? [],
+        colorMappings,
         columnMetadata: colorColumnMetadata,
       })
-    : [];
+    : {};
+  const colorValues = Object.keys(colorMap);
 
   const hasContent =
     (iconColumn && iconValues.length > 0) ||
@@ -142,16 +146,7 @@ function DataSourceMarkerLegend({
             <div key={value} className="flex items-center gap-2">
               <span
                 className="w-3 h-3 rounded-full shrink-0 border border-black/10"
-                style={{
-                  backgroundColor: resolveCategoryColor({
-                    dataSourceId,
-                    column: colorColumn,
-                    value,
-                    colorMappings,
-                    columnMetadata: colorColumnMetadata,
-                    fallbackColor,
-                  }),
-                }}
+                style={{ backgroundColor: colorMap[value] }}
               />
               <span className="text-xs truncate">
                 {colorColumnMetadata?.valueLabels?.[value] || value}
@@ -203,31 +198,4 @@ function LegendSection({
       {expanded && <div className="flex flex-col gap-1 pl-4">{children}</div>}
     </div>
   );
-}
-
-/**
- * Values worth listing in the colour legend: those with a durable colour
- * plus any with a view-level override for this column.
- */
-function getColorLegendValues({
-  dataSourceId,
-  column,
-  columnMetadata,
-  colorMappings,
-}: {
-  dataSourceId: string;
-  column: string;
-  columnMetadata: ColumnMetadata | undefined;
-  colorMappings: Record<string, string> | undefined;
-}): string[] {
-  const values = new Set<string>(
-    Object.keys(columnMetadata?.valueColors ?? {}),
-  );
-  const prefix = `${dataSourceId}.${column}.`;
-  for (const key of Object.keys(colorMappings ?? {})) {
-    if (key.startsWith(prefix)) {
-      values.add(key.slice(prefix.length));
-    }
-  }
-  return [...values];
 }
