@@ -1,4 +1,4 @@
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Settings2Icon } from "lucide-react";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { mapColors } from "../../styles";
@@ -11,6 +11,7 @@ export default function ControlWrapper({
   isVisible,
   onVisibilityToggle,
   color,
+  onOpenSettings,
 }: {
   children: ReactNode;
   name: string;
@@ -18,6 +19,8 @@ export default function ControlWrapper({
   onVisibilityToggle: () => void;
   layerType?: LayerType;
   color?: string;
+  /** When provided, shows a settings button next to the visibility toggle. */
+  onOpenSettings?: () => void;
 }) {
   const getLayerColor = () => {
     // Use custom color if provided, otherwise use default layer color
@@ -50,6 +53,16 @@ export default function ControlWrapper({
 
       <div className="grow pl-3">{children}</div>
 
+      {onOpenSettings && (
+        <button
+          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-100 hover:bg-neutral-200 text-neutral-500 rounded p-1.5 flex items-center justify-center cursor-pointer"
+          aria-label={`Open ${name} settings`}
+          title="Marker settings"
+          onClick={onOpenSettings}
+        >
+          <Settings2Icon size={16} />
+        </button>
+      )}
       <button
         className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-100 hover:bg-neutral-200 text-neutral-500 rounded p-1.5 flex items-center justify-center cursor-pointer"
         aria-label={`Toggle ${name} visibility`}

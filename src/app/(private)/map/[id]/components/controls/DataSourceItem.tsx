@@ -176,6 +176,7 @@ export default function DataSourceItem({
           setDataSourceVisibility(dataSource?.id, !isVisible)
         }
         color={currentColor}
+        onOpenSettings={() => setMarkerSettingsDataSourceId(dataSource.id)}
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
