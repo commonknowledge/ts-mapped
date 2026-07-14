@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
+import ValueBadge from "@/components/ValueBadge";
 import { ColumnType } from "@/models/DataSource";
 import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
@@ -102,6 +103,124 @@ function TextOrNumberValue({
       ) : null}
       <span className="min-w-0">{displayText}</span>
     </span>
+  );
+}
+
+const FALSY_STRINGS = new Set(["false", "no", "n", "0", "-", "unchecked"]);
+
+/** Truthiness for Boolean display: Airtable checkboxes arrive as true or
+ *  absent, so any non-empty non-negative string counts as ticked. */
+function parseBooleanValue(value: unknown): boolean | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) {
+      return false;
+    }
+    return !FALSY_STRINGS.has(normalized);
+  }
+  return Boolean(value);
+}
+
+function BooleanValue({ value }: Pick<SubRendererProps, "value">) {
+  const bool = parseBooleanValue(value);
+  if (bool === null) {
+    return <span className="font-medium">-</span>;
+  }
+  return bool ? (
+    <Check className="h-4 w-4 text-green-600" aria-label="Yes" />
+  ) : (
+    <X className="h-4 w-4 text-neutral-400" aria-label="No" />
+  );
+}
+
+const NEUTRAL_DOT_COLOR = "#d4d4d4";
+
+function lookupValueColor(
+  value: unknown,
+  columnMetadata: ColumnMetadata | undefined,
+): string | undefined {
+  if (typeof value !== "string" && typeof value !== "number") {
+    return undefined;
+  }
+  const key = String(value);
+  return (
+    columnMetadata?.valueColors?.[key] ??
+    columnMetadata?.valueColors?.[key.trim()]
+  );
+}
+
+function SeverityValue({
+  value,
+  columnMetadata,
+  columnType,
+}: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
+  const text = getDisplayValue(value, {
+    isCount: false,
+    columnType: columnType ?? ColumnType.String,
+    columnMetadata,
+  });
+  const color = lookupValueColor(value, columnMetadata) ?? NEUTRAL_DOT_COLOR;
+  return (
+    <span className="font-medium inline-flex items-center gap-1.5 min-w-0">
+      <span
+        className="h-2.5 w-2.5 rounded-full border border-black/10 shrink-0"
+        style={{ backgroundColor: color }}
+        aria-hidden
+      />
+      <span className="min-w-0">{text}</span>
+    </span>
+  );
+}
+
+function CategoryValue({
+  value,
+  columnMetadata,
+  columnType,
+}: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
+  const text = getDisplayValue(value, {
+    isCount: false,
+    columnType: columnType ?? ColumnType.String,
+    columnMetadata,
+  });
+  if (text === "-") {
+    return <span className="font-medium">-</span>;
+  }
+  const color = lookupValueColor(value, columnMetadata);
+  if (!color) {
+    return (
+      <span className="font-medium inline-flex rounded px-1.5 py-0.5 bg-neutral-100 border border-black/5">
+        {text}
+      </span>
+    );
+  }
+  return (
+    <span className="font-medium">
+      <ValueBadge color={color}>{text}</ValueBadge>
+    </span>
+  );
+}
+
+function LargeTextValue({
+  value,
+  columnMetadata,
+  columnType,
+}: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
+  const text = getDisplayValue(value, {
+    isCount: false,
+    columnType: columnType ?? ColumnType.String,
+    columnMetadata,
+  });
+  return (
+    <p className="whitespace-pre-wrap break-words text-neutral-800">{text}</p>
   );
 }
 
@@ -333,6 +452,40 @@ function DataRecordPropertyValue({
     );
   }
 
+  if (format === ColumnDisplayFormat.Boolean) {
+    return <BooleanValue value={value} />;
+  }
+
+  if (format === ColumnDisplayFormat.Severity) {
+    return (
+      <SeverityValue
+        value={value}
+        columnMetadata={columnMetadata}
+        columnType={columnDef?.type}
+      />
+    );
+  }
+
+  if (format === ColumnDisplayFormat.Category) {
+    return (
+      <CategoryValue
+        value={value}
+        columnMetadata={columnMetadata}
+        columnType={columnDef?.type}
+      />
+    );
+  }
+
+  if (format === ColumnDisplayFormat.LargeText) {
+    return (
+      <LargeTextValue
+        value={value}
+        columnMetadata={columnMetadata}
+        columnType={columnDef?.type}
+      />
+    );
+  }
+
   return (
     <TextOrNumberValue
       value={value}
@@ -347,6 +500,37 @@ function DataRecordPropertyValue({
 // Renders a list of columns with labels and formatted values.
 // ============================================================================
 
+function DataRecordColumnItem({
+  column,
+  json,
+  dataSourceId,
+}: {
+  column: string;
+  json: Record<string, unknown>;
+  dataSourceId: string | undefined;
+}) {
+  const inspectorColumn = useInspectorColumn(dataSourceId, column);
+  const isLargeText =
+    inspectorColumn?.displayFormat === ColumnDisplayFormat.LargeText;
+  return (
+    <div className={cn("min-w-0", isLargeText && "col-span-2")}>
+      <PropertyLabel column={column} dataSourceId={dataSourceId} />
+      <dd
+        className={cn(
+          "min-w-0 whitespace-normal",
+          isLargeText ? "break-words" : "break-all",
+        )}
+      >
+        <DataRecordPropertyValue
+          value={json[column]}
+          name={column}
+          dataSourceId={dataSourceId}
+        />
+      </dd>
+    </div>
+  );
+}
+
 export default function DataRecordColumns({
   columns,
   json,
@@ -359,20 +543,14 @@ export default function DataRecordColumns({
   const safeColumns = columns ?? Object.keys(json);
   return (
     <>
-      {safeColumns.map((column, index) => {
-        return (
-          <div key={`${column}-${index}`} className="min-w-0">
-            <PropertyLabel column={column} dataSourceId={dataSourceId} />
-            <dd className="min-w-0 whitespace-normal break-all">
-              <DataRecordPropertyValue
-                value={json[column]}
-                name={column}
-                dataSourceId={dataSourceId}
-              />
-            </dd>
-          </div>
-        );
-      })}
+      {safeColumns.map((column, index) => (
+        <DataRecordColumnItem
+          key={`${column}-${index}`}
+          column={column}
+          json={json}
+          dataSourceId={dataSourceId}
+        />
+      ))}
     </>
   );
 }

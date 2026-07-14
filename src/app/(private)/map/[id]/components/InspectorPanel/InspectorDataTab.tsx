@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { LayersIcon, MapPinIcon, SettingsIcon, TableIcon } from "lucide-react";
+import { LayersIcon, SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
-import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
-import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useViewInspectorConfig } from "@/app/(private)/map/[id]/hooks/useViewInspectorConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
@@ -22,6 +20,7 @@ import { BIVARIATE_COLORS } from "../../colors";
 import { useAreaStats } from "../../data";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
+import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
 import DataRecordColumns from "./DataRecordColumns";
 import InspectorDataConfig from "./InspectorDataConfig";
 import { InspectorPanelIcon } from "./inspectorPanelOptions";
@@ -71,15 +70,7 @@ function getBivariateBucket({
   return { x, y };
 }
 
-interface InspectorDataTabProps {
-  isDetailsView: boolean;
-}
-
-export default function InspectorDataTab({
-  isDetailsView,
-}: InspectorDataTabProps) {
-  const mapRef = useMapRef();
-  const { setSelectedDataSourceId } = useTable();
+export default function InspectorDataTab() {
   const trpc = useTRPC();
   const inspectorConfigs = useViewInspectorConfig();
   const { selectedBoundary, focusedRecord } = useInspectorState();
@@ -138,14 +129,6 @@ export default function InspectorDataTab({
               : "high",
       }
     : null;
-
-  const flyToMarker = () => {
-    const map = mapRef?.current;
-
-    if (map && focusedRecord?.geocodePoint) {
-      map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
-    }
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -271,12 +254,20 @@ export default function InspectorDataTab({
             return (
               <>
                 <SimplePropertiesList properties={properties} />
-                {recordData?.json && (
-                  <DataRecordColumns
-                    json={recordData?.json}
-                    dataSourceId={dataSource?.id}
-                  />
-                )}
+                {recordData?.json &&
+                  (dataSource?.id ? (
+                    // Config-aware: applies the inspector config's column
+                    // selection, order, dividers and layout
+                    <ConfiguredDataRecordDisplay
+                      json={recordData.json}
+                      dataSourceId={dataSource.id}
+                    />
+                  ) : (
+                    <DataRecordColumns
+                      json={recordData.json}
+                      dataSourceId={undefined}
+                    />
+                  ))}
               </>
             );
           })()}
@@ -311,26 +302,6 @@ export default function InspectorDataTab({
           </div>
         </DialogContent>
       </Dialog>
-
-      {(isDetailsView || dataSource) && (
-        <div className="flex flex-col gap-3 border-t pt-4">
-          {isDetailsView && focusedRecord?.geocodePoint && (
-            <Button onClick={() => flyToMarker()}>
-              <MapPinIcon />
-              View on map
-            </Button>
-          )}
-          {dataSource && (
-            <Button
-              variant="secondary"
-              onClick={() => setSelectedDataSourceId(dataSource.id)}
-            >
-              <TableIcon />
-              View in table
-            </Button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

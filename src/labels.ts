@@ -163,6 +163,10 @@ export const ColumnDisplayFormatLabels: Record<ColumnDisplayFormat, string> = {
   Percentage: "Percentage (bar)",
   Scale: "Scale (bars)",
   NumberWithComparison: "Number with comparison",
+  Boolean: "Boolean (tick/cross)",
+  Severity: "Severity (coloured dot)",
+  LargeText: "Large text",
+  Category: "Category (coloured pill)",
 };
 
 export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =

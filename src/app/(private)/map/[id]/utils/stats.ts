@@ -41,6 +41,23 @@ export const parseColumnNumber = (
   return isCount ? num || 0 : num;
 };
 
+/**
+ * Arrays (and the numeric-keyed objects that imported JSON arrays become)
+ * as element lists; null for anything else.
+ */
+const asCollection = (value: unknown): unknown[] | null => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value);
+    if (keys.length > 0 && keys.every((k) => /^\d+$/.test(k))) {
+      return Object.values(value);
+    }
+  }
+  return null;
+};
+
 export const getDisplayValue = (
   value: unknown,
   config: {
@@ -51,6 +68,20 @@ export const getDisplayValue = (
 ): string => {
   const { isCount, columnType, columnMetadata } = config;
   const { valueLabels, semanticType } = columnMetadata || {};
+
+  // Multi-value columns (Airtable multi-selects, linked records) display as
+  // a comma-joined list, formatting each element (so valueLabels etc. apply)
+  const collection = asCollection(value);
+  if (collection) {
+    if (collection.length === 0) {
+      return isCount ? "0" : "-";
+    }
+    return collection.map((v) => getDisplayValue(v, config)).join(", ");
+  }
+  // Other non-null objects have no readable string form
+  if (value && typeof value === "object") {
+    return "-";
+  }
 
   const num = parseColumnNumber(value, { isCount, columnMetadata });
 

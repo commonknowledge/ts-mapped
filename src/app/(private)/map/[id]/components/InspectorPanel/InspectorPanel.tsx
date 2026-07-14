@@ -1,13 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
-import { ArrowLeftIcon, InfoIcon, PlusIcon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  InfoIcon,
+  MapPinIcon,
+  PlusIcon,
+  Settings2Icon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAreaStats";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import { useOpenInspectorConfig } from "@/app/(private)/map/[id]/hooks/useOpenInspectorConfig";
 import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
+import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
 import { parseAreaGeography } from "@/models/Area";
@@ -16,6 +27,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { LayerType } from "@/types";
+import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -36,10 +48,16 @@ export default function InspectorPanel() {
     selectedTurf,
     setFocusedRecord,
     selectedRecords,
+    focusedRecord,
   } = useInspectorState();
   const { inspectorContent } = useInspectorContent();
-  const { type } = inspectorContent ?? {};
+  const { type, dataSource } = inspectorContent ?? {};
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
+
+  const mapRef = useMapRef();
+  const { setSelectedDataSourceId } = useTable();
+  const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
+    useOpenInspectorConfig(dataSource?.id);
 
   const trpc = useTRPC();
   const { insertTurf, loading: savingTurf } = useTurfMutations();
@@ -117,6 +135,13 @@ export default function InspectorPanel() {
     setFocusedRecord(null);
   };
 
+  const handleFlyToMarker = () => {
+    const map = mapRef?.current;
+    if (map && focusedRecord?.geocodePoint) {
+      map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
+    }
+  };
+
   const handleAddToMyAreas = () => {
     if (!geography || !selectedBoundary) {
       toast.error("Unable to add boundary to areas");
@@ -188,13 +213,25 @@ export default function InspectorPanel() {
             </h2>
           )}
         </div>
-        <button
-          className="cursor-pointer"
-          aria-label="Close inspector panel"
-          onClick={() => resetInspector()}
-        >
-          <XIcon size={16} />
-        </button>
+        <div className="flex items-center gap-3 self-start">
+          {dataSource && (
+            <button
+              className="cursor-pointer text-muted-foreground hover:text-foreground"
+              aria-label="Configure inspector"
+              title="Configure inspector"
+              onClick={openConfig}
+            >
+              <Settings2Icon size={16} />
+            </button>
+          )}
+          <button
+            className="cursor-pointer"
+            aria-label="Close inspector panel"
+            onClick={() => resetInspector()}
+          >
+            <XIcon size={16} />
+          </button>
+        </div>
       </div>
 
       {isDetailsView && (
@@ -243,7 +280,7 @@ export default function InspectorPanel() {
 
         {hasData && (
           <UnderlineTabsContent value="data" className="overflow-auto p-3">
-            <InspectorDataTab isDetailsView={isDetailsView} />
+            <InspectorDataTab />
           </UnderlineTabsContent>
         )}
 
@@ -268,6 +305,35 @@ export default function InspectorPanel() {
             Add to areas
           </Button>
         </div>
+      )}
+      {hasData &&
+        type !== LayerType.Boundary &&
+        ((isDetailsView && focusedRecord?.geocodePoint) || dataSource) && (
+          <div className="border-t p-3 flex flex-col gap-2">
+            {isDetailsView && focusedRecord?.geocodePoint && (
+              <Button onClick={handleFlyToMarker}>
+                <MapPinIcon />
+                View on map
+              </Button>
+            )}
+            {dataSource && (
+              <Button
+                variant="secondary"
+                onClick={() => setSelectedDataSourceId(dataSource.id)}
+              >
+                <TableIcon />
+                View in table
+              </Button>
+            )}
+          </div>
+        )}
+      {config && (
+        <InspectorConfigModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          config={config}
+          onUpdate={onUpdateConfig}
+        />
       )}
     </div>
   );
