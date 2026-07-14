@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
@@ -34,6 +35,7 @@ import { cn } from "@/shadcn/utils";
 import { sortColumnValues } from "@/utils/sortColumnValues";
 import { useDataSourceColumn } from "../../../hooks/useDataSourceColumn";
 import { useMapConfig } from "../../../hooks/useMapConfig";
+import { useMapRef } from "../../../hooks/useMapCore";
 import { useMapViews } from "../../../hooks/useMapViews";
 import { useMarkerSettings } from "../../../hooks/useMarkerSettings";
 import { VISUALISATION_PANEL_WIDTH, mapColors } from "../../../styles";
@@ -93,6 +95,16 @@ export default function MarkerSettingsPanel({
     }),
   );
 
+  const mapRef = useMapRef();
+  // Slider position while dragging; committed on release only, because a
+  // cluster settings change re-creates the GeoJSON source (a full
+  // re-index, which takes seconds on large sources)
+  const [draftClusterMaxZoom, setDraftClusterMaxZoom] = useState<number | null>(
+    null,
+  );
+  // Clustering controls are locked while the map re-indexes
+  const [reclustering, setReclustering] = useState(false);
+
   // Only show settings for sources actually on the map — a source can be
   // removed from the map while its settings panel is open
   const isOnMap =
@@ -105,6 +117,35 @@ export default function MarkerSettingsPanel({
 
   const patch = (update: Parameters<typeof patchMarkerVisualisation>[1]) =>
     patchMarkerVisualisation(dataSourceId, update);
+
+  // Apply a cluster-settings change and lock the clustering controls until
+  // the map has finished re-indexing (its next "idle" event)
+  const patchClustering = (
+    update: Parameters<typeof patchMarkerVisualisation>[1],
+  ) => {
+    patch(update);
+    const map = mapRef?.current?.getMap();
+    if (!map) {
+      return;
+    }
+    setReclustering(true);
+    // Give React a moment to re-create the source before watching for idle
+    window.setTimeout(() => {
+      map.once("idle", () => setReclustering(false));
+    }, 200);
+  };
+
+  const savedClusterMaxZoom = visualisation.clusterMaxZoom ?? 11;
+
+  const commitClusterMaxZoom = () => {
+    if (draftClusterMaxZoom === null) {
+      return;
+    }
+    if (draftClusterMaxZoom !== savedClusterMaxZoom) {
+      patchClustering({ clusterMaxZoom: draftClusterMaxZoom });
+    }
+    setDraftClusterMaxZoom(null);
+  };
 
   const displayMode =
     mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Clusters;
@@ -497,8 +538,11 @@ export default function MarkerSettingsPanel({
 
           {/* Clustering */}
           <div className="flex flex-col gap-3">
-            <Label className="text-xs font-mono uppercase text-muted-foreground">
+            <Label className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-1.5">
               Clustering
+              {reclustering && (
+                <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+              )}
             </Label>
             {iconsEnabled ? (
               <p className="text-xs text-muted-foreground">
@@ -510,8 +554,9 @@ export default function MarkerSettingsPanel({
                   <span className="text-xs">Cluster nearby markers</span>
                   <Switch
                     checked={visualisation.clusteringEnabled !== false}
+                    disabled={reclustering}
                     onCheckedChange={(checked) =>
-                      patch({ clusteringEnabled: checked })
+                      patchClustering({ clusteringEnabled: checked })
                     }
                   />
                 </div>
@@ -523,16 +568,27 @@ export default function MarkerSettingsPanel({
                         type="range"
                         min={0}
                         max={22}
-                        value={visualisation.clusterMaxZoom ?? 11}
+                        disabled={reclustering}
+                        value={draftClusterMaxZoom ?? savedClusterMaxZoom}
                         onChange={(e) =>
-                          patch({ clusterMaxZoom: Number(e.target.value) })
+                          setDraftClusterMaxZoom(Number(e.target.value))
                         }
+                        // Commit on release only: each change re-indexes the
+                        // whole source, which takes seconds on large sources
+                        onPointerUp={commitClusterMaxZoom}
+                        onKeyUp={commitClusterMaxZoom}
+                        onBlur={commitClusterMaxZoom}
                       />
                       <span className="text-xs text-muted-foreground w-6 text-right">
-                        {visualisation.clusterMaxZoom ?? 11}
+                        {draftClusterMaxZoom ?? savedClusterMaxZoom}
                       </span>
                     </div>
                   </div>
+                )}
+                {reclustering && (
+                  <p className="text-xs text-muted-foreground">
+                    Updating clusters…
+                  </p>
                 )}
               </>
             )}
