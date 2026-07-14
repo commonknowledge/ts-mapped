@@ -1,8 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
+import { getBooleanEnvVar } from "@/env";
 import { AreaSetCode } from "@/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
 import { InspectorComparisonStat, pointSchema } from "@/models/shared";
+import { reversePostcodeLookup } from "@/server/mapping/geocode";
 import {
   findAreaByCode,
   findAreasByPoint,
@@ -145,6 +147,25 @@ export const dataRecordRouter = router({
       const geocodingConfig = dataSource.geocodingConfig;
       if (!("areaSetCode" in geocodingConfig)) {
         return { records: [], match, area: null };
+      }
+      // Postcode polygons are proprietary and may not be present/licensed;
+      // resolve the point's postcode via postcodes.io instead and match on
+      // the code stored at geocode time (mirrors the geocoding fallback)
+      if (
+        geocodingConfig.areaSetCode === AreaSetCode.PC &&
+        !getBooleanEnvVar("ENABLE_DATABASE_POSTCODE_LOOKUP")
+      ) {
+        const postcode = await reversePostcodeLookup(input.point);
+        if (!postcode) {
+          return { records: [], match, area: null };
+        }
+        const code = postcode.replace(/\s+/g, "").toUpperCase();
+        const records = await findDataRecordsByDataSourceAndAreaCode(
+          input.dataSourceId,
+          AreaSetCode.PC,
+          code,
+        );
+        return { records, match, area: { code, name: postcode } };
       }
       const areas = await findAreasByPoint({
         point: input.point,
