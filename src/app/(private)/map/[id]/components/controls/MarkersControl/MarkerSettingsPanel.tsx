@@ -93,7 +93,13 @@ export default function MarkerSettingsPanel({
     }),
   );
 
-  if (!markerSettingsDataSourceId || !dataSource) {
+  // Only show settings for sources actually on the map — a source can be
+  // removed from the map while its settings panel is open
+  const isOnMap =
+    mapConfig.markerDataSourceIds.includes(dataSourceId) ||
+    mapConfig.membersDataSourceId === dataSourceId;
+
+  if (!markerSettingsDataSourceId || !dataSource || !isOnMap) {
     return null;
   }
 

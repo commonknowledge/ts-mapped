@@ -161,6 +161,10 @@ export default function DataSourceItem({
       });
       toast.success("Data source removed from map");
     }
+    // Don't leave the settings panel editing a source that left the map
+    if (markerSettingsDataSourceId === dataSource.id) {
+      setMarkerSettingsDataSourceId(null);
+    }
     setShowRemoveDialog(false);
   };
 
