@@ -14,11 +14,13 @@ export interface InspectorBlock {
   columns: string[];
 }
 
-const SKIPPED_COLUMN_TYPES = new Set([ColumnType.Empty, ColumnType.Object]);
+// Object columns (multi-selects, linked records) display as comma-joined
+// lists, so only truly empty columns are excluded from the defaults
+const SKIPPED_COLUMN_TYPES = new Set([ColumnType.Empty]);
 
 /**
  * Derive a default list of inspector items from a data source's column definitions
- * and metadata. Columns of type Empty or Object are excluded. Display format is
+ * and metadata. Columns of type Empty are excluded. Display format is
  * inferred from ColumnType and ColumnSemanticType.
  */
 export function deriveInspectorItems(
