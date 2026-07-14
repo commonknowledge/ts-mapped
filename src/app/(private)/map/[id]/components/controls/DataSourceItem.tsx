@@ -389,6 +389,22 @@ export default function DataSourceItem({
                 <span>Heatmap</span>
               </div>
             </ContextMenuCheckboxItem>
+            <ContextMenuCheckboxItem
+              checked={currentDisplayMode === MarkerDisplayMode.Overlap}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  handleDisplayModeChange(MarkerDisplayMode.Overlap);
+                }
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
+                  style={{ backgroundColor: currentColor, opacity: 0.6 }}
+                />
+                <span>Overlap</span>
+              </div>
+            </ContextMenuCheckboxItem>
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"

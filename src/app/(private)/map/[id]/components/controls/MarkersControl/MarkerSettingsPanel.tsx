@@ -373,6 +373,51 @@ export default function MarkerSettingsPanel({
 
       <Separator />
 
+      {/* Clustering */}
+      <div className="flex flex-col gap-3">
+        <Label className="text-xs font-mono uppercase text-muted-foreground">
+          Clustering
+        </Label>
+        {iconsEnabled ? (
+          <p className="text-xs text-muted-foreground">
+            Clustering is off while markers use icons.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs">Cluster nearby markers</span>
+              <Switch
+                checked={visualisation.clusteringEnabled !== false}
+                onCheckedChange={(checked) =>
+                  patch({ clusteringEnabled: checked })
+                }
+              />
+            </div>
+            {visualisation.clusteringEnabled !== false && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs">Stop clustering at zoom</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={0}
+                    max={22}
+                    value={visualisation.clusterMaxZoom ?? 11}
+                    onChange={(e) =>
+                      patch({ clusterMaxZoom: Number(e.target.value) })
+                    }
+                  />
+                  <span className="text-xs text-muted-foreground w-6 text-right">
+                    {visualisation.clusterMaxZoom ?? 11}
+                  </span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <Separator />
+
       {/* Display */}
       <div className="flex flex-col gap-3">
         <Label className="text-xs font-mono uppercase text-muted-foreground">

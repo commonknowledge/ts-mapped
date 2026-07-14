@@ -33,6 +33,7 @@ import {
   buildSortKeyExpression,
   getDistinctFeatureValues,
 } from "./markerStyle";
+import { OverlapLayer } from "./OverlapLayer";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
 import type { MarkerPinStyle } from "./ClustersLayer";
 import type { MarkerVisualisation } from "@/models/MapView";
@@ -263,20 +264,27 @@ export function DataSourceMarkers({
   ]);
 
   // Icon markers are meant to be read individually, so icon mode fully
-  // disables clustering for the layer
+  // disables clustering for the layer; the per-view clustering switch can
+  // also turn it off
   const clustered =
-    displayMode === MarkerDisplayMode.Clusters && !pinStyle?.useIcons;
+    displayMode === MarkerDisplayMode.Clusters &&
+    !pinStyle?.useIcons &&
+    visualisation?.clusteringEnabled !== false;
+
+  const clusterMaxZoom = publicMap
+    ? 22
+    : Math.min(22, Math.max(0, visualisation?.clusterMaxZoom ?? 11));
 
   return (
     <Source
       id={sourceId}
-      // Keyed by cluster state: GeoJSON source cluster options cannot be
-      // changed in place, so toggling clustering must re-create the source
-      key={`${sourceId}-${clustered ? "clustered" : "unclustered"}`}
+      // Keyed by cluster options: GeoJSON source cluster options cannot be
+      // changed in place, so changing them must re-create the source
+      key={`${sourceId}-${clustered ? `clustered-${clusterMaxZoom}` : "unclustered"}`}
       type="geojson"
       data={safeMarkers}
       cluster={clustered}
-      clusterMaxZoom={publicMap ? 22 : 11}
+      clusterMaxZoom={clusterMaxZoom}
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
@@ -292,6 +300,14 @@ export function DataSourceMarkers({
       )}
       {displayMode === MarkerDisplayMode.Heatmap && (
         <HeatmapLayer sourceId={sourceId} color={color} />
+      )}
+      {displayMode === MarkerDisplayMode.Overlap && (
+        <OverlapLayer
+          sourceId={sourceId}
+          color={color}
+          opacity={(visualisation?.opacityPct ?? 100) / 100}
+          showLabels={visualisation?.showLabels !== false}
+        />
       )}
     </Source>
   );

@@ -22,19 +22,9 @@ export function HeatmapLayer({
         type="heatmap"
         source={sourceId}
         paint={{
-          "heatmap-weight": [
-            "interpolate",
-            ["linear"],
-            ["case", ["has", "point_count"], ["get", "point_count"], 1],
-            1,
-            ["case", NOT_MATCHED_CASE, 0.2, 0.4],
-            10,
-            ["case", NOT_MATCHED_CASE, 0.6, 1.1],
-            50,
-            ["case", NOT_MATCHED_CASE, 0.65, 1.15],
-            100,
-            ["case", NOT_MATCHED_CASE, 0.7, 1.2],
-          ],
+          // Uniform weight per record (pure point density); weighted
+          // heatmaps proved unbalanceable. Unmatched records contribute less.
+          "heatmap-weight": ["case", NOT_MATCHED_CASE, 0.3, 1],
           "heatmap-intensity": [
             "interpolate",
             ["linear"],

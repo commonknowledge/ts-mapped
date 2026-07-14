@@ -3,6 +3,8 @@ import z from "zod";
 export enum MarkerDisplayMode {
   Clusters = "clusters",
   Heatmap = "heatmap",
+  // Uniform semi-transparent dots, no clustering: density reads via overdraw
+  Overlap = "overlap",
 }
 
 const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
