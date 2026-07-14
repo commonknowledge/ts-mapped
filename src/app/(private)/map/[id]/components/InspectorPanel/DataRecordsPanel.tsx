@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Settings } from "lucide-react";
+import { BookOpen, Settings2 } from "lucide-react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -59,7 +59,7 @@ export default function DataRecordsPanel({
             tooltip="Inspector settings"
             onClick={onClickConfigure}
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Settings2 className="h-4 w-4 mr-2" />
           </IconButtonWithTooltip>
         )
       }

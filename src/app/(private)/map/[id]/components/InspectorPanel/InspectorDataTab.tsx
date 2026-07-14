@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { LayersIcon, SettingsIcon } from "lucide-react";
+import { LayersIcon, Settings2Icon } from "lucide-react";
 import { useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { useOpenInspectorConfig } from "@/app/(private)/map/[id]/hooks/useOpenInspectorConfig";
 import { useViewInspectorConfig } from "@/app/(private)/map/[id]/hooks/useViewInspectorConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
@@ -22,6 +23,7 @@ import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
 import DataRecordColumns from "./DataRecordColumns";
+import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataConfig from "./InspectorDataConfig";
 import { InspectorPanelIcon } from "./inspectorPanelOptions";
 import { LocationDataPanel } from "./LocationDataPanel";
@@ -82,6 +84,8 @@ export default function InspectorDataTab() {
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
+    useOpenInspectorConfig(dataSource?.id);
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -219,17 +223,28 @@ export default function InspectorDataTab() {
         // Show default data source and properties
         <>
           {dataSource && (
-            <div className="bg-muted py-1 px-2 rounded">
-              <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
-                Data source
-              </h3>
-              <div className="flex items-center gap-2">
-                <div className="shrink-0">
-                  <DataSourceIcon type={dataSource.config?.type as string} />
-                </div>
+            <div className="bg-muted py-1 px-2 rounded flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
+                  Data source
+                </h3>
+                <div className="flex items-center gap-2">
+                  <div className="shrink-0">
+                    <DataSourceIcon type={dataSource.config?.type as string} />
+                  </div>
 
-                <p className="truncate">{dataSource.name}</p>
+                  <p className="truncate">{dataSource.name}</p>
+                </div>
               </div>
+              <button
+                type="button"
+                className="cursor-pointer shrink-0 text-muted-foreground hover:text-foreground"
+                aria-label="Configure inspector"
+                title="Configure inspector"
+                onClick={openConfig}
+              >
+                <Settings2Icon className="h-4 w-4" />
+              </button>
             </div>
           )}
 
@@ -293,7 +308,7 @@ export default function InspectorDataTab() {
         size="sm"
         onClick={() => setConfigDialogOpen(true)}
       >
-        <SettingsIcon />
+        <Settings2Icon />
         Manage inspector data
       </Button>
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
@@ -306,6 +321,14 @@ export default function InspectorDataTab() {
           </div>
         </DialogContent>
       </Dialog>
+      {config && (
+        <InspectorConfigModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          config={config}
+          onUpdate={onUpdateConfig}
+        />
+      )}
     </div>
   );
 }

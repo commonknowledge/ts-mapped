@@ -5,7 +5,6 @@ import {
   InfoIcon,
   MapPinIcon,
   PlusIcon,
-  Settings2Icon,
   TableIcon,
   XIcon,
 } from "lucide-react";
@@ -16,7 +15,6 @@ import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAre
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
-import { useOpenInspectorConfig } from "@/app/(private)/map/[id]/hooks/useOpenInspectorConfig";
 import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
@@ -27,7 +25,6 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { LayerType } from "@/types";
-import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -56,8 +53,6 @@ export default function InspectorPanel() {
 
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
-  const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
-    useOpenInspectorConfig(dataSource?.id);
 
   const trpc = useTRPC();
   const { insertTurf, loading: savingTurf } = useTurfMutations();
@@ -213,25 +208,13 @@ export default function InspectorPanel() {
             </h2>
           )}
         </div>
-        <div className="flex items-center gap-3 self-start">
-          {dataSource && (
-            <button
-              className="cursor-pointer text-muted-foreground hover:text-foreground"
-              aria-label="Configure inspector"
-              title="Configure inspector"
-              onClick={openConfig}
-            >
-              <Settings2Icon size={16} />
-            </button>
-          )}
-          <button
-            className="cursor-pointer"
-            aria-label="Close inspector panel"
-            onClick={() => resetInspector()}
-          >
-            <XIcon size={16} />
-          </button>
-        </div>
+        <button
+          className="cursor-pointer self-start"
+          aria-label="Close inspector panel"
+          onClick={() => resetInspector()}
+        >
+          <XIcon size={16} />
+        </button>
       </div>
 
       {isDetailsView && (
@@ -327,14 +310,6 @@ export default function InspectorPanel() {
             )}
           </div>
         )}
-      {config && (
-        <InspectorConfigModal
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
-          config={config}
-          onUpdate={onUpdateConfig}
-        />
-      )}
     </div>
   );
 }
