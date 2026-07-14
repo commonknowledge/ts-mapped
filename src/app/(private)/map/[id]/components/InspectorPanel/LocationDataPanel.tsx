@@ -64,7 +64,7 @@ export function LocationDataPanel({
     data?.match === DataRecordMatchType.Approximate
       ? "Approximate boundary match"
       : isPointLookup && !isAreaGeocoded
-        ? "This data source isn't linked to a boundary set, so it can't show records for a marker's location. Click a boundary to see its records."
+        ? "This data source isn't linked to a boundary set, so it can't show records when inspecting a marker. Click a boundary to see its records."
         : isPointLookup && pointData && pointData.records.length === 0
           ? resolvedArea
             ? `No records in ${resolvedArea.name || resolvedArea.code}`
