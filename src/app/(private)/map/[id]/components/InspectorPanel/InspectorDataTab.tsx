@@ -274,15 +274,19 @@ export default function InspectorDataTab() {
         </>
       )}
 
-      {inspectorConfigs.map((config, index) => (
-        <LocationDataPanel
-          key={config.id}
-          dataSourceId={config.dataSourceId}
-          selectedBoundary={selectedBoundary}
-          markerPoint={focusedRecord?.geocodePoint}
-          defaultExpanded={index === 0}
-        />
-      ))}
+      {inspectorConfigs
+        // A config row for the shown record's own data source exists to
+        // customise the record display above, not to self-lookup location data
+        .filter((config) => config.dataSourceId !== dataSource?.id)
+        .map((config, index) => (
+          <LocationDataPanel
+            key={config.id}
+            dataSourceId={config.dataSourceId}
+            selectedBoundary={selectedBoundary}
+            markerPoint={focusedRecord?.geocodePoint}
+            defaultExpanded={index === 0}
+          />
+        ))}
       <Button
         variant="outline"
         className="w-full"

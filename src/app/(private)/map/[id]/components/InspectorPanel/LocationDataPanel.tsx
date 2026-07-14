@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useDataSources } from "@/hooks/useDataSources";
 import { AreaSetCode } from "@/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
@@ -49,17 +50,29 @@ export function LocationDataPanel({
   const isLoading = isLoadingBoundary || isLoadingPoint;
   const data = boundaryData || pointData;
 
+  // Point lookups only work for sources geocoded to a boundary set ("which
+  // area contains this point"); address-geocoded sources can never match
+  const { getDataSourceById } = useDataSources();
+  const dataSource = getDataSourceById(dataSourceId);
+  const isAreaGeocoded = Boolean(
+    dataSource?.geocodingConfig && "areaSetCode" in dataSource.geocodingConfig,
+  );
+  const isPointLookup = Boolean(markerPoint) && !selectedBoundary;
+
+  const hint =
+    data?.match === DataRecordMatchType.Approximate
+      ? "Approximate boundary match"
+      : isPointLookup && !isAreaGeocoded
+        ? "This data source isn't linked to a boundary set, so it can't show records for a marker's location. Click a boundary to see its records."
+        : "";
+
   return (
     <ConfigurableDataRecordsPanel
       dataSourceId={dataSourceId}
       records={data?.records ?? []}
       isLoading={isLoading}
       defaultExpanded={defaultExpanded}
-      hint={
-        data?.match === DataRecordMatchType.Approximate
-          ? "Approximate boundary match"
-          : ""
-      }
+      hint={hint}
     />
   );
 }

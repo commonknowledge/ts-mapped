@@ -75,9 +75,12 @@ export default function DataRecordsPanel({
             <p className="text-sm">Loading...</p>
           </div>
         ) : records.length === 0 ? (
-          <div className="text-center text-muted-foreground">
-            <p className="text-sm">No data</p>
-          </div>
+          // The hint explains the empty state when present
+          !hint && (
+            <div className="text-center text-muted-foreground">
+              <p className="text-sm">No data</p>
+            </div>
+          )
         ) : records.length === 1 ? (
           <div>
             <ConfiguredDataRecordDisplay
