@@ -63,8 +63,8 @@ export default function YearSliderControl() {
         max={domain.max}
         step={1}
         value={[year]}
-        disabled={!yearFilter.enabled}
-        // Live update while dragging so the map animates through the years
+        // Live update while dragging so the map animates through the years;
+        // dragging while disabled enables the filter
         onValueChange={(value) =>
           setYearFilter({ enabled: true, year: value[0] })
         }
