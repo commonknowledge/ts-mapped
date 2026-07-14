@@ -1,6 +1,6 @@
 import { scaleOrdinal } from "d3-scale";
 import { schemeCategory10 } from "d3-scale-chromatic";
-import { PARTY_COLORS, TRAFFIC_LIGHT_COLORS } from "@/constants/colors";
+import { PARTY_COLORS, TRAFFIC_LIGHT_SCALE } from "@/constants/colors";
 
 /** Returns a function that maps a category value to its default display colour,
  *  checking PARTY_COLORS first then falling back to a D3 ordinal scale. */
@@ -35,23 +35,21 @@ export const colorWithAlpha = (color: string, alpha: number): string | null => {
 };
 
 /**
- * If every non-blank value is a recognised severity level (Low, Moderate,
- * High, Critical...), returns a value → colour mapping using the traffic-light
- * palette; otherwise null. Requires at least two matching values so arbitrary
- * single-value columns don't get the preset offered.
+ * Assigns traffic-light colours positionally down the ordered value list:
+ * first value red, then orange, yellow, green, with grey for the fifth and
+ * anything after. Blank values are skipped (left uncoloured) and don't
+ * consume a colour.
  */
 export const getTrafficLightPreset = (
-  values: string[],
-): Record<string, string> | null => {
+  orderedValues: string[],
+): Record<string, string> => {
   const preset: Record<string, string> = {};
-  let matches = 0;
-  for (const value of values) {
-    const normalized = value.trim().toLowerCase();
-    if (!normalized) continue;
-    const color = TRAFFIC_LIGHT_COLORS[normalized];
-    if (!color) return null;
-    preset[value] = color;
-    matches++;
+  let position = 0;
+  for (const value of orderedValues) {
+    if (!value.trim()) continue;
+    preset[value] =
+      TRAFFIC_LIGHT_SCALE[Math.min(position, TRAFFIC_LIGHT_SCALE.length - 1)];
+    position++;
   }
-  return matches >= 2 ? preset : null;
+  return preset;
 };

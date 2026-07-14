@@ -83,9 +83,7 @@ export default function ColorMappingsEditor({
   const defaultColor = getCategoryColorScale(values);
   const hasMappings = Object.keys(colorMappings).length > 0;
   const sortable = Boolean(onReorder);
-  const trafficLightPreset = onBulkChange
-    ? getTrafficLightPreset(values)
-    : null;
+  const showTrafficLightPreset = Boolean(onBulkChange) && values.length >= 2;
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -140,14 +138,17 @@ export default function ColorMappingsEditor({
       ) : (
         rows
       )}
-      {(trafficLightPreset || hasMappings || onUseSourceColors) && (
+      {(showTrafficLightPreset || hasMappings || onUseSourceColors) && (
         <div className="mt-1 flex flex-col">
-          {trafficLightPreset && (
+          {showTrafficLightPreset && (
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-muted-foreground w-full justify-start"
-              onClick={() => onBulkChange?.(trafficLightPreset)}
+              title="Colours the values top-to-bottom: red, orange, yellow, green, then grey"
+              onClick={() =>
+                onBulkChange?.(getTrafficLightPreset(orderedValues))
+              }
             >
               Apply traffic light colours
             </Button>
