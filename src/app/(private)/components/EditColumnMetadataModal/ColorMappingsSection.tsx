@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { getCategoryColorsKey } from "@/app/(private)/map/[id]/colors";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import ColorMappingsEditor from "@/components/ColorMappingsEditor";
+import ColorMappingsEditor, {
+  VALUE_ORDER_HINT,
+} from "@/components/ColorMappingsEditor";
 import { sortColumnValues } from "@/utils/sortColumnValues";
 import type { ColumnMetadata } from "@/models/DataSource";
 
@@ -248,7 +250,7 @@ export default function ColorMappingsSection({
           }
           onBulkChange={handleBulkColorChange}
           onReorder={handleReorder}
-          reorderHint="Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first."
+          reorderHint={VALUE_ORDER_HINT}
         />
       </div>
     </div>

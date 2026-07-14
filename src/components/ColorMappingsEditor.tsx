@@ -16,6 +16,9 @@ import { Input } from "@/shadcn/ui/input";
 import { getCategoryColorScale, getTrafficLightPreset } from "@/utils/colors";
 import type { DragEndEvent } from "@dnd-kit/core";
 
+export const VALUE_ORDER_HINT =
+  "Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first.";
+
 interface ColorMappingsEditorProps {
   /** Sorted distinct values to display. `undefined` = still loading, `null` = too many values. */
   values: string[] | null | undefined;

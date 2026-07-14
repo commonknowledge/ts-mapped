@@ -4,7 +4,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import ColorMappingsEditor from "@/components/ColorMappingsEditor";
+import ColorMappingsEditor, {
+  VALUE_ORDER_HINT,
+} from "@/components/ColorMappingsEditor";
 import ValueLabelsEditor from "@/components/ValueLabelsEditor";
 import { useColumnValues } from "@/hooks/useColumnValues";
 import { ColumnSemanticTypeLabels } from "@/labels";
@@ -35,6 +37,7 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 import { Textarea } from "@/shadcn/ui/textarea";
+import { sortColumnValues } from "@/utils/sortColumnValues";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource = NonNullable<RouterOutputs["dataSource"]["byId"]>;
@@ -117,14 +120,18 @@ function ColumnColorMappingsCell({
   columnType,
   nullIsZero,
   currentMappings,
+  columnMetadata,
   onSave,
+  onReorder,
 }: {
   dataSourceId: string;
   columnName: string;
   columnType: ColumnType;
   nullIsZero: boolean | undefined;
   currentMappings: Record<string, string>;
+  columnMetadata: ColumnMetadata;
   onSave: (mappings: Record<string, string>) => void;
+  onReorder: (valueOrder: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [localMappings, setLocalMappings] =
@@ -142,6 +149,15 @@ function ColumnColorMappingsCell({
     nullIsZero,
     enabled: open,
   });
+
+  // Rows display in the canonical value order (valueOrder -> range parsing
+  // -> alphabetical); dragging persists a new valueOrder
+  const orderedValues = useMemo(() => {
+    if (sortedValues === null || sortedValues === undefined) {
+      return sortedValues;
+    }
+    return sortColumnValues({ values: sortedValues, columnMetadata });
+  }, [sortedValues, columnMetadata]);
 
   const handleChange = useCallback(
     (value: string, color: string) => {
@@ -198,12 +214,14 @@ function ColumnColorMappingsCell({
         align="start"
       >
         <ColorMappingsEditor
-          values={sortedValues}
+          values={orderedValues}
           colorMappings={localMappings}
           onChange={handleChange}
           onReset={handleReset}
           onResetAll={handleResetAll}
           onBulkChange={handleBulkChange}
+          onReorder={onReorder}
+          reorderHint={VALUE_ORDER_HINT}
         />
       </PopoverContent>
     </Popover>
@@ -219,13 +237,17 @@ export default function ColumnMetadataTable({
     const existing = new Map(
       (dataSource.columnMetadata ?? []).map((m) => [m.name, m]),
     );
-    return dataSource.columnDefs.map((col) => ({
-      name: col.name,
-      valueLabels: existing.get(col.name)?.valueLabels ?? {},
-      description: existing.get(col.name)?.description ?? "",
-      semanticType: existing.get(col.name)?.semanticType,
-      valueColors: existing.get(col.name)?.valueColors,
-    }));
+    // Spread the existing entry so fields this table doesn't edit
+    // (valueIcons, valueOrder, displayName, ...) survive a save
+    return dataSource.columnDefs.map((col) => {
+      const existingMeta = existing.get(col.name);
+      return {
+        ...existingMeta,
+        name: col.name,
+        valueLabels: existingMeta?.valueLabels ?? {},
+        description: existingMeta?.description ?? "",
+      };
+    });
   }, [dataSource.columnDefs, dataSource.columnMetadata]);
 
   const [metadata, setMetadata] = useState<ColumnMetadata[]>(initialMetadata);
@@ -302,6 +324,17 @@ export default function ColumnMetadataTable({
     (index: number, valueColors: Record<string, string>) => {
       const updated = metadata.map((m, i) =>
         i === index ? { ...m, valueColors } : m,
+      );
+      setMetadata(updated);
+      save(updated);
+    },
+    [metadata, save],
+  );
+
+  const handleValueOrderChange = useCallback(
+    (index: number, valueOrder: string[]) => {
+      const updated = metadata.map((m, i) =>
+        i === index ? { ...m, valueOrder } : m,
       );
       setMetadata(updated);
       save(updated);
@@ -412,9 +445,11 @@ export default function ColumnMetadataTable({
                     columnType={colDef?.type ?? ColumnType.Unknown}
                     nullIsZero={dataSource.nullIsZero}
                     currentMappings={col.valueColors ?? {}}
+                    columnMetadata={col}
                     onSave={(mappings) =>
                       handleColorMappingsChange(index, mappings)
                     }
+                    onReorder={(order) => handleValueOrderChange(index, order)}
                   />
                 </TableCell>
               </TableRow>
