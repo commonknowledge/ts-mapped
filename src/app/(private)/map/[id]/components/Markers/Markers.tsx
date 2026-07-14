@@ -6,6 +6,7 @@ import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQuerie
 import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapRef } from "../../hooks/useMapCore";
+import { useYearFilter } from "../../hooks/useYearFilter";
 import { DataSourceMarkers } from "./DataSourceMarkers";
 import { isMarkerIconImageId, registerMarkerIcons } from "./markerIcons";
 
@@ -16,6 +17,13 @@ export default function Markers() {
   const { getDataSourceVisibility } = useLayers();
   const { getDataSourceById } = useDataSources();
   const mapRef = useMapRef();
+  const { activeYearRange } = useYearFilter();
+
+  // The year filter only applies to sources that declare a year column
+  const getYearRange = (dataSourceId: string) =>
+    getDataSourceById(dataSourceId)?.columnRoles?.yearColumn
+      ? activeYearRange
+      : null;
 
   // Register the SDF icon sprites; map styles discard added images, so
   // re-register on style changes and on demand via styleimagemissing.
@@ -72,6 +80,7 @@ export default function Markers() {
           }
           colorMappings={viewConfig.colorMappings}
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
+          yearRange={getYearRange(memberMarkers.dataSourceId)}
         />
       )}
       {otherMarkers.map((markers) => {
@@ -97,6 +106,7 @@ export default function Markers() {
             }
             colorMappings={viewConfig.colorMappings}
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
+            yearRange={getYearRange(markers.dataSourceId)}
           />
         );
       })}

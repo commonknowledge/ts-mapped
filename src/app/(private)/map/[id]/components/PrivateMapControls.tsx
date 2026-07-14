@@ -18,6 +18,7 @@ import BoundaryHoverInfo from "./BoundaryHoverInfo/BoundaryHoverInfo";
 import InspectorPanel from "./InspectorPanel/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
+import YearSliderControl from "./YearSliderControl";
 import ZoomControl from "./ZoomControl";
 
 export default function PrivateMapControls() {
@@ -112,7 +113,10 @@ export default function PrivateMapControls() {
           className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
           style={absolutelyCenter}
         >
-          <MapMarkerAndAreaControls />
+          <div className="flex flex-col items-center gap-2">
+            <YearSliderControl />
+            <MapMarkerAndAreaControls />
+          </div>
         </div>
       )}
 

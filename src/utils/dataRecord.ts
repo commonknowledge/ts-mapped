@@ -86,6 +86,45 @@ export function parseDate({
   return date;
 }
 
+/**
+ * Extract a year from a column value: a plain 4-digit year is used directly,
+ * anything else is parsed as a date with the data source's dateFormat, then
+ * with the JS Date parser. Returns null when no year can be determined.
+ */
+export function parseRecordYear({
+  value,
+  dateFormat,
+}: {
+  value: unknown;
+  dateFormat?: string | null;
+}): number | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const str = String(value).trim();
+  if (!str) {
+    return null;
+  }
+  if (/^\d{4}$/.test(str)) {
+    return Number(str);
+  }
+  if (dateFormat) {
+    const parsed = parse(str, dateFormat, new Date());
+    if (!isNaN(parsed.getTime())) {
+      return parsed.getFullYear();
+    }
+  }
+  // Only try the native parser on strings that plausibly contain a year:
+  // it "helpfully" parses fragments like "12" (to Dec 2001)
+  if (/\d{4}/.test(str)) {
+    const fallback = new Date(str);
+    if (!isNaN(fallback.getTime())) {
+      return fallback.getFullYear();
+    }
+  }
+  return null;
+}
+
 // Human-readable display format for record dates, shared by the listing,
 // the record detail sidebar and the marker popup.
 export const RECORD_DATE_DISPLAY_FORMAT = "d MMMM yyyy";

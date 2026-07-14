@@ -41,6 +41,10 @@ export default function ConfigurationForm({
     dataSource.columnRoles.dateColumn || "",
   );
 
+  const [yearColumn, setYearColumn] = useState<string>(
+    dataSource.columnRoles.yearColumn || "",
+  );
+
   const [dateFormat, setDateFormat] = useState<string>(dataSource.dateFormat);
 
   // Geocoding config
@@ -105,7 +109,7 @@ export default function ConfigurationForm({
     }),
   );
 
-  const columnRoles = { nameColumns, dateColumn };
+  const columnRoles = { nameColumns, dateColumn, yearColumn };
 
   const { data: validGeocodingConfig } =
     geocodingConfigSchema.safeParse(geocodingConfig);
@@ -139,6 +143,8 @@ export default function ConfigurationForm({
         setDateColumn={setDateColumn}
         dateFormat={dateFormat}
         setDateFormat={setDateFormat}
+        yearColumn={yearColumn}
+        setYearColumn={setYearColumn}
       />
 
       <GeocodingConfigFields

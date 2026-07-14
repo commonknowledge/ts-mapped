@@ -11,6 +11,8 @@ export function ColumnRoleFields({
   setDateColumn,
   dateFormat,
   setDateFormat,
+  yearColumn,
+  setYearColumn,
 }: {
   dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
   nameColumns: string[];
@@ -19,6 +21,8 @@ export function ColumnRoleFields({
   setDateColumn: (dc: string) => void;
   dateFormat: string;
   setDateFormat: (dc: string) => void;
+  yearColumn: string;
+  setYearColumn: (yc: string) => void;
 }) {
   const onChange = (currentValue: string) => {
     if (nameColumns.some((c) => c === currentValue)) {
@@ -68,6 +72,22 @@ export function ColumnRoleFields({
           onValueChange={(v) => setDateFormat(v)}
         />
       )}
+      <CustomSelect
+        id="config-year-column"
+        label="Year column (if present)"
+        hint="Used to filter records by year on maps. Choose a date column or a column containing a 4-digit year."
+        placeholder="No year column"
+        value={yearColumn || NULL_UUID}
+        options={[{ label: "No year column", value: NULL_UUID }].concat(
+          validColumns.map((cd) => ({
+            label: cd.name,
+            value: cd.name,
+          })),
+        )}
+        onValueChange={(v) =>
+          v === NULL_UUID ? setYearColumn("") : setYearColumn(v)
+        }
+      />
     </>
   );
 }

@@ -11,6 +11,7 @@ import {
   buildPublicMapName,
   formatRecordDate,
   getListingSort,
+  parseRecordYear,
 } from "@/utils/dataRecord";
 import type { DataRecord } from "@/models/DataRecord";
 import type { RecordFilterInput } from "@/models/MapView";
@@ -74,6 +75,10 @@ export async function GET(
       )
     : [];
 
+  // Year filtering: when the data source declares a year column, compute the
+  // year server-side so date and plain-YYYY columns behave identically
+  const yearColumn = dataSource.columnRoles.yearColumn;
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -110,6 +115,14 @@ export async function GET(
                       dataSource,
                       dataRecord: dr,
                       dataSourceConfig: publicMapDataSourceConfig,
+                    }),
+                  }
+                : {}),
+              ...(yearColumn
+                ? {
+                    year: parseRecordYear({
+                      value: dr.json[yearColumn],
+                      dateFormat: dataSource.dateFormat,
                     }),
                   }
                 : {}),

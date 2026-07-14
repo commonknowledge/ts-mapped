@@ -291,6 +291,9 @@ export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
 export const columnRolesSchema = z.object({
   dateColumn: z.string().optional(),
   nameColumns: z.array(z.string()),
+  // Column used to filter records by year on maps; either a date column
+  // (parsed with the data source's dateFormat) or a plain 4-digit year
+  yearColumn: z.string().optional(),
 });
 
 export enum DataSourceRecordType {
