@@ -19,11 +19,14 @@ export default function Markers() {
   const mapRef = useMapRef();
   const { activeYearRange } = useYearFilter();
 
-  // The year filter only applies to sources that declare a year column
-  const getYearRange = (dataSourceId: string) =>
-    getDataSourceById(dataSourceId)?.columnRoles?.yearColumn
+  // The year filter only applies to sources with a year column (or a date
+  // column as the fallback, matching the markers API)
+  const getYearRange = (dataSourceId: string) => {
+    const columnRoles = getDataSourceById(dataSourceId)?.columnRoles;
+    return columnRoles?.yearColumn || columnRoles?.dateColumn
       ? activeYearRange
       : null;
+  };
 
   // Register the SDF icon sprites; map styles discard added images, so
   // re-register on style changes and on demand via styleimagemissing.

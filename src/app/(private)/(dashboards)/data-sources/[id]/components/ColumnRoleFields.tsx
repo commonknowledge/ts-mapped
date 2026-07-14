@@ -75,7 +75,7 @@ export function ColumnRoleFields({
       <CustomSelect
         id="config-year-column"
         label="Year column (if present)"
-        hint="Used to filter records by year on maps. Choose a date column or a column containing a 4-digit year."
+        hint="Used to filter records by year on maps. Choose a date column or a column containing a 4-digit year. If unset, the date column is used."
         placeholder="No year column"
         value={yearColumn || NULL_UUID}
         options={[{ label: "No year column", value: NULL_UUID }].concat(

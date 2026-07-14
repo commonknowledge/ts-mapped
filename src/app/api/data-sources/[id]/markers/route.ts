@@ -75,9 +75,11 @@ export async function GET(
       )
     : [];
 
-  // Year filtering: when the data source declares a year column, compute the
-  // year server-side so date and plain-YYYY columns behave identically
-  const yearColumn = dataSource.columnRoles.yearColumn;
+  // Year filtering: when the data source declares a year column (or, failing
+  // that, a date column), compute the year server-side so date and plain-YYYY
+  // columns behave identically
+  const yearColumn =
+    dataSource.columnRoles.yearColumn || dataSource.columnRoles.dateColumn;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
