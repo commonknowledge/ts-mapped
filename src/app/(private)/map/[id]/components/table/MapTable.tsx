@@ -20,6 +20,7 @@ import { Feature } from "@/models/Organisation";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
+import { getCategoryColorsKey } from "../../colors";
 import { useMapId, useMapRef } from "../../hooks/useMapCore";
 import { useMapQuery } from "../../hooks/useMapQuery";
 import { DataTable } from "./DataTable";
@@ -65,7 +66,7 @@ export default function MapTable() {
   const mapRef = useMapRef();
   const mapId = useMapId();
   const { data: map } = useMapQuery(mapId);
-  const { view, updateView } = useMapViews();
+  const { view, updateView, viewConfig } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { focusedRecord, setFocusedRecord } = useInspectorState();
   const [lookingUpPage, setLookingUpPage] = useState(false);
@@ -273,17 +274,26 @@ export default function MapTable() {
 
   const getCellColor = useCallback(
     ({ columnName, value }: { columnName: string; value: unknown }) => {
-      const valueColors = valueColorsByColumn[columnName];
-      if (!valueColors) {
-        return undefined;
-      }
       if (typeof value !== "string" && typeof value !== "number") {
         return undefined;
       }
       const key = String(value);
+      // Same resolution as the markers: this view's overrides first, then
+      // the column's durable valueColors
+      const viewColor =
+        viewConfig.colorMappings?.[
+          getCategoryColorsKey(selectedDataSourceId, columnName, key)
+        ];
+      if (viewColor) {
+        return viewColor;
+      }
+      const valueColors = valueColorsByColumn[columnName];
+      if (!valueColors) {
+        return undefined;
+      }
       return valueColors[key] ?? valueColors[key.trim()];
     },
-    [valueColorsByColumn],
+    [valueColorsByColumn, viewConfig.colorMappings, selectedDataSourceId],
   );
 
   if (!dataSource || !view) {
