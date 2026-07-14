@@ -144,21 +144,27 @@ export const dataRecordRouter = router({
       const match = DataRecordMatchType.ContainedBy;
       const geocodingConfig = dataSource.geocodingConfig;
       if (!("areaSetCode" in geocodingConfig)) {
-        return { records: [], match };
+        return { records: [], match, area: null };
       }
       const areas = await findAreasByPoint({
         point: input.point,
         includeAreaSetCode: geocodingConfig.areaSetCode,
       });
       if (!areas.length) {
-        return { records: [], match };
+        return { records: [], match, area: null };
       }
       const records = await findDataRecordsByDataSourceAndAreaCode(
         input.dataSourceId,
         areas[0].areaSetCode,
         areas[0].code,
       );
-      return { records, match };
+      // The resolved area lets the client explain empty results
+      // ("No records in PE25 3LS")
+      return {
+        records,
+        match,
+        area: { code: areas[0].code, name: areas[0].name },
+      };
     }),
   list: dataSourceReadProcedure
     .input(
