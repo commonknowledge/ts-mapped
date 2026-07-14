@@ -37,19 +37,15 @@ export const colorWithAlpha = (color: string, alpha: number): string | null => {
 /**
  * Assigns traffic-light colours positionally down the ordered value list:
  * first value red, then orange, yellow, green, with grey for the fifth and
- * anything after. Blank values are skipped (left uncoloured) and don't
- * consume a colour.
+ * anything after. Blank values are coloured by their position like any other.
  */
 export const getTrafficLightPreset = (
   orderedValues: string[],
 ): Record<string, string> => {
   const preset: Record<string, string> = {};
-  let position = 0;
-  for (const value of orderedValues) {
-    if (!value.trim()) continue;
-    preset[value] =
-      TRAFFIC_LIGHT_SCALE[Math.min(position, TRAFFIC_LIGHT_SCALE.length - 1)];
-    position++;
+  for (let i = 0; i < orderedValues.length; i++) {
+    preset[orderedValues[i]] =
+      TRAFFIC_LIGHT_SCALE[Math.min(i, TRAFFIC_LIGHT_SCALE.length - 1)];
   }
   return preset;
 };
