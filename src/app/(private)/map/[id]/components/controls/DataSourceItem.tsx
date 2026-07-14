@@ -65,7 +65,8 @@ export default function DataSourceItem({
   const trpc = useTRPC();
   const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
   const { getDataSourceById } = useDataSources();
-  const { setMarkerSettingsDataSourceId } = useMarkerSettings();
+  const { markerSettingsDataSourceId, setMarkerSettingsDataSourceId } =
+    useMarkerSettings();
 
   const fullDataSource = getDataSourceById(dataSource.id);
 
@@ -176,7 +177,11 @@ export default function DataSourceItem({
           setDataSourceVisibility(dataSource?.id, !isVisible)
         }
         color={currentColor}
-        onOpenSettings={() => setMarkerSettingsDataSourceId(dataSource.id)}
+        onOpenSettings={() =>
+          setMarkerSettingsDataSourceId(
+            markerSettingsDataSourceId === dataSource.id ? null : dataSource.id,
+          )
+        }
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
