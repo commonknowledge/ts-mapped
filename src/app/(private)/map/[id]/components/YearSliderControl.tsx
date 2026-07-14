@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Slider } from "@/shadcn/ui/slider";
@@ -16,9 +16,6 @@ import { useYearFilter } from "../hooks/useYearFilter";
 export default function YearSliderControl() {
   const markerQueries = useMarkerQueries();
   const { yearFilter, setYearFilter } = useYearFilter();
-
-  // Knob position while dragging, before the filter is committed on release
-  const [draggedYear, setDraggedYear] = useState<number | null>(null);
 
   // Union of years across all loaded marker sources with a year column
   const domain = useMemo(() => {
@@ -47,7 +44,7 @@ export default function YearSliderControl() {
 
   const clamp = (year: number) =>
     Math.min(domain.max, Math.max(domain.min, year));
-  const year = draggedYear ?? clamp(yearFilter.year ?? domain.max);
+  const year = clamp(yearFilter.year ?? domain.max);
 
   return (
     <div className="bg-white rounded shadow-md px-3 py-2 flex items-center gap-3 pointer-events-auto text-sm">
@@ -67,12 +64,10 @@ export default function YearSliderControl() {
         step={1}
         value={[year]}
         disabled={!yearFilter.enabled}
-        onValueChange={(value) => setDraggedYear(value[0])}
-        // Committing on release avoids re-clustering jank while dragging
-        onValueCommit={(value) => {
-          setDraggedYear(null);
-          setYearFilter({ enabled: true, year: value[0] });
-        }}
+        // Live update while dragging so the map animates through the years
+        onValueChange={(value) =>
+          setYearFilter({ enabled: true, year: value[0] })
+        }
         aria-label="Year"
         className={cn("w-44", !yearFilter.enabled && "opacity-60")}
       />
