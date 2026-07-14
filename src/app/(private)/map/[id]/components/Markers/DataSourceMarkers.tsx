@@ -54,7 +54,7 @@ export function DataSourceMarkers({
   markerVisualisation,
   colorMappings,
   hideFilteredMarkers = false,
-  yearRange = null,
+  filterYear = null,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
@@ -68,7 +68,7 @@ export function DataSourceMarkers({
   hideFilteredMarkers?: boolean;
   /** Active year filter; only passed for data sources with a year column.
    *  Features without a parseable year are hidden while active. */
-  yearRange?: { min: number; max: number } | null;
+  filterYear?: number | null;
 }) {
   const filteredRecords = useFilteredRecords();
   const publicFilters = usePublicFilters();
@@ -97,13 +97,8 @@ export function DataSourceMarkers({
     // Year filter: features must be dropped at the source level (not via
     // layer filters) so cluster counts stay correct. Records without a
     // parseable year are hidden while the filter is active.
-    if (yearRange) {
-      features = features.filter(
-        (f) =>
-          typeof f.properties.year === "number" &&
-          f.properties.year >= yearRange.min &&
-          f.properties.year <= yearRange.max,
-      );
+    if (filterYear !== null) {
+      features = features.filter((f) => f.properties.year === filterYear);
     }
 
     if (!hasClientFilters) {
@@ -135,7 +130,7 @@ export function DataSourceMarkers({
     publicFilters,
     publicDateFilter,
     hideFilteredMarkers,
-    yearRange,
+    filterYear,
   ]);
 
   const sourceId = `${dataSourceId}-markers`;

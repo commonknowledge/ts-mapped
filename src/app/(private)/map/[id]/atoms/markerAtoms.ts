@@ -11,15 +11,13 @@ export const dropPinClickHandlerAtom = atom<
 // Data source whose marker settings panel is open (null = closed)
 export const markerSettingsDataSourceIdAtom = atom<string | null>(null);
 
-// Ephemeral year range filter for markers (session-only, not persisted).
-// Only applies to data sources with a yearColumn role.
+// Ephemeral single-year filter for markers (session-only, not persisted).
+// Only applies to data sources with a yearColumn (or dateColumn) role.
 export interface YearFilter {
   enabled: boolean;
-  min: number | null;
-  max: number | null;
+  year: number | null;
 }
 export const yearFilterAtom = atom<YearFilter>({
   enabled: false,
-  min: null,
-  max: null,
+  year: null,
 });

@@ -17,14 +17,14 @@ export default function Markers() {
   const { getDataSourceVisibility } = useLayers();
   const { getDataSourceById } = useDataSources();
   const mapRef = useMapRef();
-  const { activeYearRange } = useYearFilter();
+  const { activeYear } = useYearFilter();
 
   // The year filter only applies to sources with a year column (or a date
   // column as the fallback, matching the markers API)
-  const getYearRange = (dataSourceId: string) => {
+  const getFilterYear = (dataSourceId: string) => {
     const columnRoles = getDataSourceById(dataSourceId)?.columnRoles;
     return columnRoles?.yearColumn || columnRoles?.dateColumn
-      ? activeYearRange
+      ? activeYear
       : null;
   };
 
@@ -83,7 +83,7 @@ export default function Markers() {
           }
           colorMappings={viewConfig.colorMappings}
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
-          yearRange={getYearRange(memberMarkers.dataSourceId)}
+          filterYear={getFilterYear(memberMarkers.dataSourceId)}
         />
       )}
       {otherMarkers.map((markers) => {
@@ -109,7 +109,7 @@ export default function Markers() {
             }
             colorMappings={viewConfig.colorMappings}
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
-            yearRange={getYearRange(markers.dataSourceId)}
+            filterYear={getFilterYear(markers.dataSourceId)}
           />
         );
       })}

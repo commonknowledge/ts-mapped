@@ -7,13 +7,11 @@ import type { YearFilter } from "../atoms/markerAtoms";
 export function useYearFilter(): {
   yearFilter: YearFilter;
   setYearFilter: (filter: YearFilter) => void;
-  /** The active [min, max] range, or null when the filter is disabled. */
-  activeYearRange: { min: number; max: number } | null;
+  /** The year to filter markers to, or null when the filter is disabled. */
+  activeYear: number | null;
 } {
   const [yearFilter, setYearFilter] = useAtom(yearFilterAtom);
-  const activeYearRange =
-    yearFilter.enabled && yearFilter.min !== null && yearFilter.max !== null
-      ? { min: yearFilter.min, max: yearFilter.max }
-      : null;
-  return { yearFilter, setYearFilter, activeYearRange };
+  const activeYear =
+    yearFilter.enabled && yearFilter.year !== null ? yearFilter.year : null;
+  return { yearFilter, setYearFilter, activeYear };
 }
