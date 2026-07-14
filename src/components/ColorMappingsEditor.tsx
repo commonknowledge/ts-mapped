@@ -13,7 +13,7 @@ import { GripVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
-import { getCategoryColorScale } from "@/utils/colors";
+import { getCategoryColorScale, getTrafficLightPreset } from "@/utils/colors";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 interface ColorMappingsEditorProps {
@@ -37,6 +37,11 @@ interface ColorMappingsEditorProps {
   onReorder?: (orderedValues: string[]) => void;
   /** Shown above the rows when reordering is enabled, explaining why order matters. */
   reorderHint?: string;
+  /**
+   * If provided, enables presets that set several colours at once (e.g. the
+   * traffic-light preset for severity-like columns).
+   */
+  onBulkChange?: (mappings: Record<string, string>) => void;
 }
 
 export default function ColorMappingsEditor({
@@ -50,6 +55,7 @@ export default function ColorMappingsEditor({
   onUseSourceColors,
   onReorder,
   reorderHint,
+  onBulkChange,
 }: ColorMappingsEditorProps) {
   // Local order so rows follow the drag immediately; re-synced when the
   // saved order arrives back through props
@@ -77,6 +83,9 @@ export default function ColorMappingsEditor({
   const defaultColor = getCategoryColorScale(values);
   const hasMappings = Object.keys(colorMappings).length > 0;
   const sortable = Boolean(onReorder);
+  const trafficLightPreset = onBulkChange
+    ? getTrafficLightPreset(values)
+    : null;
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -131,13 +140,23 @@ export default function ColorMappingsEditor({
       ) : (
         rows
       )}
-      {(hasMappings || onUseSourceColors) && (
-        <>
+      {(trafficLightPreset || hasMappings || onUseSourceColors) && (
+        <div className="mt-1 flex flex-col">
+          {trafficLightPreset && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground w-full justify-start"
+              onClick={() => onBulkChange?.(trafficLightPreset)}
+            >
+              Apply traffic light colours
+            </Button>
+          )}
           {hasMappings && (
             <Button
               variant="ghost"
               size="sm"
-              className="mt-1 text-xs text-muted-foreground w-full justify-start"
+              className="text-xs text-muted-foreground w-full justify-start"
               onClick={onResetAll}
             >
               Reset all colours
@@ -147,11 +166,7 @@ export default function ColorMappingsEditor({
             <Button
               variant="ghost"
               size="sm"
-              className={
-                hasMappings
-                  ? "text-xs text-muted-foreground w-full justify-start"
-                  : "mt-1 text-xs text-muted-foreground w-full justify-start"
-              }
+              className="text-xs text-muted-foreground w-full justify-start"
               onClick={onUseSourceColors}
             >
               Use source colours
@@ -167,7 +182,7 @@ export default function ColorMappingsEditor({
               Save as data source defaults
             </Button>
           )}
-        </>
+        </div>
       )}
     </div>
   );

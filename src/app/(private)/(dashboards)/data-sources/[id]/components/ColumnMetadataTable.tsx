@@ -172,6 +172,16 @@ function ColumnColorMappingsCell({
     onSave({});
   }, [onSave]);
 
+  const handleBulkChange = useCallback(
+    (mappings: Record<string, string>) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      const updated = { ...localMappings, ...mappings };
+      setLocalMappings(updated);
+      onSave(updated);
+    },
+    [localMappings, onSave],
+  );
+
   const mappingCount = Object.keys(currentMappings).length;
 
   return (
@@ -193,6 +203,7 @@ function ColumnColorMappingsCell({
           onChange={handleChange}
           onReset={handleReset}
           onResetAll={handleResetAll}
+          onBulkChange={handleBulkChange}
         />
       </PopoverContent>
     </Popover>

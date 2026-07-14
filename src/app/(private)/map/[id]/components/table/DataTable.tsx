@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import ValueBadge from "@/components/ValueBadge";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -57,6 +58,12 @@ interface DataTableProps {
   onClose?: () => void;
   filter?: ReactNode;
   highlightedColumns?: Set<string>;
+  /** Colour for a cell value (e.g. from column valueColors); when returned,
+   *  the cell renders as a coloured badge instead of plain text. */
+  getCellColor?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => string | undefined;
 }
 
 export function DataTable({
@@ -79,6 +86,7 @@ export function DataTable({
 
   filter,
   highlightedColumns,
+  getCellColor,
 }: DataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
@@ -251,18 +259,30 @@ export function DataTable({
                   >
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))
-                      .map((column) => (
-                        <TableCell
-                          key={column.name}
-                          className={
-                            highlightedColumns?.has(column.name)
-                              ? "whitespace-normal bg-blue-50"
-                              : "whitespace-normal"
-                          }
-                        >
-                          {renderCell(row.json[column.name])}
-                        </TableCell>
-                      ))}
+                      .map((column) => {
+                        const value = row.json[column.name];
+                        const cellColor = getCellColor?.({
+                          columnName: column.name,
+                          value,
+                        });
+                        const text = renderCell(value);
+                        return (
+                          <TableCell
+                            key={column.name}
+                            className={
+                              highlightedColumns?.has(column.name)
+                                ? "whitespace-normal bg-blue-50"
+                                : "whitespace-normal"
+                            }
+                          >
+                            {cellColor ? (
+                              <ValueBadge color={cellColor}>{text}</ValueBadge>
+                            ) : (
+                              text
+                            )}
+                          </TableCell>
+                        );
+                      })}
                   </TableRow>
                 ))
               ) : (

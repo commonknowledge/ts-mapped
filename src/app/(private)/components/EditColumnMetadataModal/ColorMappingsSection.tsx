@@ -65,6 +65,19 @@ export default function ColorMappingsSection({
     [dataSourceId, columnName, viewConfig.colorMappings, updateViewConfig],
   );
 
+  // Preset application: write all values' colours in one view-config update
+  const handleBulkColorChange = useCallback(
+    (mappings: Record<string, string>) => {
+      const nextColors = { ...(viewConfig.colorMappings || {}) };
+      for (const [value, color] of Object.entries(mappings)) {
+        nextColors[getCategoryColorsKey(dataSourceId, columnName, value)] =
+          color;
+      }
+      updateViewConfig({ colorMappings: nextColors });
+    },
+    [dataSourceId, columnName, viewConfig.colorMappings, updateViewConfig],
+  );
+
   const handleColorChangeDebounced = useCallback(
     (value: string, color: string) => {
       if (debounceTimers.current[value]) {
@@ -233,6 +246,7 @@ export default function ColorMappingsSection({
           onUseSourceColors={
             hasSourceColors ? handleUseSourceColors : undefined
           }
+          onBulkChange={handleBulkColorChange}
           onReorder={handleReorder}
           reorderHint="Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first."
         />

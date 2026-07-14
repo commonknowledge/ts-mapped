@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tag } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/(private)/map/[id]/hooks/useDataRecords";
+import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
@@ -256,6 +257,35 @@ export default function MapTable() {
     [pendingTagDisplayName],
   );
 
+  // Value colours (incl. org overrides) per column, so cells with a
+  // configured colour render as badges
+  const { columnMetadata: resolvedColumnMetadata } =
+    useDataSourceColumns(selectedDataSourceId);
+  const valueColorsByColumn = useMemo(() => {
+    const result: Record<string, Record<string, string>> = {};
+    for (const meta of resolvedColumnMetadata) {
+      if (meta.valueColors && Object.keys(meta.valueColors).length > 0) {
+        result[meta.name] = meta.valueColors;
+      }
+    }
+    return result;
+  }, [resolvedColumnMetadata]);
+
+  const getCellColor = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const valueColors = valueColorsByColumn[columnName];
+      if (!valueColors) {
+        return undefined;
+      }
+      if (typeof value !== "string" && typeof value !== "number") {
+        return undefined;
+      }
+      const key = String(value);
+      return valueColors[key] ?? valueColors[key.trim()];
+    },
+    [valueColorsByColumn],
+  );
+
   if (!dataSource || !view) {
     return null;
   }
@@ -373,6 +403,7 @@ export default function MapTable() {
         selectedRecordId={focusedRecord?.id}
         onClose={() => handleDataSourceSelect("")}
         highlightedColumns={highlightedColumns}
+        getCellColor={getCellColor}
       />
       {enableSyncToCRM && (
         <SyncToCrmModal

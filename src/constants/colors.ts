@@ -50,3 +50,13 @@ export const PARTY_COLORS: Record<string, string> = {
   independents: "rgb(128, 128, 128)",
   "non-partisan": "rgb(128, 128, 128)",
 };
+
+/** Traffic-light colours for severity-like column values, keyed by
+ *  lowercased value. Used to offer a one-click preset in the colour editor. */
+export const TRAFFIC_LIGHT_COLORS: Record<string, string> = {
+  low: "#9ca3af",
+  moderate: "#eab308",
+  medium: "#eab308",
+  high: "#f97316",
+  critical: "#dc2626",
+};
