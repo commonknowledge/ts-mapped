@@ -58,6 +58,11 @@ export const buildPublicMapName = (
   return description || "Unknown";
 };
 
+// Matches ISO 8601 datetimes, e.g. "2026-05-13T22:00:00.000Z" as returned by
+// the Airtable API. Datetime strings that don't match this are never passed to
+// the native Date parser, which would guess at ambiguous formats (US-style).
+const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T/;
+
 export function parseDate({
   dataSource,
   dataRecord,
@@ -74,13 +79,15 @@ export function parseDate({
   const dateFormat =
     dataSourceConfig?.dateFormat || dataSource?.dateFormat || "yyyy-MM-dd";
   if (dateColumn && dataRecord.json[dateColumn]) {
-    const dateOverride = parse(
-      String(dataRecord.json[dateColumn]),
-      dateFormat,
-      new Date(),
-    );
+    const str = String(dataRecord.json[dateColumn]);
+    const dateOverride = parse(str, dateFormat, new Date());
     if (!isNaN(dateOverride.getTime())) {
       date = dateOverride;
+    } else if (ISO_DATETIME_REGEX.test(str)) {
+      const isoDate = new Date(str);
+      if (!isNaN(isoDate.getTime())) {
+        date = isoDate;
+      }
     }
   }
   return date;
