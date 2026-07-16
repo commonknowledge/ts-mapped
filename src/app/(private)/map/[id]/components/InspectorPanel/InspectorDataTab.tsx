@@ -19,6 +19,7 @@ import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { BIVARIATE_COLORS } from "../../colors";
 import { useAreaStats } from "../../data";
+import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
@@ -79,6 +80,7 @@ export default function InspectorDataTab() {
   const { inspectorContent } = useInspectorContent();
   const { dataSource, properties = [], type } = inspectorContent || {};
   const areaStat = useRawAreaStat(selectedBoundary);
+  const { mapConfig } = useMapConfig();
   const { viewConfig } = useMapViews();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
@@ -293,6 +295,13 @@ export default function InspectorDataTab() {
         // A config row for the shown record's own data source exists to
         // customise the record display above, not to self-lookup location data
         .filter((config) => config.dataSourceId !== dataSource?.id)
+        // Marker layers belong to the Markers tab (list, count, chart);
+        // their config rows exist to customise the record detail display
+        .filter(
+          (config) =>
+            !mapConfig.markerDataSourceIds.includes(config.dataSourceId) &&
+            config.dataSourceId !== mapConfig.membersDataSourceId,
+        )
         .map((config, index) => (
           <LocationDataPanel
             key={config.id}

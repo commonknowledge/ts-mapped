@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, Settings2 } from "lucide-react";
+import { useMemo } from "react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -32,6 +33,16 @@ export default function DataRecordsPanel({
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(dataSourceId);
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+
+  // Records arrive in DB (primary key) order; list alphabetically by the
+  // name they display. Sort a copy — the array is shared query-cache data.
+  const sortedRecords = useMemo(
+    () =>
+      [...records].sort((a, b) =>
+        buildName(dataSource, a).localeCompare(buildName(dataSource, b)),
+      ),
+    [records, dataSource],
+  );
 
   const dataSourceType = dataSource?.config?.type ?? null;
   const panelIcon = inspectorConfig?.icon ? (
@@ -90,7 +101,7 @@ export default function DataRecordsPanel({
           </div>
         ) : (
           <ul>
-            {records.map((record, i) => (
+            {sortedRecords.map((record, i) => (
               <li key={record.id}>
                 <TogglePanel
                   label={buildName(dataSource, record)}
