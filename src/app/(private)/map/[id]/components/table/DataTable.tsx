@@ -213,7 +213,9 @@ export function DataTable({
         </div>
         <div className="bg-white grow min-h-0">
           <Table containerClassName="h-full overflow-y-auto">
-            <TableHeader className="bg-neutral-100 sticky top-0">
+            {/* z-10: cell content with transforms (e.g. badge swatch dots)
+                creates stacking contexts that would paint over the header */}
+            <TableHeader className="bg-neutral-100 sticky top-0 z-10">
               <TableRow>
                 {columns
                   .filter((c) => !hiddenColumns.includes(c.name))
