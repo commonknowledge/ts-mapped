@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, Loader2, X } from "lucide-react";
 import ValueBadge from "@/components/ValueBadge";
+import { useColumnValues } from "@/hooks/useColumnValues";
+import { useDataSources } from "@/hooks/useDataSources";
 import { ColumnType } from "@/models/DataSource";
+import {
+  MarkerColorMode,
+  MarkerIconMode,
+  MarkerSizeMode,
+} from "@/models/MapView";
 import { ColumnDisplayFormat, InspectorComparisonStat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
@@ -10,7 +17,14 @@ import { PARTY_COLORS } from "../../constants";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useInspectorColumn } from "../../hooks/useInspectorColumn";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
+import { useMapViews } from "../../hooks/useMapViews";
+import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import { getDisplayValue, parseColumnNumber } from "../../utils/stats";
+import {
+  buildCategoryColorMap,
+  getOrderedSizeFactors,
+} from "../Markers/markerStyle";
+import MarkerShapeIcon from "../MarkerShapeIcon";
 import { getBarColorForLabel } from "./inspectorPanelOptions";
 import { PropertyLabel } from "./PropertyLabel";
 import type { ColumnMetadata } from "@/models/DataSource";
@@ -389,6 +403,107 @@ function ScaleValue({
   );
 }
 
+/**
+ * Value renderer for columns that drive the marker visualisation: decodes the
+ * record's map encodings inline — icon shape, colour badge, size dot — using
+ * the same resolution as the map and legend. A column can carry several
+ * encodings at once, and this display overrides any configured format.
+ */
+function MarkerEncodingValue({
+  value,
+  name,
+  dataSourceId,
+  isIcon,
+  isColor,
+  isSize,
+  columnMetadata,
+  columnType,
+}: {
+  value: unknown;
+  name: string;
+  dataSourceId: string | undefined;
+  isIcon: boolean;
+  isColor: boolean;
+  isSize: boolean;
+  columnMetadata: ColumnMetadata | undefined;
+  columnType: ColumnType | null | undefined;
+}) {
+  const { getMarkerVisualisation } = useMarkerSettings();
+  const { viewConfig } = useMapViews();
+  const { getDataSourceById } = useDataSources();
+  const dataSource = getDataSourceById(dataSourceId);
+  // Canonical distinct values, so badge colours and dot sizes match the map
+  const columnValues = useColumnValues({
+    dataSourceId: dataSourceId ?? "",
+    column: name,
+    columnType: columnType ?? ColumnType.Unknown,
+    nullIsZero: dataSource?.nullIsZero,
+    enabled: Boolean(dataSourceId) && (isColor || isSize),
+  });
+
+  const text = getDisplayValue(value, {
+    isCount: false,
+    columnType: columnType ?? ColumnType.String,
+    columnMetadata,
+  });
+  if (text === "-") {
+    return <span className="font-medium">-</span>;
+  }
+  const key =
+    typeof value === "string" || typeof value === "number" ? String(value) : "";
+
+  const shape = isIcon ? columnMetadata?.valueIcons?.[key] : undefined;
+
+  let badgeColor: string | undefined;
+  if (isColor && dataSourceId) {
+    const colorMap = buildCategoryColorMap({
+      dataSourceId,
+      column: name,
+      values: columnValues ?? [],
+      colorMappings: viewConfig.colorMappings,
+      columnMetadata,
+    });
+    badgeColor = colorMap[key];
+  }
+
+  let sizeFactor: number | undefined;
+  if (isSize) {
+    const factors = getOrderedSizeFactors({
+      values: columnValues ?? [],
+      columnMetadata,
+      descending: getMarkerVisualisation(dataSourceId ?? "").sizeSortDesc,
+    });
+    sizeFactor = factors.find((f) => f.value === key)?.factor;
+  }
+
+  return (
+    <span className="font-medium inline-flex items-center gap-1.5 min-w-0">
+      {shape && (
+        <MarkerShapeIcon shape={shape} color={badgeColor ?? "#404040"} />
+      )}
+      {sizeFactor !== undefined && (
+        <span
+          className="w-[18px] flex items-center justify-center shrink-0"
+          aria-hidden
+        >
+          <span
+            className="rounded-full bg-neutral-400"
+            style={{
+              width: `${Math.round(sizeFactor * 10)}px`,
+              height: `${Math.round(sizeFactor * 10)}px`,
+            }}
+          />
+        </span>
+      )}
+      {badgeColor ? (
+        <ValueBadge color={badgeColor}>{text}</ValueBadge>
+      ) : (
+        <span className="min-w-0">{text}</span>
+      )}
+    </span>
+  );
+}
+
 function DataRecordPropertyValue({
   value,
   name,
@@ -401,6 +516,34 @@ function DataRecordPropertyValue({
   const { columnMetadata, columnDef } = useDataSourceColumn(dataSourceId, name);
   const inspectorColumn = useInspectorColumn(dataSourceId, name);
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+  const { getMarkerVisualisation } = useMarkerSettings();
+
+  // Columns driving the marker visualisation decode the marker's encodings
+  // inline, overriding any configured display format
+  const visualisation = getMarkerVisualisation(dataSourceId ?? "");
+  const isIcon =
+    visualisation.iconMode === MarkerIconMode.Categories &&
+    visualisation.iconColumn === name;
+  const isColor =
+    visualisation.colorMode === MarkerColorMode.Categories &&
+    visualisation.colorColumn === name;
+  const isSize =
+    visualisation.sizeMode === MarkerSizeMode.Scaled &&
+    visualisation.sizeColumn === name;
+  if (isIcon || isColor || isSize) {
+    return (
+      <MarkerEncodingValue
+        value={value}
+        name={name}
+        dataSourceId={dataSourceId}
+        isIcon={isIcon}
+        isColor={isColor}
+        isSize={isSize}
+        columnMetadata={columnMetadata}
+        columnType={columnDef?.type}
+      />
+    );
+  }
 
   const format = inspectorColumn?.displayFormat;
 
