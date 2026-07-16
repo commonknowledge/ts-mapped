@@ -182,74 +182,100 @@ export function useMapClickEffect({
 
     const handleMarkerClick = (e: mapboxgl.MapMouseEvent): boolean => {
       const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
-      const markerFeatures = map.queryRenderedFeatures(e.point, {
+      // Query a small box (not the exact pixel) for click forgiveness on
+      // small markers; returns every overlapping feature, top-most first
+      const clickBox: [mapboxgl.PointLike, mapboxgl.PointLike] = [
+        [e.point.x - 3, e.point.y - 3],
+        [e.point.x + 3, e.point.y + 3],
+      ];
+      const markerFeatures = map.queryRenderedFeatures(clickBox, {
         layers: validMarkerLayers,
       });
 
-      if (
-        markerFeatures.length &&
-        markerFeatures[0].geometry.type === "Point"
-      ) {
-        const properties = markerFeatures[0].properties;
+      const topFeature = markerFeatures[0];
+      if (!topFeature || topFeature.geometry.type !== "Point") {
+        return false;
+      }
 
-        if (properties?.cluster) {
-          // asJson is a ","-joined list of JSON objects built by clusterProperties.
-          // slice(0, -1) strips the trailing comma, then wrapping in "[]" gives a
-          // valid JSON array that can be parsed directly.
-          const asJson: string = properties?.asJson ?? "";
-          const parsedRecords = asJson
-            ? (JSON.parse("[" + asJson.slice(0, -1) + "]") as {
-                id: string;
-                dataSourceId: string;
-                name: string;
-              }[])
-            : [];
-          const records = [];
-          for (const { id, dataSourceId, name } of parsedRecords) {
-            records.push({
-              id,
-              dataSourceId,
-              name,
-              geocodePoint: {
-                lng: markerFeatures[0].geometry.coordinates[0],
-                lat: markerFeatures[0].geometry.coordinates[1],
-              },
-            });
-          }
-
-          resetInspector();
-          setSelectedRecords(records);
-
-          map.flyTo({
-            center: markerFeatures[0].geometry.coordinates as [number, number],
-            zoom: map.getZoom() + 1,
-          });
-        } else {
-          resetInspector();
-          if (markerFeatures[0].properties) {
-            setSelectedRecords([
-              {
-                id: markerFeatures[0].properties.id,
-                dataSourceId: markerFeatures[0].properties.dataSourceId || "",
-                name: markerFeatures[0].properties.name,
-                geocodePoint: {
-                  lng: markerFeatures[0].geometry.coordinates[0],
-                  lat: markerFeatures[0].geometry.coordinates[1],
-                },
-              },
-            ]);
-          }
-
-          map.flyTo({
-            center: markerFeatures[0].geometry.coordinates as [number, number],
-            zoom: Math.max(12, map.getZoom()),
+      if (topFeature.properties?.cluster) {
+        // asJson is a ","-joined list of JSON objects built by clusterProperties.
+        // slice(0, -1) strips the trailing comma, then wrapping in "[]" gives a
+        // valid JSON array that can be parsed directly.
+        const asJson: string = topFeature.properties?.asJson ?? "";
+        const parsedRecords = asJson
+          ? (JSON.parse("[" + asJson.slice(0, -1) + "]") as {
+              id: string;
+              dataSourceId: string;
+              name: string;
+            }[])
+          : [];
+        const records = [];
+        for (const { id, dataSourceId, name } of parsedRecords) {
+          records.push({
+            id,
+            dataSourceId,
+            name,
+            geocodePoint: {
+              lng: topFeature.geometry.coordinates[0],
+              lat: topFeature.geometry.coordinates[1],
+            },
           });
         }
+
+        resetInspector();
+        setSelectedRecords(records);
+
+        map.flyTo({
+          center: topFeature.geometry.coordinates as [number, number],
+          zoom: map.getZoom() + 1,
+        });
 
         return true;
       }
 
-      return false;
+      // Unclustered markers can be stacked (coincident geocodes can never be
+      // separated by zooming), so select every record under the click; the
+      // inspector shows a list when there is more than one. Dedupe by record
+      // — one marker can be hit on both its pins and labels layers.
+      const records = [];
+      const seen = new Set<string>();
+      for (const feature of markerFeatures) {
+        if (feature.geometry.type !== "Point" || feature.properties?.cluster) {
+          continue;
+        }
+        const properties = feature.properties;
+        if (!properties?.id) {
+          continue;
+        }
+        const key = `${properties.dataSourceId || ""}:${properties.id}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        records.push({
+          id: properties.id,
+          dataSourceId: properties.dataSourceId || "",
+          name: properties.name,
+          geocodePoint: {
+            lng: feature.geometry.coordinates[0],
+            lat: feature.geometry.coordinates[1],
+          },
+        });
+      }
+
+      if (records.length === 0) {
+        return false;
+      }
+
+      resetInspector();
+      setSelectedRecords(records);
+
+      map.flyTo({
+        center: topFeature.geometry.coordinates as [number, number],
+        zoom: Math.max(12, map.getZoom()),
+      });
+
+      return true;
     };
 
     const handleTurfClick = (e: mapboxgl.MapMouseEvent): boolean => {
