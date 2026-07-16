@@ -145,9 +145,8 @@ export const markerVisualisationSchema = z.object({
   colorColumn: z.string().optional(),
   opacityPct: z.number().min(0).max(100).optional(),
   showLabels: z.boolean().optional(),
-  legend: z
-    .object({ show: z.boolean(), display: z.array(z.string()) })
-    .optional(),
+  // The legend shows every enabled encoding (icon/colour/size)
+  legend: z.object({ show: z.boolean() }).optional(),
 });
 
 export type MarkerVisualisation = z.infer<typeof markerVisualisationSchema>;

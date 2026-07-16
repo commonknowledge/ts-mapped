@@ -586,9 +586,7 @@ export default function MarkerSettingsPanel({
           <span className="text-xs">Show legend</span>
           <Switch
             checked={Boolean(visualisation.legend?.show)}
-            onCheckedChange={(checked) =>
-              patch({ legend: { show: checked, display: [] } })
-            }
+            onCheckedChange={(checked) => patch({ legend: { show: checked } })}
           />
         </div>
       </div>
