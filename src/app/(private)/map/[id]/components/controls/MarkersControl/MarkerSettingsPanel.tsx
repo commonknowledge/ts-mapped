@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
@@ -96,14 +96,17 @@ export default function MarkerSettingsPanel({
   );
 
   const mapRef = useMapRef();
-  // Slider position while dragging; committed on release only, because a
-  // cluster settings change re-creates the GeoJSON source (a full
-  // re-index, which takes seconds on large sources)
-  const [draftClusterMaxZoom, setDraftClusterMaxZoom] = useState<number | null>(
-    null,
-  );
   // Clustering controls are locked while the map re-indexes
   const [reclustering, setReclustering] = useState(false);
+  const reclusteringPollRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (reclusteringPollRef.current !== null) {
+        window.clearInterval(reclusteringPollRef.current);
+      }
+    },
+    [],
+  );
 
   // Only show settings for sources actually on the map — a source can be
   // removed from the map while its settings panel is open
@@ -118,46 +121,53 @@ export default function MarkerSettingsPanel({
   const patch = (update: Parameters<typeof patchMarkerVisualisation>[1]) =>
     patchMarkerVisualisation(dataSourceId, update);
 
-  // Apply a cluster-settings change and lock the clustering controls until
-  // the map has finished re-indexing (its next "idle" event)
-  const patchClustering = (
-    update: Parameters<typeof patchMarkerVisualisation>[1],
-  ) => {
-    patch(update);
+  // Lock the clustering control until the map has finished re-indexing after
+  // a change that toggles the source's cluster state. Completion is detected
+  // by polling the GeoJSON source itself — the map-wide "idle" event is
+  // unreliable because it requires every source on the map to be loaded, not
+  // just this one.
+  const lockWhileReclustering = () => {
     const map = mapRef?.current?.getMap();
     if (!map) {
       return;
     }
     setReclustering(true);
-    // Give React a moment to re-create the source before watching for idle
-    window.setTimeout(() => {
-      map.once("idle", () => setReclustering(false));
-    }, 200);
-  };
-
-  const savedClusterMaxZoom = visualisation.clusterMaxZoom ?? 11;
-
-  const commitClusterMaxZoom = () => {
-    if (draftClusterMaxZoom === null) {
-      return;
+    if (reclusteringPollRef.current !== null) {
+      window.clearInterval(reclusteringPollRef.current);
     }
-    if (draftClusterMaxZoom !== savedClusterMaxZoom) {
-      patchClustering({ clusterMaxZoom: draftClusterMaxZoom });
-    }
-    setDraftClusterMaxZoom(null);
+    // A cluster-state change re-creates the source (new object identity),
+    // so: done once the new source exists and has finished indexing. The
+    // time cap is a backstop so the controls can never lock permanently.
+    const sourceId = `${dataSourceId}-markers`;
+    const oldSource = map.getSource(sourceId);
+    const startedAt = Date.now();
+    const poll = window.setInterval(() => {
+      const source = map.getSource(sourceId);
+      const swapped = Boolean(source) && source !== oldSource;
+      const timedOut = Date.now() - startedAt > 30_000;
+      if ((swapped && map.isSourceLoaded(sourceId)) || timedOut) {
+        window.clearInterval(poll);
+        reclusteringPollRef.current = null;
+        setReclustering(false);
+      }
+    }, 250);
+    reclusteringPollRef.current = poll;
   };
 
   const displayMode =
-    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Clusters;
-  const isMarkersMode = displayMode === MarkerDisplayMode.Clusters;
+    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Circles;
 
   const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
+    const wasClustered = displayMode === MarkerDisplayMode.Circles;
     updateMapConfig({
       markerDisplayModes: {
         ...mapConfig.markerDisplayModes,
         [dataSourceId]: mode,
       },
     });
+    if (wasClustered !== (mode === MarkerDisplayMode.Circles)) {
+      lockWhileReclustering();
+    }
   };
 
   // Default colour: view override, then data source default, then layer colour
@@ -307,64 +317,75 @@ export default function MarkerSettingsPanel({
 
       <Separator />
 
-      {/* Display as: controls which sections below apply */}
+      {/* Clustering: how the layer aggregates at low zoom. Individual
+          markers always show at high zoom and use the styling below. */}
       <div className="flex flex-col gap-2">
-        <Label className="text-xs font-mono uppercase text-muted-foreground">
-          Display as
+        <Label className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-1.5">
+          Clustering
+          {reclustering && (
+            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+          )}
         </Label>
         <Select
           value={displayMode}
+          disabled={reclustering}
           onValueChange={(v) => handleDisplayModeChange(v as MarkerDisplayMode)}
         >
           <SelectTrigger className="w-full bg-white">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={MarkerDisplayMode.Clusters}>Markers</SelectItem>
+            <SelectItem value={MarkerDisplayMode.Circles}>Circles</SelectItem>
             <SelectItem value={MarkerDisplayMode.Heatmap}>Heatmap</SelectItem>
             <SelectItem value={MarkerDisplayMode.Overlap}>Overlap</SelectItem>
+            <SelectItem value={MarkerDisplayMode.None}>None</SelectItem>
           </SelectContent>
         </Select>
+        {reclustering && (
+          <p className="text-xs text-muted-foreground">Updating clusters…</p>
+        )}
       </div>
 
       <Separator />
 
-      {/* Colour */}
       <div className="flex flex-col gap-2">
         <Label className="text-xs font-mono uppercase text-muted-foreground">
           Colour
         </Label>
-        {isMarkersMode && (
-          <Select
-            value={
-              visualisation.colorMode === MarkerColorMode.Categories
-                ? MarkerColorMode.Categories
-                : MarkerColorMode.Single
-            }
-            onValueChange={(v) =>
-              patch({
-                colorMode:
-                  v === MarkerColorMode.Categories
-                    ? MarkerColorMode.Categories
-                    : MarkerColorMode.Single,
-              })
-            }
-          >
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={MarkerColorMode.Single}>
-                Single colour
-              </SelectItem>
-              <SelectItem value={MarkerColorMode.Categories}>
-                By category
-              </SelectItem>
-            </SelectContent>
-          </Select>
+        {displayMode === MarkerDisplayMode.Heatmap && (
+          <p className="text-xs text-muted-foreground">
+            The heatmap uses a fixed density ramp; colours apply to the
+            individual markers shown when zoomed in.
+          </p>
         )}
-        {isMarkersMode &&
-        visualisation.colorMode === MarkerColorMode.Categories ? (
+        <Select
+          value={
+            visualisation.colorMode === MarkerColorMode.Categories
+              ? MarkerColorMode.Categories
+              : MarkerColorMode.Single
+          }
+          onValueChange={(v) =>
+            patch({
+              colorMode:
+                v === MarkerColorMode.Categories
+                  ? MarkerColorMode.Categories
+                  : MarkerColorMode.Single,
+            })
+          }
+        >
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={MarkerColorMode.Single}>
+              Single colour
+            </SelectItem>
+            <SelectItem value={MarkerColorMode.Categories}>
+              By category
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        {visualisation.colorMode === MarkerColorMode.Categories ? (
           <>
             {columnSelect(visualisation.colorColumn, (column) =>
               patch({ colorColumn: column }),
@@ -390,259 +411,187 @@ export default function MarkerSettingsPanel({
         )}
       </div>
 
-      {isMarkersMode && (
-        <>
-          <Separator />
+      <Separator />
 
-          {/* Icon */}
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-mono uppercase text-muted-foreground">
-              Icon
-            </Label>
-            <Select
-              value={
-                visualisation.iconMode === MarkerIconMode.Categories
+      {/* Icon */}
+      <div className="flex flex-col gap-2">
+        <Label className="text-xs font-mono uppercase text-muted-foreground">
+          Icon
+        </Label>
+        <Select
+          value={
+            visualisation.iconMode === MarkerIconMode.Categories
+              ? MarkerIconMode.Categories
+              : MarkerIconMode.None
+          }
+          onValueChange={(v) =>
+            patch({
+              iconMode:
+                v === MarkerIconMode.Categories
                   ? MarkerIconMode.Categories
-                  : MarkerIconMode.None
-              }
-              onValueChange={(v) =>
-                patch({
-                  iconMode:
-                    v === MarkerIconMode.Categories
-                      ? MarkerIconMode.Categories
-                      : MarkerIconMode.None,
-                })
-              }
-            >
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={MarkerIconMode.None}>Simple</SelectItem>
-                <SelectItem value={MarkerIconMode.Categories}>
-                  By category
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {visualisation.iconMode === MarkerIconMode.Categories && (
-              <>
-                {columnSelect(visualisation.iconColumn, (column) =>
-                  patch({ iconColumn: column }),
-                )}
-                {iconsEnabled && iconColumnValues === null && (
-                  <p className="text-xs text-muted-foreground">
-                    Too many values in this column to assign icons.
-                  </p>
-                )}
-                {iconsEnabled && sortedIconValues.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    {sortedIconValues.map((value) => {
-                      const assigned = iconColumnMetadata?.valueIcons?.[value];
-                      return (
-                        <div
-                          key={value}
-                          className="flex items-center justify-between gap-2"
-                        >
-                          <span className="text-xs truncate" title={value}>
-                            {formatCategoryValue(
-                              value,
-                              iconColumnMetadata?.valueLabels,
-                            )}
-                          </span>
-                          <span className="flex gap-0.5 shrink-0">
-                            {markerIconShapes.map((shape) => (
-                              <button
-                                key={shape}
-                                type="button"
-                                aria-label={`${shape} icon for ${value}`}
-                                className={cn(
-                                  "p-1 rounded cursor-pointer hover:bg-neutral-200",
-                                  assigned === shape &&
-                                    "bg-neutral-800 text-white hover:bg-neutral-700",
-                                )}
-                                onClick={() =>
-                                  setValueIcon(
-                                    value,
-                                    assigned === shape ? null : shape,
-                                  )
-                                }
-                              >
-                                <MarkerShapeIcon shape={shape} />
-                              </button>
-                            ))}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
+                  : MarkerIconMode.None,
+            })
+          }
+        >
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={MarkerIconMode.None}>Simple</SelectItem>
+            <SelectItem value={MarkerIconMode.Categories}>
+              By category
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        {visualisation.iconMode === MarkerIconMode.Categories && (
+          <>
+            {columnSelect(visualisation.iconColumn, (column) =>
+              patch({ iconColumn: column }),
             )}
-          </div>
-
-          <Separator />
-
-          {/* Size */}
-          <div className="flex flex-col gap-2">
-            <Label className="text-xs font-mono uppercase text-muted-foreground">
-              Size
-            </Label>
-            <Select
-              value={
-                visualisation.sizeMode === MarkerSizeMode.Scaled
-                  ? MarkerSizeMode.Scaled
-                  : MarkerSizeMode.Fixed
-              }
-              onValueChange={(v) =>
-                patch({
-                  sizeMode:
-                    v === MarkerSizeMode.Scaled
-                      ? MarkerSizeMode.Scaled
-                      : MarkerSizeMode.Fixed,
-                })
-              }
-            >
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={MarkerSizeMode.Fixed}>Fixed</SelectItem>
-                <SelectItem value={MarkerSizeMode.Scaled}>Scaled</SelectItem>
-              </SelectContent>
-            </Select>
-            {visualisation.sizeMode === MarkerSizeMode.Scaled && (
-              <>
-                {columnSelect(visualisation.sizeColumn, (column) =>
-                  patch({ sizeColumn: column }),
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-muted-foreground">Sort</span>
-                  <Select
-                    value={visualisation.sizeSortDesc ? "desc" : "asc"}
-                    onValueChange={(v) => patch({ sizeSortDesc: v === "desc" })}
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asc">Ascending</SelectItem>
-                      <SelectItem value="desc">Descending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Clustering */}
-          <div className="flex flex-col gap-3">
-            <Label className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-1.5">
-              Clustering
-              {reclustering && (
-                <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
-              )}
-            </Label>
-            {iconsEnabled ? (
+            {iconsEnabled && iconColumnValues === null && (
               <p className="text-xs text-muted-foreground">
-                Clustering is off while markers use icons.
+                Too many values in this column to assign icons.
               </p>
-            ) : (
-              <>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs">Cluster nearby markers</span>
-                  <Switch
-                    checked={visualisation.clusteringEnabled !== false}
-                    disabled={reclustering}
-                    onCheckedChange={(checked) =>
-                      patchClustering({ clusteringEnabled: checked })
-                    }
-                  />
-                </div>
-                {visualisation.clusteringEnabled !== false && (
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs">Stop clustering at zoom</span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min={0}
-                        max={22}
-                        disabled={reclustering}
-                        value={draftClusterMaxZoom ?? savedClusterMaxZoom}
-                        onChange={(e) =>
-                          setDraftClusterMaxZoom(Number(e.target.value))
-                        }
-                        // Commit on release only: each change re-indexes the
-                        // whole source, which takes seconds on large sources
-                        onPointerUp={commitClusterMaxZoom}
-                        onKeyUp={commitClusterMaxZoom}
-                        onBlur={commitClusterMaxZoom}
-                      />
-                      <span className="text-xs text-muted-foreground w-6 text-right">
-                        {draftClusterMaxZoom ?? savedClusterMaxZoom}
+            )}
+            {iconsEnabled && sortedIconValues.length > 0 && (
+              <div className="flex flex-col gap-1">
+                {sortedIconValues.map((value) => {
+                  const assigned = iconColumnMetadata?.valueIcons?.[value];
+                  return (
+                    <div
+                      key={value}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <span className="text-xs truncate" title={value}>
+                        {formatCategoryValue(
+                          value,
+                          iconColumnMetadata?.valueLabels,
+                        )}
+                      </span>
+                      <span className="flex gap-0.5 shrink-0">
+                        {markerIconShapes.map((shape) => (
+                          <button
+                            key={shape}
+                            type="button"
+                            aria-label={`${shape} icon for ${value}`}
+                            className={cn(
+                              "p-1 rounded cursor-pointer hover:bg-neutral-200",
+                              assigned === shape &&
+                                "bg-neutral-800 text-white hover:bg-neutral-700",
+                            )}
+                            onClick={() =>
+                              setValueIcon(
+                                value,
+                                assigned === shape ? null : shape,
+                              )
+                            }
+                          >
+                            <MarkerShapeIcon shape={shape} />
+                          </button>
+                        ))}
                       </span>
                     </div>
-                  </div>
-                )}
-                {reclustering && (
-                  <p className="text-xs text-muted-foreground">
-                    Updating clusters…
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        </>
-      )}
-
-      {displayMode !== MarkerDisplayMode.Heatmap && (
-        <>
-          <Separator />
-
-          {/* Display */}
-          <div className="flex flex-col gap-3">
-            <Label className="text-xs font-mono uppercase text-muted-foreground">
-              Display
-            </Label>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs">Opacity</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={visualisation.opacityPct ?? 100}
-                  onChange={(e) =>
-                    patch({ opacityPct: Number(e.target.value) })
-                  }
-                />
-                <span className="text-xs text-muted-foreground w-8 text-right">
-                  {visualisation.opacityPct ?? 100}%
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs">Labels</span>
-              <Switch
-                checked={visualisation.showLabels !== false}
-                onCheckedChange={(checked) => patch({ showLabels: checked })}
-              />
-            </div>
-            {isMarkersMode && (
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs">Show legend</span>
-                <Switch
-                  checked={Boolean(visualisation.legend?.show)}
-                  onCheckedChange={(checked) =>
-                    patch({ legend: { show: checked, display: [] } })
-                  }
-                />
+                  );
+                })}
               </div>
             )}
+          </>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Size */}
+      <div className="flex flex-col gap-2">
+        <Label className="text-xs font-mono uppercase text-muted-foreground">
+          Size
+        </Label>
+        <Select
+          value={
+            visualisation.sizeMode === MarkerSizeMode.Scaled
+              ? MarkerSizeMode.Scaled
+              : MarkerSizeMode.Fixed
+          }
+          onValueChange={(v) =>
+            patch({
+              sizeMode:
+                v === MarkerSizeMode.Scaled
+                  ? MarkerSizeMode.Scaled
+                  : MarkerSizeMode.Fixed,
+            })
+          }
+        >
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={MarkerSizeMode.Fixed}>Fixed</SelectItem>
+            <SelectItem value={MarkerSizeMode.Scaled}>Scaled</SelectItem>
+          </SelectContent>
+        </Select>
+        {visualisation.sizeMode === MarkerSizeMode.Scaled && (
+          <>
+            {columnSelect(visualisation.sizeColumn, (column) =>
+              patch({ sizeColumn: column }),
+            )}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">Sort</span>
+              <Select
+                value={visualisation.sizeSortDesc ? "desc" : "asc"}
+                onValueChange={(v) => patch({ sizeSortDesc: v === "desc" })}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                  <SelectItem value="desc">Descending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Display */}
+      <div className="flex flex-col gap-3">
+        <Label className="text-xs font-mono uppercase text-muted-foreground">
+          Display
+        </Label>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs">Opacity</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={visualisation.opacityPct ?? 100}
+              onChange={(e) => patch({ opacityPct: Number(e.target.value) })}
+            />
+            <span className="text-xs text-muted-foreground w-8 text-right">
+              {visualisation.opacityPct ?? 100}%
+            </span>
           </div>
-        </>
-      )}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs">Labels</span>
+          <Switch
+            checked={visualisation.showLabels !== false}
+            onCheckedChange={(checked) => patch({ showLabels: checked })}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs">Show legend</span>
+          <Switch
+            checked={Boolean(visualisation.legend?.show)}
+            onCheckedChange={(checked) =>
+              patch({ legend: { show: checked, display: [] } })
+            }
+          />
+        </div>
+      </div>
     </div>
   );
 }

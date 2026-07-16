@@ -92,7 +92,7 @@ describe("copyMapsToOrganisation", () => {
           markerDataSourceIds: [includedDs.id, excludedDs.id],
           membersDataSourceId: membersDs.id,
           markerDisplayModes: {
-            [includedDs.id]: MarkerDisplayMode.Clusters,
+            [includedDs.id]: MarkerDisplayMode.Circles,
             [excludedDs.id]: MarkerDisplayMode.Heatmap,
           },
         },

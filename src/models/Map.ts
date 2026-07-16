@@ -1,10 +1,15 @@
 import z from "zod";
 
+// How a marker layer aggregates at low zoom; individual markers always show
+// at high zoom and support the full shape/colour/size styling in every mode
 export enum MarkerDisplayMode {
-  Clusters = "clusters",
+  // Cluster circles at low zoom ("clusters" value kept for stored configs)
+  Circles = "clusters",
   Heatmap = "heatmap",
   // Uniform semi-transparent dots, no clustering: density reads via overdraw
   Overlap = "overlap",
+  // No clustering, plain markers at every zoom
+  None = "none",
 }
 
 const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);

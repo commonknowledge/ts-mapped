@@ -23,7 +23,7 @@ import {
   usePublicMapValue,
 } from "../../publish/hooks/usePublicMap";
 import { mapColors } from "../../styles";
-import { ClustersLayer } from "./ClustersLayer";
+import { ClustersLayer, UNCLUSTERED_FILTER } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
 import {
   buildCategoryColorMap,
@@ -33,9 +33,9 @@ import {
   buildSortKeyExpression,
   getDistinctFeatureValues,
 } from "./markerStyle";
-import { OverlapLayer } from "./OverlapLayer";
+import { PinsLayer } from "./PinsLayer";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
-import type { MarkerPinStyle } from "./ClustersLayer";
+import type { MarkerPinStyle } from "./PinsLayer";
 import type { MarkerVisualisation } from "@/models/MapView";
 import type { MarkerFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
@@ -79,9 +79,6 @@ export function DataSourceMarkers({
   const mapMode = useMapMode();
 
   const dataSourceId = dataSourceMarkers.dataSourceId;
-
-  const displayMode =
-    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Clusters;
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     const hasClientFilters =
@@ -153,6 +150,9 @@ export function DataSourceMarkers({
 
   // Column-driven styling (private editor only)
   const visualisation = mapMode === "public" ? undefined : markerVisualisation;
+
+  const displayMode =
+    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Circles;
   const iconColumn =
     visualisation?.iconMode === MarkerIconMode.Categories
       ? visualisation.iconColumn
@@ -263,28 +263,20 @@ export function DataSourceMarkers({
     color,
   ]);
 
-  // Icon markers are meant to be read individually, so icon mode fully
-  // disables clustering for the layer; the per-view clustering switch can
-  // also turn it off
-  const clustered =
-    displayMode === MarkerDisplayMode.Clusters &&
-    !pinStyle?.useIcons &&
-    visualisation?.clusteringEnabled !== false;
-
-  const clusterMaxZoom = publicMap
-    ? 22
-    : Math.min(22, Math.max(0, visualisation?.clusterMaxZoom ?? 11));
+  // Only Circles mode clusters the source; icon pins simply appear once
+  // points leave their clusters at high zoom
+  const clustered = displayMode === MarkerDisplayMode.Circles;
 
   return (
     <Source
       id={sourceId}
-      // Keyed by cluster options: GeoJSON source cluster options cannot be
+      // Keyed by cluster state: GeoJSON source cluster options cannot be
       // changed in place, so changing them must re-create the source
-      key={`${sourceId}-${clustered ? `clustered-${clusterMaxZoom}` : "unclustered"}`}
+      key={`${sourceId}-${clustered ? "clustered" : "unclustered"}`}
       type="geojson"
       data={safeMarkers}
       cluster={clustered}
-      clusterMaxZoom={clusterMaxZoom}
+      clusterMaxZoom={publicMap ? 22 : 11}
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
@@ -295,20 +287,23 @@ export function DataSourceMarkers({
         asJson: ["concat", ["concat", ["get", "asJson"], ","]],
       }}
     >
-      {displayMode === MarkerDisplayMode.Clusters && (
-        <ClustersLayer sourceId={sourceId} color={color} pinStyle={pinStyle} />
+      {displayMode === MarkerDisplayMode.Circles && (
+        <ClustersLayer sourceId={sourceId} color={color} />
       )}
       {displayMode === MarkerDisplayMode.Heatmap && (
-        <HeatmapLayer sourceId={sourceId} color={color} />
-      )}
-      {displayMode === MarkerDisplayMode.Overlap && (
-        <OverlapLayer
+        <HeatmapLayer
           sourceId={sourceId}
-          color={color}
           opacity={(visualisation?.opacityPct ?? 100) / 100}
-          showLabels={visualisation?.showLabels !== false}
         />
       )}
+      <PinsLayer
+        sourceId={sourceId}
+        color={color}
+        pinStyle={pinStyle}
+        filter={clustered ? UNCLUSTERED_FILTER : undefined}
+        minzoom={displayMode === MarkerDisplayMode.Heatmap ? 10 : undefined}
+        overdraw={displayMode === MarkerDisplayMode.Overlap}
+      />
     </Source>
   );
 }

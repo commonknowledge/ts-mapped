@@ -148,9 +148,6 @@ export const markerVisualisationSchema = z.object({
   legend: z
     .object({ show: z.boolean(), display: z.array(z.string()) })
     .optional(),
-  // Clustering (private editor): on by default; icon mode always disables it
-  clusteringEnabled: z.boolean().optional(),
-  clusterMaxZoom: z.number().min(0).max(22).optional(),
 });
 
 export type MarkerVisualisation = z.infer<typeof markerVisualisationSchema>;
