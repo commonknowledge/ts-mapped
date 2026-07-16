@@ -17,7 +17,7 @@ import { getCategoryColorScale, getTrafficLightPreset } from "@/utils/colors";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export const VALUE_ORDER_HINT =
-  "Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first.";
+  "Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first. The same order drives scaled marker sizes and the legend.";
 
 interface ColorMappingsEditorProps {
   /** Sorted distinct values to display. `undefined` = still loading, `null` = too many values. */
@@ -45,6 +45,8 @@ interface ColorMappingsEditorProps {
    * traffic-light preset for severity-like columns).
    */
   onBulkChange?: (mappings: Record<string, string>) => void;
+  /** Order-only mode: hides the per-row colour pickers and colour actions */
+  hideColors?: boolean;
 }
 
 export default function ColorMappingsEditor({
@@ -59,6 +61,7 @@ export default function ColorMappingsEditor({
   onReorder,
   reorderHint,
   onBulkChange,
+  hideColors = false,
 }: ColorMappingsEditorProps) {
   // Local order so rows follow the drag immediately; re-synced when the
   // saved order arrives back through props
@@ -73,7 +76,7 @@ export default function ColorMappingsEditor({
   if (values === null) {
     return (
       <p className="text-sm text-muted-foreground p-3">
-        Too many unique values to configure colours.
+        Too many unique values to configure{hideColors ? "" : " colours"}.
       </p>
     );
   }
@@ -84,9 +87,11 @@ export default function ColorMappingsEditor({
   }
 
   const defaultColor = getCategoryColorScale(values);
-  const hasMappings = Object.keys(colorMappings).length > 0;
+  const hasMappings = !hideColors && Object.keys(colorMappings).length > 0;
   const sortable = Boolean(onReorder);
-  const showTrafficLightPreset = Boolean(onBulkChange) && values.length >= 2;
+  const showTrafficLightPreset =
+    !hideColors && Boolean(onBulkChange) && values.length >= 2;
+  const showSourceColors = !hideColors && Boolean(onUseSourceColors);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -112,8 +117,9 @@ export default function ColorMappingsEditor({
         key={value}
         value={value}
         displayColor={displayColor}
-        hasExplicitColor={Boolean(explicit)}
+        hasExplicitColor={!hideColors && Boolean(explicit)}
         sortable={sortable}
+        hideColor={hideColors}
         onChange={onChange}
         onReset={onReset}
       />
@@ -141,7 +147,7 @@ export default function ColorMappingsEditor({
       ) : (
         rows
       )}
-      {(showTrafficLightPreset || hasMappings || onUseSourceColors) && (
+      {(showTrafficLightPreset || hasMappings || showSourceColors) && (
         <div className="mt-1 flex flex-col">
           {showTrafficLightPreset && (
             <Button
@@ -166,7 +172,7 @@ export default function ColorMappingsEditor({
               Reset all colours
             </Button>
           )}
-          {onUseSourceColors && (
+          {showSourceColors && (
             <Button
               variant="ghost"
               size="sm"
@@ -197,6 +203,7 @@ function ColorMappingRow({
   displayColor,
   hasExplicitColor,
   sortable,
+  hideColor,
   onChange,
   onReset,
 }: {
@@ -204,6 +211,7 @@ function ColorMappingRow({
   displayColor: string;
   hasExplicitColor: boolean;
   sortable: boolean;
+  hideColor: boolean;
   onChange: (value: string, color: string) => void;
   onReset: (value: string) => void;
 }) {
@@ -227,18 +235,20 @@ function ColorMappingRow({
           <GripVertical className="h-4 w-4" />
         </button>
       )}
-      <label className="relative cursor-pointer shrink-0">
-        <div
-          className="w-7 h-7 rounded border border-neutral-300"
-          style={{ backgroundColor: displayColor }}
-        />
-        <Input
-          type="color"
-          value={displayColor}
-          onChange={(e) => onChange(value, e.target.value)}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer p-0"
-        />
-      </label>
+      {!hideColor && (
+        <label className="relative cursor-pointer shrink-0">
+          <div
+            className="w-7 h-7 rounded border border-neutral-300"
+            style={{ backgroundColor: displayColor }}
+          />
+          <Input
+            type="color"
+            value={displayColor}
+            onChange={(e) => onChange(value, e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer p-0"
+          />
+        </label>
+      )}
       <span className="font-mono text-xs text-muted-foreground truncate flex-1">
         {value || "(blank)"}
       </span>

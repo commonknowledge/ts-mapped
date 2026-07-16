@@ -549,6 +549,21 @@ export default function MarkerSettingsPanel({
                 </SelectContent>
               </Select>
             </div>
+            {visualisation.sizeColumn && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setEditColumnMetadata({
+                    dataSourceId,
+                    column: visualisation.sizeColumn ?? "",
+                    fields: { valueOrder: true },
+                  })
+                }
+              >
+                Set value order
+              </Button>
+            )}
           </>
         )}
       </div>

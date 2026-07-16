@@ -18,6 +18,8 @@ interface ColorMappingsSectionProps {
   ownerMeta: ColumnMetadata | undefined;
   isOwner: boolean;
   organisationId: string | null | undefined;
+  /** Order-only mode: just the drag-reorderable value list, no colour UI */
+  hideColors?: boolean;
 }
 
 export default function ColorMappingsSection({
@@ -28,6 +30,7 @@ export default function ColorMappingsSection({
   ownerMeta,
   isOwner,
   organisationId,
+  hideColors = false,
 }: ColorMappingsSectionProps) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { patchColumnMetadata, patchColumnMetadataOverride } =
@@ -235,9 +238,12 @@ export default function ColorMappingsSection({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium">Colour mappings</label>
+      <label className="text-sm font-medium">
+        {hideColors ? "Value order" : "Colour mappings"}
+      </label>
       <div className="rounded-md border">
         <ColorMappingsEditor
+          hideColors={hideColors}
           values={orderedValues}
           colorMappings={mapViewColorMappings}
           fallbackColors={existingMeta?.valueColors}
