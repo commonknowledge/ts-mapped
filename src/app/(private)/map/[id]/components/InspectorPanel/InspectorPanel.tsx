@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import {
   ArrowLeftIcon,
@@ -11,6 +10,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { useBoundaryMarkers } from "@/app/(private)/map/[id]/hooks/useBoundaryMarkers";
 import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAreaStats";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
@@ -19,9 +19,6 @@ import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSele
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
-import { parseAreaGeography } from "@/models/Area";
-import { AreaSetCode } from "@/models/AreaSet";
-import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { LayerType } from "@/types";
@@ -54,26 +51,16 @@ export default function InspectorPanel() {
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
 
-  const trpc = useTRPC();
   const { insertTurf, loading: savingTurf } = useTurfMutations();
   const { areaToDisplay } = useDisplayAreaStat(selectedBoundary);
 
-  // Fetch boundary geography when a boundary is selected
-  const { data: areaData } = useQuery(
-    trpc.area.byCode.queryOptions(
-      {
-        code: selectedBoundary?.code || "",
-        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
-      },
-      { enabled: Boolean(selectedBoundary && type === LayerType.Boundary) },
-    ),
-  );
-
-  const geography = useMemo(
-    () =>
-      areaData?.geoJson ? parseAreaGeography(areaData.geoJson) : undefined,
-    [areaData],
-  );
+  // Boundary geography plus the markers inside it (shared with the Markers
+  // tab, so the tab count always matches the list)
+  const {
+    areaGeoJson,
+    geography,
+    markerCount: boundaryMarkerCount,
+  } = useBoundaryMarkers(type === LayerType.Boundary ? selectedBoundary : null);
 
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
   const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
@@ -124,7 +111,12 @@ export default function InspectorPanel() {
     (selectedBoundary && type !== LayerType.Boundary),
   );
 
-  const markerCount = selectedRecords?.length || 0;
+  // Boundaries count the markers inside them; clusters count the selected
+  // records the cluster click put in the inspector
+  const markerCount =
+    type === LayerType.Boundary
+      ? boundaryMarkerCount
+      : selectedRecords?.length || 0;
 
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
@@ -153,7 +145,7 @@ export default function InspectorPanel() {
         label: selectedBoundary.name || "Boundary",
         notes: "",
         area: roundedArea,
-        polygon: areaData?.geoJson ?? "",
+        polygon: areaGeoJson ?? "",
         position: 0,
       });
 
@@ -282,7 +274,7 @@ export default function InspectorPanel() {
           <Button
             className="w-full"
             onClick={handleAddToMyAreas}
-            disabled={savingTurf || !areaData}
+            disabled={savingTurf || !areaGeoJson}
           >
             <PlusIcon />
             Add to areas

@@ -147,6 +147,9 @@ export const markerVisualisationSchema = z.object({
   showLabels: z.boolean().optional(),
   // The legend shows every enabled encoding (icon/colour/size)
   legend: z.object({ show: z.boolean() }).optional(),
+  // Group-by column for the marker-count bar chart shown when a boundary
+  // is clicked (inspector Markers tab)
+  boundaryChartColumn: z.string().optional(),
 });
 
 export type MarkerVisualisation = z.infer<typeof markerVisualisationSchema>;

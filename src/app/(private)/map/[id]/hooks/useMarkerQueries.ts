@@ -50,6 +50,7 @@ export function useMarkerQueries() {
             visualisation?.iconColumn,
             visualisation?.sizeColumn,
             visualisation?.colorColumn,
+            visualisation?.boundaryChartColumn,
           ].filter((c): c is string => Boolean(c)),
         ),
       ].sort();

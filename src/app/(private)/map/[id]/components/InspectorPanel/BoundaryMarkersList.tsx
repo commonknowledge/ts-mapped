@@ -1,88 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
-import { useMemo } from "react";
 
-import { useFoldersQuery } from "@/app/(private)/map/[id]/hooks/useFolders";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
-import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
-import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
-import { useDataSources } from "@/hooks/useDataSources";
-import { parseAreaGeography } from "@/models/Area";
-import { AreaSetCode } from "@/models/AreaSet";
-import { DataSourceRecordType } from "@/models/DataSource";
-
-import { useTRPC } from "@/services/trpc/react";
-import { useMarkerQueries } from "../../hooks/useMarkerQueries";
+import { ColumnType } from "@/models/DataSource";
 import {
-  getMarkersInsideBoundary,
-  getMarkersInsidePolygon,
-  groupPlacedMarkersByFolder,
-} from "./helpers";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { useBoundaryMarkers } from "../../hooks/useBoundaryMarkers";
+import { useMarkerSettings } from "../../hooks/useMarkerSettings";
+import MarkerCountsChart from "./MarkerCountsChart";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
+import type { DataSource } from "@/models/DataSource";
+import type { MarkerFeature } from "@/types";
+
+const NONE_VALUE = "__none__";
 
 export default function BoundaryMarkersList() {
-  const { getDataSourceById } = useDataSources();
-  const { mapConfig } = useMapConfig();
-  const { data: folders = [] } = useFoldersQuery();
-  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const markerQueries = useMarkerQueries();
   const { selectedBoundary } = useInspectorState();
-
-  const trpc = useTRPC();
-  const { data: areaData, isPending: areaDataLoading } = useQuery(
-    trpc.area.byCode.queryOptions(
-      {
-        code: selectedBoundary?.code || "",
-        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
-      },
-      { enabled: Boolean(selectedBoundary) },
-    ),
-  );
-
-  const geography = useMemo(
-    () =>
-      areaData?.geoJson ? parseAreaGeography(areaData.geoJson) : undefined,
-    [areaData],
-  );
-
-  // frontend filtering - looking for markers within the selected boundary
-  const filteredData = useMemo(() => {
-    if (!geography || !markerQueries.data) {
-      return [];
-    }
-
-    return getMarkersInsideBoundary(markerQueries.data, geography).map(
-      (data) => ({ ...data, dataSource: getDataSourceById(data.dataSourceId) }),
-    );
-  }, [geography, getDataSourceById, markerQueries.data]);
-
-  const members = useMemo(
-    () =>
-      filteredData.find(
-        (item) =>
-          item?.dataSource?.recordType === DataSourceRecordType.Members ||
-          item?.dataSource?.id === mapConfig.membersDataSourceId,
-      ),
-    [filteredData, mapConfig.membersDataSourceId],
-  );
-
-  const markers = useMemo(
-    () =>
-      filteredData.filter(
-        (item) =>
-          item?.dataSource?.recordType !== DataSourceRecordType.Members &&
-          item?.dataSource?.id !== mapConfig.membersDataSourceId,
-      ),
-    [filteredData, mapConfig.membersDataSourceId],
-  );
-
-  const placedMarkersInBoundary = useMemo(() => {
-    return getMarkersInsidePolygon(placedMarkers, geography);
-  }, [geography, placedMarkers]);
-
-  const placedMarkersByFolder = useMemo(() => {
-    return groupPlacedMarkersByFolder(placedMarkersInBoundary, folders);
-  }, [folders, placedMarkersInBoundary]);
+  const {
+    areaDataLoading,
+    members,
+    markers,
+    placedMarkersInBoundary,
+    placedMarkersByFolder,
+  } = useBoundaryMarkers(selectedBoundary);
 
   if (areaDataLoading) {
     return <LoaderPinwheel className="animate-spin" size={16} />;
@@ -119,7 +63,7 @@ export default function BoundaryMarkersList() {
 
         {markers?.length > 0 &&
           markers.map((markersGroup) => (
-            <MarkersList
+            <BoundaryMarkersGroup
               key={`markers-${markersGroup.dataSource?.id || "no-datasource"}`}
               dataSource={markersGroup.dataSource}
               markers={markersGroup.markers}
@@ -127,5 +71,67 @@ export default function BoundaryMarkersList() {
           ))}
       </div>
     </div>
+  );
+}
+
+// Per-source section: group-by dropdown + summary chart + marker list
+function BoundaryMarkersGroup({
+  dataSource,
+  markers,
+}: {
+  dataSource: DataSource | undefined | null;
+  markers: MarkerFeature[];
+}) {
+  const { getMarkerVisualisation, patchMarkerVisualisation } =
+    useMarkerSettings();
+
+  const dataSourceId = dataSource?.id ?? "";
+  const chartColumn = getMarkerVisualisation(dataSourceId).boundaryChartColumn;
+  const stringColumns = (dataSource?.columnDefs ?? []).filter(
+    (c) => c.type === ColumnType.String,
+  );
+
+  return (
+    <MarkersList dataSource={dataSource} markers={markers}>
+      {dataSource && stringColumns.length > 0 && (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground shrink-0">
+              Group by
+            </span>
+            <Select
+              value={chartColumn || NONE_VALUE}
+              onValueChange={(v) =>
+                patchMarkerVisualisation(dataSourceId, {
+                  boundaryChartColumn: v === NONE_VALUE ? undefined : v,
+                })
+              }
+            >
+              <SelectTrigger
+                size="sm"
+                className="text-xs max-w-48 truncate cursor-pointer"
+              >
+                <SelectValue placeholder="None" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_VALUE}>None</SelectItem>
+                {stringColumns.map((c) => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {chartColumn && (
+            <MarkerCountsChart
+              dataSourceId={dataSourceId}
+              column={chartColumn}
+              markers={markers}
+            />
+          )}
+        </>
+      )}
+    </MarkersList>
   );
 }
