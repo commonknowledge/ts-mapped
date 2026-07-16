@@ -1,5 +1,5 @@
 import { getCategoryColorScale } from "@/utils/colors";
-import { sortColumnValues } from "@/utils/sortColumnValues";
+import { parseRangeString, sortColumnValues } from "@/utils/sortColumnValues";
 import { getCategoryColorsKey } from "../../colors";
 import { MarkerIconShape, getMarkerIconImageId } from "./markerIcons";
 import type { ColumnMetadata } from "@/models/DataSource";
@@ -104,6 +104,58 @@ const MIN_SIZE_FACTOR = 0.6;
 const MAX_SIZE_FACTOR = 1.8;
 
 /**
+ * Each column value's size factor, in canonical value order (valueOrder ->
+ * range parsing -> alphabetical): values map onto the ramp smallest-first,
+ * or largest-first when descending. Shared by the map expression and the
+ * legend so displayed sizes always match the map.
+ */
+export const getOrderedSizeFactors = ({
+  values,
+  columnMetadata,
+  descending,
+}: {
+  values: string[];
+  columnMetadata: ColumnMetadata | undefined;
+  descending: boolean | undefined;
+}): { value: string; factor: number }[] => {
+  const ordered = sortColumnValues({ values, columnMetadata });
+
+  // On range-ordered columns, values with no explicit valueOrder position
+  // and no parseable magnitude (e.g. "N/A") carry no ordinal meaning: they
+  // get the smallest size rather than a ramp position. Columns where nothing
+  // parses (hand-ordered or alphabetical ordinals) ramp every value as-is.
+  const explicitOrder = new Set(columnMetadata?.valueOrder ?? []);
+  const anyParseable = ordered.some((v) => parseRangeString(v) !== null);
+  const ramped: string[] = [];
+  const unrankable: string[] = [];
+  for (const value of ordered) {
+    if (
+      anyParseable &&
+      !explicitOrder.has(value) &&
+      parseRangeString(value) === null
+    ) {
+      unrankable.push(value);
+    } else {
+      ramped.push(value);
+    }
+  }
+  if (descending) {
+    ramped.reverse();
+  }
+
+  const factors: { value: string; factor: number }[] = [];
+  for (const value of unrankable) {
+    factors.push({ value, factor: MIN_SIZE_FACTOR });
+  }
+  for (let i = 0; i < ramped.length; i++) {
+    const t = ramped.length === 1 ? 1 : i / (ramped.length - 1);
+    const factor = MIN_SIZE_FACTOR + t * (MAX_SIZE_FACTOR - MIN_SIZE_FACTOR);
+    factors.push({ value: ramped[i], factor: Math.round(factor * 100) / 100 });
+  }
+  return factors;
+};
+
+/**
  * Scale markers by column value, ordinally: distinct values in their
  * canonical order (valueOrder -> range parsing -> alphabetical) map onto a
  * size ramp. Unknown/empty values get the smallest size.
@@ -122,15 +174,13 @@ export const buildSizeFactorExpression = ({
   if (values.length === 0) {
     return 1;
   }
-  const ordered = sortColumnValues({ values, columnMetadata });
-  if (descending) {
-    ordered.reverse();
-  }
   const branches: (string | number)[] = [];
-  for (let i = 0; i < ordered.length; i++) {
-    const t = ordered.length === 1 ? 1 : i / (ordered.length - 1);
-    const factor = MIN_SIZE_FACTOR + t * (MAX_SIZE_FACTOR - MIN_SIZE_FACTOR);
-    branches.push(ordered[i], Math.round(factor * 100) / 100);
+  for (const { value, factor } of getOrderedSizeFactors({
+    values,
+    columnMetadata,
+    descending,
+  })) {
+    branches.push(value, factor);
   }
   return [
     "match",

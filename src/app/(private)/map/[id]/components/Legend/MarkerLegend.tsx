@@ -17,6 +17,7 @@ import { useMapViews } from "../../hooks/useMapViews";
 import {
   buildCategoryColorMap,
   formatCategoryValue,
+  getOrderedSizeFactors,
 } from "../Markers/markerStyle";
 import MarkerShapeIcon from "../MarkerShapeIcon";
 import type { MarkerVisualisation } from "@/models/MapView";
@@ -86,6 +87,8 @@ function DataSourceMarkerLegend({
   );
   const { columnMetadata: colorColumnMetadata, columnDef: colorColumnDef } =
     useDataSourceColumn(dataSourceId, colorColumn || "");
+  const { columnMetadata: sizeColumnMetadata, columnDef: sizeColumnDef } =
+    useDataSourceColumn(dataSourceId, sizeColumn || "");
 
   // Same canonical value list as the marker colour expression, so legend
   // swatches (including auto-assigned defaults) match the map exactly
@@ -95,6 +98,13 @@ function DataSourceMarkerLegend({
     columnType: colorColumnDef?.type ?? ColumnType.Unknown,
     nullIsZero: dataSource?.nullIsZero,
     enabled: Boolean(colorColumn),
+  });
+  const sizeColumnValues = useColumnValues({
+    dataSourceId,
+    column: sizeColumn || "",
+    columnType: sizeColumnDef?.type ?? ColumnType.Unknown,
+    nullIsZero: dataSource?.nullIsZero,
+    enabled: Boolean(sizeColumn),
   });
 
   if (!dataSource) {
@@ -117,10 +127,21 @@ function DataSourceMarkerLegend({
     : {};
   const colorValues = Object.keys(colorMap);
 
+  // Same value->factor mapping as the map's size expression, shown largest
+  // first and sampled down to a handful of rows when there are many values
+  const sizeFactors = sizeColumn
+    ? getOrderedSizeFactors({
+        values: sizeColumnValues ?? [],
+        columnMetadata: sizeColumnMetadata,
+        descending: visualisation.sizeSortDesc,
+      })
+    : [];
+  const sizeRows = sampleEvenly([...sizeFactors].reverse(), MAX_SIZE_ROWS);
+
   const hasContent =
     (iconColumn && iconValues.length > 0) ||
     (colorColumn && colorValues.length > 0) ||
-    Boolean(sizeColumn);
+    (sizeColumn && sizeRows.length > 0);
 
   if (!hasContent) {
     return null;
@@ -158,22 +179,42 @@ function DataSourceMarkerLegend({
           ))}
         </LegendSection>
       )}
-      {sizeColumn && (
+      {sizeColumn && sizeRows.length > 0 && (
         <LegendSection label={sizeColumn}>
-          <div className="flex items-center gap-2">
-            <span className="flex items-end gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
-              <span className="w-2.5 h-2.5 rounded-full bg-neutral-400" />
-              <span className="w-3.5 h-3.5 rounded-full bg-neutral-400" />
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {visualisation.sizeSortDesc ? "high to low" : "low to high"}
-            </span>
-          </div>
+          {sizeRows.map(({ value, factor }) => (
+            <div key={value} className="flex items-center gap-2">
+              <span className="w-[18px] flex items-center justify-center shrink-0">
+                <span
+                  className="rounded-full bg-neutral-400"
+                  style={{
+                    width: `${Math.round(factor * 10)}px`,
+                    height: `${Math.round(factor * 10)}px`,
+                  }}
+                />
+              </span>
+              <span className="text-xs truncate">
+                {formatCategoryValue(value, sizeColumnMetadata?.valueLabels)}
+              </span>
+            </div>
+          ))}
         </LegendSection>
       )}
     </div>
   );
+}
+
+const MAX_SIZE_ROWS = 5;
+
+// Every nth item so at most `max` remain, always keeping first and last
+function sampleEvenly<T>(items: T[], max: number): T[] {
+  if (items.length <= max) {
+    return items;
+  }
+  const sampled: T[] = [];
+  for (let i = 0; i < max; i++) {
+    sampled.push(items[Math.round((i * (items.length - 1)) / (max - 1))]);
+  }
+  return sampled;
 }
 
 function LegendSection({
