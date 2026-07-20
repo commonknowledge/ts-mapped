@@ -36,6 +36,6 @@ export default function BooleanValueDisplay({ value }: { value: unknown }) {
   return bool ? (
     <Check className="h-4 w-4 text-green-600" aria-label="Yes" />
   ) : (
-    <X className="h-4 w-4 text-neutral-400" aria-label="No" />
+    <X className="h-4 w-4 text-black" aria-label="No" />
   );
 }

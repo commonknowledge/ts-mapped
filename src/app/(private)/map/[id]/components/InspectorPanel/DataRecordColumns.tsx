@@ -132,7 +132,9 @@ function LargeTextValue({
     columnMetadata,
   });
   return (
-    <p className="whitespace-pre-wrap break-words text-neutral-800">{text}</p>
+    <p className="whitespace-pre-wrap break-words text-xl text-neutral-800">
+      {text}
+    </p>
   );
 }
 
