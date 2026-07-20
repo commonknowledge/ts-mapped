@@ -1,13 +1,14 @@
 import * as turf from "@turf/turf";
 import {
   ArrowLeftIcon,
+  ChevronDownIcon,
   InfoIcon,
   MapPinIcon,
+  MinusIcon,
   PlusIcon,
   TableIcon,
-  XIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useBoundaryMarkers } from "@/app/(private)/map/[id]/hooks/useBoundaryMarkers";
@@ -37,16 +38,23 @@ export default function InspectorPanel() {
   const [activeTab, setActiveTab] = useState("data");
 
   const {
-    resetInspector,
     selectedBoundary,
     selectedTurf,
     setFocusedRecord,
     selectedRecords,
     focusedRecord,
+    inspectorMinimized,
+    setInspectorMinimized,
   } = useInspectorState();
   const { inspectorContent } = useInspectorContent();
   const { type, dataSource } = inspectorContent ?? {};
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
+
+  // Selecting something new re-opens a minimised inspector
+  const contentKey = `${type ?? ""}:${String(inspectorContent?.name ?? "")}`;
+  useEffect(() => {
+    setInspectorMinimized(false);
+  }, [contentKey, setInspectorMinimized]);
 
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
@@ -103,6 +111,30 @@ export default function InspectorPanel() {
           Click an area or marker on the map to see more details.
         </p>
       </div>
+    );
+  }
+
+  if (inspectorMinimized) {
+    return (
+      <button
+        id="inspector-panel"
+        type="button"
+        className="relative z-50 flex items-center gap-2 rounded shadow-lg bg-white text-sm font-sans px-3 py-2 pointer-events-auto cursor-pointer self-start"
+        style={{ maxWidth: "450px", minWidth: "250px" }}
+        aria-label="Expand inspector panel"
+        onClick={() => setInspectorMinimized(false)}
+      >
+        {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
+          <span
+            className="w-4 h-4 rounded shrink-0 border border-neutral-200"
+            style={{ backgroundColor: areaToDisplay.backgroundColor }}
+          />
+        )}
+        <span className="grow min-w-0 truncate text-left text-sm font-semibold">
+          {inspectorContent?.name as string}
+        </span>
+        <ChevronDownIcon size={16} className="shrink-0" />
+      </button>
     );
   }
 
@@ -202,10 +234,10 @@ export default function InspectorPanel() {
         </div>
         <button
           className="cursor-pointer self-start"
-          aria-label="Close inspector panel"
-          onClick={() => resetInspector()}
+          aria-label="Minimise inspector panel"
+          onClick={() => setInspectorMinimized(true)}
         >
-          <XIcon size={16} />
+          <MinusIcon size={16} />
         </button>
       </div>
 

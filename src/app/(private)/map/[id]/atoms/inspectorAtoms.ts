@@ -11,3 +11,5 @@ export const focusedRecordAtom = atom<SelectedRecord | null>(null);
 export const selectedTurfAtom = atom<SelectedTurf | null>(null);
 export const selectedBoundaryAtom = atom<SelectedBoundary | null>(null);
 export const inspectorContentAtom = atom<InspectorContent | null>(null);
+// Collapsed to a compact title bar; selection state is kept while minimized
+export const inspectorMinimizedAtom = atom<boolean>(false);

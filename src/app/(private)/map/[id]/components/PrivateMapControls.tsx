@@ -7,7 +7,7 @@ import {
   useMapControls,
   useShowControls,
 } from "../hooks/useMapControls";
-import { useDrawMode } from "../hooks/useMapCore";
+import { useDrawMode, useMapBottomPadding } from "../hooks/useMapCore";
 import { useMapViews } from "../hooks/useMapViews";
 import {
   CONTROL_PANEL_WIDTH,
@@ -24,6 +24,7 @@ import ZoomControl from "./ZoomControl";
 export default function PrivateMapControls() {
   const drawMode = useDrawMode();
   const showControls = useShowControls();
+  const mapBottomPadding = useMapBottomPadding();
   const { viewConfig } = useMapViews();
   const { boundariesPanelOpen } = useChoropleth();
   const compareGeographiesMode = useCompareGeographiesMode();
@@ -84,12 +85,17 @@ export default function PrivateMapControls() {
     positionLeft += VISUALISATION_PANEL_WIDTH;
   }
 
+  // The overlay spans the whole map+table region, so when the table is open
+  // its height (tracked live while dragging the divider) pushes the bottom
+  // edge up — the inspector shrinks instead of floating over the table
+  const inspectorBottom = mapBottomPadding > 0 ? mapBottomPadding + 16 : 100;
+
   return (
     <>
       <div
         className="absolute top-5 z-10 duration-300 pointer-events-none right-4 flex justify-between items-start gap-4"
         style={{
-          ...{ left: positionLeft + "px", bottom: "100px" },
+          ...{ left: positionLeft + "px", bottom: inspectorBottom + "px" },
           transition: "max-width 0.3s, transform 0.3s",
         }}
       >
