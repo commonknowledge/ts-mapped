@@ -15,18 +15,24 @@ import { useDataSources } from "@/hooks/useDataSources";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceTypeLabels } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
-import { FilterType } from "@/models/MapView";
+import { FilterType, MarkerIconMode } from "@/models/MapView";
 import { Feature } from "@/models/Organisation";
+import { ColumnDisplayFormat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
 import { getCategoryColorsKey } from "../../colors";
+import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { useMapId, useMapRef } from "../../hooks/useMapCore";
 import { useMapQuery } from "../../hooks/useMapQuery";
+import { parseColumnNumber } from "../../utils/stats";
+import { getBarColorForLabel } from "../InspectorPanel/inspectorPanelOptions";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import SyncToCrmModal from "./SyncToCrmModal";
+import type { ColumnMetadata } from "@/models/DataSource";
 import type { DataSourceView } from "@/models/MapView";
+import type { InspectorColumn } from "@/models/shared";
 
 interface DataRecord {
   id: string;
@@ -296,6 +302,123 @@ export default function MapTable() {
     [valueColorsByColumn, viewConfig.colorMappings, selectedDataSourceId],
   );
 
+  // Cells of the map's icon column show each value's marker shape
+  const visualisation = viewConfig.markerVisualisations?.[selectedDataSourceId];
+  const iconColumn =
+    visualisation?.iconMode === MarkerIconMode.Categories
+      ? visualisation.iconColumn
+      : undefined;
+  const iconValueIcons = useMemo(
+    () =>
+      iconColumn
+        ? resolvedColumnMetadata.find((m) => m.name === iconColumn)?.valueIcons
+        : undefined,
+    [iconColumn, resolvedColumnMetadata],
+  );
+  const getCellShape = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      if (
+        columnName !== iconColumn ||
+        (typeof value !== "string" && typeof value !== "number")
+      ) {
+        return undefined;
+      }
+      const key = String(value);
+      return iconValueIcons?.[key] ?? iconValueIcons?.[key.trim()];
+    },
+    [iconColumn, iconValueIcons],
+  );
+
+  // Inspector display formats applied in the table too; the resolved config
+  // falls back to the data source's defaults
+  const inspectorConfig = useInspectorDataSourceConfig(selectedDataSourceId);
+  const inspectorColumnsByName = useMemo(() => {
+    const result = new Map<string, InspectorColumn>();
+    for (const item of inspectorConfig?.items ?? []) {
+      if (item.type === "column") {
+        result.set(item.name, item);
+      }
+    }
+    return result;
+  }, [inspectorConfig]);
+
+  const booleanColumns = useMemo(() => {
+    const result = new Set<string>();
+    for (const [name, item] of inspectorColumnsByName) {
+      if (item.displayFormat === ColumnDisplayFormat.Boolean) {
+        result.add(name);
+      }
+    }
+    return result;
+  }, [inspectorColumnsByName]);
+
+  // Percentage cells mirror the inspector exactly: parseColumnNumber applies
+  // the column's 0-1 vs 0-100 semantic type (incl. org overrides)
+  const metadataByColumn = useMemo(() => {
+    const result = new Map<string, ColumnMetadata>();
+    for (const meta of resolvedColumnMetadata) {
+      result.set(meta.name, meta);
+    }
+    return result;
+  }, [resolvedColumnMetadata]);
+  const getCellPercentage = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const item = inspectorColumnsByName.get(columnName);
+      if (item?.displayFormat !== ColumnDisplayFormat.Percentage) {
+        return undefined;
+      }
+      const columnMetadata = metadataByColumn.get(columnName);
+      const num = parseColumnNumber(value, {
+        isCount: false,
+        columnMetadata,
+      });
+      if (num === null) {
+        return undefined;
+      }
+      return {
+        percent: Math.min(100, Math.max(0, num)),
+        barColor: getBarColorForLabel({
+          columnName,
+          displayName: columnMetadata?.displayName,
+          barColor: item.barColor,
+          inspectorColor: inspectorConfig?.color,
+        }),
+      };
+    },
+    [inspectorColumnsByName, metadataByColumn, inspectorConfig?.color],
+  );
+
+  // Scale cells mirror the inspector: the value is the filled segment count
+  // out of the column's configured scaleMax (no range inference)
+  const getCellScale = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const item = inspectorColumnsByName.get(columnName);
+      if (item?.displayFormat !== ColumnDisplayFormat.Scale) {
+        return undefined;
+      }
+      const columnMetadata = metadataByColumn.get(columnName);
+      const num = parseColumnNumber(value, {
+        isCount: false,
+        columnMetadata,
+      });
+      if (num === null) {
+        return undefined;
+      }
+      const max = Math.max(2, Math.min(10, item.scaleMax || 2));
+      return {
+        filled: Math.min(max, Math.max(0, Math.round(num))),
+        max,
+        barColor: getBarColorForLabel({
+          columnName,
+          displayName: columnMetadata?.displayName,
+          barColor: item.barColor,
+          inspectorColor: inspectorConfig?.color,
+        }),
+      };
+    },
+    [inspectorColumnsByName, metadataByColumn, inspectorConfig?.color],
+  );
+
   if (!dataSource || !view) {
     return null;
   }
@@ -414,6 +537,10 @@ export default function MapTable() {
         onClose={() => handleDataSourceSelect("")}
         highlightedColumns={highlightedColumns}
         getCellColor={getCellColor}
+        getCellShape={getCellShape}
+        getCellPercentage={getCellPercentage}
+        getCellScale={getCellScale}
+        booleanColumns={booleanColumns}
       />
       {enableSyncToCRM && (
         <SyncToCrmModal
