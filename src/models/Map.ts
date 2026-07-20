@@ -1,23 +1,10 @@
 import z from "zod";
 
-// How a marker layer aggregates at low zoom; individual markers always show
-// at high zoom and support the full shape/colour/size styling in every mode
-export enum MarkerDisplayMode {
-  // Cluster circles at low zoom ("clusters" value kept for stored configs)
-  Circles = "clusters",
-  Heatmap = "heatmap",
-  // Uniform semi-transparent dots, no clustering: density reads via overdraw
-  Overlap = "overlap",
-  // No clustering, plain markers at every zoom
-  None = "none",
-}
-
 const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
-  markerDisplayModes: z.record(z.nativeEnum(MarkerDisplayMode)).optional(),
   // Marker layer colours live in the map view config ("markerColors" there);
   // migrated out of the map config by the marker_colors_to_view migration.
   placedMarkerColors: z.record(hexColorSchema).optional(),

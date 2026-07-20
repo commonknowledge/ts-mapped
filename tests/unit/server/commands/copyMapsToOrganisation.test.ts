@@ -6,8 +6,7 @@ import {
   GeocodingType,
   JobStatus,
 } from "@/models/DataSource";
-import { MarkerDisplayMode } from "@/models/Map";
-import { FilterType, MapStyleName } from "@/models/MapView";
+import { FilterType, MapStyleName, MarkerDisplayMode } from "@/models/MapView";
 import { CalculationType } from "@/models/shared";
 import copyMapsToOrganisation from "@/server/commands/copyMapsToOrganisation";
 import {
@@ -91,10 +90,6 @@ describe("copyMapsToOrganisation", () => {
         config: {
           markerDataSourceIds: [includedDs.id, excludedDs.id],
           membersDataSourceId: membersDs.id,
-          markerDisplayModes: {
-            [includedDs.id]: MarkerDisplayMode.Circles,
-            [excludedDs.id]: MarkerDisplayMode.Heatmap,
-          },
         },
       });
 
@@ -118,8 +113,14 @@ describe("copyMapsToOrganisation", () => {
             [excludedDs.id]: "#00ff00",
           },
           markerVisualisations: {
-            [includedDs.id]: { colorColumn: "Severity Level" },
-            [excludedDs.id]: { colorColumn: "Type of threat" },
+            [includedDs.id]: {
+              colorColumn: "Severity Level",
+              displayMode: MarkerDisplayMode.Circles,
+            },
+            [excludedDs.id]: {
+              colorColumn: "Type of threat",
+              displayMode: MarkerDisplayMode.Heatmap,
+            },
           },
         },
         dataSourceViews: [
@@ -215,15 +216,6 @@ describe("copyMapsToOrganisation", () => {
         expect(copiedMap.config.membersDataSourceId).not.toBe(originalId);
       }
 
-      // Config keyed records
-      if (copiedMap.config.markerDisplayModes) {
-        for (const originalId of originalDsIds) {
-          expect(copiedMap.config.markerDisplayModes).not.toHaveProperty(
-            originalId,
-          );
-        }
-      }
-
       // Views
       for (const view of copiedViews) {
         expect(originalDsIds).not.toContain(view.config.areaDataSourceId);
@@ -266,15 +258,9 @@ describe("copyMapsToOrganisation", () => {
       expect(markerVisualisations[copiedIncludedDsId]?.colorColumn).toBe(
         "Severity Level",
       );
-    });
-
-    test("remaps markerDisplayModes only for included data sources", () => {
-      const displayModes = copiedMap.config.markerDisplayModes;
-      expect(displayModes).toBeDefined();
-      if (!displayModes) return;
-
-      const modeKeys = Object.keys(displayModes);
-      expect(modeKeys.length).toBe(1);
+      expect(markerVisualisations[copiedIncludedDsId]?.displayMode).toBe(
+        MarkerDisplayMode.Circles,
+      );
     });
 
     test("drops views whose areaDataSourceId was not included", () => {

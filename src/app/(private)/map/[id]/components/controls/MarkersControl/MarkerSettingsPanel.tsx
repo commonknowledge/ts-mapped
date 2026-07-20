@@ -12,9 +12,9 @@ import { useColumnValues } from "@/hooks/useColumnValues";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
-import { MarkerDisplayMode } from "@/models/Map";
 import {
   MarkerColorMode,
+  MarkerDisplayMode,
   MarkerIconMode,
   MarkerSizeMode,
 } from "@/models/MapView";
@@ -57,7 +57,7 @@ export default function MarkerSettingsPanel({
     patchMarkerVisualisation,
   } = useMarkerSettings();
   const { getDataSourceById } = useDataSources();
-  const { mapConfig, updateMapConfig } = useMapConfig();
+  const { mapConfig } = useMapConfig();
   const { viewConfig, updateViewConfig } = useMapViews();
   const organisationId = useOrganisationId();
   const { patchColumnMetadata, patchColumnMetadataOverride } =
@@ -154,17 +154,11 @@ export default function MarkerSettingsPanel({
     reclusteringPollRef.current = poll;
   };
 
-  const displayMode =
-    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Circles;
+  const displayMode = visualisation.displayMode ?? MarkerDisplayMode.Circles;
 
   const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
     const wasClustered = displayMode === MarkerDisplayMode.Circles;
-    updateMapConfig({
-      markerDisplayModes: {
-        ...mapConfig.markerDisplayModes,
-        [dataSourceId]: mode,
-      },
-    });
+    patch({ displayMode: mode });
     if (wasClustered !== (mode === MarkerDisplayMode.Circles)) {
       lockWhileReclustering();
     }

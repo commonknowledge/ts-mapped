@@ -5,9 +5,9 @@ import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
 import { useColumnValues } from "@/hooks/useColumnValues";
 import { useDataSources } from "@/hooks/useDataSources";
 import { ColumnType } from "@/models/DataSource";
-import { MarkerDisplayMode } from "@/models/Map";
 import {
   MarkerColorMode,
+  MarkerDisplayMode,
   MarkerIconMode,
   MarkerSizeMode,
 } from "@/models/MapView";
@@ -49,7 +49,6 @@ const NOT_MATCHED_CASE = [
 export function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
-  mapConfig,
   markerColors,
   defaultMarkerColor,
   markerVisualisation,
@@ -59,9 +58,6 @@ export function DataSourceMarkers({
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
-  mapConfig: {
-    markerDisplayModes?: Record<string, MarkerDisplayMode>;
-  };
   markerColors?: Record<string, string>;
   defaultMarkerColor?: string | null;
   markerVisualisation?: MarkerVisualisation;
@@ -151,8 +147,10 @@ export function DataSourceMarkers({
   // Column-driven styling (private editor only)
   const visualisation = mapMode === "public" ? undefined : markerVisualisation;
 
+  // Read from the prop (not the private-only `visualisation`) so the chosen
+  // clustering mode also applies on public maps
   const displayMode =
-    mapConfig.markerDisplayModes?.[dataSourceId] ?? MarkerDisplayMode.Circles;
+    markerVisualisation?.displayMode ?? MarkerDisplayMode.Circles;
   const iconColumn =
     visualisation?.iconMode === MarkerIconMode.Categories
       ? visualisation.iconColumn

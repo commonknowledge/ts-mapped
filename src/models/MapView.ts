@@ -132,10 +132,23 @@ export enum MarkerColorMode {
 }
 export const markerColorModes = Object.values(MarkerColorMode);
 
+// How a marker layer aggregates at low zoom; individual markers always show
+// at high zoom and support the full shape/colour/size styling in every mode
+export enum MarkerDisplayMode {
+  // Cluster circles at low zoom ("clusters" value kept for stored configs)
+  Circles = "clusters",
+  Heatmap = "heatmap",
+  // Uniform semi-transparent dots, no clustering: density reads via overdraw
+  Overlap = "overlap",
+  // No clustering, plain markers at every zoom
+  None = "none",
+}
+
 export const markerVisualisationSchema = z.object({
   // Per-view display choices only. Durable value->shape/colour/order mappings
   // live on the data source's columnMetadata (valueIcons, valueColors,
   // valueOrder), so they are shared across views and maps.
+  displayMode: z.nativeEnum(MarkerDisplayMode).optional(),
   iconMode: z.nativeEnum(MarkerIconMode).optional(),
   iconColumn: z.string().optional(),
   sizeMode: z.nativeEnum(MarkerSizeMode).optional(),

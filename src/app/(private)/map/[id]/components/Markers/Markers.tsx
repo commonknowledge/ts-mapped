@@ -73,7 +73,6 @@ export default function Markers() {
           key={memberMarkers.dataSourceId}
           dataSourceMarkers={memberMarkers}
           isMembers
-          mapConfig={mapConfig}
           markerColors={viewConfig.markerColors}
           defaultMarkerColor={
             getDataSourceById(memberMarkers.dataSourceId)?.defaultMarkerColor
@@ -99,7 +98,6 @@ export default function Markers() {
             key={markers.dataSourceId}
             dataSourceMarkers={markers}
             isMembers={false}
-            mapConfig={mapConfig}
             markerColors={viewConfig.markerColors}
             defaultMarkerColor={
               getDataSourceById(markers.dataSourceId)?.defaultMarkerColor

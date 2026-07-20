@@ -180,7 +180,6 @@ export const mapRouter = router({
       const config = {
         markerDataSourceIds: mapConfig.markerDataSourceIds?.filter(Boolean),
         membersDataSourceId: mapConfig.membersDataSourceId,
-        markerDisplayModes: mapConfig.markerDisplayModes,
         placedMarkerColors: mapConfig.placedMarkerColors,
         folderColors: mapConfig.folderColors,
         turfColor: mapConfig.turfColor,
