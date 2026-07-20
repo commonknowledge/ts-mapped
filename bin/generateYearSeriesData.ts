@@ -1,6 +1,24 @@
 /**
  * Generate a large CSV of synthetic incident data for stress-testing marker
- * features (year slider, clustering, category styling).
+ * features (year slider, clustering, category styling) and exercising every
+ * inspector display format:
+ *
+ * One dedicated column per format/visualisation (no overlap):
+ *
+ * - Name column: Title
+ * - Text: City
+ * - Number: Reported incidents
+ * - Number with comparison: Estimated cost
+ * - Percentage (0-100): "Confirmed %"  (the % in the name auto-formats it)
+ * - Percentage (0-1): "Turnout rate"   (set the 0-1 semantic type by hand)
+ * - Scale: Priority (1-5; set Max to 5)
+ * - Boolean: "Police informed?"        (the ? suffix auto-formats it)
+ * - Large text: Notes                  (auto-formats via its name)
+ * - Icon shapes: "Type of threat" (8 values, one per shape)
+ * - Category colours: Severity
+ * - Scaled size: Attendees (incl. occasional N/A)
+ * - Boundary chart group-by: "Reported via"
+ * - Year slider: Date/Year
  *
  * Rows are scattered around UK city centres with Latitude/Longitude columns,
  * so the data source can use Coordinates geocoding and import quickly
@@ -75,6 +93,23 @@ const SEVERITIES = ["Low", "Moderate", "High", "Critical"];
 // No commas in values: rows are written without CSV quoting
 const ATTENDEES = ["1-10", "10-50", "50-100", "100-500", "500-1000"];
 
+const REPORTED_VIA = [
+  "Local branch",
+  "Partner organisation",
+  "Press report",
+  "Social media",
+  "Anonymous tip",
+];
+
+// No commas: rows are written without CSV quoting
+const NOTES = [
+  "Reported by a local member who witnessed the event first-hand and followed up with photos the next day",
+  "Second occurrence at this location this year; residents have asked for a coordinated response",
+  "Details unverified — cross-check with the regional organiser before publishing anywhere",
+  "Council contacted; awaiting a response about CCTV coverage of the surrounding streets",
+  "Linked to a wider pattern of activity across the region according to partner organisations",
+];
+
 const MIN_YEAR = 2000;
 const MAX_YEAR = 2026;
 
@@ -93,7 +128,9 @@ function main() {
 
   const out = fs.createWriteStream(outPath);
   out.write(
-    "Title,Latitude,Longitude,Date,Year,Severity,Type of threat,Attendees\n",
+    "Title,City,Latitude,Longitude,Date,Year,Severity,Type of threat,Attendees," +
+      "Reported via,Reported incidents,Estimated cost,Confirmed %,Turnout rate," +
+      "Priority,Police informed?,Notes\n",
   );
 
   for (let i = 0; i < count; i++) {
@@ -112,17 +149,37 @@ function main() {
     // ~15% of rows have no severity, ~2% no year/date (hidden when filtering)
     const severity = random() < 0.15 ? "" : pick(SEVERITIES);
     const hasYear = random() >= 0.02;
+    // ~5% N/A attendees: exercises the size ramp's unrankable-value rule
+    const attendees = random() < 0.05 ? "N/A" : pick(ATTENDEES);
+
+    // Inspector display format columns
+    const reportedIncidents = String(Math.floor(random() * 200));
+    const estimatedCost = String(Math.floor(random() * 20000));
+    const confirmedPct = (random() * 100).toFixed(1);
+    const turnoutRate = random().toFixed(3);
+    const priority = String(1 + Math.floor(random() * 5));
+    const policeInformed = random() < 0.1 ? "" : random() < 0.5 ? "Yes" : "No";
+    const notes = random() < 0.2 ? "" : pick(NOTES);
 
     const title = `${type} in ${city.name} #${i + 1}`;
     const row = [
       title,
+      city.name,
       lat,
       lng,
       hasYear ? date : "",
       hasYear ? String(year) : "",
       severity,
       type,
-      pick(ATTENDEES),
+      attendees,
+      pick(REPORTED_VIA),
+      reportedIncidents,
+      estimatedCost,
+      confirmedPct,
+      turnoutRate,
+      priority,
+      policeInformed,
+      notes,
     ].join(",");
     out.write(`${row}\n`);
   }
