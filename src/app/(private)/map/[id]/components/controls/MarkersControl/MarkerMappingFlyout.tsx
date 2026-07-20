@@ -11,7 +11,6 @@ import { ColumnType } from "@/models/DataSource";
 import { cn } from "@/shadcn/utils";
 import { sortColumnValues } from "@/utils/sortColumnValues";
 import { useDataSourceColumn } from "../../../hooks/useDataSourceColumn";
-import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
 import { markerIconShapes } from "../../Markers/markerIcons";
 import { formatCategoryValue } from "../../Markers/markerStyle";
 import MarkerShapeIcon from "../../MarkerShapeIcon";
@@ -25,20 +24,23 @@ const TITLES: Record<MarkerMappingKind, string> = {
 };
 
 /**
- * Secondary panel that flies out beside the marker settings panel to edit a
- * column's value mappings (icons, colours or order) without covering the map.
+ * Floating card that flies out beside the marker settings panel, level with
+ * the button that opened it, to edit a column's value mappings (icons,
+ * colours or order) without covering the map.
  */
 export default function MarkerMappingFlyout({
   kind,
   dataSourceId,
   column,
   positionLeft,
+  positionTop,
   onClose,
 }: {
   kind: MarkerMappingKind;
   dataSourceId: string;
   column: string;
   positionLeft: number;
+  positionTop: number;
   onClose: () => void;
 }) {
   const { getDataSourceById } = useDataSources();
@@ -108,14 +110,14 @@ export default function MarkerMappingFlyout({
 
   return (
     <div
-      className="absolute top-0 h-full z-100 flex flex-col gap-4 p-3 bg-neutral-50 overflow-y-auto border-r border-neutral-200"
+      className="absolute z-100 flex flex-col w-80 rounded-lg border border-neutral-200 bg-white shadow-lg"
       style={{
         left: positionLeft,
-        minWidth: VISUALISATION_PANEL_WIDTH,
-        width: VISUALISATION_PANEL_WIDTH,
+        top: positionTop,
+        maxHeight: `calc(100% - ${positionTop + 8}px)`,
       }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 shrink-0 px-3 py-2 border-b border-neutral-200">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold">{TITLES[kind]}</h2>
           <p className="text-xs text-muted-foreground truncate">{column}</p>
@@ -130,60 +132,65 @@ export default function MarkerMappingFlyout({
         </button>
       </div>
 
-      {kind === "icons" ? (
-        mergedValues === null ? (
-          <p className="text-xs text-muted-foreground">
-            Too many values in this column to assign icons.
-          </p>
+      <div className="overflow-y-auto p-3">
+        {kind === "icons" ? (
+          mergedValues === null ? (
+            <p className="text-xs text-muted-foreground">
+              Too many values in this column to assign icons.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {sortedValues.map((value) => {
+                const assigned = existingMeta?.valueIcons?.[value];
+                return (
+                  <div
+                    key={value}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span className="text-xs truncate" title={value}>
+                      {formatCategoryValue(value, existingMeta?.valueLabels)}
+                    </span>
+                    <span className="flex gap-0.5 shrink-0">
+                      {markerIconShapes.map((shape) => (
+                        <button
+                          key={shape}
+                          type="button"
+                          aria-label={`${shape} icon for ${value}`}
+                          className={cn(
+                            "p-1 rounded cursor-pointer hover:bg-neutral-200",
+                            assigned === shape &&
+                              "bg-neutral-800 text-white hover:bg-neutral-700",
+                          )}
+                          onClick={() =>
+                            setValueIcon(
+                              value,
+                              assigned === shape ? null : shape,
+                            )
+                          }
+                        >
+                          <MarkerShapeIcon shape={shape} />
+                        </button>
+                      ))}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )
         ) : (
-          <div className="flex flex-col gap-1">
-            {sortedValues.map((value) => {
-              const assigned = existingMeta?.valueIcons?.[value];
-              return (
-                <div
-                  key={value}
-                  className="flex items-center justify-between gap-2"
-                >
-                  <span className="text-xs truncate" title={value}>
-                    {formatCategoryValue(value, existingMeta?.valueLabels)}
-                  </span>
-                  <span className="flex gap-0.5 shrink-0">
-                    {markerIconShapes.map((shape) => (
-                      <button
-                        key={shape}
-                        type="button"
-                        aria-label={`${shape} icon for ${value}`}
-                        className={cn(
-                          "p-1 rounded cursor-pointer hover:bg-neutral-200",
-                          assigned === shape &&
-                            "bg-neutral-800 text-white hover:bg-neutral-700",
-                        )}
-                        onClick={() =>
-                          setValueIcon(value, assigned === shape ? null : shape)
-                        }
-                      >
-                        <MarkerShapeIcon shape={shape} />
-                      </button>
-                    ))}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )
-      ) : (
-        <ColorMappingsSection
-          dataSourceId={dataSourceId}
-          columnName={column}
-          mergedValues={mergedValues}
-          existingMeta={existingMeta}
-          ownerMeta={ownerMeta}
-          isOwner={isOwner}
-          organisationId={organisationId}
-          hideColors={kind === "order"}
-          hideLabel
-        />
-      )}
+          <ColorMappingsSection
+            dataSourceId={dataSourceId}
+            columnName={column}
+            mergedValues={mergedValues}
+            existingMeta={existingMeta}
+            ownerMeta={ownerMeta}
+            isOwner={isOwner}
+            organisationId={organisationId}
+            hideColors={kind === "order"}
+            hideLabel
+          />
+        )}
+      </div>
     </div>
   );
 }

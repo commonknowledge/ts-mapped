@@ -68,11 +68,13 @@ export default function MarkerSettingsPanel({
   const iconsEnabled =
     visualisation.iconMode === MarkerIconMode.Categories && Boolean(iconColumn);
 
-  // Value-mapping editor shown beside the panel; closed when the panel
-  // switches to a different data source
-  const [mappingFlyout, setMappingFlyout] = useState<MarkerMappingKind | null>(
-    null,
-  );
+  // Value-mapping flyout card shown beside the panel, level with the button
+  // that opened it; closed when the panel switches to a different data source
+  const [mappingFlyout, setMappingFlyout] = useState<{
+    kind: MarkerMappingKind;
+    top: number;
+  } | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     setMappingFlyout(null);
   }, [dataSourceId]);
@@ -195,21 +197,43 @@ export default function MarkerSettingsPanel({
     (c) => c.type === ColumnType.String,
   );
 
-  const toggleMappingFlyout = (kind: MarkerMappingKind) =>
-    setMappingFlyout((current) => (current === kind ? null : kind));
+  // Minimum card space kept below the flyout's anchor point
+  const FLYOUT_MIN_SPACE = 280;
+
+  const toggleMappingFlyout = (
+    kind: MarkerMappingKind,
+    e: React.MouseEvent<HTMLElement>,
+  ) => {
+    const button = e.currentTarget;
+    setMappingFlyout((current) => {
+      if (current?.kind === kind) {
+        return null;
+      }
+      const panelTop = panelRef.current?.getBoundingClientRect().top ?? 0;
+      const panelHeight = panelRef.current?.clientHeight ?? 0;
+      const top = Math.max(
+        8,
+        Math.min(
+          button.getBoundingClientRect().top - panelTop,
+          panelHeight - FLYOUT_MIN_SPACE,
+        ),
+      );
+      return { kind, top };
+    });
+  };
 
   // The flyout edits the column driving the open mapping; it disappears if
   // that column is deselected or its section's mode is switched off
   const mappingFlyoutColumn =
-    mappingFlyout === "icons"
+    mappingFlyout?.kind === "icons"
       ? iconsEnabled
         ? iconColumn
         : ""
-      : mappingFlyout === "colors"
+      : mappingFlyout?.kind === "colors"
         ? visualisation.colorMode === MarkerColorMode.Categories
           ? (visualisation.colorColumn ?? "")
           : ""
-        : mappingFlyout === "order"
+        : mappingFlyout?.kind === "order"
           ? visualisation.sizeMode === MarkerSizeMode.Scaled
             ? (visualisation.sizeColumn ?? "")
             : ""
@@ -263,14 +287,16 @@ export default function MarkerSettingsPanel({
     <>
       {mappingFlyout && mappingFlyoutColumn && (
         <MarkerMappingFlyout
-          kind={mappingFlyout}
+          kind={mappingFlyout.kind}
           dataSourceId={dataSourceId}
           column={mappingFlyoutColumn}
-          positionLeft={positionLeft + VISUALISATION_PANEL_WIDTH}
+          positionLeft={positionLeft + VISUALISATION_PANEL_WIDTH + 8}
+          positionTop={mappingFlyout.top}
           onClose={() => setMappingFlyout(null)}
         />
       )}
       <div
+        ref={panelRef}
         className={cn(
           "flex flex-col gap-4 p-3 bg-neutral-50 overflow-y-auto border-r border-neutral-200",
           "absolute top-0 h-full z-100",
@@ -377,9 +403,11 @@ export default function MarkerSettingsPanel({
               )}
               {visualisation.colorColumn && (
                 <Button
-                  variant={mappingFlyout === "colors" ? "secondary" : "outline"}
+                  variant={
+                    mappingFlyout?.kind === "colors" ? "secondary" : "outline"
+                  }
                   size="sm"
-                  onClick={() => toggleMappingFlyout("colors")}
+                  onClick={(e) => toggleMappingFlyout("colors", e)}
                 >
                   Set category colours
                 </Button>
@@ -429,9 +457,11 @@ export default function MarkerSettingsPanel({
               )}
               {iconsEnabled && (
                 <Button
-                  variant={mappingFlyout === "icons" ? "secondary" : "outline"}
+                  variant={
+                    mappingFlyout?.kind === "icons" ? "secondary" : "outline"
+                  }
                   size="sm"
-                  onClick={() => toggleMappingFlyout("icons")}
+                  onClick={(e) => toggleMappingFlyout("icons", e)}
                 >
                   Set category icons
                 </Button>
@@ -492,9 +522,11 @@ export default function MarkerSettingsPanel({
               </div>
               {visualisation.sizeColumn && (
                 <Button
-                  variant={mappingFlyout === "order" ? "secondary" : "outline"}
+                  variant={
+                    mappingFlyout?.kind === "order" ? "secondary" : "outline"
+                  }
                   size="sm"
-                  onClick={() => toggleMappingFlyout("order")}
+                  onClick={(e) => toggleMappingFlyout("order", e)}
                 >
                   Set value order
                 </Button>
