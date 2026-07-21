@@ -200,6 +200,9 @@ export const mapViewConfigSchema = z.object({
   markerVisualisations: z
     .record(z.string(), markerVisualisationSchema)
     .optional(),
+  // Month-range timeline filter for markers (inclusive month keys,
+  // year * 12 + zero-based month); absent when showing all time
+  timelineFilter: z.object({ start: z.number(), end: z.number() }).optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

@@ -2,11 +2,7 @@ import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/models/MapView";
 import { useChoropleth } from "../hooks/useChoropleth";
-import {
-  useCompareGeographiesMode,
-  useMapControls,
-  useShowControls,
-} from "../hooks/useMapControls";
+import { useMapControls, useShowControls } from "../hooks/useMapControls";
 import { useDrawMode, useMapBottomPadding } from "../hooks/useMapCore";
 import { useMapViews } from "../hooks/useMapViews";
 import {
@@ -16,9 +12,8 @@ import {
 } from "../styles";
 import BoundaryHoverInfo from "./BoundaryHoverInfo/BoundaryHoverInfo";
 import InspectorPanel from "./InspectorPanel/InspectorPanel";
-import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
-import YearSliderControl from "./YearSliderControl";
+import TimelineControl from "./TimelineControl";
 import ZoomControl from "./ZoomControl";
 
 export default function PrivateMapControls() {
@@ -27,14 +22,8 @@ export default function PrivateMapControls() {
   const mapBottomPadding = useMapBottomPadding();
   const { viewConfig } = useMapViews();
   const { boundariesPanelOpen } = useChoropleth();
-  const compareGeographiesMode = useCompareGeographiesMode();
-  const {
-    pinDropMode,
-    editAreaMode,
-    setPinDropMode,
-    setEditAreaMode,
-    setCompareGeographiesMode,
-  } = useMapControls();
+  const { pinDropMode, editAreaMode, setPinDropMode, setEditAreaMode } =
+    useMapControls();
 
   const currentMode = pinDropMode ? "pin_drop" : drawMode;
 
@@ -48,9 +37,6 @@ export default function PrivateMapControls() {
     if (editAreaMode) {
       setEditAreaMode(false);
     }
-    if (compareGeographiesMode) {
-      setCompareGeographiesMode(false);
-    }
   };
 
   useEffect(() => {
@@ -62,14 +48,11 @@ export default function PrivateMapControls() {
     } else if (pinDropMode || currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
       setMessage("Click on the map to drop a pin.");
-    } else if (compareGeographiesMode) {
-      setIndicatorColor(mapColors.geography.color); // green-500
-      setMessage("Compare mode active. Click geographies to select/deselect.");
     } else {
       setIndicatorColor("");
       setMessage("");
     }
-  }, [currentMode, compareGeographiesMode, pinDropMode, editAreaMode]);
+  }, [currentMode, pinDropMode, editAreaMode]);
 
   const absolutelyCenter = {
     transform: showControls
@@ -116,13 +99,15 @@ export default function PrivateMapControls() {
 
       {viewConfig.mapType !== MapType.Hex && (
         <div
-          className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
-          style={absolutelyCenter}
+          className="absolute left-1/2 z-10 transition-transform duration-300"
+          style={{
+            ...absolutelyCenter,
+            // Sits above the table when it is open (its height is tracked
+            // live while dragging the divider), else near the bottom edge
+            bottom: (mapBottomPadding > 0 ? mapBottomPadding + 16 : 32) + "px",
+          }}
         >
-          <div className="flex flex-col items-center gap-2">
-            <YearSliderControl />
-            <MapMarkerAndAreaControls />
-          </div>
+          <TimelineControl />
         </div>
       )}
 

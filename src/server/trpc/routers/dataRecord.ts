@@ -22,6 +22,9 @@ import { geojsonPointToPoint } from "@/server/utils/geo";
 import { DataRecordMatchType } from "@/types";
 import { dataSourceReadProcedure, router } from "../index";
 
+// Inclusive month-key range from the map timeline
+const timelineRangeSchema = z.object({ start: z.number(), end: z.number() });
+
 export const dataRecordRouter = router({
   findPageIndex: dataSourceReadProcedure
     .input(
@@ -30,16 +33,28 @@ export const dataRecordRouter = router({
         filter: recordFilterSchema.optional(),
         search: z.string().optional(),
         sort: z.array(recordSortSchema).optional(),
+        timelineRange: timelineRangeSchema.optional(),
       }),
     )
-    .query(({ input: { dataRecordId, dataSourceId, filter, search, sort } }) =>
-      findPageForDataRecord(
-        dataRecordId,
-        dataSourceId,
-        filter,
-        search,
-        sort || [],
-      ),
+    .query(
+      ({
+        input: {
+          dataRecordId,
+          dataSourceId,
+          filter,
+          search,
+          sort,
+          timelineRange,
+        },
+      }) =>
+        findPageForDataRecord(
+          dataRecordId,
+          dataSourceId,
+          filter,
+          search,
+          sort || [],
+          timelineRange,
+        ),
     ),
   byId: dataSourceReadProcedure
     .input(z.object({ id: z.string() }))
@@ -195,10 +210,13 @@ export const dataRecordRouter = router({
         page: z.number().optional(),
         sort: z.array(recordSortSchema).optional(),
         all: z.boolean().optional(),
+        timelineRange: timelineRangeSchema.optional(),
       }),
     )
     .query(
-      async ({ input: { dataSourceId, filter, search, page, sort, all } }) => {
+      async ({
+        input: { dataSourceId, filter, search, page, sort, all, timelineRange },
+      }) => {
         const records = await findDataRecordsByDataSource(
           dataSourceId,
           filter,
@@ -206,11 +224,13 @@ export const dataRecordRouter = router({
           page || 0,
           sort || [],
           all,
+          timelineRange,
         );
         const count = await countDataRecordsForDataSource(
           dataSourceId,
           filter,
           search,
+          timelineRange,
         );
         return { records, count };
       },

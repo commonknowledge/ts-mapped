@@ -15,6 +15,7 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
+import { parseRecordDate } from "@/utils/dataRecord";
 import type { GeocodeResult } from "@/models/DataRecord";
 import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
@@ -153,6 +154,11 @@ export const importBatch = async ({
         json: typedJson,
         geocodeResult,
         geocodePoint: geocodeResult?.centralPoint ?? null,
+        date: parseRecordDate({
+          json: typedJson,
+          dateColumn: dataSource.columnRoles.dateColumn,
+          dateFormat: dataSource.dateFormat,
+        }),
         dataSourceId: dataSource.id,
       };
     }),

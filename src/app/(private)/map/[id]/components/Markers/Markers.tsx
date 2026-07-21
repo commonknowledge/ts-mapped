@@ -6,7 +6,7 @@ import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQuerie
 import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapRef } from "../../hooks/useMapCore";
-import { useYearFilter } from "../../hooks/useYearFilter";
+import { useTimelineFilter } from "../../hooks/useTimelineFilter";
 import { DataSourceMarkers } from "./DataSourceMarkers";
 import { isMarkerIconImageId, registerMarkerIcons } from "./markerIcons";
 
@@ -17,15 +17,13 @@ export default function Markers() {
   const { getDataSourceVisibility } = useLayers();
   const { getDataSourceById } = useDataSources();
   const mapRef = useMapRef();
-  const { activeYear } = useYearFilter();
+  const { activeRange } = useTimelineFilter();
 
-  // The year filter only applies to sources with a year column (or a date
-  // column as the fallback, matching the markers API)
-  const getFilterYear = (dataSourceId: string) => {
+  // The timeline filter only applies to sources with a date column,
+  // matching the markers API
+  const getFilterRange = (dataSourceId: string) => {
     const columnRoles = getDataSourceById(dataSourceId)?.columnRoles;
-    return columnRoles?.yearColumn || columnRoles?.dateColumn
-      ? activeYear
-      : null;
+    return columnRoles?.dateColumn ? activeRange : null;
   };
 
   // Register the SDF icon sprites; map styles discard added images, so
@@ -82,7 +80,7 @@ export default function Markers() {
           }
           colorMappings={viewConfig.colorMappings}
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
-          filterYear={getFilterYear(memberMarkers.dataSourceId)}
+          filterTimeRange={getFilterRange(memberMarkers.dataSourceId)}
         />
       )}
       {otherMarkers.map((markers) => {
@@ -107,7 +105,7 @@ export default function Markers() {
             }
             colorMappings={viewConfig.colorMappings}
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
-            filterYear={getFilterYear(markers.dataSourceId)}
+            filterTimeRange={getFilterRange(markers.dataSourceId)}
           />
         );
       })}

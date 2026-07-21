@@ -41,8 +41,9 @@ export interface MarkerFeature {
     matched: boolean;
     // Formatted record date, only set when the listing is sorted by date.
     date?: string;
-    // Record year, only set when the data source has a yearColumn role.
-    year?: number | null;
+    // Record month key (year * 12 + zero-based month), only set when the
+    // data source has a dateColumn role.
+    month?: number | null;
   };
   geometry: { coordinates: [number, number]; type: "Point" };
 }
@@ -58,8 +59,9 @@ export interface MarkerFeatureWithoutDataSourceId {
     matched: boolean;
     // Formatted record date, only set when the listing is sorted by date.
     date?: string;
-    // Record year, only set when the data source has a yearColumn role.
-    year?: number | null;
+    // Record month key (year * 12 + zero-based month), only set when the
+    // data source has a dateColumn role.
+    month?: number | null;
   };
   geometry: { coordinates: [number, number]; type: "Point" };
 }

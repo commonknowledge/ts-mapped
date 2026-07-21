@@ -11,13 +11,10 @@ export const dropPinClickHandlerAtom = atom<
 // Data source whose marker settings panel is open (null = closed)
 export const markerSettingsDataSourceIdAtom = atom<string | null>(null);
 
-// Ephemeral single-year filter for markers (session-only, not persisted).
-// Only applies to data sources with a yearColumn (or dateColumn) role.
-export interface YearFilter {
-  enabled: boolean;
-  year: number | null;
-}
-export const yearFilterAtom = atom<YearFilter>({
-  enabled: false,
-  year: null,
-});
+// Transient timeline range while playback animates. Overrides the view
+// config's saved filter and is committed to it only when playback stops,
+// so the view is not saved on every playback step.
+export const timelinePlaybackRangeAtom = atom<{
+  start: number;
+  end: number;
+} | null>(null);

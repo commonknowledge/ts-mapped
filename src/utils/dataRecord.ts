@@ -63,6 +63,38 @@ export const buildPublicMapName = (
 // the native Date parser, which would guess at ambiguous formats (US-style).
 const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T/;
 
+/**
+ * Parse a record's date from its date column value: the data source's
+ * dateFormat first, then strict ISO datetimes. Null when there is no date
+ * column, the value is empty, or it doesn't parse. This is the parser used
+ * to store `dataRecord.date` at import time.
+ */
+export function parseRecordDate({
+  json,
+  dateColumn,
+  dateFormat,
+}: {
+  json: Record<string, unknown>;
+  dateColumn: string | null | undefined;
+  dateFormat: string | null | undefined;
+}): Date | null {
+  if (!dateColumn || !json[dateColumn]) {
+    return null;
+  }
+  const str = String(json[dateColumn]);
+  const parsed = parse(str, dateFormat || "yyyy-MM-dd", new Date());
+  if (!isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  if (ISO_DATETIME_REGEX.test(str)) {
+    const isoDate = new Date(str);
+    if (!isNaN(isoDate.getTime())) {
+      return isoDate;
+    }
+  }
+  return null;
+}
+
 export function parseDate({
   dataSource,
   dataRecord,
@@ -73,64 +105,32 @@ export function parseDate({
   // Public map config that overrides the data source's date column/format when set.
   dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
 }) {
-  let date = dataRecord.createdAt;
-  const dateColumn =
-    dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn;
-  const dateFormat =
-    dataSourceConfig?.dateFormat || dataSource?.dateFormat || "yyyy-MM-dd";
-  if (dateColumn && dataRecord.json[dateColumn]) {
-    const str = String(dataRecord.json[dateColumn]);
-    const dateOverride = parse(str, dateFormat, new Date());
-    if (!isNaN(dateOverride.getTime())) {
-      date = dateOverride;
-    } else if (ISO_DATETIME_REGEX.test(str)) {
-      const isoDate = new Date(str);
-      if (!isNaN(isoDate.getTime())) {
-        date = isoDate;
-      }
-    }
-  }
-  return date;
+  const date = parseRecordDate({
+    json: dataRecord.json,
+    dateColumn:
+      dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn,
+    dateFormat: dataSourceConfig?.dateFormat || dataSource?.dateFormat,
+  });
+  return date ?? dataRecord.createdAt;
 }
 
-/**
- * Extract a year from a column value: a plain 4-digit year is used directly,
- * anything else is parsed as a date with the data source's dateFormat, then
- * with the JS Date parser. Returns null when no year can be determined.
- */
-export function parseRecordYear({
-  value,
-  dateFormat,
+/** Integer month key (year * 12 + zero-based month) used by the map
+ *  timeline, so range comparisons are simple arithmetic. */
+export const toMonthKey = (year: number, monthIndex: number): number =>
+  year * 12 + monthIndex;
+
+/** Convert an inclusive month-key range to date bounds for querying
+ *  `dataRecord.date`: [from, to) with an exclusive upper bound. */
+export const monthKeyRangeToDates = ({
+  start,
+  end,
 }: {
-  value: unknown;
-  dateFormat?: string | null;
-}): number | null {
-  if (value === undefined || value === null) {
-    return null;
-  }
-  const str = String(value).trim();
-  if (!str) {
-    return null;
-  }
-  if (/^\d{4}$/.test(str)) {
-    return Number(str);
-  }
-  if (dateFormat) {
-    const parsed = parse(str, dateFormat, new Date());
-    if (!isNaN(parsed.getTime())) {
-      return parsed.getFullYear();
-    }
-  }
-  // Only try the native parser on strings that plausibly contain a year:
-  // it "helpfully" parses fragments like "12" (to Dec 2001)
-  if (/\d{4}/.test(str)) {
-    const fallback = new Date(str);
-    if (!isNaN(fallback.getTime())) {
-      return fallback.getFullYear();
-    }
-  }
-  return null;
-}
+  start: number;
+  end: number;
+}): { from: Date; to: Date } => ({
+  from: new Date(Math.floor(start / 12), start % 12, 1),
+  to: new Date(Math.floor(end / 12), (end % 12) + 1, 1),
+});
 
 // Human-readable display format for record dates, shared by the listing,
 // the record detail sidebar and the marker popup.

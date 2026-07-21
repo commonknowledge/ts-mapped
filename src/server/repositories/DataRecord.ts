@@ -7,6 +7,7 @@ import {
 import { FilterOperator, FilterType } from "@/models/MapView";
 import { InspectorComparisonStat } from "@/models/shared";
 import { db } from "@/server/services/database";
+import { monthKeyRangeToDates } from "@/utils/dataRecord";
 import type { EnrichedRecord } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
 import type { Point } from "@/models/shared";
@@ -19,14 +20,34 @@ import type {
   SqlBool,
 } from "kysely";
 
+// Inclusive month-key range from the map timeline; records are hard
+// filtered on their stored date (records without a date are excluded)
+export interface TimelineRange {
+  start: number;
+  end: number;
+}
+
+function applyTimelineRange<T>(
+  q: SelectQueryBuilder<Database, "dataRecord", T>,
+  timelineRange: TimelineRange | null | undefined,
+) {
+  if (!timelineRange) {
+    return q;
+  }
+  const { from, to } = monthKeyRangeToDates(timelineRange);
+  return q.where("date", ">=", from).where("date", "<", to);
+}
+
 export async function countDataRecordsForDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
+  timelineRange?: TimelineRange | null,
 ): Promise<{ total: number; matched: number }> {
-  const result = await db
-    .selectFrom("dataRecord")
-    .where("dataSourceId", "=", dataSourceId)
+  const result = await applyTimelineRange(
+    db.selectFrom("dataRecord").where("dataSourceId", "=", dataSourceId),
+    timelineRange,
+  )
     .select(({ eb, fn }) => [
       fn.countAll().as("count"),
       fn
@@ -175,12 +196,15 @@ export async function findPageForDataRecord(
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
   sort: SortInput[],
+  timelineRange?: TimelineRange | null,
 ) {
-  let q = db
-    .selectFrom("dataRecord")
-    .where("dataSourceId", "=", dataSourceId)
-    .where((eb) => applyFilterAndSearch(eb, filter, search))
-    .select("id");
+  let q = applyTimelineRange(
+    db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .where((eb) => applyFilterAndSearch(eb, filter, search)),
+    timelineRange,
+  ).select("id");
 
   for (const s of sort) {
     q = applySort(q, s);
@@ -245,12 +269,15 @@ export async function findDataRecordsByDataSource(
   page: number,
   sort: SortInput[],
   all: boolean | null | undefined,
+  timelineRange?: TimelineRange | null,
 ) {
-  let q = db
-    .selectFrom("dataRecord")
-    .where("dataSourceId", "=", dataSourceId)
-    .where((eb) => applyFilterAndSearch(eb, filter, search))
-    .selectAll();
+  let q = applyTimelineRange(
+    db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .where((eb) => applyFilterAndSearch(eb, filter, search)),
+    timelineRange,
+  ).selectAll();
 
   if (!all) {
     q = q.limit(DATA_RECORDS_PAGE_SIZE).offset(page * DATA_RECORDS_PAGE_SIZE);
@@ -370,6 +397,7 @@ export function upsertDataRecords(dataRecords: NewDataRecord[]) {
         json: eb.ref("excluded.json"),
         geocodeResult: eb.ref("excluded.geocodeResult"),
         geocodePoint: eb.ref("excluded.geocodePoint"),
+        date: eb.ref("excluded.date"),
       })),
     )
     .returningAll()
@@ -388,6 +416,7 @@ export const markDataRecordsAsDirty = async (
         externalId: id,
         dataSourceId,
         json: {},
+        date: null,
         needsImport: true,
         needsEnrich: true,
       })),

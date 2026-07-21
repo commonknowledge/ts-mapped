@@ -8,6 +8,7 @@ import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSour
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
+import { useTimelineFilter } from "@/app/(private)/map/[id]/hooks/useTimelineFilter";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
@@ -74,6 +75,7 @@ export default function MapTable() {
   const { data: map } = useMapQuery(mapId);
   const { view, updateView, viewConfig } = useMapViews();
   const { getDataSourceById } = useDataSources();
+  const { activeRange } = useTimelineFilter();
   const { focusedRecord, setFocusedRecord } = useInspectorState();
   const [lookingUpPage, setLookingUpPage] = useState(false);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
@@ -161,6 +163,11 @@ export default function MapTable() {
             search: dataSourceView?.search,
             filter: dataSourceView?.filter,
             sort: dataSourceView?.sort,
+            timelineRange:
+              activeRange &&
+              getDataSourceById(selectedDataSourceId)?.columnRoles.dateColumn
+                ? activeRange
+                : undefined,
           }),
         );
 
@@ -176,10 +183,12 @@ export default function MapTable() {
 
     fetchPage();
   }, [
+    activeRange,
     dataRecordsLoading,
     dataRecordsResult?.records,
     dataSourceView,
     focusedRecord,
+    getDataSourceById,
     lookingUpPage,
     queryClient,
     selectedDataSourceId,

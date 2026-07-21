@@ -18,7 +18,7 @@
  * - Category colours: Severity
  * - Scaled size: Attendees (incl. occasional N/A)
  * - Boundary chart group-by: "Reported via"
- * - Year slider: Date/Year
+ * - Timeline: Date (set as the date column role)
  *
  * Rows are scattered around UK city centres with Latitude/Longitude columns,
  * so the data source can use Coordinates geocoding and import quickly
@@ -128,7 +128,7 @@ function main() {
 
   const out = fs.createWriteStream(outPath);
   out.write(
-    "Title,City,Latitude,Longitude,Date,Year,Severity,Type of threat,Attendees," +
+    "Title,City,Latitude,Longitude,Date,Severity,Type of threat,Attendees," +
       "Reported via,Reported incidents,Estimated cost,Confirmed %,Turnout rate," +
       "Priority,Police informed?,Notes\n",
   );
@@ -146,9 +146,9 @@ function main() {
     const date = `${year}-${pad(month)}-${pad(day)}`;
 
     const type = pick(TYPES);
-    // ~15% of rows have no severity, ~2% no year/date (hidden when filtering)
+    // ~15% of rows have no severity, ~2% no date (hidden when filtering)
     const severity = random() < 0.15 ? "" : pick(SEVERITIES);
-    const hasYear = random() >= 0.02;
+    const hasDate = random() >= 0.02;
     // ~5% N/A attendees: exercises the size ramp's unrankable-value rule
     const attendees = random() < 0.05 ? "N/A" : pick(ATTENDEES);
 
@@ -167,8 +167,7 @@ function main() {
       city.name,
       lat,
       lng,
-      hasYear ? date : "",
-      hasYear ? String(year) : "",
+      hasDate ? date : "",
       severity,
       type,
       attendees,
