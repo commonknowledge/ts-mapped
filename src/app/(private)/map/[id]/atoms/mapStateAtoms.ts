@@ -28,7 +28,6 @@ export const zoomAtom = atom<number>(DEFAULT_ZOOM);
 export const pinDropModeAtom = atom<boolean>(false);
 export const editAreaModeAtom = atom<boolean>(false);
 export const showControlsAtom = atom<boolean>(true);
-export const compareGeographiesAtom = atom<boolean>(false);
 export const infoPopupOpenAtom = atom<boolean>(false);
 export const infoPopupEditingAtom = atom<boolean>(false);
 export const mapBottomPaddingAtom = atom<number>(0);

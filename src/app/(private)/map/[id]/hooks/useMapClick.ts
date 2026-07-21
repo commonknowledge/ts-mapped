@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { type SelectedArea } from "@/app/(private)/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
-import { useCompareGeographiesMode, usePinDropMode } from "./useMapControls";
+import { usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
 import { useSelectedAreas } from "./useSelectedAreas";
@@ -43,7 +43,6 @@ export function useMapClickEffect({
   } = useInspectorState();
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
   const [, setSelectedSecondaryArea] = useSelectedSecondaryArea();
-  const compareGeographiesMode = useCompareGeographiesMode();
   const secondaryAreaSetConfig = useSecondaryAreaSetConfig();
 
   const {
@@ -57,15 +56,13 @@ export function useMapClickEffect({
   const prevSelectedAreasRef = useRef<SelectedArea[]>([]);
 
   // Use refs to avoid recreating click handler when modes change
-  const compareGeographiesModeRef = useRef(compareGeographiesMode);
   const pinDropModeRef = useRef(pinDropMode);
   const currentModeRef = useRef(currentMode);
 
   useEffect(() => {
-    compareGeographiesModeRef.current = compareGeographiesMode;
     pinDropModeRef.current = pinDropMode;
     currentModeRef.current = currentMode;
-  }, [compareGeographiesMode, pinDropMode, currentMode]);
+  }, [pinDropMode, currentMode]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -404,66 +401,12 @@ export function useMapClickEffect({
       return false;
     };
 
-    const handleCtrlAreaClick = (e: mapboxgl.MapMouseEvent): boolean => {
-      if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
-        return false;
-      }
-
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [fillLayerId, lineLayerId].filter((l) => map.getLayer(l)),
-      });
-
-      if (features.length > 0) {
-        const feature = features[0];
-        const areaCode = feature.properties?.[featureCodeProperty] as string;
-        const areaName = feature.properties?.[featureNameProperty] as string;
-
-        if (areaCode && areaName) {
-          // Use ref to get the latest selectedAreas value
-          const currentSelectedAreas = selectedAreasRef.current;
-
-          // Check if area already exists in selection
-          const existingIndex = currentSelectedAreas.findIndex(
-            (a) => a.code === areaCode && a.areaSetCode === areaSetCode,
-          );
-
-          if (existingIndex !== -1) {
-            // Remove area from selection
-            const newSelectedAreas = currentSelectedAreas.filter(
-              (_, index) => index !== existingIndex,
-            );
-            setSelectedAreas(newSelectedAreas);
-            return true;
-          } else {
-            // Add area to selected areas
-            const newArea = {
-              areaSetCode,
-              code: areaCode,
-              name: areaName,
-              coordinates: [e.lngLat.lng, e.lngLat.lat] as [number, number],
-            };
-            setSelectedAreas([...currentSelectedAreas, newArea]);
-            return true;
-          }
-        }
-      }
-
-      return false;
-    };
-
     const onClick = (e: mapboxgl.MapMouseEvent) => {
       if (currentModeRef.current === "draw_polygon" || pinDropModeRef.current) {
         return;
       }
 
       handleSecondaryAreaClick(e);
-
-      // Check if compare areas mode is active
-      if (compareGeographiesModeRef.current) {
-        if (handleCtrlAreaClick(e)) {
-          return;
-        }
-      }
 
       if (handleMarkerClick(e)) {
         return;

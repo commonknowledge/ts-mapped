@@ -1,6 +1,7 @@
 import * as turf from "@turf/turf";
 import {
   ArrowLeftIcon,
+  ChartBarIcon,
   ChevronDownIcon,
   InfoIcon,
   MapPinIcon,
@@ -16,6 +17,7 @@ import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAre
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import { useSelectedAreas } from "@/app/(private)/map/[id]/hooks/useSelectedAreas";
 import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
@@ -49,6 +51,7 @@ export default function InspectorPanel() {
   const { inspectorContent } = useInspectorContent();
   const { type, dataSource } = inspectorContent ?? {};
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
+  const [selectedAreas, setSelectedAreas] = useSelectedAreas();
 
   // Selecting something new re-opens a minimised inspector
   const contentKey = `${type ?? ""}:${String(inspectorContent?.name ?? "")}`;
@@ -159,6 +162,48 @@ export default function InspectorPanel() {
     if (map && focusedRecord?.geocodePoint) {
       map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
     }
+  };
+
+  // Compare: toggle this boundary in the comparison list shown in the
+  // hover info card (top left of the map)
+  const isCompared = Boolean(
+    selectedBoundary &&
+    selectedAreas.some(
+      (a) =>
+        a.code === selectedBoundary.code &&
+        a.areaSetCode === selectedBoundary.areaSetCode,
+    ),
+  );
+
+  const handleToggleCompare = () => {
+    if (!selectedBoundary) {
+      return;
+    }
+    if (isCompared) {
+      setSelectedAreas(
+        selectedAreas.filter(
+          (a) =>
+            !(
+              a.code === selectedBoundary.code &&
+              a.areaSetCode === selectedBoundary.areaSetCode
+            ),
+        ),
+      );
+      return;
+    }
+    if (!geography) {
+      return;
+    }
+    const center = turf.center(geography).geometry.coordinates;
+    setSelectedAreas([
+      ...selectedAreas,
+      {
+        code: selectedBoundary.code,
+        areaSetCode: selectedBoundary.areaSetCode,
+        name: selectedBoundary.name || "Boundary",
+        coordinates: [center[0], center[1]],
+      },
+    ]);
   };
 
   const handleAddToMyAreas = () => {
@@ -302,7 +347,7 @@ export default function InspectorPanel() {
         </UnderlineTabsContent>
       </UnderlineTabs>
       {type === LayerType.Boundary && (
-        <div className="border-t p-3">
+        <div className="border-t p-3 flex flex-col gap-2">
           <Button
             className="w-full"
             onClick={handleAddToMyAreas}
@@ -310,6 +355,15 @@ export default function InspectorPanel() {
           >
             <PlusIcon />
             Add to areas
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={handleToggleCompare}
+            disabled={!isCompared && !geography}
+          >
+            <ChartBarIcon />
+            {isCompared ? "Remove from comparison" : "Compare"}
           </Button>
         </div>
       )}

@@ -7,11 +7,7 @@ import {
   hoverSecondaryAreaAtom,
 } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
-import {
-  useCompareGeographiesModeAtom,
-  useEditAreaMode,
-  usePinDropMode,
-} from "./useMapControls";
+import { useEditAreaMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
@@ -37,21 +33,17 @@ export function useMapHoverEffect({
   const [, setHoverArea] = useHoverArea();
   const [, setHoverSecondaryArea] = useHoverSecondaryArea();
   const [, setHoverMarker] = useHoverMarker();
-  const [compareGeographiesMode, setCompareGeographiesMode] =
-    useCompareGeographiesModeAtom();
   const pinDropMode = usePinDropMode();
   const editAreaMode = useEditAreaMode();
 
   // Use refs to avoid recreating event listeners when modes change
-  const compareGeographiesModeRef = useRef(compareGeographiesMode);
   const pinDropModeRef = useRef(pinDropMode);
   const editAreaModeRef = useRef(editAreaMode);
 
   useEffect(() => {
-    compareGeographiesModeRef.current = compareGeographiesMode;
     pinDropModeRef.current = pinDropMode;
     editAreaModeRef.current = editAreaMode;
-  }, [compareGeographiesMode, pinDropMode, editAreaMode]);
+  }, [pinDropMode, editAreaMode]);
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -78,33 +70,6 @@ export function useMapHoverEffect({
         );
         setHoverArea(null);
         hoveredFeatureId = undefined;
-      }
-    };
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "c" || e.key === "C") && !e.repeat) {
-        // Skip if modifier keys are held (e.g. Cmd+C / Ctrl+C for copy)
-        if (e.metaKey || e.ctrlKey || e.altKey) return;
-        // Skip if the user is typing in an input, select, or textarea
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-        setCompareGeographiesMode(true);
-        const canvas = map.getCanvas();
-        if (canvas.style.cursor === "pointer") {
-          canvas.style.cursor = "copy";
-        }
-      }
-    };
-
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "c" || e.key === "C") {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-        setCompareGeographiesMode(false);
-        const canvas = map.getCanvas();
-        if (canvas.style.cursor === "copy") {
-          canvas.style.cursor = "pointer";
-        }
       }
     };
 
@@ -289,15 +254,10 @@ export function useMapHoverEffect({
           }
         }
 
-        if (
-          map.getCanvas().style.cursor !== "pointer" &&
-          map.getCanvas().style.cursor !== "copy"
-        ) {
+        if (map.getCanvas().style.cursor !== "pointer") {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
-        map.getCanvas().style.cursor = compareGeographiesModeRef.current
-          ? "copy"
-          : "pointer";
+        map.getCanvas().style.cursor = "pointer";
         return true;
       }
 
@@ -326,8 +286,6 @@ export function useMapHoverEffect({
 
     map.on("mousemove", onMouseMove);
     map.on("mouseout", onMouseLeave);
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
 
     return () => {
       // Clean up hover state on unmount
@@ -351,8 +309,6 @@ export function useMapHoverEffect({
 
       map.off("mousemove", onMouseMove);
       map.off("mouseout", onMouseLeave);
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
     };
   }, [
     mapRef,
@@ -365,7 +321,6 @@ export function useMapHoverEffect({
     setHoverArea,
     featureNameProperty,
     areaSetCode,
-    setCompareGeographiesMode,
     interactionSourceId,
     secondaryAreaSetConfig,
     setHoverSecondaryArea,
