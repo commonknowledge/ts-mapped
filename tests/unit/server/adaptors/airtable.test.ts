@@ -84,6 +84,39 @@ describe("Airtable adaptor tests", () => {
     vi.unstubAllGlobals();
   });
 
+  // The test base's "Table 1" has a "Link" field pointing at "Linked
+  // Table"; linked record ids must come through as the linked records'
+  // primary field values ("Name")
+  test("resolves linked record ids when fetching by external id", async () => {
+    const adaptor = new AirtableAdaptor(
+      "test-data-source",
+      credentials.airtable.apiKey,
+      credentials.airtable.baseId,
+      credentials.airtable.tableId,
+    );
+    // "Paul", linked to two records: Mark and Luke
+    const records = await adaptor.fetchByExternalId(["reckBm7wJxGA5R0bV"]);
+    expect(records).toHaveLength(1);
+    expect(records[0].json["Link"]).toEqual(["Mark", "Luke"]);
+  });
+
+  test("resolves linked record ids when fetching all records", async () => {
+    const adaptor = new AirtableAdaptor(
+      "test-data-source",
+      credentials.airtable.apiKey,
+      credentials.airtable.baseId,
+      credentials.airtable.tableId,
+    );
+    const linksByName: Record<string, unknown> = {};
+    for await (const record of adaptor.fetchAll()) {
+      linksByName[String(record.json["Name"])] = record.json["Link"];
+    }
+    expect(linksByName["Ringo"]).toEqual(["John"]);
+    expect(linksByName["George"]).toEqual(["John"]);
+    expect(linksByName["John"]).toEqual(["Matthew"]);
+    expect(linksByName["Paul"]).toEqual(["Mark", "Luke"]);
+  });
+
   test("createField creates a field", async () => {
     const adaptor = new AirtableAdaptor(
       "test-data-source",

@@ -23,6 +23,20 @@ interface Webhook {
   expirationTime: Date;
 }
 
+interface AirtableField {
+  id: string;
+  name: string;
+  type: string;
+  options?: { linkedTableId?: string };
+}
+
+interface AirtableTable {
+  id: string;
+  name: string;
+  primaryFieldId: string;
+  fields: AirtableField[];
+}
+
 const WebhookNotification = z.object({
   base: z.object({
     id: z.string(),
@@ -48,6 +62,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
   private baseId: string;
   private tableId: string;
   private cachedFieldNames: string[] | null = null;
+  private cachedTables: AirtableTable[] | null = null;
+  // Linked-record field name -> linked record id -> primary field value
+  private linkedRecordNames: Map<string, Map<string, unknown>> | null = null;
 
   constructor(
     dataSourceId: string,
@@ -201,9 +218,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     return payloads;
   }
 
-  async getFields(): Promise<string[]> {
-    if (this.cachedFieldNames) {
-      return this.cachedFieldNames;
+  async getTables(): Promise<AirtableTable[]> {
+    if (this.cachedTables) {
+      return this.cachedTables;
     }
 
     const url = new URL(
@@ -223,22 +240,141 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = (await response.json()) as {
-      tables: { id: string; fields: { name: string }[] }[];
-    };
-    const table = json.tables.find(
-      (table: { id: string }) => table.id === this.tableId,
-    );
+    const json = (await response.json()) as { tables: AirtableTable[] };
+    this.cachedTables = json.tables;
+    return json.tables;
+  }
+
+  async getFields(): Promise<string[]> {
+    if (this.cachedFieldNames) {
+      return this.cachedFieldNames;
+    }
+
+    const tables = await this.getTables();
+    const table = tables.find((table) => table.id === this.tableId);
     if (!table) {
       return [];
     }
 
-    const cachedFieldNames = table.fields.map(
-      (field: { name: string }) => field.name,
-    );
+    const cachedFieldNames = table.fields.map((field) => field.name);
     this.cachedFieldNames = cachedFieldNames;
 
     return cachedFieldNames;
+  }
+
+  /**
+   * Linked-record fields hold arrays of opaque record ids ("recXXX..."). To
+   * display them, fetch each linked table's primary field values once and
+   * map ids to those values. Failures (e.g. a token without access to the
+   * linked table) degrade to the raw ids rather than breaking the import.
+   */
+  private async getLinkedRecordNames(): Promise<
+    Map<string, Map<string, unknown>>
+  > {
+    if (this.linkedRecordNames) {
+      return this.linkedRecordNames;
+    }
+
+    const maps = new Map<string, Map<string, unknown>>();
+    this.linkedRecordNames = maps;
+
+    let tables: AirtableTable[] = [];
+    try {
+      tables = await this.getTables();
+    } catch (error) {
+      logger.warn(
+        `Could not fetch Airtable schema for linked records: ${this.baseId}`,
+        { error },
+      );
+      return maps;
+    }
+
+    const table = tables.find((t) => t.id === this.tableId);
+    for (const field of table?.fields ?? []) {
+      if (field.type !== "multipleRecordLinks") {
+        continue;
+      }
+      const linkedTable = tables.find(
+        (t) => t.id === field.options?.linkedTableId,
+      );
+      const primaryField = linkedTable?.fields.find(
+        (f) => f.id === linkedTable.primaryFieldId,
+      );
+      if (!linkedTable || !primaryField) {
+        continue;
+      }
+      try {
+        maps.set(
+          field.name,
+          await this.fetchPrimaryFieldValues(linkedTable.id, primaryField.name),
+        );
+      } catch (error) {
+        logger.warn(
+          `Could not fetch linked Airtable records for field "${field.name}" (table ${linkedTable.id})`,
+          { error },
+        );
+      }
+    }
+
+    return maps;
+  }
+
+  private async fetchPrimaryFieldValues(
+    tableId: string,
+    primaryFieldName: string,
+  ): Promise<Map<string, unknown>> {
+    const valuesById = new Map<string, unknown>();
+    let offset: string | undefined;
+    do {
+      const url = new URL(
+        `https://api.airtable.com/v0/${this.baseId}/${tableId}`,
+      );
+      url.searchParams.set("fields[]", primaryFieldName);
+      if (offset) {
+        url.searchParams.set("offset", offset);
+      }
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      });
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw Error(
+          `Bad linked table response: ${response.status}, ${responseText}`,
+        );
+      }
+      const json = (await response.json()) as {
+        offset?: string;
+        records: { id: string; fields: Record<string, unknown> }[];
+      };
+      for (const record of json.records) {
+        valuesById.set(record.id, record.fields[primaryFieldName]);
+      }
+      offset = json.offset;
+    } while (offset);
+    return valuesById;
+  }
+
+  /** Replace linked-record ids with the linked records' primary field
+   *  values; ids that can't be resolved are kept as-is. */
+  private async resolveLinkedRecords(
+    fields: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const linkedRecordNames = await this.getLinkedRecordNames();
+    if (linkedRecordNames.size === 0) {
+      return fields;
+    }
+    const resolved = { ...fields };
+    for (const [fieldName, namesById] of linkedRecordNames) {
+      const value = resolved[fieldName];
+      if (Array.isArray(value)) {
+        resolved[fieldName] = value.map((id) =>
+          typeof id === "string" && namesById.has(id) ? namesById.get(id) : id,
+        );
+      }
+    }
+    return resolved;
   }
 
   async getRecordCount() {
@@ -325,20 +461,22 @@ export class AirtableAdaptor implements DataSourceAdaptor {
 
     const fields = await this.getFields();
 
-    const mappedJson = {
-      offset: "offset" in json ? String(json.offset) : undefined,
-      records: json.records.map((r) => {
-        const record = r as { id: string; fields: Record<string, unknown> };
-        for (const f of fields) {
-          if (!(f in record.fields)) {
-            record.fields[f] = null;
-          }
+    const records = [];
+    for (const r of json.records) {
+      const record = r as { id: string; fields: Record<string, unknown> };
+      for (const f of fields) {
+        if (!(f in record.fields)) {
+          record.fields[f] = null;
         }
-        return record;
-      }),
-    };
+      }
+      record.fields = await this.resolveLinkedRecords(record.fields);
+      records.push(record);
+    }
 
-    return mappedJson;
+    return {
+      offset: "offset" in json ? String(json.offset) : undefined,
+      records,
+    };
   }
 
   async fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
@@ -372,12 +510,14 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       throw Error(`Bad fetch page response body: ${response.json}`);
     }
 
-    return json.records.map(
-      (r: { id: string; fields: Record<string, unknown> }) => ({
+    const records: ExternalRecord[] = [];
+    for (const r of json.records) {
+      records.push({
         externalId: r.id,
-        json: r.fields,
-      }),
-    );
+        json: await this.resolveLinkedRecords(r.fields),
+      });
+    }
+    return records;
   }
 
   async listWebhooks(urlContains: string): Promise<Webhook[]> {
