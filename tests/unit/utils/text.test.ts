@@ -59,16 +59,27 @@ describe("formatNumber", () => {
   });
 
   describe("thousands", () => {
-    test("formats values >= 1 thousand with 'k' suffix", () => {
-      expect(formatNumber(1000)).toBe("1k");
-      expect(formatNumber(1230)).toBe("1.23k");
-      expect(formatNumber(5000)).toBe("5k");
-      expect(formatNumber(9870)).toBe("9.87k");
+    test("formats values >= 10 thousand with 'k' suffix", () => {
+      expect(formatNumber(12300)).toBe("12.3k");
+      expect(formatNumber(50000)).toBe("50k");
+      expect(formatNumber(98700)).toBe("98.7k");
+    });
+
+    test("prints four-digit whole numbers in full (e.g. years)", () => {
+      expect(formatNumber(1000)).toBe("1000");
+      expect(formatNumber(2026)).toBe("2026");
+      expect(formatNumber(5000)).toBe("5000");
+      expect(formatNumber(9870)).toBe("9870");
+      expect(formatNumber(-1000)).toBe("-1000");
+      expect(formatNumber(-2340)).toBe("-2340");
+    });
+
+    test("abbreviates four-digit non-integers", () => {
+      expect(formatNumber(1234.5)).toBe("1.23k");
     });
 
     test("handles negative thousands", () => {
-      expect(formatNumber(-1000)).toBe("-1k");
-      expect(formatNumber(-2340)).toBe("-2.34k");
+      expect(formatNumber(-23400)).toBe("-23.4k");
     });
   });
 
@@ -130,8 +141,8 @@ describe("formatNumber", () => {
     });
 
     test("handles rounding correctly", () => {
-      expect(formatNumber(1235)).toBe("1.24k");
-      expect(formatNumber(1234)).toBe("1.23k");
+      expect(formatNumber(12355)).toBe("12.4k");
+      expect(formatNumber(12345)).toBe("12.3k");
     });
   });
 
@@ -140,7 +151,7 @@ describe("formatNumber", () => {
       expect(formatNumber(-1.5e12)).toBe("-1.5t");
       expect(formatNumber(-2.5e9)).toBe("-2.5b");
       expect(formatNumber(-3.5e6)).toBe("-3.5m");
-      expect(formatNumber(-4.5e3)).toBe("-4.5k");
+      expect(formatNumber(-4.5e4)).toBe("-45k");
       expect(formatNumber(-5.5)).toBe("-5.5");
     });
 
