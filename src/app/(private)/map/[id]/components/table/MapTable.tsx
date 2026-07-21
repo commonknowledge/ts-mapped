@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { Tag } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -15,13 +16,17 @@ import { useFeatureFlagEnabled } from "@/hooks";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceTypeLabels } from "@/labels";
-import { ColumnType } from "@/models/DataSource";
+import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import { FilterType, MarkerIconMode } from "@/models/MapView";
 import { Feature } from "@/models/Organisation";
 import { ColumnDisplayFormat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { buildName } from "@/utils/dataRecord";
+import {
+  RECORD_DATE_DISPLAY_FORMAT,
+  buildName,
+  parseDateValue,
+} from "@/utils/dataRecord";
 import { getCategoryColorsKey } from "../../colors";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { useMapId, useMapRef } from "../../hooks/useMapCore";
@@ -428,6 +433,23 @@ export default function MapTable() {
     [inspectorColumnsByName, metadataByColumn, inspectorConfig?.color],
   );
 
+  // Date semantic type columns pretty-print ("28 May 2026"), matching the
+  // inspector
+  const getCellText = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const columnMetadata = metadataByColumn.get(columnName);
+      if (columnMetadata?.semanticType !== ColumnSemanticType.Date) {
+        return undefined;
+      }
+      const date = parseDateValue(
+        value,
+        getDataSourceById(selectedDataSourceId)?.dateFormat,
+      );
+      return date ? format(date, RECORD_DATE_DISPLAY_FORMAT) : undefined;
+    },
+    [metadataByColumn, getDataSourceById, selectedDataSourceId],
+  );
+
   if (!dataSource || !view) {
     return null;
   }
@@ -550,6 +572,7 @@ export default function MapTable() {
         getCellPercentage={getCellPercentage}
         getCellScale={getCellScale}
         booleanColumns={booleanColumns}
+        getCellText={getCellText}
       />
       {enableSyncToCRM && (
         <SyncToCrmModal

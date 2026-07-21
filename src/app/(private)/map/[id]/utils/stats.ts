@@ -1,4 +1,6 @@
+import { format } from "date-fns";
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
+import { RECORD_DATE_DISPLAY_FORMAT, parseDateValue } from "@/utils/dataRecord";
 import { formatNumber } from "@/utils/text";
 import type { ColumnMetadata } from "@/models/DataSource";
 
@@ -64,6 +66,9 @@ export const getDisplayValue = (
     isCount: boolean;
     columnMetadata: ColumnMetadata | null | undefined;
     columnType: ColumnType | null | undefined;
+    // The data source's date format, used by Date semantic type columns;
+    // when absent, ISO and yyyy-MM-dd values still parse
+    dateFormat?: string | null;
   },
 ): string => {
   const { isCount, columnType, columnMetadata } = config;
@@ -97,6 +102,15 @@ export const getDisplayValue = (
 
   if (value === undefined || value === null || value === "") {
     return isCount ? "0" : "-";
+  }
+
+  if (semanticType === ColumnSemanticType.Date) {
+    // Bare years (e.g. a "yyyy" date column) read best as-is
+    if (/^\d{4}$/.test(String(value).trim())) {
+      return String(value).trim();
+    }
+    const date = parseDateValue(value, config.dateFormat);
+    return date ? format(date, RECORD_DATE_DISPLAY_FORMAT) : String(value);
   }
 
   if (columnType !== ColumnType.Number || num === null) {

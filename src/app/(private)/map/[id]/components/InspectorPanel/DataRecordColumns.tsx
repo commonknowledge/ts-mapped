@@ -85,11 +85,17 @@ function TextOrNumberValue({
   value,
   columnMetadata,
   columnType,
-}: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
+  dataSourceId,
+}: Pick<
+  SubRendererProps,
+  "value" | "columnMetadata" | "columnType" | "dataSourceId"
+>) {
+  const { getDataSourceById } = useDataSources();
   const text = getDisplayValue(value, {
     isCount: false,
     columnType: columnType ?? ColumnType.Number,
     columnMetadata,
+    dateFormat: getDataSourceById(dataSourceId ?? "")?.dateFormat,
   });
   const rawString = typeof value === "string" ? value.trim() : null;
   const rawStringLower = rawString ? rawString.toLowerCase() : null;
@@ -125,11 +131,17 @@ function LargeTextValue({
   value,
   columnMetadata,
   columnType,
-}: Pick<SubRendererProps, "value" | "columnMetadata" | "columnType">) {
+  dataSourceId,
+}: Pick<
+  SubRendererProps,
+  "value" | "columnMetadata" | "columnType" | "dataSourceId"
+>) {
+  const { getDataSourceById } = useDataSources();
   const text = getDisplayValue(value, {
     isCount: false,
     columnType: columnType ?? ColumnType.String,
     columnMetadata,
+    dateFormat: getDataSourceById(dataSourceId ?? "")?.dateFormat,
   });
   return (
     <p className="whitespace-pre-wrap break-words text-xl text-neutral-800">
@@ -345,6 +357,7 @@ function MarkerEncodingValue({
     isCount: false,
     columnType: columnType ?? ColumnType.String,
     columnMetadata,
+    dateFormat: dataSource?.dateFormat,
   });
   if (text === "-") {
     return <span className="font-medium">-</span>;
@@ -458,6 +471,7 @@ function DataRecordPropertyValue({
         value={value}
         columnMetadata={columnMetadata}
         columnType={columnDef?.type}
+        dataSourceId={dataSourceId}
       />
     );
   }
@@ -505,6 +519,7 @@ function DataRecordPropertyValue({
         value={value}
         columnMetadata={columnMetadata}
         columnType={columnDef?.type}
+        dataSourceId={dataSourceId}
       />
     );
   }
@@ -514,6 +529,7 @@ function DataRecordPropertyValue({
       value={value}
       columnMetadata={columnMetadata}
       columnType={columnDef?.type}
+      dataSourceId={dataSourceId}
     />
   );
 }

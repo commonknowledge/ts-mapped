@@ -230,6 +230,9 @@ export enum ColumnSemanticType {
   Number = "Number",
   Percentage01 = "Percentage01",
   Percentage0100 = "Percentage0100",
+  // String values that parse as dates (with the source's dateFormat, or
+  // ISO); displayed pretty-printed everywhere
+  Date = "Date",
 }
 export const columnSemanticTypes = Object.values(ColumnSemanticType);
 
@@ -237,6 +240,11 @@ export const numericColumnSemanticTypes = [
   ColumnSemanticType.Number,
   ColumnSemanticType.Percentage01,
   ColumnSemanticType.Percentage0100,
+] as const;
+
+export const stringColumnSemanticTypes = [
+  ColumnSemanticType.Text,
+  ColumnSemanticType.Date,
 ] as const;
 
 export { ColumnDisplayFormat, columnDisplayFormats };

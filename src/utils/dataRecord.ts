@@ -64,24 +64,17 @@ export const buildPublicMapName = (
 const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T/;
 
 /**
- * Parse a record's date from its date column value: the data source's
- * dateFormat first, then strict ISO datetimes. Null when there is no date
- * column, the value is empty, or it doesn't parse. This is the parser used
- * to store `dataRecord.date` at import time.
+ * Parse a date from a column value: the data source's dateFormat first,
+ * then strict ISO datetimes. Null when the value is empty or doesn't parse.
  */
-export function parseRecordDate({
-  json,
-  dateColumn,
-  dateFormat,
-}: {
-  json: Record<string, unknown>;
-  dateColumn: string | null | undefined;
-  dateFormat: string | null | undefined;
-}): Date | null {
-  if (!dateColumn || !json[dateColumn]) {
+export function parseDateValue(
+  value: unknown,
+  dateFormat: string | null | undefined,
+): Date | null {
+  if (value === undefined || value === null || value === "") {
     return null;
   }
-  const str = String(json[dateColumn]);
+  const str = String(value);
   const parsed = parse(str, dateFormat || "yyyy-MM-dd", new Date());
   if (!isNaN(parsed.getTime())) {
     return parsed;
@@ -93,6 +86,26 @@ export function parseRecordDate({
     }
   }
   return null;
+}
+
+/**
+ * Parse a record's date from its date column value. Null when there is no
+ * date column, the value is empty, or it doesn't parse. This is the parser
+ * used to store `dataRecord.date` at import time.
+ */
+export function parseRecordDate({
+  json,
+  dateColumn,
+  dateFormat,
+}: {
+  json: Record<string, unknown>;
+  dateColumn: string | null | undefined;
+  dateFormat: string | null | undefined;
+}): Date | null {
+  if (!dateColumn) {
+    return null;
+  }
+  return parseDateValue(json[dateColumn], dateFormat);
 }
 
 export function parseDate({

@@ -16,6 +16,7 @@ import {
   ColumnType,
   JobStatus,
   numericColumnSemanticTypes,
+  stringColumnSemanticTypes,
 } from "@/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Badge } from "@/shadcn/ui/badge";
@@ -399,7 +400,7 @@ export default function ColumnMetadataTable({
                   />
                 </TableCell>
                 <TableCell className="align-top">
-                  {isNumeric ? (
+                  {isNumeric || colDef?.type === ColumnType.String ? (
                     <Select
                       value={col.semanticType ?? ""}
                       onValueChange={(value) =>
@@ -410,10 +411,15 @@ export default function ColumnMetadataTable({
                       }
                     >
                       <SelectTrigger className="h-8 text-sm data-[placeholder]:text-black">
-                        <SelectValue placeholder="Number" />
+                        <SelectValue
+                          placeholder={isNumeric ? "Number" : "Text"}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {numericColumnSemanticTypes.map((type) => (
+                        {(isNumeric
+                          ? numericColumnSemanticTypes
+                          : stringColumnSemanticTypes
+                        ).map((type) => (
                           <SelectItem key={type} value={type}>
                             {ColumnSemanticTypeLabels[type]}
                           </SelectItem>
@@ -422,9 +428,7 @@ export default function ColumnMetadataTable({
                     </Select>
                   ) : (
                     <Badge variant="outline" className="text-sm font-normal">
-                      {colDef?.type === ColumnType.String
-                        ? "Text"
-                        : (colDef?.type ?? "Unknown")}
+                      {colDef?.type ?? "Unknown"}
                     </Badge>
                   )}
                 </TableCell>

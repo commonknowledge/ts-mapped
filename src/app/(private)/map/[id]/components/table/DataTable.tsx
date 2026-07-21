@@ -86,6 +86,12 @@ interface DataTableProps {
   }) => { filled: number; max: number; barColor?: string } | undefined;
   /** Columns with the Boolean inspector display format render as yes/no */
   booleanColumns?: Set<string>;
+  /** Custom cell text (e.g. pretty-printed dates); falls back to the
+   *  default rendering when undefined is returned. */
+  getCellText?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => string | undefined;
 }
 
 export function DataTable({
@@ -113,6 +119,7 @@ export function DataTable({
   getCellPercentage,
   getCellScale,
   booleanColumns,
+  getCellText,
 }: DataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
@@ -307,7 +314,9 @@ export function DataTable({
                           columnName: column.name,
                           value,
                         });
-                        const text = renderCell(value);
+                        const text =
+                          getCellText?.({ columnName: column.name, value }) ??
+                          renderCell(value);
                         const content = cellColor ? (
                           <ValueBadge color={cellColor}>{text}</ValueBadge>
                         ) : (

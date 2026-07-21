@@ -15,7 +15,7 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import { parseRecordDate } from "@/utils/dataRecord";
+import { parseDateValue, parseRecordDate } from "@/utils/dataRecord";
 import type { GeocodeResult } from "@/models/DataRecord";
 import type { ColumnDef, ColumnMetadata } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
@@ -57,12 +57,18 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
 
     let count = 0;
     const columnDefsAccumulator: ColumnDef[] = [];
+    const dateColumnAccumulator = new Map<string, boolean>();
     const total = await adaptor.getRecordCount();
     const records = adaptor.fetchAll();
     const batches = batchAsync(records, DATA_SOURCE_JOB_BATCH_SIZE);
 
     for await (const batch of batches) {
-      await importBatch({ batch, dataSource, columnDefsAccumulator });
+      await importBatch({
+        batch,
+        dataSource,
+        columnDefsAccumulator,
+        dateColumnAccumulator,
+      });
       count += batch.length;
       if (total) {
         const percentComplete = Math.floor((count * 100) / total);
@@ -85,10 +91,13 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       recordCount: count,
     });
 
-    await inferColumnSemanticTypes({
-      ...dataSource,
-      columnDefs: columnDefsAccumulator,
-    });
+    await inferColumnSemanticTypes(
+      {
+        ...dataSource,
+        columnDefs: columnDefsAccumulator,
+      },
+      dateColumnAccumulator,
+    );
 
     pubsub.publish("dataSourceEvent", {
       dataSourceId: dataSource.id,
@@ -118,11 +127,15 @@ export const importBatch = async ({
   batch,
   dataSource,
   columnDefsAccumulator,
+  dateColumnAccumulator,
   existingRecords,
 }: {
   batch: ExternalRecord[];
   dataSource: DataSource;
   columnDefsAccumulator: ColumnDef[];
+  /** Tracks, per column, whether every non-empty value seen so far parses
+   *  as a date (full imports only); feeds Date semantic type inference. */
+  dateColumnAccumulator?: Map<string, boolean>;
   existingRecords?: Map<
     string,
     {
@@ -137,6 +150,13 @@ export const importBatch = async ({
     batch.map(async (record) => {
       const { columnDefs, typedJson } = typeJson(record.json, naIsNull);
       addColumnDefs(columnDefsAccumulator, columnDefs);
+      if (dateColumnAccumulator) {
+        accumulateDateColumns({
+          dateColumnAccumulator,
+          json: typedJson,
+          dateFormat: dataSource.dateFormat,
+        });
+      }
 
       const existing = existingRecords?.get(record.externalId);
       const jsonUnchanged =
@@ -335,45 +355,98 @@ export function inferSemanticTypeFromRange(
   return null;
 }
 
+/**
+ * Track, per column, whether every non-empty value seen so far parses as a
+ * date. A column that has failed once stays failed (short-circuit: most
+ * non-date columns fail on their first value). Non-string values fail, so
+ * only string columns can qualify.
+ */
+const accumulateDateColumns = ({
+  dateColumnAccumulator,
+  json,
+  dateFormat,
+}: {
+  dateColumnAccumulator: Map<string, boolean>;
+  json: Record<string, unknown>;
+  dateFormat: string | null | undefined;
+}): void => {
+  for (const [column, value] of Object.entries(json)) {
+    if (value === undefined || value === null || value === "") {
+      continue;
+    }
+    if (dateColumnAccumulator.get(column) === false) {
+      continue;
+    }
+    dateColumnAccumulator.set(
+      column,
+      typeof value === "string" && parseDateValue(value, dateFormat) !== null,
+    );
+  }
+};
+
 export async function inferColumnSemanticTypes(
   dataSource: DataSource,
+  // Absent on partial (webhook) imports, which only see changed records and
+  // so can never conclude that a whole column holds dates
+  dateColumnAccumulator?: Map<string, boolean>,
 ): Promise<void> {
-  const numericColumns = dataSource.columnDefs.filter(
-    (col) => col.type === ColumnType.Number,
-  );
-  if (numericColumns.length === 0) return;
-
   const updatedMetadata: ColumnMetadata[] = [...dataSource.columnMetadata];
   let changed = false;
 
-  for (const col of numericColumns) {
-    const existing = updatedMetadata.find((m) => m.name === col.name);
-    if (existing?.semanticType !== undefined) continue;
+  const hasSemanticType = (name: string) =>
+    updatedMetadata.find((m) => m.name === name)?.semanticType !== undefined;
 
-    const hasPercentageColumnName = isPercentageColumnName(col.name);
-    const { min, max, hasDecimals } = await getNumericColumnRange(
-      dataSource.id,
-      col.name,
-    );
-    const inferred = inferSemanticTypeFromRange(
-      hasPercentageColumnName,
-      min,
-      max,
-      hasDecimals,
-    );
-    if (inferred === null) continue;
-
+  const setSemanticType = (name: string, semanticType: ColumnSemanticType) => {
+    const existing = updatedMetadata.find((m) => m.name === name);
     if (existing) {
-      existing.semanticType = inferred;
+      existing.semanticType = semanticType;
     } else {
       updatedMetadata.push({
-        name: col.name,
+        name,
         description: "",
         valueLabels: {},
-        semanticType: inferred,
+        semanticType,
       });
     }
     changed = true;
+  };
+
+  // The date column role is definitionally a date, whatever its type
+  const dateColumn = dataSource.columnRoles.dateColumn;
+  if (dateColumn && !hasSemanticType(dateColumn)) {
+    setSemanticType(dateColumn, ColumnSemanticType.Date);
+  }
+
+  for (const col of dataSource.columnDefs) {
+    if (hasSemanticType(col.name)) continue;
+
+    if (col.type === ColumnType.Number) {
+      const hasPercentageColumnName = isPercentageColumnName(col.name);
+      const { min, max, hasDecimals } = await getNumericColumnRange(
+        dataSource.id,
+        col.name,
+      );
+      const inferred = inferSemanticTypeFromRange(
+        hasPercentageColumnName,
+        min,
+        max,
+        hasDecimals,
+      );
+      if (inferred !== null) {
+        setSemanticType(col.name, inferred);
+      }
+      continue;
+    }
+
+    // Other string columns qualify as dates when every non-empty value in
+    // the full import parsed (with the source's dateFormat, or as ISO):
+    // one dirty value blocks the label, surfacing it for cleaning
+    if (
+      col.type === ColumnType.String &&
+      dateColumnAccumulator?.get(col.name) === true
+    ) {
+      setSemanticType(col.name, ColumnSemanticType.Date);
+    }
   }
 
   if (changed) {
