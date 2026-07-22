@@ -21,7 +21,9 @@ import { useSelectedAreas } from "@/app/(private)/map/[id]/hooks/useSelectedArea
 import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
+import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { AreaSetCodeLabels } from "@/labels";
+import { DataSourceType } from "@/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { LayerType } from "@/types";
@@ -52,6 +54,7 @@ export default function InspectorPanel() {
   const { type, dataSource } = inspectorContent ?? {};
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
+  const organisationId = useOrganisationId();
 
   // Selecting something new re-opens a minimised inspector
   const contentKey = `${type ?? ""}:${String(inspectorContent?.name ?? "")}`;
@@ -76,6 +79,15 @@ export default function InspectorPanel() {
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
   const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
 
+  // Notes write back to the source system: owning-organisation members
+  // only, and CSVs are not updatable
+  const hasNotes = Boolean(
+    focusedRecord?.dataSourceId &&
+    dataSource &&
+    dataSource.organisationId === organisationId &&
+    dataSource.config.type !== DataSourceType.CSV,
+  );
+
   const boundaryProperties = useMemo(() => {
     if (type !== LayerType.Boundary) return [];
     const props = [...(inspectorContent?.properties ?? [])];
@@ -97,8 +109,11 @@ export default function InspectorPanel() {
     if (activeTab === "markers" && !hasMarkers) {
       return "data";
     }
+    if (activeTab === "notes" && !hasNotes) {
+      return hasData ? "data" : "markers";
+    }
     return activeTab;
-  }, [activeTab, hasData, hasMarkers]);
+  }, [activeTab, hasData, hasMarkers, hasNotes]);
 
   if (!inspectorContent) {
     return (
@@ -325,9 +340,9 @@ export default function InspectorPanel() {
               Markers {markerCount > 0 ? markerCount : ""}
             </UnderlineTabsTrigger>
           )}
-          <UnderlineTabsTrigger value="notes" className="hidden">
-            Notes 0
-          </UnderlineTabsTrigger>
+          {hasNotes && (
+            <UnderlineTabsTrigger value="notes">Notes</UnderlineTabsTrigger>
+          )}
         </UnderlineTabsList>
 
         {hasData && (
@@ -342,9 +357,11 @@ export default function InspectorPanel() {
           </UnderlineTabsContent>
         )}
 
-        <UnderlineTabsContent value="notes" className="overflow-auto p-3">
-          <InspectorNotesTab />
-        </UnderlineTabsContent>
+        {hasNotes && (
+          <UnderlineTabsContent value="notes" className="overflow-auto p-3">
+            <InspectorNotesTab />
+          </UnderlineTabsContent>
+        )}
       </UnderlineTabs>
       {type === LayerType.Boundary && (
         <div className="border-t p-3 flex flex-col gap-2">

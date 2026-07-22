@@ -1,9 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
+import { NOTES_COLUMN } from "@/constants";
 import { getBooleanEnvVar } from "@/env";
 import { AreaSetCode } from "@/models/AreaSet";
+import { ColumnType } from "@/models/DataSource";
 import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
 import { InspectorComparisonStat, pointSchema } from "@/models/shared";
+import { getDataSourceAdaptor } from "@/server/adaptors";
 import { reversePostcodeLookup } from "@/server/mapping/geocode";
 import {
   findAreaByCode,
@@ -17,10 +20,17 @@ import {
   findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
   getColumnStat,
+  updateDataRecordJson,
 } from "@/server/repositories/DataRecord";
+import { updateDataSource } from "@/server/repositories/DataSource";
 import { geojsonPointToPoint } from "@/server/utils/geo";
 import { DataRecordMatchType } from "@/types";
-import { dataSourceReadProcedure, router } from "../index";
+import {
+  dataSourceOwnerProcedure,
+  dataSourceReadProcedure,
+  router,
+} from "../index";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 
 // Inclusive month-key range from the map timeline
 const timelineRangeSchema = z.object({ start: z.number(), end: z.number() });
@@ -244,5 +254,59 @@ export const dataRecordRouter = router({
     )
     .query(async ({ input }) => {
       return getColumnStat(input.dataSourceId, input.columnName, input.stat);
+    }),
+  // Free-text notes written back to the source system in the NOTES_COLUMN,
+  // created on demand like enrichment columns. Owning-organisation members
+  // only: read access to a shared source is not enough to write.
+  saveNote: dataSourceOwnerProcedure
+    .input(z.object({ dataRecordId: z.string(), note: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const dataRecord = await findDataRecordById(input.dataRecordId);
+      if (!dataRecord || dataRecord.dataSourceId !== ctx.dataSource.id) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Data record not found",
+        });
+      }
+
+      const adaptor = getDataSourceAdaptor(ctx.dataSource);
+      if (!adaptor) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This data source does not support writing notes",
+        });
+      }
+
+      const recordUpdates: ExternalRecordUpdate[] = [
+        {
+          externalRecord: {
+            externalId: dataRecord.externalId,
+            json: dataRecord.json,
+          },
+          columns: [
+            {
+              def: { name: NOTES_COLUMN, type: ColumnType.String },
+              value: input.note,
+            },
+          ],
+        },
+      ];
+
+      // Write to the source system first (this creates the column there if
+      // needed), then mirror into the local record so the UI updates
+      // without a re-import
+      await adaptor.updateRecords(recordUpdates);
+      await updateDataRecordJson(recordUpdates, ctx.dataSource.id);
+
+      if (!ctx.dataSource.columnDefs.some((c) => c.name === NOTES_COLUMN)) {
+        await updateDataSource(ctx.dataSource.id, {
+          columnDefs: [
+            ...ctx.dataSource.columnDefs,
+            { name: NOTES_COLUMN, type: ColumnType.String },
+          ],
+        });
+      }
+
+      return true;
     }),
 });
