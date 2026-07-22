@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { SignJWT } from "jose";
+import backfillRecordDates from "@/server/commands/backfillRecordDates";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importAreaSet from "@/server/commands/importAreaSet";
 import importPostcodes from "@/server/commands/importPostcodes";
@@ -31,6 +32,25 @@ import { runWorker } from "@/server/services/worker";
 const program = new Command();
 
 let keepAlive = false;
+
+program
+  .command("backfillRecordDates")
+  .description(
+    "Backfill data record dates for records imported before the date column existed",
+  )
+  .option("--batchSize <batchSize>", "The data record batch size")
+  .option(
+    "--batchInterval <batchInterval>",
+    "Time to sleep between batches, in milliseconds",
+  )
+  .option("--fromId <fromId>", "Resume from this data record ID")
+  .action(async (options) => {
+    await backfillRecordDates({
+      batchSize: Number(options.batchSize) || 1000,
+      batchIntervalMillis: Number(options.batchInterval) || 0,
+      fromId: options.fromId || null,
+    });
+  });
 
 program
   .command("ensureOrganisationMap")
