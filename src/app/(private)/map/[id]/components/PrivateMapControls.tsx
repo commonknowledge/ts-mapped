@@ -93,7 +93,8 @@ export default function PrivateMapControls() {
         <MapStyleSelector />
       </div>
 
-      <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300 hidden md:block">
+      {/* bottom-20: clears the Sentry feedback button floating bottom-right */}
+      <div className="map-zoom-controls / absolute bottom-20 right-8 z-10 transition-transform duration-300 hidden md:block">
         <ZoomControl />
       </div>
 
