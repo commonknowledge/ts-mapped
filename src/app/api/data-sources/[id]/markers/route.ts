@@ -6,6 +6,7 @@ import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
 import { findPublicMapByViewId } from "@/server/repositories/PublicMap";
 import { canReadDataSource } from "@/server/utils/auth";
+import { closeRecordStream } from "@/server/utils/stream";
 import {
   buildName,
   buildPublicMapName,
@@ -80,70 +81,84 @@ export async function GET(
   const dateColumn = dataSource.columnRoles.dateColumn;
 
   const encoder = new TextEncoder();
+
+  // Created outside the ReadableStream so cancel() can close it too. Building
+  // the stream doesn't open the cursor — the first next() call does.
+  const recordStream = streamDataRecordsByDataSource(
+    dataSource.id,
+    filter,
+    search,
+  );
+
   const stream = new ReadableStream({
     async start(controller) {
-      // Start array
-      controller.enqueue(encoder.encode(`[`));
+      try {
+        // Start array
+        controller.enqueue(encoder.encode(`[`));
 
-      const stream = streamDataRecordsByDataSource(
-        dataSource.id,
-        filter,
-        search,
-      );
-      let row = await stream.next();
-      let firstItemWritten = false;
-      while (row.value) {
-        const dr: DataRecord & { [MARKER_MATCHED_COLUMN]: boolean } = row.value;
-        if (dr.geocodeResult?.centralPoint) {
-          const centralPoint = dr.geocodeResult.centralPoint;
-          const coordinates = [centralPoint.lng, centralPoint.lat] as [
-            number,
-            number,
-          ];
-          const feature: MarkerFeatureWithoutDataSourceId = {
-            type: "Feature",
-            // Minimal properties to support large numbers of markers (1000+)
-            properties: {
-              id: dr.id,
-              name: publicMapDataSourceConfig
-                ? buildPublicMapName(publicMapDataSourceConfig, dr)
-                : buildName(dataSource, dr),
-              matched: dr[MARKER_MATCHED_COLUMN],
-              ...(includeDate
-                ? {
-                    date: formatRecordDate({
-                      dataSource,
-                      dataRecord: dr,
-                      dataSourceConfig: publicMapDataSourceConfig,
-                    }),
-                  }
-                : {}),
-              ...(dateColumn
-                ? {
-                    month: dr.date
-                      ? toMonthKey(dr.date.getFullYear(), dr.date.getMonth())
-                      : null,
-                  }
-                : {}),
-              ...getIncludedProperties(dr, includeProperties),
-            },
-            geometry: {
-              type: "Point",
-              coordinates,
-            },
-          };
+        let row = await recordStream.next();
+        let firstItemWritten = false;
+        while (row.value) {
+          const dr: DataRecord & { [MARKER_MATCHED_COLUMN]: boolean } =
+            row.value;
+          if (dr.geocodeResult?.centralPoint) {
+            const centralPoint = dr.geocodeResult.centralPoint;
+            const coordinates = [centralPoint.lng, centralPoint.lat] as [
+              number,
+              number,
+            ];
+            const feature: MarkerFeatureWithoutDataSourceId = {
+              type: "Feature",
+              // Minimal properties to support large numbers of markers (1000+)
+              properties: {
+                id: dr.id,
+                name: publicMapDataSourceConfig
+                  ? buildPublicMapName(publicMapDataSourceConfig, dr)
+                  : buildName(dataSource, dr),
+                matched: dr[MARKER_MATCHED_COLUMN],
+                ...(includeDate
+                  ? {
+                      date: formatRecordDate({
+                        dataSource,
+                        dataRecord: dr,
+                        dataSourceConfig: publicMapDataSourceConfig,
+                      }),
+                    }
+                  : {}),
+                ...(dateColumn
+                  ? {
+                      month: dr.date
+                        ? toMonthKey(dr.date.getFullYear(), dr.date.getMonth())
+                        : null,
+                    }
+                  : {}),
+                ...getIncludedProperties(dr, includeProperties),
+              },
+              geometry: {
+                type: "Point",
+                coordinates,
+              },
+            };
 
-          // Prepend comma for items apart from the first one
-          // Use prepend instead of append so no need to know when an item is last
-          const chunk = `${firstItemWritten ? "," : ""}${JSON.stringify(feature)}`;
-          controller.enqueue(encoder.encode(chunk));
-          firstItemWritten = true;
+            // Prepend comma for items apart from the first one
+            // Use prepend instead of append so no need to know when an item is last
+            const chunk = `${firstItemWritten ? "," : ""}${JSON.stringify(feature)}`;
+            controller.enqueue(encoder.encode(chunk));
+            firstItemWritten = true;
+          }
+          row = await recordStream.next();
         }
-        row = await stream.next();
-      }
 
-      controller.enqueue(encoder.encode("]")); // End array
-      controller.close();
+        controller.enqueue(encoder.encode("]")); // End array
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      } finally {
+        await closeRecordStream(recordStream);
+      }
+    },
+    async cancel() {
+      await closeRecordStream(recordStream);
     },
   });
   return new NextResponse(stream, {

@@ -6,6 +6,7 @@ import { getEnrichedColumn } from "@/server/mapping/enrich";
 import { streamOrderedDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
+import { closeRecordStream } from "@/server/utils/stream";
 import type { DataRecord } from "@/models/DataRecord";
 import type { NextRequest } from "next/server";
 
@@ -85,6 +86,10 @@ export async function GET(
     }
   }
 
+  // Created outside the ReadableStream so cancel() can close it too. Building
+  // the stream doesn't open the cursor — the first next() call does.
+  const recordStream = streamOrderedDataRecordsByDataSource(dataSource.id);
+
   const stream = new ReadableStream({
     async start(controller) {
       try {
@@ -92,9 +97,6 @@ export async function GET(
         const headerCsv = stringify([allColumns]);
         controller.enqueue(encoder.encode(headerCsv));
 
-        const recordStream = streamOrderedDataRecordsByDataSource(
-          dataSource.id,
-        );
         let row = await recordStream.next();
 
         while (row.value) {
@@ -135,7 +137,12 @@ export async function GET(
         controller.close();
       } catch (error) {
         controller.error(error);
+      } finally {
+        await closeRecordStream(recordStream);
       }
+    },
+    async cancel() {
+      await closeRecordStream(recordStream);
     },
   });
 
