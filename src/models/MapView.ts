@@ -178,7 +178,6 @@ export const mapViewConfigSchema = z.object({
   includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
   mapType: z.nativeEnum(MapType).optional(),
-  showBoundaryOutline: z.boolean(),
   showChoropleth: z.boolean().optional(),
   showLabels: z.boolean(),
   showLocations: z.boolean(),

@@ -9,7 +9,6 @@ export const createNewViewConfig = (): MapViewConfig => {
     areaSetGroupCode: undefined,
     mapStyleName: MapStyleName.Light,
     showLabels: true,
-    showBoundaryOutline: false,
     showMembers: true,
     showLocations: true,
     showTurf: true,

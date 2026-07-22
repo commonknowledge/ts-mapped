@@ -167,16 +167,16 @@ export default function Choropleth() {
             type="fill"
             paint={{
               "fill-color": "#000000",
-              "fill-opacity": viewConfig.showChoropleth
-                ? [
-                    "case",
-                    ["boolean", ["feature-state", "hover"], false],
-                    // When hovering, apply darkness
-                    0.25,
-                    // Otherwise completely transparent
-                    0,
-                  ]
-                : 0,
+              // Hover follows the boundaries being drawn (i.e. areaSetGroupCode
+              // is set), not the visualisation fill being shown
+              "fill-opacity": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                // When hovering, apply darkness
+                0.25,
+                // Otherwise completely transparent
+                0,
+              ],
             }}
           />
         </Source>

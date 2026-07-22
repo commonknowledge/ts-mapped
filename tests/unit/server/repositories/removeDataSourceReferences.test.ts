@@ -37,7 +37,6 @@ const baseViewConfig = {
   areaDataColumn: "",
   calculationType: CalculationType.Avg,
   mapStyleName: MapStyleName.Light,
-  showBoundaryOutline: false,
   showLabels: false,
   showLocations: false,
   showMembers: false,
