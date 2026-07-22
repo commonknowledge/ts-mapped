@@ -11,10 +11,28 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ColorScheme } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
-import { getCategoryColorScale, getTrafficLightPreset } from "@/utils/colors";
+import { Label } from "@/shadcn/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { Switch } from "@/shadcn/ui/switch";
+import {
+  CHOROPLETH_COLOR_SCHEMES,
+  getCategoryColorScale,
+  getColorSchemePreset,
+} from "@/utils/colors";
 import type { DragEndEvent } from "@dnd-kit/core";
+
+// Written out in full (not derived) so Tailwind generates both directions
+const GRADIENT_CLASS = "bg-gradient-to-r";
+const REVERSED_GRADIENT_CLASS = "bg-gradient-to-l";
 
 export const VALUE_ORDER_HINT =
   "Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first. The same order drives scaled marker sizes and the legend.";
@@ -41,8 +59,8 @@ interface ColorMappingsEditorProps {
   /** Shown above the rows when reordering is enabled, explaining why order matters. */
   reorderHint?: string;
   /**
-   * If provided, enables presets that set several colours at once (e.g. the
-   * traffic-light preset for severity-like columns).
+   * If provided, enables the colour scheme preset selector, which pins a
+   * scheme's colours down the current value order in one action.
    */
   onBulkChange?: (mappings: Record<string, string>) => void;
   /** Order-only mode: hides the per-row colour pickers and colour actions */
@@ -70,6 +88,12 @@ export default function ColorMappingsEditor({
     setOrderedValues(values ?? []);
   }, [values]);
 
+  // Direction for the scheme preset selector (matches the choropleth's
+  // Reverse switch); the swatch previews flip with it, and toggling
+  // re-applies the last-applied scheme so the change is visible immediately
+  const [reversed, setReversed] = useState(false);
+  const [appliedScheme, setAppliedScheme] = useState<ColorScheme | null>(null);
+
   if (values === undefined) {
     return <p className="text-sm text-muted-foreground p-3">Loading values…</p>;
   }
@@ -89,7 +113,7 @@ export default function ColorMappingsEditor({
   const defaultColor = getCategoryColorScale(values);
   const hasMappings = !hideColors && Object.keys(colorMappings).length > 0;
   const sortable = Boolean(onReorder);
-  const showTrafficLightPreset =
+  const showPresets =
     !hideColors && Boolean(onBulkChange) && values.length >= 2;
   const showSourceColors = !hideColors && Boolean(onUseSourceColors);
 
@@ -147,20 +171,76 @@ export default function ColorMappingsEditor({
       ) : (
         rows
       )}
-      {(showTrafficLightPreset || hasMappings || showSourceColors) && (
-        <div className="mt-1 flex flex-col">
-          {showTrafficLightPreset && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground w-full justify-start"
-              title="Colours the values top-to-bottom: red, orange, yellow, green, then grey"
-              onClick={() =>
-                onBulkChange?.(getTrafficLightPreset(orderedValues))
-              }
-            >
-              Apply traffic light colours
-            </Button>
+      {(showPresets || hasMappings || showSourceColors) && (
+        <div className="mt-1 flex flex-col gap-1">
+          {showPresets && (
+            // Applying a scheme pins the sampled colours down the current
+            // value order, so reordering afterwards does not change them
+            <div className="flex items-center gap-2">
+              <Select
+                value=""
+                onValueChange={(selected) => {
+                  const scheme = selected as ColorScheme;
+                  setAppliedScheme(scheme);
+                  onBulkChange?.(
+                    getColorSchemePreset({
+                      scheme,
+                      orderedValues,
+                      reversed,
+                    }),
+                  );
+                }}
+              >
+                <SelectTrigger size="sm" className="flex-1 min-w-0 text-xs">
+                  <SelectValue placeholder="Apply a colour scheme…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHOROPLETH_COLOR_SCHEMES.filter(
+                    (option) => option.value !== ColorScheme.Custom,
+                  ).map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="flex items-center gap-2"
+                    >
+                      <div
+                        className={`w-4 h-4 rounded ${
+                          reversed
+                            ? option.color.replace(
+                                GRADIENT_CLASS,
+                                REVERSED_GRADIENT_CLASS,
+                              )
+                            : option.color
+                        }`}
+                      />
+                      <span className="truncate">{option.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Label
+                htmlFor="colour-scheme-preset-reverse"
+                className="text-xs text-muted-foreground font-normal"
+              >
+                Reverse
+              </Label>
+              <Switch
+                id="colour-scheme-preset-reverse"
+                checked={reversed}
+                onCheckedChange={(checked) => {
+                  setReversed(checked);
+                  if (appliedScheme) {
+                    onBulkChange?.(
+                      getColorSchemePreset({
+                        scheme: appliedScheme,
+                        orderedValues,
+                        reversed: checked,
+                      }),
+                    );
+                  }
+                }}
+              />
+            </div>
           )}
           {hasMappings && (
             <Button

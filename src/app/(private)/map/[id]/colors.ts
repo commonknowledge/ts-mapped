@@ -1,46 +1,24 @@
 import { scaleLinear, scaleSequential } from "d3-scale";
-import {
-  interpolateBlues,
-  interpolateBrBG,
-  interpolateOrRd,
-  interpolatePlasma,
-  interpolateRdBu,
-  interpolateRdYlGn,
-  interpolateViridis,
-} from "d3-scale-chromatic";
 import { useMemo } from "react";
-import { DEFAULT_CUSTOM_COLOR } from "@/constants";
 import { DUMMY_COUNT_COLUMN } from "@/constants";
+import { useColumnValues } from "@/hooks/useColumnValues";
+import { useDataSources } from "@/hooks/useDataSources";
 import { ColumnType } from "@/models/DataSource";
 import {
   ColorScaleType,
   ColorScheme,
   type SteppedColorStep,
 } from "@/models/MapView";
-import { getCategoryColorScale } from "@/utils/colors";
+import { getCategoryColorScale, getInterpolator } from "@/utils/colors";
+import { sortColumnValues } from "@/utils/sortColumnValues";
 import { getChoroplethDataKey } from "./components/Choropleth/utils";
 import { DEFAULT_FILL_COLOR } from "./constants";
+import { useDataSourceColumn } from "./hooks/useDataSourceColumn";
 import type { CombinedAreaStats } from "./data";
+import type { ColumnMetadata } from "@/models/DataSource";
 import type { MapViewConfig } from "@/models/MapView";
 import type { ScaleSequential } from "d3-scale";
 import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
-
-// Simple RGB interpolation helper (white to target color)
-const interpolateWhiteToColor = (targetColor: string) => {
-  // Parse hex color to RGB
-  const hex = targetColor.replace("#", "");
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-
-  return (t: number) => {
-    // Interpolate from white (255, 255, 255) to target color
-    const newR = Math.round(255 + t * (r - 255));
-    const newG = Math.round(255 + t * (g - 255));
-    const newB = Math.round(255 + t * (b - 255));
-    return `rgb(${newR}, ${newG}, ${newB})`;
-  };
-};
 
 export interface CategoricColorScheme {
   colorSchemeType: "categoric";
@@ -65,44 +43,6 @@ export const BIVARIATE_COLORS = [
   ["#be64ac", "#8c62aa", "#3b4994"],
 ];
 
-export const CHOROPLETH_COLOR_SCHEMES = [
-  {
-    label: "Sequential",
-    value: ColorScheme.Sequential,
-    color: "bg-gradient-to-r from-blue-100 to-blue-600",
-  },
-  {
-    label: "Red-Blue",
-    value: ColorScheme.RedBlue,
-    color: "bg-gradient-to-r from-red-500 to-blue-500",
-  },
-  {
-    label: "Green-Yellow-Red",
-    value: ColorScheme.GreenYellowRed,
-    color: "bg-gradient-to-r from-green-500 via-yellow-500 to-red-500",
-  },
-  {
-    label: "Viridis",
-    value: ColorScheme.Viridis,
-    color: "bg-gradient-to-r from-purple-600 via-blue-500 to-green-500",
-  },
-  {
-    label: "Plasma",
-    value: ColorScheme.Plasma,
-    color: "bg-gradient-to-r from-purple-600 via-pink-500 to-yellow-500",
-  },
-  {
-    label: "Diverging",
-    value: ColorScheme.Diverging,
-    color: "bg-gradient-to-r from-brown-500 via-yellow-500 to-teal-500",
-  },
-  {
-    label: "Custom",
-    value: ColorScheme.Custom,
-    color: "bg-gradient-to-r from-white to-blue-500",
-  },
-];
-
 export const calculateStepColor = (
   index: number,
   totalSteps: number,
@@ -119,31 +59,25 @@ export const calculateStepColor = (
   return interpolator(clampedT) || "#cccccc";
 };
 
-export const getInterpolator = (
-  scheme: ColorScheme | null | undefined,
-  customColor?: string,
-) => {
-  switch (scheme) {
-    case ColorScheme.RedBlue:
-      return interpolateRdBu;
-    case ColorScheme.GreenYellowRed:
-      // Reverse RdYlGn to get green->yellow->red
-      return (t: number) => interpolateRdYlGn(1 - t);
-    case ColorScheme.Viridis:
-      return interpolateViridis;
-    case ColorScheme.Plasma:
-      return interpolatePlasma;
-    case ColorScheme.Diverging:
-      return interpolateBrBG;
-    case ColorScheme.Sequential:
-      return interpolateBlues;
-    case ColorScheme.Custom:
-      // Interpolate from white to custom color
-      const targetColor = customColor || DEFAULT_CUSTOM_COLOR;
-      return interpolateWhiteToColor(targetColor);
-    default:
-      return interpolateOrRd;
-  }
+/** Column metadata and canonical values for the visualised column, so
+ *  default colour assignment matches the colour mapping editors. */
+const useCategoryColorInputs = (areaStats: CombinedAreaStats | null) => {
+  const { getDataSourceById } = useDataSources();
+  const column = areaStats?.primary?.column ?? "";
+  const { columnMetadata, columnDef } = useDataSourceColumn(
+    areaStats?.dataSourceId,
+    column,
+  );
+  const canonicalValues = useColumnValues({
+    dataSourceId: areaStats?.dataSourceId ?? "",
+    column,
+    columnType: columnDef?.type ?? ColumnType.Unknown,
+    nullIsZero: getDataSourceById(areaStats?.dataSourceId)?.nullIsZero,
+    enabled: Boolean(
+      areaStats?.dataSourceId && columnDef?.type === ColumnType.String,
+    ),
+  });
+  return { columnMetadata, canonicalValues };
 };
 
 export const useColorScheme = ({
@@ -155,24 +89,37 @@ export const useColorScheme = ({
   viewConfig: MapViewConfig;
   resolvedColorMappings?: Record<string, string>;
 }): CategoricColorScheme | NumericColorScheme | null => {
+  const { columnMetadata, canonicalValues } = useCategoryColorInputs(areaStats);
   // useMemo to cache calculated scales
   return useMemo(() => {
     return getColorScheme({
       areaStats,
       viewConfig,
       resolvedColorMappings,
+      columnMetadata,
+      canonicalValues,
     });
-  }, [areaStats, viewConfig, resolvedColorMappings]);
+  }, [
+    areaStats,
+    viewConfig,
+    resolvedColorMappings,
+    columnMetadata,
+    canonicalValues,
+  ]);
 };
 
 const getColorScheme = ({
   areaStats,
   viewConfig,
   resolvedColorMappings,
+  columnMetadata,
+  canonicalValues,
 }: {
   areaStats: CombinedAreaStats | null;
   viewConfig: MapViewConfig;
   resolvedColorMappings?: Record<string, string>;
+  columnMetadata?: ColumnMetadata;
+  canonicalValues?: string[] | null;
 }): CategoricColorScheme | NumericColorScheme | null => {
   if (!areaStats || !areaStats.stats.length) {
     return null;
@@ -185,15 +132,20 @@ const getColorScheme = ({
     areaStats.primary?.columnType !== ColumnType.Number ||
     viewConfig.colorScaleType === ColorScaleType.Categorical;
   if (isCategoric) {
-    const distinctValues = Array.from(new Set(values.map(String)))
-      .sort()
-      .slice(0, 50);
+    // Canonical value order (valueOrder -> range parsing -> alphabetical)
+    // so default colour assignment is stable and follows the data's order
+    const distinctValues = sortColumnValues({
+      values: Array.from(new Set(values.map(String))),
+      columnMetadata,
+    }).slice(0, 50);
     const colorMap: Record<string, string> = makeColorMap(
       distinctValues,
       viewConfig,
       areaStats.dataSourceId,
       areaStats.primary?.column,
       resolvedColorMappings,
+      columnMetadata,
+      canonicalValues,
     );
     return {
       colorSchemeType: "categoric",
@@ -253,9 +205,18 @@ export const makeColorMap = (
   dataSourceId: string | undefined,
   column: string | undefined,
   resolvedColorMappings?: Record<string, string>,
+  columnMetadata?: ColumnMetadata,
+  // Canonical column values (all records): the default scale runs over
+  // these so assignment matches the colour mapping editors exactly, even
+  // when the visible data only contains a subset
+  canonicalValues?: string[] | null,
 ) => {
   const colorMap: Record<string, string> = {};
-  const defaultColor = getCategoryColorScale(values);
+  const domain = sortColumnValues({
+    values: canonicalValues?.length ? canonicalValues : values,
+    columnMetadata,
+  });
+  const defaultColor = getCategoryColorScale(domain);
   values.forEach((v) => {
     const mapViewKey = getCategoryColorsKey(dataSourceId, column, v);
     colorMap[v] =
@@ -277,6 +238,7 @@ export const useFillColor = ({
   selectedBivariateBucket: string | null;
   resolvedColorMappings?: Record<string, string>;
 }): DataDrivenPropertyValueSpecification<string> => {
+  const { columnMetadata, canonicalValues } = useCategoryColorInputs(areaStats);
   // useMemo to cache calculated fillColor
   const fillColor = useMemo(() => {
     if (areaStats?.secondary) {
@@ -288,6 +250,8 @@ export const useFillColor = ({
       areaStats,
       viewConfig,
       resolvedColorMappings,
+      columnMetadata,
+      canonicalValues,
     });
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
@@ -357,7 +321,14 @@ export const useFillColor = ({
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [areaStats, viewConfig, selectedBivariateBucket, resolvedColorMappings]);
+  }, [
+    areaStats,
+    viewConfig,
+    selectedBivariateBucket,
+    resolvedColorMappings,
+    columnMetadata,
+    canonicalValues,
+  ]);
 
   return [
     "case",

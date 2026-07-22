@@ -50,14 +50,3 @@ export const PARTY_COLORS: Record<string, string> = {
   independents: "rgb(128, 128, 128)",
   "non-partisan": "rgb(128, 128, 128)",
 };
-
-/** Traffic-light palette applied positionally to a column's ordered values:
- *  the first value gets red, then orange, yellow, green, and grey for the
- *  fifth and any subsequent values. */
-export const TRAFFIC_LIGHT_SCALE: string[] = [
-  "#dc2626",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#9ca3af",
-];
