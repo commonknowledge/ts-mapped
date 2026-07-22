@@ -23,6 +23,7 @@ export interface JobInfo {
 export enum DataSourceType {
   ActionNetwork = "actionnetwork",
   Airtable = "airtable",
+  Baserow = "baserow",
   CSV = "csv",
   GoogleSheets = "googlesheets",
   Mailchimp = "mailchimp",
@@ -46,6 +47,29 @@ export const airtableConfigSchema = z.object({
 });
 
 export type AirtableConfig = z.infer<typeof airtableConfigSchema>;
+
+export const BASEROW_DEFAULT_API_URL = "https://api.baserow.io";
+
+export const baserowConfigSchema = z.object({
+  type: z.literal(DataSourceType.Baserow),
+  // Configurable to support self-hosted Baserow instances
+  apiUrl: z
+    .string()
+    .url()
+    .refine(
+      (url) => url.startsWith("http://") || url.startsWith("https://"),
+      "Must be an http(s) URL",
+    )
+    .default(BASEROW_DEFAULT_API_URL),
+  tableId: z.string().nonempty(),
+  // Baserow has no OAuth flow, and its database tokens cannot create fields or
+  // manage webhooks, so the integration signs in as a user to obtain a JWT.
+  // Users are advised to create a dedicated bot account for this.
+  email: z.string().email(),
+  password: z.string().nonempty(),
+});
+
+export type BaserowConfig = z.infer<typeof baserowConfigSchema>;
 
 export const mailchimpConfigSchema = z.object({
   type: z.literal(DataSourceType.Mailchimp),
@@ -103,6 +127,7 @@ export type ZetkinConfig = z.infer<typeof zetkinConfigSchema>;
 export const dataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  baserowConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
   csvConfigSchema,

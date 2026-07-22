@@ -270,6 +270,21 @@ export const MailchimpIconSVG = () => {
   );
 };
 
+const BaserowIconSVG = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 32 32"
+    fill="none"
+  >
+    <rect width="32" height="32" rx="7" fill="#5190EF" />
+    <rect x="7" y="8" width="18" height="4" rx="1.5" fill="#FFFFFF" />
+    <rect x="7" y="14" width="18" height="4" rx="1.5" fill="#FFFFFF" />
+    <rect x="7" y="20" width="11" height="4" rx="1.5" fill="#FFFFFF" />
+  </svg>
+);
+
 const ActionNetworkSVG = () => (
   <svg
     fill="none"
@@ -319,6 +334,7 @@ const ZetkinIconSVG = () => (
 const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: <ActionNetworkSVG />,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
+  [DataSourceType.Baserow]: <BaserowIconSVG />,
   [DataSourceType.CSV]: <File size={16} />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,

@@ -140,6 +140,8 @@ export function DataSourceDashboard({
     value:
       k === "type" ? (
         <DataSourceBadge type={dataSource.config[k]} />
+      ) : k === "password" ? (
+        "••••••••"
       ) : typeof dataSource.config[k as keyof typeof dataSource.config] ===
         "string" ? (
         dataSource.config[k as keyof typeof dataSource.config]

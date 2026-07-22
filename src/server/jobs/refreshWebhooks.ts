@@ -2,9 +2,11 @@ import { v4 as uuidv4 } from "uuid";
 import {
   DataSourceType,
   airtableConfigSchema,
+  baserowConfigSchema,
   googleSheetsConfigSchema,
 } from "@/models/DataSource";
 import { AirtableAdaptor } from "@/server/adaptors/airtable";
+import { BaserowAdaptor } from "@/server/adaptors/baserow";
 import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
 import {
   findDataSourceById,
@@ -96,6 +98,52 @@ const refreshWebhooks = async (args: object | null): Promise<boolean> => {
         runId,
         dataSourceId: source.id,
         dataSourceType: DataSourceType.Airtable,
+        enabled: enable,
+        error,
+      });
+      continue;
+    }
+  }
+
+  const baserowDataSources = await findDataSourcesByType(
+    DataSourceType.Baserow,
+  );
+  for (const source of baserowDataSources) {
+    const result = baserowConfigSchema.safeParse(source.config);
+    if (!result.success) {
+      logger.warn(
+        `Failed to parse Baserow config for data source ${source.id}`,
+        { error: result.error },
+      );
+      continue;
+    }
+    const config = result.data;
+    const adaptor = new BaserowAdaptor({
+      dataSourceId: source.id,
+      apiUrl: config.apiUrl,
+      tableId: config.tableId,
+      email: config.email,
+      password: config.password,
+    });
+    const enable = source.autoEnrich || source.autoImport;
+    try {
+      const toggleResult = await adaptor.toggleWebhook(enable);
+      await logRefresh({
+        runId,
+        dataSourceId: source.id,
+        dataSourceType: DataSourceType.Baserow,
+        enabled: enable,
+        result: toggleResult,
+      });
+    } catch (error) {
+      logger.warn(
+        `Failed to refresh Baserow webhook for data source ${source.id}`,
+        { error },
+      );
+      await logRefresh({
+        runId,
+        dataSourceId: source.id,
+        dataSourceType: DataSourceType.Baserow,
         enabled: enable,
         error,
       });
