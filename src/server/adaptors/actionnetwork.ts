@@ -5,7 +5,7 @@ import {
 } from "@/constants";
 import logger from "@/server/services/logger";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 const ActionNetworkWebhookPayload = z.array(
@@ -282,11 +282,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     return { action: "noop", oldWebhookIds: [], newWebhookIds: [] };
   }
 
-  async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+  async updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void> {
     // Action Network API has limited update capabilities depending on the resource type
     // For people, we can update certain fields
 
-    for (const record of enrichedRecords) {
+    for (const record of recordUpdates) {
       try {
         const url = new URL(this.baseUrl);
 

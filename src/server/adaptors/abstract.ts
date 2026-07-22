@@ -1,4 +1,4 @@
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 export interface WebhookToggleResult {
@@ -18,7 +18,7 @@ export interface DataSourceAdaptor {
   fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]>;
   removeDevWebhooks(): Promise<void>;
   toggleWebhook(enable: boolean): Promise<WebhookToggleResult>;
-  updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
+  updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void>;
   tagRecords(records: TaggedRecord[]): Promise<void>;
   deleteColumn(columnName: string): Promise<void>;
 }

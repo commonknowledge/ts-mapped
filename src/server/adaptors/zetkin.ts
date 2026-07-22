@@ -8,7 +8,7 @@ import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { slugify } from "@/utils/text";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { ZetkinOAuthCredentials } from "@/models/DataSource";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
@@ -240,11 +240,11 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
     return { action: "noop", oldWebhookIds: [], newWebhookIds: [] };
   }
 
-  async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+  async updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void> {
     await this.refreshAccessToken();
 
     const newFieldNames = new Set<string>();
-    for (const { columns } of enrichedRecords) {
+    for (const { columns } of recordUpdates) {
       for (const { def } of columns) {
         if (def.name.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
           newFieldNames.add(def.name);
@@ -254,7 +254,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
 
     await this.ensureCustomFieldsExist(newFieldNames);
 
-    for (const { externalRecord, columns } of enrichedRecords) {
+    for (const { externalRecord, columns } of recordUpdates) {
       const body: Record<string, unknown> = {};
       for (const { def, value } of columns) {
         if (!def.name.startsWith(ENRICHMENT_COLUMN_PREFIX)) {

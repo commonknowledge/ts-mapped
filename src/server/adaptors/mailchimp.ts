@@ -8,7 +8,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface MergeField {
@@ -549,11 +549,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
   }
 
   private async ensureMergeFieldsExist(
-    enrichedRecords: EnrichedRecord[],
+    recordUpdates: ExternalRecordUpdate[],
   ): Promise<void> {
     // Collect all unique merge field names from the enriched records
     const fieldNames = new Set<string>();
-    for (const record of enrichedRecords) {
+    for (const record of recordUpdates) {
       for (const column of record.columns) {
         const fieldName = column.def.name;
         if (!fieldName.startsWith("address_")) {
@@ -603,9 +603,9 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     this.cachedMergeFields = null;
   }
 
-  async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+  async updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void> {
     // Ensure all required merge fields exist before updating records
-    await this.ensureMergeFieldsExist(enrichedRecords);
+    await this.ensureMergeFieldsExist(recordUpdates);
 
     // Build a name-to-tag mapping from existing merge fields
     const mergeFieldList = await this.getMergeFields();
@@ -615,7 +615,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     }
 
     // Mailchimp allows batch operations with up to 500 operations
-    const batches = batch(enrichedRecords, 500);
+    const batches = batch(recordUpdates, 500);
 
     for (const recordBatch of batches) {
       const operations = [];

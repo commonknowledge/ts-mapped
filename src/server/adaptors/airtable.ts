@@ -12,7 +12,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {
@@ -665,11 +665,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
   }
 
-  async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+  async updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void> {
     const url = this.getURL();
 
     // Airtable update has a maximum record count of 10
-    const batches = batch(enrichedRecords, 10);
+    const batches = batch(recordUpdates, 10);
 
     // Map used here to be able to remove the existing fields below
     const newFields = new Map<string, ColumnType>();

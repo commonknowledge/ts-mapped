@@ -8,7 +8,7 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { geocodeRecord } from "./geocode";
-import type { EnrichedRecord, GeocodeResult } from "@/models/DataRecord";
+import type { ExternalRecordUpdate, GeocodeResult } from "@/models/DataRecord";
 import type {
   AreaEnrichment,
   ColumnDef,
@@ -21,7 +21,7 @@ import type { ExternalRecord } from "@/types";
 export const enrichRecord = async (
   record: ExternalRecord,
   dataSource: DataSource,
-): Promise<EnrichedRecord> => {
+): Promise<ExternalRecordUpdate> => {
   const recordStart = Date.now();
   logger.silly(`[enrichRecord ${record.externalId}] start`);
   const tGeo = Date.now();

@@ -8,7 +8,7 @@ import { FilterOperator, FilterType } from "@/models/MapView";
 import { InspectorComparisonStat } from "@/models/shared";
 import { db } from "@/server/services/database";
 import { monthKeyRangeToDates } from "@/utils/dataRecord";
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
 import type { Point } from "@/models/shared";
 import type { NewDataRecord } from "@/server/models/DataRecord";
@@ -430,8 +430,8 @@ export const markDataRecordsAsDirty = async (
     .execute();
 };
 
-export async function updateDataRecordJsonWithEnrichment(
-  enrichedRecords: EnrichedRecord[],
+export async function updateDataRecordJson(
+  enrichedRecords: ExternalRecordUpdate[],
   dataSourceId: string,
 ) {
   for (const record of enrichedRecords) {

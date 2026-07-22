@@ -3,7 +3,9 @@ import { pointSchema } from "./shared";
 import type { ColumnDef } from "./DataSource";
 import type { ExternalRecord } from "@/types";
 
-export interface EnrichedRecord {
+/** Column values to write onto a record in the external source system.
+ *  Producers include the enrichment pipeline and the inspector's notes. */
+export interface ExternalRecordUpdate {
   externalRecord: ExternalRecord;
   columns: {
     def: ColumnDef;

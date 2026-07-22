@@ -1,7 +1,7 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { enrichRecord } from "@/server/mapping/enrich";
-import { updateDataRecordJsonWithEnrichment } from "@/server/repositories/DataRecord";
+import { updateDataRecordJson } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   updateColumnDefsWithEnrichment,
@@ -70,9 +70,9 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
       );
 
       const t3 = Date.now();
-      await updateDataRecordJsonWithEnrichment(enrichedRecords, dataSource.id);
+      await updateDataRecordJson(enrichedRecords, dataSource.id);
       logger.debug(
-        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} updateDataRecordJsonWithEnrichment (DB write): ${Date.now() - t3}ms`,
+        `[enrichDataSource ${dataSource.id}] batch ${batchIndex} updateDataRecordJson (DB write): ${Date.now() - t3}ms`,
       );
       logger.debug(
         `[enrichDataSource ${dataSource.id}] batch ${batchIndex} total: ${Date.now() - batchStart}ms`,
