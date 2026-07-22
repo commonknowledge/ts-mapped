@@ -3,7 +3,6 @@
 import { format } from "date-fns";
 import {
   ChartBarIcon,
-  ChevronUpIcon,
   MinusIcon,
   PauseIcon,
   PlayIcon,
@@ -211,18 +210,20 @@ export default function TimelineControl() {
     : "All time";
 
   if (minimized) {
-    // The filter (and playback) stays active while minimised
+    // The filter (and playback) stays active while minimised. Matches the
+    // sizing of the other map buttons (e.g. the zoom controls)
     return (
-      <button
-        type="button"
-        className="bg-white rounded shadow-md px-2.5 py-1.5 flex items-center gap-1.5 pointer-events-auto cursor-pointer text-xs font-medium hover:bg-neutral-50"
-        aria-label="Expand timeline"
-        onClick={() => setMinimized(false)}
-      >
-        <ChartBarIcon size={14} />
-        {filterActive && <span>{rangeLabel}</span>}
-        <ChevronUpIcon size={14} className="text-muted-foreground" />
-      </button>
+      <div className="p-1 rounded-xl shadow-sm bg-white pointer-events-auto">
+        <button
+          type="button"
+          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted text-primary cursor-pointer"
+          aria-label="Expand timeline"
+          title={rangeLabel}
+          onClick={() => setMinimized(false)}
+        >
+          <ChartBarIcon size={20} />
+        </button>
+      </div>
     );
   }
 
@@ -329,17 +330,21 @@ export default function TimelineControl() {
     Math.round((i * (buckets.length - 1)) / Math.max(1, labelCount - 1)),
   );
 
+  // Handles are blue with circular end knobs, so they read as range
+  // controls rather than part of the neutral histogram bars
   const handle = (side: "start" | "end", positionPct: number) => (
     <button
       type="button"
       aria-label={side === "start" ? "Range start" : "Range end"}
-      className="absolute top-0 h-full w-2.5 -translate-x-1/2 cursor-ew-resize touch-none flex items-center justify-center"
+      className="absolute -top-1 -bottom-1 w-3 -translate-x-1/2 cursor-ew-resize touch-none"
       style={{ left: `${positionPct}%` }}
       onPointerDown={handlePointerDown(side)}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <span className="h-full w-1 rounded-full bg-neutral-800" />
+      <span className="absolute inset-y-1 left-1/2 w-0.5 -translate-x-1/2 bg-blue-600" />
+      <span className="absolute top-0 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-blue-600" />
+      <span className="absolute bottom-0 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-blue-600" />
     </button>
   );
 
@@ -356,27 +361,25 @@ export default function TimelineControl() {
             {playing ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
           </button>
           <span className="text-xs font-medium">{rangeLabel}</span>
-        </div>
-        <div className="flex items-center gap-1">
           {filterActive && (
             <button
               type="button"
-              className="p-0.5 rounded cursor-pointer text-muted-foreground hover:text-foreground hover:bg-neutral-100"
-              aria-label="Clear timeline filter"
+              className="flex items-center gap-1 px-1 py-0.5 rounded cursor-pointer text-[11px] text-muted-foreground hover:text-foreground hover:bg-neutral-100"
               onClick={reset}
             >
-              <XIcon size={14} />
+              <XIcon size={12} />
+              Clear filters
             </button>
           )}
-          <button
-            type="button"
-            className="p-0.5 rounded cursor-pointer text-muted-foreground hover:text-foreground hover:bg-neutral-100"
-            aria-label="Minimise timeline"
-            onClick={() => setMinimized(true)}
-          >
-            <MinusIcon size={14} />
-          </button>
         </div>
+        <button
+          type="button"
+          className="p-0.5 rounded cursor-pointer text-muted-foreground hover:text-foreground hover:bg-neutral-100"
+          aria-label="Minimise timeline"
+          onClick={() => setMinimized(true)}
+        >
+          <MinusIcon size={14} />
+        </button>
       </div>
       <div
         className="relative"
@@ -425,8 +428,10 @@ export default function TimelineControl() {
             onPointerUp={handleWindowPointerUp}
           />
         )}
-        {handle("start", (startBucketIndex / buckets.length) * 100)}
-        {handle("end", ((endBucketIndex + 1) / buckets.length) * 100)}
+        {/* Hidden while playing: the window moves itself */}
+        {!playing && handle("start", (startBucketIndex / buckets.length) * 100)}
+        {!playing &&
+          handle("end", ((endBucketIndex + 1) / buckets.length) * 100)}
       </div>
       <div className="relative h-3.5" style={{ width: HISTOGRAM_WIDTH }}>
         {labelIndices.map((index, i) => (
