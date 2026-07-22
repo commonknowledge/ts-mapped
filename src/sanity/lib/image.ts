@@ -1,6 +1,8 @@
 import createImageUrlBuilder from "@sanity/image-url";
 import { dataset, projectId } from "../env";
-import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
+// v2 removed the deep "@sanity/image-url/lib/types/types" entry point and
+// exports the type from the package root instead
+import type { SanityImageSource } from "@sanity/image-url";
 
 // https://www.sanity.io/docs/image-url
 const builder = createImageUrlBuilder({ projectId, dataset });
