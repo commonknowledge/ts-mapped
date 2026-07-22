@@ -31,8 +31,19 @@ const WEBHOOK_NAME = "Mapped";
 
 const WEBHOOK_EVENTS = ["rows.created", "rows.updated", "rows.deleted"];
 
-// Field types whose values are objects wrapping the displayed value
-const UNWRAPPED_FIELD_TYPES = ["link_row", "multiple_select", "single_select"];
+// Field types whose values are objects wrapping the displayed value, and the
+// property each one wraps it in
+const UNWRAPPED_FIELD_TYPES: Record<
+  string,
+  { key: "value" | "name"; array: boolean }
+> = {
+  link_row: { key: "value", array: true },
+  multiple_select: { key: "value", array: true },
+  single_select: { key: "value", array: false },
+  multiple_collaborators: { key: "name", array: true },
+  created_by: { key: "name", array: false },
+  last_modified_by: { key: "name", array: false },
+};
 
 interface BaserowField {
   id: number;
@@ -226,26 +237,33 @@ export class BaserowAdaptor implements DataSourceAdaptor {
    * Baserow serializes several field types as objects wrapping the value that
    * the user actually sees in the grid:
    *
-   * - link_row:         [{ id, value }] — value is the linked row's primary field
-   * - multiple_select:  [{ id, value, color }]
-   * - single_select:    { id, value, color }
+   * - link_row:               [{ id, value }] — the linked row's primary field
+   * - multiple_select:        [{ id, value, color }]
+   * - single_select:          { id, value, color }
+   * - multiple_collaborators: [{ id, name }]
+   * - created_by:             { id, name }
+   * - last_modified_by:       { id, name }
    *
    * Imported as-is they become ColumnType.Object, which cannot be filtered,
    * used as a choropleth column or geocoded, so the values are unwrapped to
    * the strings and string arrays that Airtable already returns for the
-   * equivalent field types.
+   * equivalent field types. Note that the wrapping property is `value` for
+   * some types and `name` for the user-valued ones.
    *
-   * The field schema is used rather than sniffing for `{ id, value }`-shaped
+   * The field schema is used rather than sniffing for `{ id, ... }`-shaped
    * values, so that field types added by Baserow in future are passed through
    * untouched instead of being silently rewritten. A schema failure degrades
    * to the raw values rather than breaking the import.
    */
-  private async getUnwrappableFieldTypes(): Promise<Map<string, string>> {
-    const fieldTypes = new Map<string, string>();
+  private async getUnwrappableFields(): Promise<
+    Map<string, (typeof UNWRAPPED_FIELD_TYPES)[string]>
+  > {
+    const fields = new Map<string, (typeof UNWRAPPED_FIELD_TYPES)[string]>();
     try {
       for (const field of await this.getFields()) {
-        if (UNWRAPPED_FIELD_TYPES.includes(field.type)) {
-          fieldTypes.set(field.name, field.type);
+        const unwrap = UNWRAPPED_FIELD_TYPES[field.type];
+        if (unwrap) {
+          fields.set(field.name, unwrap);
         }
       }
     } catch (error) {
@@ -254,7 +272,7 @@ export class BaserowAdaptor implements DataSourceAdaptor {
         { error },
       );
     }
-    return fieldTypes;
+    return fields;
   }
 
   /** Unwrap the field types listed above; anything that isn't shaped as
@@ -262,17 +280,17 @@ export class BaserowAdaptor implements DataSourceAdaptor {
   private async unwrapFieldValues(
     json: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const fieldTypes = await this.getUnwrappableFieldTypes();
-    if (!fieldTypes.size) {
+    const fields = await this.getUnwrappableFields();
+    if (!fields.size) {
       return json;
     }
     const unwrapped = { ...json };
-    for (const [fieldName, fieldType] of fieldTypes) {
+    for (const [fieldName, { key, array }] of fields) {
       const value = unwrapped[fieldName];
-      if (fieldType === "single_select") {
-        unwrapped[fieldName] = unwrapValue(value);
+      if (!array) {
+        unwrapped[fieldName] = unwrapValue(value, key);
       } else if (Array.isArray(value)) {
-        unwrapped[fieldName] = value.map(unwrapValue);
+        unwrapped[fieldName] = value.map((item) => unwrapValue(item, key));
       }
     }
     return unwrapped;
@@ -658,9 +676,9 @@ export class BaserowAdaptor implements DataSourceAdaptor {
   }
 }
 
-const unwrapValue = (value: unknown) =>
-  value && typeof value === "object" && "value" in value
-    ? (value as { value: unknown }).value
+const unwrapValue = (value: unknown, key: "value" | "name") =>
+  value && typeof value === "object" && key in value
+    ? (value as Record<string, unknown>)[key]
     : value;
 
 const stripRowMetadata = (

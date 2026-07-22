@@ -18,6 +18,9 @@ import { getPublicUrl } from "@/server/services/urls";
  *   left unset for "Onson Sweemy"
  * - a "Tags" multiple select field, set to "Red" and "Blue" for
  *   "Sleve McDichael" and left empty for "Onson Sweemy"
+ * - a "Collaborators" multiple collaborators field, listing exactly the
+ *   credentials' own user on "Sleve McDichael" and empty on "Onson Sweemy"
+ * - a "Created By" field (read-only, populated by Baserow)
  *
  * The tests create and delete their own "Mapped: ..." columns and webhooks.
  */
@@ -148,6 +151,25 @@ describe("Baserow adaptor tests", () => {
     const [record] = await adaptor.fetchByExternalId(["2"]);
     expect(record.json["Status"]).toBeNull();
     expect(record.json["Tags"]).toEqual([]);
+  });
+
+  // Collaborator and created_by fields wrap their value in `name` rather than
+  // `value`, so they need unwrapping too
+  test("unwraps collaborator and created_by fields", async () => {
+    const adaptor = getAdaptor();
+    const [record] = await adaptor.fetchByExternalId(["1"]);
+
+    // Asserted by shape rather than by name, so the test survives the
+    // credentials being pointed at a different account
+    expect(typeof record.json["Created By"]).toBe("string");
+    expect(record.json["Created By"]).not.toBe("");
+    expect(record.json["Collaborators"]).toEqual([record.json["Created By"]]);
+  });
+
+  test("leaves an empty collaborator field empty", async () => {
+    const adaptor = getAdaptor();
+    const [record] = await adaptor.fetchByExternalId(["2"]);
+    expect(record.json["Collaborators"]).toEqual([]);
   });
 
   test("fetchByExternalId skips deleted rows", async () => {
