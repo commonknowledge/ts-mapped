@@ -6,15 +6,15 @@ import {
   EyeOffIcon,
   FilterIcon,
   PencilIcon,
+  SlidersHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import ColorPalette from "@/components/ColorPalette";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { MarkerDisplayMode } from "@/models/Map";
+import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -28,13 +28,8 @@ import {
 } from "@/shadcn/ui/alert-dialog";
 import {
   ContextMenu,
-  ContextMenuCheckboxItem,
   ContextMenuItem,
-  ContextMenuLabel,
   ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
@@ -42,6 +37,7 @@ import { useDataRecords } from "../../hooks/useDataRecords";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
+import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/models/DataSource";
@@ -65,9 +61,14 @@ export default function DataSourceItem({
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const { view } = useMapViews();
+  const { view, viewConfig } = useMapViews();
   const trpc = useTRPC();
   const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
+  const { getDataSourceById } = useDataSources();
+  const { markerSettingsDataSourceId, setMarkerSettingsDataSourceId } =
+    useMarkerSettings();
+
+  const fullDataSource = getDataSourceById(dataSource.id);
 
   const dataSourceView = useMemo(
     () =>
@@ -94,30 +95,11 @@ export default function DataSourceItem({
 
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
-  // Get current display mode (defaults to Clusters)
-  const currentDisplayMode =
-    mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters;
-
-  // Get current color (defaults to layer color)
-  const currentColor = mapConfig.markerColors?.[dataSource.id] ?? layerColor;
-
-  const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
-    updateMapConfig({
-      markerDisplayModes: {
-        ...mapConfig.markerDisplayModes,
-        [dataSource.id]: mode,
-      },
-    });
-  };
-
-  const handleColorChange = (color: string) => {
-    updateMapConfig({
-      markerColors: {
-        ...mapConfig.markerColors,
-        [dataSource.id]: color,
-      },
-    });
-  };
+  // Get current color: view override, then data source default, then layer color
+  const currentColor =
+    viewConfig.markerColors?.[dataSource.id] ??
+    fullDataSource?.defaultMarkerColor ??
+    layerColor;
 
   // Focus management for rename input
   useEffect(() => {
@@ -179,6 +161,10 @@ export default function DataSourceItem({
       });
       toast.success("Data source removed from map");
     }
+    // Don't leave the settings panel editing a source that left the map
+    if (markerSettingsDataSourceId === dataSource.id) {
+      setMarkerSettingsDataSourceId(null);
+    }
     setShowRemoveDialog(false);
   };
 
@@ -195,6 +181,11 @@ export default function DataSourceItem({
           setDataSourceVisibility(dataSource?.id, !isVisible)
         }
         color={currentColor}
+        onOpenSettings={() =>
+          setMarkerSettingsDataSourceId(
+            markerSettingsDataSourceId === dataSource.id ? null : dataSource.id,
+          )
+        }
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
@@ -286,63 +277,12 @@ export default function DataSourceItem({
               )}
             </ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuSub>
-              <ContextMenuSubTrigger>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded border border-neutral-300"
-                    style={{ backgroundColor: currentColor }}
-                  />
-                  <span>Color</span>
-                </div>
-              </ContextMenuSubTrigger>
-              <ContextMenuSubContent className="w-auto p-2">
-                <ColorPalette
-                  selectedColor={currentColor}
-                  onColorSelect={handleColorChange}
-                />
-              </ContextMenuSubContent>
-            </ContextMenuSub>
-            <ContextMenuSeparator />
-            <ContextMenuLabel>Display as</ContextMenuLabel>
-            <ContextMenuCheckboxItem
-              checked={currentDisplayMode === MarkerDisplayMode.Clusters}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  handleDisplayModeChange(MarkerDisplayMode.Clusters);
-                }
-              }}
+            <ContextMenuItem
+              onClick={() => setMarkerSettingsDataSourceId(dataSource.id)}
             >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full border border-neutral-300 flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: currentColor }}
-                >
-                  <span className="text-[8px] font-semibold text-white leading-none">
-                    5
-                  </span>
-                </div>
-                <span>Cluster</span>
-              </div>
-            </ContextMenuCheckboxItem>
-            <ContextMenuCheckboxItem
-              checked={currentDisplayMode === MarkerDisplayMode.Heatmap}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  handleDisplayModeChange(MarkerDisplayMode.Heatmap);
-                }
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded border border-neutral-300 flex-shrink-0 relative overflow-hidden"
-                  style={{
-                    background: `radial-gradient(circle, ${currentColor} 0%, ${currentColor}80 30%, ${currentColor}40 60%, ${currentColor}20 100%)`,
-                  }}
-                />
-                <span>Heatmap</span>
-              </div>
-            </ContextMenuCheckboxItem>
+              <SlidersHorizontalIcon size={12} />
+              Marker settings
+            </ContextMenuItem>
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"

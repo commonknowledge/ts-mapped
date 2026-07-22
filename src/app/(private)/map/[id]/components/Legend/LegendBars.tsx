@@ -1,8 +1,11 @@
+import { ArrowDownNarrowWide, ArrowUpNarrowWide } from "lucide-react";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
+import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DUMMY_COUNT_COLUMN } from "@/constants";
 import { ColumnType } from "@/models/DataSource";
 import { ColorScaleType } from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
+import { sortColumnValues } from "@/utils/sortColumnValues";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor } from "../../colors";
 import { getDisplayValue } from "../../utils/stats";
@@ -235,6 +238,7 @@ export function CategoricBars({
   dataSource,
   viewConfig,
 }: CategoricBarsProps) {
+  const { updateViewConfig } = useMapViews();
   const categoriesInData = new Set(
     areaStats?.stats
       .map((stat) => String(stat.primary))
@@ -247,35 +251,57 @@ export function CategoricBars({
   );
   const valueLabels = areaColumnMetadata?.valueLabels || {};
 
+  // Canonical value order (valueOrder -> range parsing -> alphabetical),
+  // numeric columns by number; the toggle reverses the list
+  const sortDesc = Boolean(viewConfig.legendSortDesc);
+  let sortedKeys = Object.keys(colorScheme.colorMap).filter((key) =>
+    categoriesInData.has(key),
+  );
+  sortedKeys =
+    areaStats?.primary?.columnType === ColumnType.Number
+      ? sortedKeys.toSorted((a, b) => Number(a) - Number(b))
+      : sortColumnValues({
+          values: sortedKeys,
+          columnMetadata: areaColumnMetadata,
+        });
+  if (sortDesc) {
+    sortedKeys.reverse();
+  }
+
   return (
     <div className="flex max-h-[min(35vh,14rem)] min-h-0 w-full flex-col gap-1.5 overflow-y-auto py-1 pr-0.5">
-      {Object.keys(colorScheme.colorMap)
-        .filter((key) => categoriesInData.has(key))
-        .toSorted((a, b) => {
-          if (areaStats?.primary?.columnType === ColumnType.Number) {
-            return Number(a) < Number(b) ? -1 : 1;
-          }
-          return a < b ? -1 : 1;
-        })
-        .map((key) => {
-          let label = valueLabels[key];
-          if (
-            !label &&
-            areaStats?.primary?.columnType === ColumnType.Number &&
-            Number(key) === 0
-          ) {
-            label = valueLabels[""];
-          }
-          return (
-            <div className="flex items-center gap-2 text-xs" key={key}>
-              <div
-                className="w-3 h-3 flex-shrink-0 border border-neutral-300"
-                style={{ backgroundColor: colorScheme.colorMap[key] }}
-              />
-              <span>{label || key}</span>
-            </div>
-          );
-        })}
+      <button
+        type="button"
+        className="self-end flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
+        aria-label={sortDesc ? "Sort ascending" : "Sort descending"}
+        onClick={() => updateViewConfig({ legendSortDesc: !sortDesc })}
+      >
+        {sortDesc ? (
+          <ArrowUpNarrowWide className="h-3 w-3" />
+        ) : (
+          <ArrowDownNarrowWide className="h-3 w-3" />
+        )}
+        {sortDesc ? "Descending" : "Ascending"}
+      </button>
+      {sortedKeys.map((key) => {
+        let label = valueLabels[key];
+        if (
+          !label &&
+          areaStats?.primary?.columnType === ColumnType.Number &&
+          Number(key) === 0
+        ) {
+          label = valueLabels[""];
+        }
+        return (
+          <div className="flex items-center gap-2 text-xs" key={key}>
+            <div
+              className="w-3 h-3 flex-shrink-0 border border-neutral-300"
+              style={{ backgroundColor: colorScheme.colorMap[key] }}
+            />
+            <span>{label || key}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

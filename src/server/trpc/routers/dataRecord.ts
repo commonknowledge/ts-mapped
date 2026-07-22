@@ -1,8 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
+import { NOTES_COLUMN } from "@/constants";
+import { getBooleanEnvVar } from "@/env";
 import { AreaSetCode } from "@/models/AreaSet";
+import { ColumnType } from "@/models/DataSource";
 import { recordFilterSchema, recordSortSchema } from "@/models/MapView";
 import { InspectorComparisonStat, pointSchema } from "@/models/shared";
+import { getDataSourceAdaptor } from "@/server/adaptors";
+import { reversePostcodeLookup } from "@/server/mapping/geocode";
 import {
   findAreaByCode,
   findAreasByPoint,
@@ -15,10 +20,20 @@ import {
   findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
   getColumnStat,
+  updateDataRecordJson,
 } from "@/server/repositories/DataRecord";
+import { updateDataSource } from "@/server/repositories/DataSource";
 import { geojsonPointToPoint } from "@/server/utils/geo";
 import { DataRecordMatchType } from "@/types";
-import { dataSourceReadProcedure, router } from "../index";
+import {
+  dataSourceOwnerProcedure,
+  dataSourceReadProcedure,
+  router,
+} from "../index";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
+
+// Inclusive month-key range from the map timeline
+const timelineRangeSchema = z.object({ start: z.number(), end: z.number() });
 
 export const dataRecordRouter = router({
   findPageIndex: dataSourceReadProcedure
@@ -28,16 +43,28 @@ export const dataRecordRouter = router({
         filter: recordFilterSchema.optional(),
         search: z.string().optional(),
         sort: z.array(recordSortSchema).optional(),
+        timelineRange: timelineRangeSchema.optional(),
       }),
     )
-    .query(({ input: { dataRecordId, dataSourceId, filter, search, sort } }) =>
-      findPageForDataRecord(
-        dataRecordId,
-        dataSourceId,
-        filter,
-        search,
-        sort || [],
-      ),
+    .query(
+      ({
+        input: {
+          dataRecordId,
+          dataSourceId,
+          filter,
+          search,
+          sort,
+          timelineRange,
+        },
+      }) =>
+        findPageForDataRecord(
+          dataRecordId,
+          dataSourceId,
+          filter,
+          search,
+          sort || [],
+          timelineRange,
+        ),
     ),
   byId: dataSourceReadProcedure
     .input(z.object({ id: z.string() }))
@@ -144,21 +171,46 @@ export const dataRecordRouter = router({
       const match = DataRecordMatchType.ContainedBy;
       const geocodingConfig = dataSource.geocodingConfig;
       if (!("areaSetCode" in geocodingConfig)) {
-        return { records: [], match };
+        return { records: [], match, area: null };
+      }
+      // Postcode polygons are proprietary and may not be present/licensed;
+      // resolve the point's postcode via postcodes.io instead and match on
+      // the code stored at geocode time (mirrors the geocoding fallback)
+      if (
+        geocodingConfig.areaSetCode === AreaSetCode.PC &&
+        !getBooleanEnvVar("ENABLE_DATABASE_POSTCODE_LOOKUP")
+      ) {
+        const postcode = await reversePostcodeLookup(input.point);
+        if (!postcode) {
+          return { records: [], match, area: null };
+        }
+        const code = postcode.replace(/\s+/g, "").toUpperCase();
+        const records = await findDataRecordsByDataSourceAndAreaCode(
+          input.dataSourceId,
+          AreaSetCode.PC,
+          code,
+        );
+        return { records, match, area: { code, name: postcode } };
       }
       const areas = await findAreasByPoint({
         point: input.point,
         includeAreaSetCode: geocodingConfig.areaSetCode,
       });
       if (!areas.length) {
-        return { records: [], match };
+        return { records: [], match, area: null };
       }
       const records = await findDataRecordsByDataSourceAndAreaCode(
         input.dataSourceId,
         areas[0].areaSetCode,
         areas[0].code,
       );
-      return { records, match };
+      // The resolved area lets the client explain empty results
+      // ("No records in PE25 3LS")
+      return {
+        records,
+        match,
+        area: { code: areas[0].code, name: areas[0].name },
+      };
     }),
   list: dataSourceReadProcedure
     .input(
@@ -168,10 +220,13 @@ export const dataRecordRouter = router({
         page: z.number().optional(),
         sort: z.array(recordSortSchema).optional(),
         all: z.boolean().optional(),
+        timelineRange: timelineRangeSchema.optional(),
       }),
     )
     .query(
-      async ({ input: { dataSourceId, filter, search, page, sort, all } }) => {
+      async ({
+        input: { dataSourceId, filter, search, page, sort, all, timelineRange },
+      }) => {
         const records = await findDataRecordsByDataSource(
           dataSourceId,
           filter,
@@ -179,11 +234,13 @@ export const dataRecordRouter = router({
           page || 0,
           sort || [],
           all,
+          timelineRange,
         );
         const count = await countDataRecordsForDataSource(
           dataSourceId,
           filter,
           search,
+          timelineRange,
         );
         return { records, count };
       },
@@ -197,5 +254,59 @@ export const dataRecordRouter = router({
     )
     .query(async ({ input }) => {
       return getColumnStat(input.dataSourceId, input.columnName, input.stat);
+    }),
+  // Free-text notes written back to the source system in the NOTES_COLUMN,
+  // created on demand like enrichment columns. Owning-organisation members
+  // only: read access to a shared source is not enough to write.
+  saveNote: dataSourceOwnerProcedure
+    .input(z.object({ dataRecordId: z.string(), note: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const dataRecord = await findDataRecordById(input.dataRecordId);
+      if (!dataRecord || dataRecord.dataSourceId !== ctx.dataSource.id) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Data record not found",
+        });
+      }
+
+      const adaptor = getDataSourceAdaptor(ctx.dataSource);
+      if (!adaptor) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This data source does not support writing notes",
+        });
+      }
+
+      const recordUpdates: ExternalRecordUpdate[] = [
+        {
+          externalRecord: {
+            externalId: dataRecord.externalId,
+            json: dataRecord.json,
+          },
+          columns: [
+            {
+              def: { name: NOTES_COLUMN, type: ColumnType.String },
+              value: input.note,
+            },
+          ],
+        },
+      ];
+
+      // Write to the source system first (this creates the column there if
+      // needed), then mirror into the local record so the UI updates
+      // without a re-import
+      await adaptor.updateRecords(recordUpdates);
+      await updateDataRecordJson(recordUpdates, ctx.dataSource.id);
+
+      if (!ctx.dataSource.columnDefs.some((c) => c.name === NOTES_COLUMN)) {
+        await updateDataSource(ctx.dataSource.id, {
+          columnDefs: [
+            ...ctx.dataSource.columnDefs,
+            { name: NOTES_COLUMN, type: ColumnType.String },
+          ],
+        });
+      }
+
+      return true;
     }),
 });

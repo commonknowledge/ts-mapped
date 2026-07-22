@@ -91,6 +91,7 @@ const copyMapsToOrganisation = async (
         recordType: original.recordType,
         defaultInspectorConfig: original.defaultInspectorConfig,
         defaultChoroplethConfig: original.defaultChoroplethConfig,
+        defaultMarkerColor: original.defaultMarkerColor,
         dateFormat: original.dateFormat,
         naIsNull: original.naIsNull,
         nullIsZero: original.nullIsZero,
@@ -128,6 +129,11 @@ const copyMapsToOrganisation = async (
         config: {
           ...view.config,
           areaDataSourceId: remappedAreaDataSourceId,
+          markerColors: remapRecord(view.config.markerColors, dataSourceIdMap),
+          markerVisualisations: remapRecord(
+            view.config.markerVisualisations,
+            dataSourceIdMap,
+          ),
         },
         dataSourceViews: remappedDataSourceViews,
       });
@@ -153,8 +159,6 @@ function remapMapConfig(
     ...config,
     membersDataSourceId,
     markerDataSourceIds,
-    markerDisplayModes: remapRecord(config.markerDisplayModes, dataSourceIdMap),
-    markerColors: remapRecord(config.markerColors, dataSourceIdMap),
     placedMarkerColors: undefined,
     folderColors: undefined,
   };

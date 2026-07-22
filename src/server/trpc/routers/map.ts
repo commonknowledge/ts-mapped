@@ -131,7 +131,6 @@ export const mapRouter = router({
             colorScheme: null,
             mapStyleName: MapStyleName.Light,
             reverseColorScheme: false,
-            showBoundaryOutline: true,
             showChoropleth: true,
             showLabels: true,
             showLocations: true,
@@ -180,8 +179,6 @@ export const mapRouter = router({
       const config = {
         markerDataSourceIds: mapConfig.markerDataSourceIds?.filter(Boolean),
         membersDataSourceId: mapConfig.membersDataSourceId,
-        markerDisplayModes: mapConfig.markerDisplayModes,
-        markerColors: mapConfig.markerColors,
         placedMarkerColors: mapConfig.placedMarkerColors,
         folderColors: mapConfig.folderColors,
         turfColor: mapConfig.turfColor,

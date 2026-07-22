@@ -43,6 +43,10 @@ export const DUMMY_COUNT_COLUMN = "__count";
 
 export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";
 
+// Free-text notes written back to the source system (e.g. Airtable) from
+// the inspector, in a column created on demand like enrichment columns
+export const NOTES_COLUMN = `${ENRICHMENT_COLUMN_PREFIX}Notes`;
+
 export const GE_DATA_SOURCE_NAME = "2024 General Election Results";
 
 export const JWT_LIFETIME_SECONDS = 24 * 60 * 60;

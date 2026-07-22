@@ -1,6 +1,6 @@
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { updateDataRecordJsonWithEnrichment } from "@/server/repositories/DataRecord";
+import { updateDataRecordJson } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   updateColumnDefsWithEnrichment,
@@ -60,7 +60,7 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
 
       const enrichedRecords = await enrichBatch(records, dataSource);
       await adaptor.updateRecords(enrichedRecords);
-      await updateDataRecordJsonWithEnrichment(enrichedRecords, dataSourceId);
+      await updateDataRecordJson(enrichedRecords, dataSourceId);
 
       for (const record of enrichedRecords) {
         for (const col of record.columns) {

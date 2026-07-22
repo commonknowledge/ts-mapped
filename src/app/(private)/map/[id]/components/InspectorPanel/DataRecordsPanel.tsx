@@ -1,6 +1,7 @@
 "use client";
 
-import { BookOpen, Settings } from "lucide-react";
+import { BookOpen, Settings2 } from "lucide-react";
+import { useMemo } from "react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -33,6 +34,16 @@ export default function DataRecordsPanel({
   const dataSource = getDataSourceById(dataSourceId);
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
 
+  // Records arrive in DB (primary key) order; list alphabetically by the
+  // name they display. Sort a copy — the array is shared query-cache data.
+  const sortedRecords = useMemo(
+    () =>
+      [...records].sort((a, b) =>
+        buildName(dataSource, a).localeCompare(buildName(dataSource, b)),
+      ),
+    [records, dataSource],
+  );
+
   const dataSourceType = dataSource?.config?.type ?? null;
   const panelIcon = inspectorConfig?.icon ? (
     <InspectorPanelIcon
@@ -59,7 +70,7 @@ export default function DataRecordsPanel({
             tooltip="Inspector settings"
             onClick={onClickConfigure}
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Settings2 className="h-4 w-4 mr-2" />
           </IconButtonWithTooltip>
         )
       }
@@ -75,9 +86,12 @@ export default function DataRecordsPanel({
             <p className="text-sm">Loading...</p>
           </div>
         ) : records.length === 0 ? (
-          <div className="text-center text-muted-foreground">
-            <p className="text-sm">No data</p>
-          </div>
+          // The hint explains the empty state when present
+          !hint && (
+            <div className="text-center text-muted-foreground">
+              <p className="text-sm">No data</p>
+            </div>
+          )
         ) : records.length === 1 ? (
           <div>
             <ConfiguredDataRecordDisplay
@@ -87,7 +101,7 @@ export default function DataRecordsPanel({
           </div>
         ) : (
           <ul>
-            {records.map((record, i) => (
+            {sortedRecords.map((record, i) => (
               <li key={record.id}>
                 <TogglePanel
                   label={buildName(dataSource, record)}

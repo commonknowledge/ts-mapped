@@ -112,6 +112,61 @@ export const steppedColorStepSchema = z.object({
 
 export type SteppedColorStep = z.infer<typeof steppedColorStepSchema>;
 
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
+
+export enum MarkerIconMode {
+  None = "none",
+  Categories = "categories",
+}
+export const markerIconModes = Object.values(MarkerIconMode);
+
+export enum MarkerSizeMode {
+  Fixed = "fixed",
+  Scaled = "scaled",
+}
+export const markerSizeModes = Object.values(MarkerSizeMode);
+
+export enum MarkerColorMode {
+  Single = "single",
+  Categories = "categories",
+}
+export const markerColorModes = Object.values(MarkerColorMode);
+
+// How a marker layer aggregates at low zoom; individual markers always show
+// at high zoom and support the full shape/colour/size styling in every mode
+export enum MarkerDisplayMode {
+  // Cluster circles at low zoom ("clusters" value kept for stored configs)
+  Circles = "clusters",
+  Heatmap = "heatmap",
+  // Uniform semi-transparent dots, no clustering: density reads via overdraw
+  Overlap = "overlap",
+  // No clustering, plain markers at every zoom
+  None = "none",
+}
+
+export const markerVisualisationSchema = z.object({
+  // Per-view display choices only. Durable value->shape/colour/order mappings
+  // live on the data source's columnMetadata (valueIcons, valueColors,
+  // valueOrder), so they are shared across views and maps.
+  displayMode: z.nativeEnum(MarkerDisplayMode).optional(),
+  iconMode: z.nativeEnum(MarkerIconMode).optional(),
+  iconColumn: z.string().optional(),
+  sizeMode: z.nativeEnum(MarkerSizeMode).optional(),
+  sizeColumn: z.string().optional(),
+  sizeSortDesc: z.boolean().optional(),
+  colorMode: z.nativeEnum(MarkerColorMode).optional(),
+  colorColumn: z.string().optional(),
+  opacityPct: z.number().min(0).max(100).optional(),
+  showLabels: z.boolean().optional(),
+  // The legend shows every enabled encoding (icon/colour/size)
+  legend: z.object({ show: z.boolean() }).optional(),
+  // Group-by column for the marker-count bar chart shown when a boundary
+  // is clicked (inspector Markers tab)
+  boundaryChartColumn: z.string().optional(),
+});
+
+export type MarkerVisualisation = z.infer<typeof markerVisualisationSchema>;
+
 export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
@@ -123,7 +178,6 @@ export const mapViewConfigSchema = z.object({
   includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
   mapType: z.nativeEnum(MapType).optional(),
-  showBoundaryOutline: z.boolean(),
   showChoropleth: z.boolean().optional(),
   showLabels: z.boolean(),
   showLocations: z.boolean(),
@@ -139,6 +193,17 @@ export const mapViewConfigSchema = z.object({
     .optional(),
   customColor: z.string().optional(),
   hideFilteredMarkers: z.boolean().optional(),
+  // Plain layer colour per marker data source id (migrated from map config)
+  markerColors: z.record(z.string(), hexColorSchema).optional(),
+  // Column-driven marker styling per marker data source id
+  markerVisualisations: z
+    .record(z.string(), markerVisualisationSchema)
+    .optional(),
+  // Month-range timeline filter for markers (inclusive month keys,
+  // year * 12 + zero-based month); absent when showing all time
+  timelineFilter: z.object({ start: z.number(), end: z.number() }).optional(),
+  // Categorical choropleth legend lists values descending when set
+  legendSortDesc: z.boolean().optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

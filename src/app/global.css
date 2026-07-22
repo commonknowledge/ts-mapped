@@ -173,13 +173,23 @@ main {
   border-radius: 0.25rem;
 }
 
-/* Sentry user feedback trigger */
+/* Sentry user feedback trigger. Sized to match the map zoom controls
+   (48px): 16px padding ×2 + ~16px icon; the default 1.5px border would
+   overshoot, and the default 24px-blur shadow reads bigger than the zoom
+   card's shadow-sm. */
 #sentry-feedback {
   --actor-border-radius: calc(var(--radius) + 4px);
   --page-margin: 2rem;
+  --actor-border: none;
+  --actor-box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
-/* Move bottom right icons if Sentry widget visible */
-.with-feedback-widget .map-zoom-controls {
-  margin-right: 64px;
+/* On the map, the report-a-bug trigger sits in a row with the zoom
+   controls: [bug] gap [zoom out | zoom in], zoom at the corner. The
+   trigger's final offset is this inset plus the 2rem page margin above:
+   108px + 32px = 140px = zoom offset (32px) + zoom width (92px) + 16px
+   gap. The body class is set by PrivateMapControls. */
+body.map-page #sentry-feedback {
+  --inset: auto 108px 0 auto;
 }

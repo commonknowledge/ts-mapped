@@ -230,6 +230,9 @@ export enum ColumnSemanticType {
   Number = "Number",
   Percentage01 = "Percentage01",
   Percentage0100 = "Percentage0100",
+  // String values that parse as dates (with the source's dateFormat, or
+  // ISO); displayed pretty-printed everywhere
+  Date = "Date",
 }
 export const columnSemanticTypes = Object.values(ColumnSemanticType);
 
@@ -237,6 +240,11 @@ export const numericColumnSemanticTypes = [
   ColumnSemanticType.Number,
   ColumnSemanticType.Percentage01,
   ColumnSemanticType.Percentage0100,
+] as const;
+
+export const stringColumnSemanticTypes = [
+  ColumnSemanticType.Text,
+  ColumnSemanticType.Date,
 ] as const;
 
 export { ColumnDisplayFormat, columnDisplayFormats };
@@ -278,11 +286,19 @@ export const columnMetadataSchema = z.object({
   valueLabels: z.record(z.string(), z.string()),
   semanticType: z.nativeEnum(ColumnSemanticType).optional(),
   valueColors: z.record(z.string(), z.string()).optional(),
+  // Marker icon shape name per column value (see marker icon sprites)
+  valueIcons: z.record(z.string(), z.string()).optional(),
+  // Explicit ordinal ordering of column values (e.g. Low < Moderate < High).
+  // When unset, consumers fall back to range parsing then alphabetical order
+  // (see sortColumnValues).
+  valueOrder: z.array(z.string()).optional(),
 });
 
 export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
 
 export const columnRolesSchema = z.object({
+  // Also drives the map timeline filter; parsed with the data source's
+  // dateFormat, with plain 4-digit year values accepted as January
   dateColumn: z.string().optional(),
   nameColumns: z.array(z.string()),
 });
@@ -311,6 +327,11 @@ export const dataSourceSchema = z.object({
   columnMetadata: z.array(columnMetadataSchema),
   defaultInspectorConfig: defaultInspectorConfigSchema.nullish(),
   defaultChoroplethConfig: defaultChoroplethConfigSchema.nullish(),
+  // Default marker layer colour on maps; map views can override it
+  defaultMarkerColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .nullish(),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,

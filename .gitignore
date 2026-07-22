@@ -62,3 +62,5 @@ certificates
 
 # Claude
 .claude
+# Generated stress-test fixture (bin/generateYearSeriesData.ts)
+resources/dataSets/yearSeriesLarge.csv

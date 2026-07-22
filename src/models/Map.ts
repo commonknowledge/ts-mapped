@@ -1,17 +1,12 @@
 import z from "zod";
 
-export enum MarkerDisplayMode {
-  Clusters = "clusters",
-  Heatmap = "heatmap",
-}
-
 const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
-  markerDisplayModes: z.record(z.nativeEnum(MarkerDisplayMode)).optional(),
-  markerColors: z.record(hexColorSchema).optional(),
+  // Marker layer colours live in the map view config ("markerColors" there);
+  // migrated out of the map config by the marker_colors_to_view migration.
   placedMarkerColors: z.record(hexColorSchema).optional(),
   folderColors: z.record(hexColorSchema).optional(),
   turfColor: hexColorSchema.optional(),

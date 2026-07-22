@@ -1,30 +1,44 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { Tag } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/(private)/map/[id]/hooks/useDataRecords";
+import { useDataSourceColumns } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
+import { useTimelineFilter } from "@/app/(private)/map/[id]/hooks/useTimelineFilter";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceTypeLabels } from "@/labels";
-import { ColumnType } from "@/models/DataSource";
-import { FilterType } from "@/models/MapView";
+import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
+import { FilterType, MarkerIconMode } from "@/models/MapView";
 import { Feature } from "@/models/Organisation";
+import { ColumnDisplayFormat } from "@/models/shared";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { buildName } from "@/utils/dataRecord";
+import {
+  RECORD_DATE_DISPLAY_FORMAT,
+  buildName,
+  parseDateValue,
+} from "@/utils/dataRecord";
+import { getCategoryColorsKey } from "../../colors";
+import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { useMapId, useMapRef } from "../../hooks/useMapCore";
 import { useMapQuery } from "../../hooks/useMapQuery";
+import { parseColumnNumber } from "../../utils/stats";
+import { getBarColorForLabel } from "../InspectorPanel/inspectorPanelOptions";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import SyncToCrmModal from "./SyncToCrmModal";
+import type { ColumnMetadata } from "@/models/DataSource";
 import type { DataSourceView } from "@/models/MapView";
+import type { InspectorColumn } from "@/models/shared";
 
 interface DataRecord {
   id: string;
@@ -64,8 +78,9 @@ export default function MapTable() {
   const mapRef = useMapRef();
   const mapId = useMapId();
   const { data: map } = useMapQuery(mapId);
-  const { view, updateView } = useMapViews();
+  const { view, updateView, viewConfig } = useMapViews();
   const { getDataSourceById } = useDataSources();
+  const { activeRange } = useTimelineFilter();
   const { focusedRecord, setFocusedRecord } = useInspectorState();
   const [lookingUpPage, setLookingUpPage] = useState(false);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
@@ -153,6 +168,11 @@ export default function MapTable() {
             search: dataSourceView?.search,
             filter: dataSourceView?.filter,
             sort: dataSourceView?.sort,
+            timelineRange:
+              activeRange &&
+              getDataSourceById(selectedDataSourceId)?.columnRoles.dateColumn
+                ? activeRange
+                : undefined,
           }),
         );
 
@@ -168,10 +188,12 @@ export default function MapTable() {
 
     fetchPage();
   }, [
+    activeRange,
     dataRecordsLoading,
     dataRecordsResult?.records,
     dataSourceView,
     focusedRecord,
+    getDataSourceById,
     lookingUpPage,
     queryClient,
     selectedDataSourceId,
@@ -254,6 +276,178 @@ export default function MapTable() {
     () =>
       pendingTagDisplayName ? new Set([pendingTagDisplayName]) : undefined,
     [pendingTagDisplayName],
+  );
+
+  // Value colours (incl. org overrides) per column, so cells with a
+  // configured colour render as badges
+  const { columnMetadata: resolvedColumnMetadata } =
+    useDataSourceColumns(selectedDataSourceId);
+  const valueColorsByColumn = useMemo(() => {
+    const result: Record<string, Record<string, string>> = {};
+    for (const meta of resolvedColumnMetadata) {
+      if (meta.valueColors && Object.keys(meta.valueColors).length > 0) {
+        result[meta.name] = meta.valueColors;
+      }
+    }
+    return result;
+  }, [resolvedColumnMetadata]);
+
+  const getCellColor = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      if (typeof value !== "string" && typeof value !== "number") {
+        return undefined;
+      }
+      const key = String(value);
+      // Same resolution as the markers: this view's overrides first, then
+      // the column's durable valueColors
+      const viewColor =
+        viewConfig.colorMappings?.[
+          getCategoryColorsKey(selectedDataSourceId, columnName, key)
+        ];
+      if (viewColor) {
+        return viewColor;
+      }
+      const valueColors = valueColorsByColumn[columnName];
+      if (!valueColors) {
+        return undefined;
+      }
+      return valueColors[key] ?? valueColors[key.trim()];
+    },
+    [valueColorsByColumn, viewConfig.colorMappings, selectedDataSourceId],
+  );
+
+  // Cells of the map's icon column show each value's marker shape
+  const visualisation = viewConfig.markerVisualisations?.[selectedDataSourceId];
+  const iconColumn =
+    visualisation?.iconMode === MarkerIconMode.Categories
+      ? visualisation.iconColumn
+      : undefined;
+  const iconValueIcons = useMemo(
+    () =>
+      iconColumn
+        ? resolvedColumnMetadata.find((m) => m.name === iconColumn)?.valueIcons
+        : undefined,
+    [iconColumn, resolvedColumnMetadata],
+  );
+  const getCellShape = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      if (
+        columnName !== iconColumn ||
+        (typeof value !== "string" && typeof value !== "number")
+      ) {
+        return undefined;
+      }
+      const key = String(value);
+      return iconValueIcons?.[key] ?? iconValueIcons?.[key.trim()];
+    },
+    [iconColumn, iconValueIcons],
+  );
+
+  // Inspector display formats applied in the table too; the resolved config
+  // falls back to the data source's defaults
+  const inspectorConfig = useInspectorDataSourceConfig(selectedDataSourceId);
+  const inspectorColumnsByName = useMemo(() => {
+    const result = new Map<string, InspectorColumn>();
+    for (const item of inspectorConfig?.items ?? []) {
+      if (item.type === "column") {
+        result.set(item.name, item);
+      }
+    }
+    return result;
+  }, [inspectorConfig]);
+
+  const booleanColumns = useMemo(() => {
+    const result = new Set<string>();
+    for (const [name, item] of inspectorColumnsByName) {
+      if (item.displayFormat === ColumnDisplayFormat.Boolean) {
+        result.add(name);
+      }
+    }
+    return result;
+  }, [inspectorColumnsByName]);
+
+  // Percentage cells mirror the inspector exactly: parseColumnNumber applies
+  // the column's 0-1 vs 0-100 semantic type (incl. org overrides)
+  const metadataByColumn = useMemo(() => {
+    const result = new Map<string, ColumnMetadata>();
+    for (const meta of resolvedColumnMetadata) {
+      result.set(meta.name, meta);
+    }
+    return result;
+  }, [resolvedColumnMetadata]);
+  const getCellPercentage = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const item = inspectorColumnsByName.get(columnName);
+      if (item?.displayFormat !== ColumnDisplayFormat.Percentage) {
+        return undefined;
+      }
+      const columnMetadata = metadataByColumn.get(columnName);
+      const num = parseColumnNumber(value, {
+        isCount: false,
+        columnMetadata,
+      });
+      if (num === null) {
+        return undefined;
+      }
+      return {
+        percent: Math.min(100, Math.max(0, num)),
+        barColor: getBarColorForLabel({
+          columnName,
+          displayName: columnMetadata?.displayName,
+          barColor: item.barColor,
+          inspectorColor: inspectorConfig?.color,
+        }),
+      };
+    },
+    [inspectorColumnsByName, metadataByColumn, inspectorConfig?.color],
+  );
+
+  // Scale cells mirror the inspector: the value is the filled segment count
+  // out of the column's configured scaleMax (no range inference)
+  const getCellScale = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const item = inspectorColumnsByName.get(columnName);
+      if (item?.displayFormat !== ColumnDisplayFormat.Scale) {
+        return undefined;
+      }
+      const columnMetadata = metadataByColumn.get(columnName);
+      const num = parseColumnNumber(value, {
+        isCount: false,
+        columnMetadata,
+      });
+      if (num === null) {
+        return undefined;
+      }
+      const max = Math.max(2, Math.min(10, item.scaleMax || 2));
+      return {
+        filled: Math.min(max, Math.max(0, Math.round(num))),
+        max,
+        barColor: getBarColorForLabel({
+          columnName,
+          displayName: columnMetadata?.displayName,
+          barColor: item.barColor,
+          inspectorColor: inspectorConfig?.color,
+        }),
+      };
+    },
+    [inspectorColumnsByName, metadataByColumn, inspectorConfig?.color],
+  );
+
+  // Date semantic type columns pretty-print ("28 May 2026"), matching the
+  // inspector
+  const getCellText = useCallback(
+    ({ columnName, value }: { columnName: string; value: unknown }) => {
+      const columnMetadata = metadataByColumn.get(columnName);
+      if (columnMetadata?.semanticType !== ColumnSemanticType.Date) {
+        return undefined;
+      }
+      const date = parseDateValue(
+        value,
+        getDataSourceById(selectedDataSourceId)?.dateFormat,
+      );
+      return date ? format(date, RECORD_DATE_DISPLAY_FORMAT) : undefined;
+    },
+    [metadataByColumn, getDataSourceById, selectedDataSourceId],
   );
 
   if (!dataSource || !view) {
@@ -373,6 +567,12 @@ export default function MapTable() {
         selectedRecordId={focusedRecord?.id}
         onClose={() => handleDataSourceSelect("")}
         highlightedColumns={highlightedColumns}
+        getCellColor={getCellColor}
+        getCellShape={getCellShape}
+        getCellPercentage={getCellPercentage}
+        getCellScale={getCellScale}
+        booleanColumns={booleanColumns}
+        getCellText={getCellText}
       />
       {enableSyncToCRM && (
         <SyncToCrmModal

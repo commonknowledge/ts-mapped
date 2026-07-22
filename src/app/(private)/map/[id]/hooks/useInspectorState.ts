@@ -4,6 +4,7 @@ import { useAtom } from "jotai";
 import { useCallback } from "react";
 import {
   focusedRecordAtom,
+  inspectorMinimizedAtom,
   selectedBoundaryAtom,
   selectedRecordsAtom,
   selectedTurfAtom,
@@ -15,6 +16,9 @@ export function useInspectorState() {
   const [focusedRecord, _setFocusedRecord] = useAtom(focusedRecordAtom);
   const [selectedTurf, setSelectedTurf] = useAtom(selectedTurfAtom);
   const [selectedBoundary, setSelectedBoundary] = useAtom(selectedBoundaryAtom);
+  const [inspectorMinimized, setInspectorMinimized] = useAtom(
+    inspectorMinimizedAtom,
+  );
 
   // Custom setter to keep selectedRecords and focusedRecord in sync
   const setSelectedRecords = useCallback(
@@ -55,5 +59,7 @@ export function useInspectorState() {
     selectedBoundary,
     setSelectedBoundary,
     resetInspector,
+    inspectorMinimized,
+    setInspectorMinimized,
   };
 }

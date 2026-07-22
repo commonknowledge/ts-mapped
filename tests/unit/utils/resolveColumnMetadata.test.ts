@@ -203,3 +203,95 @@ describe("resolveColumnMetadataEntry", () => {
     expect(entry).toEqual(base[2]);
   });
 });
+
+describe("resolveColumnMetadata valueOrder", () => {
+  test("keeps base valueOrder when override has none", () => {
+    const baseWithOrder: ColumnMetadata[] = [
+      {
+        name: "severity",
+        description: "",
+        valueLabels: {},
+        valueOrder: ["Low", "Moderate", "High", "Critical"],
+      },
+    ];
+    const overrides: ColumnMetadata[] = [
+      { name: "severity", description: "Overridden", valueLabels: {} },
+    ];
+    const result = resolveColumnMetadata(baseWithOrder, overrides);
+    expect(result[0].valueOrder).toEqual([
+      "Low",
+      "Moderate",
+      "High",
+      "Critical",
+    ]);
+  });
+
+  test("override valueOrder replaces base valueOrder wholesale", () => {
+    const baseWithOrder: ColumnMetadata[] = [
+      {
+        name: "severity",
+        description: "",
+        valueLabels: {},
+        valueOrder: ["Low", "High"],
+      },
+    ];
+    const overrides: ColumnMetadata[] = [
+      {
+        name: "severity",
+        description: "",
+        valueLabels: {},
+        valueOrder: ["Critical", "High", "Moderate", "Low"],
+      },
+    ];
+    const result = resolveColumnMetadata(baseWithOrder, overrides);
+    expect(result[0].valueOrder).toEqual([
+      "Critical",
+      "High",
+      "Moderate",
+      "Low",
+    ]);
+  });
+});
+
+describe("resolveColumnMetadata valueIcons", () => {
+  test("keeps base valueIcons when override has none", () => {
+    const baseWithIcons: ColumnMetadata[] = [
+      {
+        name: "type",
+        description: "",
+        valueLabels: {},
+        valueIcons: { March: "diamond", Mural: "star" },
+      },
+    ];
+    const overrides: ColumnMetadata[] = [
+      { name: "type", description: "Overridden", valueLabels: {} },
+    ];
+    const result = resolveColumnMetadata(baseWithIcons, overrides);
+    expect(result[0].valueIcons).toEqual({ March: "diamond", Mural: "star" });
+  });
+
+  test("merges override valueIcons per key over base", () => {
+    const baseWithIcons: ColumnMetadata[] = [
+      {
+        name: "type",
+        description: "",
+        valueLabels: {},
+        valueIcons: { March: "diamond", Mural: "star" },
+      },
+    ];
+    const overrides: ColumnMetadata[] = [
+      {
+        name: "type",
+        description: "",
+        valueLabels: {},
+        valueIcons: { March: "square", Auditing: "hexagon" },
+      },
+    ];
+    const result = resolveColumnMetadata(baseWithIcons, overrides);
+    expect(result[0].valueIcons).toEqual({
+      March: "square",
+      Mural: "star",
+      Auditing: "hexagon",
+    });
+  });
+});

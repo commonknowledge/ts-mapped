@@ -1,18 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
-import { ArrowLeftIcon, InfoIcon, PlusIcon, XIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  ArrowLeftIcon,
+  ChartBarIcon,
+  ChevronDownIcon,
+  InfoIcon,
+  MapPinIcon,
+  MinusIcon,
+  PlusIcon,
+  TableIcon,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { useBoundaryMarkers } from "@/app/(private)/map/[id]/hooks/useBoundaryMarkers";
 import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAreaStats";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import { useSelectedAreas } from "@/app/(private)/map/[id]/hooks/useSelectedAreas";
 import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
+import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
+import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { AreaSetCodeLabels } from "@/labels";
-import { parseAreaGeography } from "@/models/Area";
-import { AreaSetCode } from "@/models/AreaSet";
-import { useTRPC } from "@/services/trpc/react";
+import { DataSourceType } from "@/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { LayerType } from "@/types";
@@ -31,39 +42,51 @@ export default function InspectorPanel() {
   const [activeTab, setActiveTab] = useState("data");
 
   const {
-    resetInspector,
     selectedBoundary,
     selectedTurf,
     setFocusedRecord,
     selectedRecords,
+    focusedRecord,
+    inspectorMinimized,
+    setInspectorMinimized,
   } = useInspectorState();
   const { inspectorContent } = useInspectorContent();
-  const { type } = inspectorContent ?? {};
+  const { type, dataSource } = inspectorContent ?? {};
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
+  const [selectedAreas, setSelectedAreas] = useSelectedAreas();
+  const organisationId = useOrganisationId();
 
-  const trpc = useTRPC();
+  // Selecting something new re-opens a minimised inspector
+  const contentKey = `${type ?? ""}:${String(inspectorContent?.name ?? "")}`;
+  useEffect(() => {
+    setInspectorMinimized(false);
+  }, [contentKey, setInspectorMinimized]);
+
+  const mapRef = useMapRef();
+  const { setSelectedDataSourceId } = useTable();
+
   const { insertTurf, loading: savingTurf } = useTurfMutations();
   const { areaToDisplay } = useDisplayAreaStat(selectedBoundary);
 
-  // Fetch boundary geography when a boundary is selected
-  const { data: areaData } = useQuery(
-    trpc.area.byCode.queryOptions(
-      {
-        code: selectedBoundary?.code || "",
-        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
-      },
-      { enabled: Boolean(selectedBoundary && type === LayerType.Boundary) },
-    ),
-  );
-
-  const geography = useMemo(
-    () =>
-      areaData?.geoJson ? parseAreaGeography(areaData.geoJson) : undefined,
-    [areaData],
-  );
+  // Boundary geography plus the markers inside it (shared with the Markers
+  // tab, so the tab count always matches the list)
+  const {
+    areaGeoJson,
+    geography,
+    markerCount: boundaryMarkerCount,
+  } = useBoundaryMarkers(type === LayerType.Boundary ? selectedBoundary : null);
 
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
   const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
+
+  // Notes write back to the source system: owning-organisation members
+  // only, and CSVs are not updatable
+  const hasNotes = Boolean(
+    focusedRecord?.dataSourceId &&
+    dataSource &&
+    dataSource.organisationId === organisationId &&
+    dataSource.config.type !== DataSourceType.CSV,
+  );
 
   const boundaryProperties = useMemo(() => {
     if (type !== LayerType.Boundary) return [];
@@ -86,8 +109,11 @@ export default function InspectorPanel() {
     if (activeTab === "markers" && !hasMarkers) {
       return "data";
     }
+    if (activeTab === "notes" && !hasNotes) {
+      return hasData ? "data" : "markers";
+    }
     return activeTab;
-  }, [activeTab, hasData, hasMarkers]);
+  }, [activeTab, hasData, hasMarkers, hasNotes]);
 
   if (!inspectorContent) {
     return (
@@ -106,15 +132,93 @@ export default function InspectorPanel() {
     );
   }
 
+  if (inspectorMinimized) {
+    return (
+      <button
+        id="inspector-panel"
+        type="button"
+        className="relative z-50 flex items-center gap-2 rounded shadow-lg bg-white text-sm font-sans px-3 py-2 pointer-events-auto cursor-pointer self-start"
+        style={{ maxWidth: "450px", minWidth: "250px" }}
+        aria-label="Expand inspector panel"
+        onClick={() => setInspectorMinimized(false)}
+      >
+        {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
+          <span
+            className="w-4 h-4 rounded shrink-0 border border-neutral-200"
+            style={{ backgroundColor: areaToDisplay.backgroundColor }}
+          />
+        )}
+        <span className="grow min-w-0 truncate text-left text-sm font-semibold">
+          {inspectorContent?.name as string}
+        </span>
+        <ChevronDownIcon size={16} className="shrink-0" />
+      </button>
+    );
+  }
+
   const isDetailsView = Boolean(
     (selectedTurf && type !== LayerType.Turf) ||
     (selectedBoundary && type !== LayerType.Boundary),
   );
 
-  const markerCount = selectedRecords?.length || 0;
+  // Boundaries count the markers inside them; clusters count the selected
+  // records the cluster click put in the inspector
+  const markerCount =
+    type === LayerType.Boundary
+      ? boundaryMarkerCount
+      : selectedRecords?.length || 0;
 
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
+  };
+
+  const handleFlyToMarker = () => {
+    const map = mapRef?.current;
+    if (map && focusedRecord?.geocodePoint) {
+      map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
+    }
+  };
+
+  // Compare: toggle this boundary in the comparison list shown in the
+  // hover info card (top left of the map)
+  const isCompared = Boolean(
+    selectedBoundary &&
+    selectedAreas.some(
+      (a) =>
+        a.code === selectedBoundary.code &&
+        a.areaSetCode === selectedBoundary.areaSetCode,
+    ),
+  );
+
+  const handleToggleCompare = () => {
+    if (!selectedBoundary) {
+      return;
+    }
+    if (isCompared) {
+      setSelectedAreas(
+        selectedAreas.filter(
+          (a) =>
+            !(
+              a.code === selectedBoundary.code &&
+              a.areaSetCode === selectedBoundary.areaSetCode
+            ),
+        ),
+      );
+      return;
+    }
+    if (!geography) {
+      return;
+    }
+    const center = turf.center(geography).geometry.coordinates;
+    setSelectedAreas([
+      ...selectedAreas,
+      {
+        code: selectedBoundary.code,
+        areaSetCode: selectedBoundary.areaSetCode,
+        name: selectedBoundary.name || "Boundary",
+        coordinates: [center[0], center[1]],
+      },
+    ]);
   };
 
   const handleAddToMyAreas = () => {
@@ -133,7 +237,7 @@ export default function InspectorPanel() {
         label: selectedBoundary.name || "Boundary",
         notes: "",
         area: roundedArea,
-        polygon: areaData?.geoJson ?? "",
+        polygon: areaGeoJson ?? "",
         position: 0,
       });
 
@@ -189,11 +293,11 @@ export default function InspectorPanel() {
           )}
         </div>
         <button
-          className="cursor-pointer"
-          aria-label="Close inspector panel"
-          onClick={() => resetInspector()}
+          className="cursor-pointer self-start"
+          aria-label="Minimise inspector panel"
+          onClick={() => setInspectorMinimized(true)}
         >
-          <XIcon size={16} />
+          <MinusIcon size={16} />
         </button>
       </div>
 
@@ -236,14 +340,14 @@ export default function InspectorPanel() {
               Markers {markerCount > 0 ? markerCount : ""}
             </UnderlineTabsTrigger>
           )}
-          <UnderlineTabsTrigger value="notes" className="hidden">
-            Notes 0
-          </UnderlineTabsTrigger>
+          {hasNotes && (
+            <UnderlineTabsTrigger value="notes">Notes</UnderlineTabsTrigger>
+          )}
         </UnderlineTabsList>
 
         {hasData && (
           <UnderlineTabsContent value="data" className="overflow-auto p-3">
-            <InspectorDataTab isDetailsView={isDetailsView} />
+            <InspectorDataTab />
           </UnderlineTabsContent>
         )}
 
@@ -253,22 +357,54 @@ export default function InspectorPanel() {
           </UnderlineTabsContent>
         )}
 
-        <UnderlineTabsContent value="notes" className="overflow-auto p-3">
-          <InspectorNotesTab />
-        </UnderlineTabsContent>
+        {hasNotes && (
+          <UnderlineTabsContent value="notes" className="overflow-auto p-3">
+            <InspectorNotesTab />
+          </UnderlineTabsContent>
+        )}
       </UnderlineTabs>
       {type === LayerType.Boundary && (
-        <div className="border-t p-3">
+        <div className="border-t p-3 flex flex-col gap-2">
           <Button
             className="w-full"
             onClick={handleAddToMyAreas}
-            disabled={savingTurf || !areaData}
+            disabled={savingTurf || !areaGeoJson}
           >
             <PlusIcon />
             Add to areas
           </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={handleToggleCompare}
+            disabled={!isCompared && !geography}
+          >
+            <ChartBarIcon />
+            {isCompared ? "Remove from comparison" : "Compare"}
+          </Button>
         </div>
       )}
+      {hasData &&
+        type !== LayerType.Boundary &&
+        ((isDetailsView && focusedRecord?.geocodePoint) || dataSource) && (
+          <div className="border-t p-3 flex flex-col gap-2">
+            {isDetailsView && focusedRecord?.geocodePoint && (
+              <Button onClick={handleFlyToMarker}>
+                <MapPinIcon />
+                View on map
+              </Button>
+            )}
+            {dataSource && (
+              <Button
+                variant="secondary"
+                onClick={() => setSelectedDataSourceId(dataSource.id)}
+              >
+                <TableIcon />
+                View in table
+              </Button>
+            )}
+          </div>
+        )}
     </div>
   );
 }

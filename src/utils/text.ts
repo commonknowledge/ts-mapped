@@ -33,6 +33,9 @@ export function getInitials(name: string | null | undefined): string {
  * If v > 1 million, print e.g. 1.23m
  * If v > 1 thousand, print e.g. 1.23k
  * Otherwise print to 3 s.f.
+ *
+ * Exception: four-digit whole numbers print in full ("2026", not "2.03k")
+ * so that years and other small counts stay readable.
  */
 export const formatNumber = (v: number): string => {
   if (!isFinite(v)) return String(v);
@@ -58,6 +61,7 @@ export const formatNumber = (v: number): string => {
   if (av >= 1e12) return sign + to3sf(av / 1e12) + "t";
   if (av >= 1e9) return sign + to3sf(av / 1e9) + "b";
   if (av >= 1e6) return sign + to3sf(av / 1e6) + "m";
+  if (Number.isInteger(av) && av < 1e4) return sign + String(av);
   if (av >= 1e3) return sign + to3sf(av / 1e3) + "k";
 
   return sign + to3sf(av);

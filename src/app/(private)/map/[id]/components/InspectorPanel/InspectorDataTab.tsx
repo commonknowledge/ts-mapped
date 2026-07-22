@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { LayersIcon, MapPinIcon, SettingsIcon, TableIcon } from "lucide-react";
+import { LayersIcon, Settings2Icon } from "lucide-react";
 import { useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
-import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
-import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
+import { useOpenInspectorConfig } from "@/app/(private)/map/[id]/hooks/useOpenInspectorConfig";
 import { useViewInspectorConfig } from "@/app/(private)/map/[id]/hooks/useViewInspectorConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
@@ -20,9 +19,12 @@ import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { BIVARIATE_COLORS } from "../../colors";
 import { useAreaStats } from "../../data";
+import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
+import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
 import DataRecordColumns from "./DataRecordColumns";
+import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataConfig from "./InspectorDataConfig";
 import { InspectorPanelIcon } from "./inspectorPanelOptions";
 import { LocationDataPanel } from "./LocationDataPanel";
@@ -71,26 +73,21 @@ function getBivariateBucket({
   return { x, y };
 }
 
-interface InspectorDataTabProps {
-  isDetailsView: boolean;
-}
-
-export default function InspectorDataTab({
-  isDetailsView,
-}: InspectorDataTabProps) {
-  const mapRef = useMapRef();
-  const { setSelectedDataSourceId } = useTable();
+export default function InspectorDataTab() {
   const trpc = useTRPC();
   const inspectorConfigs = useViewInspectorConfig();
   const { selectedBoundary, focusedRecord } = useInspectorState();
   const { inspectorContent } = useInspectorContent();
   const { dataSource, properties = [], type } = inspectorContent || {};
   const areaStat = useRawAreaStat(selectedBoundary);
+  const { mapConfig } = useMapConfig();
   const { viewConfig } = useMapViews();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
+    useOpenInspectorConfig(dataSource?.id);
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -138,14 +135,6 @@ export default function InspectorDataTab({
               : "high",
       }
     : null;
-
-  const flyToMarker = () => {
-    const map = mapRef?.current;
-
-    if (map && focusedRecord?.geocodePoint) {
-      map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
-    }
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -236,17 +225,28 @@ export default function InspectorDataTab({
         // Show default data source and properties
         <>
           {dataSource && (
-            <div className="bg-muted py-1 px-2 rounded">
-              <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
-                Data source
-              </h3>
-              <div className="flex items-center gap-2">
-                <div className="shrink-0">
-                  <DataSourceIcon type={dataSource.config?.type as string} />
-                </div>
+            <div className="bg-muted py-1 px-2 rounded flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
+                  Data source
+                </h3>
+                <div className="flex items-center gap-2">
+                  <div className="shrink-0">
+                    <DataSourceIcon type={dataSource.config?.type as string} />
+                  </div>
 
-                <p className="truncate">{dataSource.name}</p>
+                  <p className="truncate">{dataSource.name}</p>
+                </div>
               </div>
+              <button
+                type="button"
+                className="cursor-pointer shrink-0 text-muted-foreground hover:text-foreground"
+                aria-label="Configure inspector"
+                title="Configure inspector"
+                onClick={openConfig}
+              >
+                <Settings2Icon className="h-4 w-4" />
+              </button>
             </div>
           )}
 
@@ -271,34 +271,53 @@ export default function InspectorDataTab({
             return (
               <>
                 <SimplePropertiesList properties={properties} />
-                {recordData?.json && (
-                  <DataRecordColumns
-                    json={recordData?.json}
-                    dataSourceId={dataSource?.id}
-                  />
-                )}
+                {recordData?.json &&
+                  (dataSource?.id ? (
+                    // Config-aware: applies the inspector config's column
+                    // selection, order, dividers and layout
+                    <ConfiguredDataRecordDisplay
+                      json={recordData.json}
+                      dataSourceId={dataSource.id}
+                    />
+                  ) : (
+                    <DataRecordColumns
+                      json={recordData.json}
+                      dataSourceId={undefined}
+                    />
+                  ))}
               </>
             );
           })()}
         </>
       )}
 
-      {inspectorConfigs.map((config, index) => (
-        <LocationDataPanel
-          key={config.id}
-          dataSourceId={config.dataSourceId}
-          selectedBoundary={selectedBoundary}
-          markerPoint={focusedRecord?.geocodePoint}
-          defaultExpanded={index === 0}
-        />
-      ))}
+      {inspectorConfigs
+        // A config row for the shown record's own data source exists to
+        // customise the record display above, not to self-lookup location data
+        .filter((config) => config.dataSourceId !== dataSource?.id)
+        // Marker layers belong to the Markers tab (list, count, chart);
+        // their config rows exist to customise the record detail display
+        .filter(
+          (config) =>
+            !mapConfig.markerDataSourceIds.includes(config.dataSourceId) &&
+            config.dataSourceId !== mapConfig.membersDataSourceId,
+        )
+        .map((config, index) => (
+          <LocationDataPanel
+            key={config.id}
+            dataSourceId={config.dataSourceId}
+            selectedBoundary={selectedBoundary}
+            markerPoint={focusedRecord?.geocodePoint}
+            defaultExpanded={index === 0}
+          />
+        ))}
       <Button
         variant="outline"
         className="w-full"
         size="sm"
         onClick={() => setConfigDialogOpen(true)}
       >
-        <SettingsIcon />
+        <Settings2Icon />
         Manage inspector data
       </Button>
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
@@ -311,25 +330,13 @@ export default function InspectorDataTab({
           </div>
         </DialogContent>
       </Dialog>
-
-      {(isDetailsView || dataSource) && (
-        <div className="flex flex-col gap-3 border-t pt-4">
-          {isDetailsView && focusedRecord?.geocodePoint && (
-            <Button onClick={() => flyToMarker()}>
-              <MapPinIcon />
-              View on map
-            </Button>
-          )}
-          {dataSource && (
-            <Button
-              variant="secondary"
-              onClick={() => setSelectedDataSourceId(dataSource.id)}
-            >
-              <TableIcon />
-              View in table
-            </Button>
-          )}
-        </div>
+      {config && (
+        <InspectorConfigModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          config={config}
+          onUpdate={onUpdateConfig}
+        />
       )}
     </div>
   );

@@ -9,7 +9,7 @@ import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import { enqueue } from "../services/queue";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
-import type { EnrichedRecord } from "@/models/DataRecord";
+import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { googleOAuthCredentialsSchema } from "@/models/DataSource";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 import type z from "zod";
@@ -637,13 +637,13 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     }
   }
 
-  async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+  async updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void> {
     const headers = await this.getHeaders();
-    const batches = batch(enrichedRecords, 100); // Google Sheets allows larger batches
+    const batches = batch(recordUpdates, 100); // Google Sheets allows larger batches
 
     // Collect all new columns we need to add
     const newColumns = new Set<string>();
-    for (const record of enrichedRecords) {
+    for (const record of recordUpdates) {
       for (const column of record.columns) {
         if (!headers.includes(column.def.name)) {
           newColumns.add(column.def.name);

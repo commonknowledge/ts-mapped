@@ -25,6 +25,7 @@ import { MapType } from "@/models/MapView";
 import { LayerType } from "@/types";
 import { useMapViews } from "../../../hooks/useMapViews";
 import { CollectionIcon } from "../../Icons";
+import MarkerLegend from "../../Legend/MarkerLegend";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
@@ -212,8 +213,9 @@ export default function MarkersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
       {expanded && (
-        <div className="px-4 pb-6">
+        <div className="px-4 pb-6 flex flex-col gap-3">
           <MarkersList dropdownItems={getDropdownItems()} />
+          <MarkerLegend />
         </div>
       )}
     </LayerControlWrapper>

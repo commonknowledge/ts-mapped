@@ -155,6 +155,7 @@ export const ColumnSemanticTypeLabels: Record<ColumnSemanticType, string> = {
   Number: "Number",
   Percentage01: "Percentage (0–1)",
   Percentage0100: "Percentage (0–100)",
+  Date: "Date",
 };
 
 export const ColumnDisplayFormatLabels: Record<ColumnDisplayFormat, string> = {
@@ -163,6 +164,8 @@ export const ColumnDisplayFormatLabels: Record<ColumnDisplayFormat, string> = {
   Percentage: "Percentage (bar)",
   Scale: "Scale (bars)",
   NumberWithComparison: "Number with comparison",
+  Boolean: "Boolean (tick/cross)",
+  LargeText: "Large text",
 };
 
 export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =

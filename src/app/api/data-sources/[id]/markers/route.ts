@@ -11,6 +11,7 @@ import {
   buildPublicMapName,
   formatRecordDate,
   getListingSort,
+  toMonthKey,
 } from "@/utils/dataRecord";
 import type { DataRecord } from "@/models/DataRecord";
 import type { RecordFilterInput } from "@/models/MapView";
@@ -62,6 +63,22 @@ export async function GET(
     getListingSort({ dataSource, dataSourceConfig: publicMapDataSourceConfig })
       .sortBy === "date";
 
+  // Marker styling (icon/size/colour by column) needs the raw column values on
+  // the features. The column list is client-supplied but only honoured for
+  // authenticated users: `canReadDataSource` passes anonymous requests for
+  // public data sources and published public maps, and those must stay on
+  // minimal properties. Authenticated readers can already fetch full record
+  // JSON via tRPC, so this grants them nothing new.
+  const includeProperties = currentUser?.id
+    ? parseIncludeProperties(
+        request?.nextUrl?.searchParams.get("properties") || null,
+      )
+    : [];
+
+  // Timeline filtering: when the data source declares a date column, expose
+  // the record's month key, derived from the date parsed at import time
+  const dateColumn = dataSource.columnRoles.dateColumn;
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -101,6 +118,14 @@ export async function GET(
                     }),
                   }
                 : {}),
+              ...(dateColumn
+                ? {
+                    month: dr.date
+                      ? toMonthKey(dr.date.getFullYear(), dr.date.getMonth())
+                      : null,
+                  }
+                : {}),
+              ...getIncludedProperties(dr, includeProperties),
             },
             geometry: {
               type: "Point",
@@ -170,4 +195,51 @@ async function resolvePublicMapDataSourceConfig({
       : publicMap.dataSourceConfigs;
 
   return configs.find((c) => c.dataSourceId === dataSourceId) || null;
+}
+
+// Cap the number of extra marker properties to keep payloads small
+const MAX_INCLUDE_PROPERTIES = 6;
+
+function parseIncludeProperties(param: string | null): string[] {
+  if (!param) {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(param);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    const columns: string[] = [];
+    for (const item of parsed) {
+      if (typeof item === "string" && item) {
+        columns.push(item);
+      }
+      if (columns.length >= MAX_INCLUDE_PROPERTIES) {
+        break;
+      }
+    }
+    return columns;
+  } catch {
+    return [];
+  }
+}
+
+function getIncludedProperties(
+  dataRecord: DataRecord,
+  columns: string[],
+): Record<string, unknown> {
+  const properties: Record<string, unknown> = {};
+  for (const column of columns) {
+    const value = dataRecord.json[column];
+    // Only scalars: styling expressions match on strings/numbers, and
+    // object values (e.g. multi-selects) have no meaningful encoding here
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      properties[column] = value;
+    }
+  }
+  return properties;
 }

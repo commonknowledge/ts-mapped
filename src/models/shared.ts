@@ -17,6 +17,8 @@ export enum ColumnDisplayFormat {
   Percentage = "Percentage",
   Scale = "Scale",
   NumberWithComparison = "NumberWithComparison",
+  Boolean = "Boolean",
+  LargeText = "LargeText",
 }
 
 export const columnDisplayFormats = Object.values(ColumnDisplayFormat);

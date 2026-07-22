@@ -291,6 +291,47 @@ const postcodeLookup = async (
   };
 };
 
+/**
+ * Reverse geocode a point to its (nearest) postcode via postcodes.io.
+ * Returns the formatted postcode (e.g. "PE25 3LS") or null when the point
+ * has no nearby postcode or the request fails.
+ */
+export const reversePostcodeLookup = async (
+  point: Point,
+): Promise<string | null> => {
+  try {
+    const response = await fetch(
+      `https://api.postcodes.io/postcodes?lon=${point.lng}&lat=${point.lat}&limit=1`,
+    );
+    if (!response.ok) {
+      return null;
+    }
+    const data: unknown = await response.json();
+    if (
+      data &&
+      typeof data === "object" &&
+      "result" in data &&
+      Array.isArray(data.result) &&
+      data.result.length > 0
+    ) {
+      const first: unknown = data.result[0];
+      if (
+        first &&
+        typeof first === "object" &&
+        "postcode" in first &&
+        typeof first.postcode === "string" &&
+        first.postcode
+      ) {
+        return first.postcode;
+      }
+    }
+    return null;
+  } catch (error) {
+    logger.warn("Reverse postcode lookup failed", { error });
+    return null;
+  }
+};
+
 const postcodesIOLookup = async (
   postcode: string,
 ): Promise<{ result: PostcodesIOResult }> => {

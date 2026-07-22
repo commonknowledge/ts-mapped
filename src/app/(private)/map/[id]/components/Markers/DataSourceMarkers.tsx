@@ -2,7 +2,16 @@ import { useMemo } from "react";
 import { Source } from "react-map-gl/mapbox";
 
 import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
-import { MarkerDisplayMode } from "@/models/Map";
+import { useColumnValues } from "@/hooks/useColumnValues";
+import { useDataSources } from "@/hooks/useDataSources";
+import { ColumnType } from "@/models/DataSource";
+import {
+  MarkerColorMode,
+  MarkerDisplayMode,
+  MarkerIconMode,
+  MarkerSizeMode,
+} from "@/models/MapView";
+import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useMapMode } from "../../hooks/useMapCore";
 import {
   useFilteredRecords,
@@ -14,25 +23,50 @@ import {
   usePublicMapValue,
 } from "../../publish/hooks/usePublicMap";
 import { mapColors } from "../../styles";
-import { ClustersLayer } from "./ClustersLayer";
+import { ClustersLayer, UNCLUSTERED_FILTER } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
+import {
+  buildCategoryColorMap,
+  buildColorExpression,
+  buildIconImageExpression,
+  buildSizeFactorExpression,
+  buildSortKeyExpression,
+  getDistinctFeatureValues,
+} from "./markerStyle";
+import { PinsLayer } from "./PinsLayer";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
+import type { MarkerPinStyle } from "./PinsLayer";
+import type { MarkerVisualisation } from "@/models/MapView";
 import type { MarkerFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
+
+const NOT_MATCHED_CASE = [
+  "any",
+  ["!", ["get", "matched"]],
+  ["==", ["get", MARKER_CLIENT_EXCLUDED_KEY], true],
+];
 
 export function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
-  mapConfig,
+  markerColors,
+  defaultMarkerColor,
+  markerVisualisation,
+  colorMappings,
   hideFilteredMarkers = false,
+  filterTimeRange = null,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
-  mapConfig: {
-    markerDisplayModes?: Record<string, MarkerDisplayMode>;
-    markerColors?: Record<string, string>;
-  };
+  markerColors?: Record<string, string>;
+  defaultMarkerColor?: string | null;
+  markerVisualisation?: MarkerVisualisation;
+  colorMappings?: Record<string, string>;
   hideFilteredMarkers?: boolean;
+  /** Active timeline filter (inclusive month keys); only passed for data
+   *  sources with a date column and the timeline enabled. Features without
+   *  a parseable month are hidden while active. */
+  filterTimeRange?: { start: number; end: number } | null;
 }) {
   const filteredRecords = useFilteredRecords();
   const publicFilters = usePublicFilters();
@@ -41,9 +75,7 @@ export function DataSourceMarkers({
   const colorScheme = useColorScheme();
   const mapMode = useMapMode();
 
-  const displayMode =
-    mapConfig.markerDisplayModes?.[dataSourceMarkers.dataSourceId] ??
-    MarkerDisplayMode.Clusters;
+  const dataSourceId = dataSourceMarkers.dataSourceId;
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     const hasClientFilters =
@@ -55,6 +87,18 @@ export function DataSourceMarkers({
     // When hideFilteredMarkers is true, remove server-side unmatched markers
     if (hideFilteredMarkers) {
       features = features.filter((f) => f.properties.matched !== false);
+    }
+
+    // Timeline filter: features must be dropped at the source level (not via
+    // layer filters) so cluster counts stay correct. Records without a
+    // parseable month are hidden while the filter is active.
+    if (filterTimeRange !== null) {
+      features = features.filter(
+        (f) =>
+          typeof f.properties.month === "number" &&
+          f.properties.month >= filterTimeRange.start &&
+          f.properties.month <= filterTimeRange.end,
+      );
     }
 
     if (!hasClientFilters) {
@@ -86,15 +130,17 @@ export function DataSourceMarkers({
     publicFilters,
     publicDateFilter,
     hideFilteredMarkers,
+    filterTimeRange,
   ]);
 
-  const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
+  const sourceId = `${dataSourceId}-markers`;
   const publicMapColor =
     publicMap?.id && colorScheme
       ? publicMapColorSchemes[colorScheme]?.primary
       : "";
 
-  const customColor = mapConfig.markerColors?.[dataSourceMarkers.dataSourceId];
+  // View override, then the data source's default colour
+  const customColor = markerColors?.[dataSourceId] ?? defaultMarkerColor;
   const defaultColor = isMembers
     ? mapColors.member.color
     : mapColors.dataSource.color;
@@ -104,19 +150,136 @@ export function DataSourceMarkers({
       ? publicMapColor || defaultColor
       : customColor || defaultColor;
 
-  const NOT_MATCHED_CASE = [
-    "any",
-    ["!", ["get", "matched"]],
-    ["==", ["get", MARKER_CLIENT_EXCLUDED_KEY], true],
-  ];
+  // Column-driven styling (private editor only)
+  const visualisation = mapMode === "public" ? undefined : markerVisualisation;
+
+  // Read from the prop (not the private-only `visualisation`) so the chosen
+  // clustering mode also applies on public maps
+  const displayMode =
+    markerVisualisation?.displayMode ?? MarkerDisplayMode.Circles;
+  const iconColumn =
+    visualisation?.iconMode === MarkerIconMode.Categories
+      ? visualisation.iconColumn
+      : undefined;
+  const colorColumn =
+    visualisation?.colorMode === MarkerColorMode.Categories
+      ? visualisation.colorColumn
+      : undefined;
+  const sizeColumn =
+    visualisation?.sizeMode === MarkerSizeMode.Scaled
+      ? visualisation.sizeColumn
+      : undefined;
+
+  const { columnMetadata: iconColumnMetadata } = useDataSourceColumn(
+    dataSourceId,
+    iconColumn || "",
+  );
+  const { columnMetadata: colorColumnMetadata, columnDef: colorColumnDef } =
+    useDataSourceColumn(dataSourceId, colorColumn || "");
+  const { columnMetadata: sizeColumnMetadata, columnDef: sizeColumnDef } =
+    useDataSourceColumn(dataSourceId, sizeColumn || "");
+
+  // Canonical distinct values (all records, server-side) so default colour
+  // assignment matches the legend; loaded features are the fallback.
+  const { getDataSourceById } = useDataSources();
+  const nullIsZero = getDataSourceById(dataSourceId)?.nullIsZero;
+  const colorColumnValues = useColumnValues({
+    dataSourceId,
+    column: colorColumn || "",
+    columnType: colorColumnDef?.type ?? ColumnType.Unknown,
+    nullIsZero,
+    enabled: Boolean(colorColumn),
+  });
+  const sizeColumnValues = useColumnValues({
+    dataSourceId,
+    column: sizeColumn || "",
+    columnType: sizeColumnDef?.type ?? ColumnType.Unknown,
+    nullIsZero,
+    enabled: Boolean(sizeColumn),
+  });
+
+  const pinStyle = useMemo<MarkerPinStyle | undefined>(() => {
+    if (!visualisation) {
+      return undefined;
+    }
+    const features = dataSourceMarkers.markers;
+    return {
+      useIcons: Boolean(iconColumn),
+      iconImage: iconColumn
+        ? buildIconImageExpression({
+            column: iconColumn,
+            values: getDistinctFeatureValues(features, iconColumn),
+            columnMetadata: iconColumnMetadata,
+          })
+        : undefined,
+      color: colorColumn
+        ? buildColorExpression({
+            colorMap: buildCategoryColorMap({
+              dataSourceId,
+              column: colorColumn,
+              values:
+                colorColumnValues ??
+                getDistinctFeatureValues(features, colorColumn),
+              colorMappings,
+              columnMetadata: colorColumnMetadata,
+            }),
+            column: colorColumn,
+            fallbackColor: color,
+          })
+        : color,
+      sizeFactor: sizeColumn
+        ? buildSizeFactorExpression({
+            column: sizeColumn,
+            values:
+              sizeColumnValues ??
+              getDistinctFeatureValues(features, sizeColumn),
+            columnMetadata: sizeColumnMetadata,
+            descending: visualisation.sizeSortDesc,
+          })
+        : 1,
+      // When markers overlap, colour categories earlier in the value order
+      // (top of the colour list) draw on top of later ones
+      sortKey: colorColumn
+        ? buildSortKeyExpression({
+            column: colorColumn,
+            values:
+              colorColumnValues ??
+              getDistinctFeatureValues(features, colorColumn),
+            columnMetadata: colorColumnMetadata,
+          })
+        : 0,
+      opacity: (visualisation.opacityPct ?? 100) / 100,
+      showLabels: visualisation.showLabels !== false,
+    };
+  }, [
+    visualisation,
+    dataSourceMarkers.markers,
+    dataSourceId,
+    iconColumn,
+    colorColumn,
+    sizeColumn,
+    iconColumnMetadata,
+    colorColumnMetadata,
+    sizeColumnMetadata,
+    colorColumnValues,
+    sizeColumnValues,
+    colorMappings,
+    color,
+  ]);
+
+  // Only Circles mode clusters the source; icon pins simply appear once
+  // points leave their clusters at high zoom
+  const clustered = displayMode === MarkerDisplayMode.Circles;
 
   return (
     <Source
       id={sourceId}
-      key={sourceId}
+      // Keyed by cluster state: GeoJSON source cluster options cannot be
+      // changed in place, so changing them must re-create the source
+      key={`${sourceId}-${clustered ? "clustered" : "unclustered"}`}
       type="geojson"
       data={safeMarkers}
-      cluster={displayMode === MarkerDisplayMode.Clusters}
+      cluster={clustered}
       clusterMaxZoom={publicMap ? 22 : 11}
       clusterRadius={50}
       clusterProperties={{
@@ -128,12 +291,23 @@ export function DataSourceMarkers({
         asJson: ["concat", ["concat", ["get", "asJson"], ","]],
       }}
     >
-      {displayMode === MarkerDisplayMode.Clusters && (
+      {displayMode === MarkerDisplayMode.Circles && (
         <ClustersLayer sourceId={sourceId} color={color} />
       )}
       {displayMode === MarkerDisplayMode.Heatmap && (
-        <HeatmapLayer sourceId={sourceId} color={color} />
+        <HeatmapLayer
+          sourceId={sourceId}
+          opacity={(visualisation?.opacityPct ?? 100) / 100}
+        />
       )}
+      <PinsLayer
+        sourceId={sourceId}
+        color={color}
+        pinStyle={pinStyle}
+        filter={clustered ? UNCLUSTERED_FILTER : undefined}
+        minzoom={displayMode === MarkerDisplayMode.Heatmap ? 10 : undefined}
+        overdraw={displayMode === MarkerDisplayMode.Overlap}
+      />
     </Source>
   );
 }

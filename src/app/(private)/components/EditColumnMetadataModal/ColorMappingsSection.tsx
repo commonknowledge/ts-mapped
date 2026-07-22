@@ -4,7 +4,10 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useColumnMetadataMutations } from "@/app/(private)/hooks/useColumnMetadataMutations";
 import { getCategoryColorsKey } from "@/app/(private)/map/[id]/colors";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import ColorMappingsEditor from "@/components/ColorMappingsEditor";
+import ColorMappingsEditor, {
+  VALUE_ORDER_HINT,
+} from "@/components/ColorMappingsEditor";
+import { sortColumnValues } from "@/utils/sortColumnValues";
 import type { ColumnMetadata } from "@/models/DataSource";
 
 interface ColorMappingsSectionProps {
@@ -15,6 +18,10 @@ interface ColorMappingsSectionProps {
   ownerMeta: ColumnMetadata | undefined;
   isOwner: boolean;
   organisationId: string | null | undefined;
+  /** Order-only mode: just the drag-reorderable value list, no colour UI */
+  hideColors?: boolean;
+  /** Hide the section label when the container provides its own heading */
+  hideLabel?: boolean;
 }
 
 export default function ColorMappingsSection({
@@ -25,6 +32,8 @@ export default function ColorMappingsSection({
   ownerMeta,
   isOwner,
   organisationId,
+  hideColors = false,
+  hideLabel = false,
 }: ColorMappingsSectionProps) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { patchColumnMetadata, patchColumnMetadataOverride } =
@@ -60,6 +69,19 @@ export default function ColorMappingsSection({
       updateViewConfig({
         colorMappings: { ...currentColors, [key]: color },
       });
+    },
+    [dataSourceId, columnName, viewConfig.colorMappings, updateViewConfig],
+  );
+
+  // Preset application: write all values' colours in one view-config update
+  const handleBulkColorChange = useCallback(
+    (mappings: Record<string, string>) => {
+      const nextColors = { ...(viewConfig.colorMappings || {}) };
+      for (const [value, color] of Object.entries(mappings)) {
+        nextColors[getCategoryColorsKey(dataSourceId, columnName, value)] =
+          color;
+      }
+      updateViewConfig({ colorMappings: nextColors });
     },
     [dataSourceId, columnName, viewConfig.colorMappings, updateViewConfig],
   );
@@ -146,6 +168,44 @@ export default function ColorMappingsSection({
     updateViewConfig,
   ]);
 
+  // Rows display in the canonical value order; dragging persists a new
+  // valueOrder, which also controls marker draw order (later = on top),
+  // legend order and default colour assignment
+  const orderedValues = useMemo(() => {
+    if (mergedValues === null || mergedValues === undefined) {
+      return mergedValues;
+    }
+    return sortColumnValues({
+      values: mergedValues,
+      columnMetadata: existingMeta,
+    });
+  }, [mergedValues, existingMeta]);
+
+  const handleReorder = useCallback(
+    (ordered: string[]) => {
+      if (!dataSourceId) return;
+      const patch = { valueOrder: ordered };
+      if (isOwner) {
+        patchColumnMetadata({ dataSourceId, column: columnName, patch });
+      } else if (organisationId) {
+        patchColumnMetadataOverride({
+          organisationId,
+          dataSourceId,
+          column: columnName,
+          patch,
+        });
+      }
+    },
+    [
+      dataSourceId,
+      columnName,
+      isOwner,
+      organisationId,
+      patchColumnMetadata,
+      patchColumnMetadataOverride,
+    ],
+  );
+
   const handleSaveAsDefaults = useCallback(() => {
     if (!dataSourceId) return;
     const mergedColorMappings = {
@@ -181,10 +241,15 @@ export default function ColorMappingsSection({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium">Colour mappings</label>
+      {!hideLabel && (
+        <label className="text-sm font-medium">
+          {hideColors ? "Value order" : "Colour mappings"}
+        </label>
+      )}
       <div className="rounded-md border">
         <ColorMappingsEditor
-          values={mergedValues}
+          hideColors={hideColors}
+          values={orderedValues}
           colorMappings={mapViewColorMappings}
           fallbackColors={existingMeta?.valueColors}
           onChange={handleColorChangeDebounced}
@@ -194,6 +259,9 @@ export default function ColorMappingsSection({
           onUseSourceColors={
             hasSourceColors ? handleUseSourceColors : undefined
           }
+          onBulkChange={handleBulkColorChange}
+          onReorder={handleReorder}
+          reorderHint={VALUE_ORDER_HINT}
         />
       </div>
     </div>

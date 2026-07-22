@@ -24,7 +24,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
-import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
+import { CHOROPLETH_COLOR_SCHEMES } from "@/utils/colors";
 import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
 import SteppedColorEditor from "./SteppedColorEditor";
 

@@ -1,6 +1,12 @@
 import React, { useMemo } from "react";
+import {
+  MarkerColorMode,
+  MarkerIconMode,
+  MarkerSizeMode,
+} from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
+import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import DataRecordColumns from "./DataRecordColumns";
 import { getInspectorColorClass } from "./inspectorPanelOptions";
 import { buildInspectorBlocks } from "./utils";
@@ -20,6 +26,7 @@ export default function ConfiguredDataRecordDisplay({
   dataSourceId: string;
 }) {
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+  const { getMarkerVisualisation } = useMarkerSettings();
 
   const inspectorColumns = useMemo(
     () =>
@@ -30,8 +37,32 @@ export default function ConfiguredDataRecordDisplay({
     [inspectorConfig],
   );
 
-  const hasValues = inspectorColumns.some((item) => {
-    const raw = json[item.name];
+  // Columns driving the marker visualisation always show — the record
+  // display decodes the selected marker's encodings, overriding the
+  // inspector config's column selection
+  const visualisation = getMarkerVisualisation(dataSourceId);
+  const missingEncodingColumns = useMemo(() => {
+    const encodingColumns = [
+      visualisation.iconMode === MarkerIconMode.Categories
+        ? visualisation.iconColumn
+        : undefined,
+      visualisation.colorMode === MarkerColorMode.Categories
+        ? visualisation.colorColumn
+        : undefined,
+      visualisation.sizeMode === MarkerSizeMode.Scaled
+        ? visualisation.sizeColumn
+        : undefined,
+    ].filter((c): c is string => Boolean(c));
+    return [...new Set(encodingColumns)].filter(
+      (c) => !inspectorColumns.some((i) => i.name === c),
+    );
+  }, [visualisation, inspectorColumns]);
+
+  const hasValues = [
+    ...inspectorColumns.map((item) => item.name),
+    ...missingEncodingColumns,
+  ].some((name) => {
+    const raw = json[name];
     return raw !== undefined && raw !== null && String(raw) !== "";
   });
 
@@ -92,6 +123,13 @@ export default function ConfiguredDataRecordDisplay({
           </React.Fragment>
         );
       })}
+      {missingEncodingColumns.length > 0 && (
+        <DataRecordColumns
+          columns={missingEncodingColumns}
+          json={json}
+          dataSourceId={dataSourceId}
+        />
+      )}
     </dl>
   );
 }

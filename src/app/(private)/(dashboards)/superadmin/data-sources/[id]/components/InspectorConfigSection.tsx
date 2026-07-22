@@ -21,7 +21,7 @@ import {
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useInspectorColumn } from "@/app/(private)/map/[id]/hooks/useInspectorColumn";
 import { NULL_UUID } from "@/constants";
-import { ColumnSemanticTypeLabels } from "@/labels";
+import { ColumnDisplayFormatLabels, ColumnSemanticTypeLabels } from "@/labels";
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import {
   ColumnDisplayFormat,
@@ -67,6 +67,12 @@ function inferDisplayFormatFromColumnName(
   const normalised = colName.trim().toLowerCase();
   if (normalised.includes("%") || normalised.includes("percentage")) {
     return ColumnDisplayFormat.Percentage;
+  }
+  if (normalised.endsWith("?")) {
+    return ColumnDisplayFormat.Boolean;
+  }
+  if (/\b(notes?|description|summary)\b/.test(normalised)) {
+    return ColumnDisplayFormat.LargeText;
   }
   return undefined;
 }
@@ -554,7 +560,7 @@ function ColumnItemRow({
           <option value="">Default format</option>
           {availableFormats.map((f) => (
             <option key={f} value={f}>
-              {f}
+              {ColumnDisplayFormatLabels[f]}
             </option>
           ))}
         </select>

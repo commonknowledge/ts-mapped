@@ -58,6 +58,56 @@ export const buildPublicMapName = (
   return description || "Unknown";
 };
 
+// Matches ISO 8601 datetimes, e.g. "2026-05-13T22:00:00.000Z" as returned by
+// the Airtable API. Datetime strings that don't match this are never passed to
+// the native Date parser, which would guess at ambiguous formats (US-style).
+const ISO_DATETIME_REGEX = /^\d{4}-\d{2}-\d{2}T/;
+
+/**
+ * Parse a date from a column value: the data source's dateFormat first,
+ * then strict ISO datetimes. Null when the value is empty or doesn't parse.
+ */
+export function parseDateValue(
+  value: unknown,
+  dateFormat: string | null | undefined,
+): Date | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+  const str = String(value);
+  const parsed = parse(str, dateFormat || "yyyy-MM-dd", new Date());
+  if (!isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  if (ISO_DATETIME_REGEX.test(str)) {
+    const isoDate = new Date(str);
+    if (!isNaN(isoDate.getTime())) {
+      return isoDate;
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse a record's date from its date column value. Null when there is no
+ * date column, the value is empty, or it doesn't parse. This is the parser
+ * used to store `dataRecord.date` at import time.
+ */
+export function parseRecordDate({
+  json,
+  dateColumn,
+  dateFormat,
+}: {
+  json: Record<string, unknown>;
+  dateColumn: string | null | undefined;
+  dateFormat: string | null | undefined;
+}): Date | null {
+  if (!dateColumn) {
+    return null;
+  }
+  return parseDateValue(json[dateColumn], dateFormat);
+}
+
 export function parseDate({
   dataSource,
   dataRecord,
@@ -68,23 +118,32 @@ export function parseDate({
   // Public map config that overrides the data source's date column/format when set.
   dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
 }) {
-  let date = dataRecord.createdAt;
-  const dateColumn =
-    dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn;
-  const dateFormat =
-    dataSourceConfig?.dateFormat || dataSource?.dateFormat || "yyyy-MM-dd";
-  if (dateColumn && dataRecord.json[dateColumn]) {
-    const dateOverride = parse(
-      String(dataRecord.json[dateColumn]),
-      dateFormat,
-      new Date(),
-    );
-    if (!isNaN(dateOverride.getTime())) {
-      date = dateOverride;
-    }
-  }
-  return date;
+  const date = parseRecordDate({
+    json: dataRecord.json,
+    dateColumn:
+      dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn,
+    dateFormat: dataSourceConfig?.dateFormat || dataSource?.dateFormat,
+  });
+  return date ?? dataRecord.createdAt;
 }
+
+/** Integer month key (year * 12 + zero-based month) used by the map
+ *  timeline, so range comparisons are simple arithmetic. */
+export const toMonthKey = (year: number, monthIndex: number): number =>
+  year * 12 + monthIndex;
+
+/** Convert an inclusive month-key range to date bounds for querying
+ *  `dataRecord.date`: [from, to) with an exclusive upper bound. */
+export const monthKeyRangeToDates = ({
+  start,
+  end,
+}: {
+  start: number;
+  end: number;
+}): { from: Date; to: Date } => ({
+  from: new Date(Math.floor(start / 12), start % 12, 1),
+  to: new Date(Math.floor(end / 12), (end % 12) + 1, 1),
+});
 
 // Human-readable display format for record dates, shared by the listing,
 // the record detail sidebar and the marker popup.

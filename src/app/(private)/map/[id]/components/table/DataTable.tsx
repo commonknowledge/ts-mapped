@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import ValueBadge from "@/components/ValueBadge";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -29,6 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import BooleanValueDisplay from "../BooleanValueDisplay";
+import MarkerShapeIcon from "../MarkerShapeIcon";
 import type { DataRecord } from "@/models/DataRecord";
 import type { ColumnDef } from "@/models/DataSource";
 import type { SortInput } from "@/models/MapView";
@@ -57,6 +60,38 @@ interface DataTableProps {
   onClose?: () => void;
   filter?: ReactNode;
   highlightedColumns?: Set<string>;
+  /** Colour for a cell value (e.g. from column valueColors); when returned,
+   *  the cell renders as a coloured badge instead of plain text. */
+  getCellColor?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => string | undefined;
+  /** Marker icon shape for a cell value (the map's icon column); when
+   *  returned, the shape glyph renders before the value. */
+  getCellShape?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => string | undefined;
+  /** Clamped 0-100 percentage (semantic type already applied) for cells of
+   *  Percentage-formatted columns; when returned, a mini bar renders. */
+  getCellPercentage?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => { percent: number; barColor?: string } | undefined;
+  /** Filled/max segment counts for cells of Scale-formatted columns; when
+   *  returned, a segmented rating renders. */
+  getCellScale?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => { filled: number; max: number; barColor?: string } | undefined;
+  /** Columns with the Boolean inspector display format render as yes/no */
+  booleanColumns?: Set<string>;
+  /** Custom cell text (e.g. pretty-printed dates); falls back to the
+   *  default rendering when undefined is returned. */
+  getCellText?: (input: {
+    columnName: string;
+    value: unknown;
+  }) => string | undefined;
 }
 
 export function DataTable({
@@ -79,6 +114,12 @@ export function DataTable({
 
   filter,
   highlightedColumns,
+  getCellColor,
+  getCellShape,
+  getCellPercentage,
+  getCellScale,
+  booleanColumns,
+  getCellText,
 }: DataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
@@ -205,7 +246,11 @@ export function DataTable({
         </div>
         <div className="bg-white grow min-h-0">
           <Table containerClassName="h-full overflow-y-auto">
-            <TableHeader className="bg-neutral-100 sticky top-0">
+            {/* z-[1]: above cell content whose transforms (e.g. badge swatch
+                dots) create layer-0 stacking contexts that would paint over
+                the header, but below the map overlay panels (inspector etc.),
+                which sit at z-10 in the same stacking context */}
+            <TableHeader className="bg-neutral-100 sticky top-0 z-[1]">
               <TableRow>
                 {columns
                   .filter((c) => !hiddenColumns.includes(c.name))
@@ -251,18 +296,100 @@ export function DataTable({
                   >
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))
-                      .map((column) => (
-                        <TableCell
-                          key={column.name}
-                          className={
-                            highlightedColumns?.has(column.name)
-                              ? "whitespace-normal bg-blue-50"
-                              : "whitespace-normal"
-                          }
-                        >
-                          {renderCell(row.json[column.name])}
-                        </TableCell>
-                      ))}
+                      .map((column) => {
+                        const value = row.json[column.name];
+                        const cellColor = getCellColor?.({
+                          columnName: column.name,
+                          value,
+                        });
+                        const shape = getCellShape?.({
+                          columnName: column.name,
+                          value,
+                        });
+                        const percentage = getCellPercentage?.({
+                          columnName: column.name,
+                          value,
+                        });
+                        const scale = getCellScale?.({
+                          columnName: column.name,
+                          value,
+                        });
+                        const text =
+                          getCellText?.({ columnName: column.name, value }) ??
+                          renderCell(value);
+                        const content = cellColor ? (
+                          <ValueBadge color={cellColor}>{text}</ValueBadge>
+                        ) : (
+                          text
+                        );
+                        return (
+                          <TableCell
+                            key={column.name}
+                            className={
+                              highlightedColumns?.has(column.name)
+                                ? "whitespace-normal bg-blue-50"
+                                : "whitespace-normal"
+                            }
+                          >
+                            {shape ? (
+                              <span className="inline-flex items-center gap-1.5">
+                                <MarkerShapeIcon
+                                  shape={shape}
+                                  color={cellColor ?? "#404040"}
+                                />
+                                {content}
+                              </span>
+                            ) : booleanColumns?.has(column.name) ? (
+                              <BooleanValueDisplay value={value} />
+                            ) : percentage ? (
+                              <span
+                                className="inline-flex items-center gap-2"
+                                title={`${percentage.percent.toFixed(0)}%`}
+                              >
+                                <span className="h-2 w-16 rounded-full bg-neutral-200 overflow-hidden shrink-0">
+                                  <span
+                                    className="block h-full rounded-full"
+                                    style={{
+                                      width: `${percentage.percent}%`,
+                                      backgroundColor:
+                                        percentage.barColor?.trim()
+                                          ? percentage.barColor
+                                          : "var(--primary)",
+                                    }}
+                                  />
+                                </span>
+                                <span className="text-xs font-medium tabular-nums shrink-0">
+                                  {percentage.percent.toFixed(0)}%
+                                </span>
+                              </span>
+                            ) : scale ? (
+                              <span
+                                className="inline-flex items-center gap-1"
+                                title={`${scale.filled} / ${scale.max}`}
+                              >
+                                {Array.from({ length: scale.max }, (_, i) => (
+                                  <span
+                                    key={i}
+                                    className="h-2 w-2 rounded-sm bg-neutral-200 shrink-0"
+                                    style={
+                                      i < scale.filled
+                                        ? {
+                                            backgroundColor:
+                                              scale.barColor?.trim()
+                                                ? scale.barColor
+                                                : "var(--primary)",
+                                          }
+                                        : undefined
+                                    }
+                                  />
+                                ))}
+                              </span>
+                            ) : (
+                              content
+                            )}
+                          </TableCell>
+                        );
+                      })}
                   </TableRow>
                 ))
               ) : (

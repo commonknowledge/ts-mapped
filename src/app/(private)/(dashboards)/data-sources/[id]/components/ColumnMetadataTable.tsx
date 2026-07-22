@@ -4,7 +4,9 @@ import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import ColorMappingsEditor from "@/components/ColorMappingsEditor";
+import ColorMappingsEditor, {
+  VALUE_ORDER_HINT,
+} from "@/components/ColorMappingsEditor";
 import ValueLabelsEditor from "@/components/ValueLabelsEditor";
 import { useColumnValues } from "@/hooks/useColumnValues";
 import { ColumnSemanticTypeLabels } from "@/labels";
@@ -14,6 +16,7 @@ import {
   ColumnType,
   JobStatus,
   numericColumnSemanticTypes,
+  stringColumnSemanticTypes,
 } from "@/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Badge } from "@/shadcn/ui/badge";
@@ -35,6 +38,7 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 import { Textarea } from "@/shadcn/ui/textarea";
+import { sortColumnValues } from "@/utils/sortColumnValues";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource = NonNullable<RouterOutputs["dataSource"]["byId"]>;
@@ -117,14 +121,18 @@ function ColumnColorMappingsCell({
   columnType,
   nullIsZero,
   currentMappings,
+  columnMetadata,
   onSave,
+  onReorder,
 }: {
   dataSourceId: string;
   columnName: string;
   columnType: ColumnType;
   nullIsZero: boolean | undefined;
   currentMappings: Record<string, string>;
+  columnMetadata: ColumnMetadata;
   onSave: (mappings: Record<string, string>) => void;
+  onReorder: (valueOrder: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [localMappings, setLocalMappings] =
@@ -142,6 +150,15 @@ function ColumnColorMappingsCell({
     nullIsZero,
     enabled: open,
   });
+
+  // Rows display in the canonical value order (valueOrder -> range parsing
+  // -> alphabetical); dragging persists a new valueOrder
+  const orderedValues = useMemo(() => {
+    if (sortedValues === null || sortedValues === undefined) {
+      return sortedValues;
+    }
+    return sortColumnValues({ values: sortedValues, columnMetadata });
+  }, [sortedValues, columnMetadata]);
 
   const handleChange = useCallback(
     (value: string, color: string) => {
@@ -172,6 +189,16 @@ function ColumnColorMappingsCell({
     onSave({});
   }, [onSave]);
 
+  const handleBulkChange = useCallback(
+    (mappings: Record<string, string>) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      const updated = { ...localMappings, ...mappings };
+      setLocalMappings(updated);
+      onSave(updated);
+    },
+    [localMappings, onSave],
+  );
+
   const mappingCount = Object.keys(currentMappings).length;
 
   return (
@@ -188,11 +215,14 @@ function ColumnColorMappingsCell({
         align="start"
       >
         <ColorMappingsEditor
-          values={sortedValues}
+          values={orderedValues}
           colorMappings={localMappings}
           onChange={handleChange}
           onReset={handleReset}
           onResetAll={handleResetAll}
+          onBulkChange={handleBulkChange}
+          onReorder={onReorder}
+          reorderHint={VALUE_ORDER_HINT}
         />
       </PopoverContent>
     </Popover>
@@ -208,13 +238,17 @@ export default function ColumnMetadataTable({
     const existing = new Map(
       (dataSource.columnMetadata ?? []).map((m) => [m.name, m]),
     );
-    return dataSource.columnDefs.map((col) => ({
-      name: col.name,
-      valueLabels: existing.get(col.name)?.valueLabels ?? {},
-      description: existing.get(col.name)?.description ?? "",
-      semanticType: existing.get(col.name)?.semanticType,
-      valueColors: existing.get(col.name)?.valueColors,
-    }));
+    // Spread the existing entry so fields this table doesn't edit
+    // (valueIcons, valueOrder, displayName, ...) survive a save
+    return dataSource.columnDefs.map((col) => {
+      const existingMeta = existing.get(col.name);
+      return {
+        ...existingMeta,
+        name: col.name,
+        valueLabels: existingMeta?.valueLabels ?? {},
+        description: existingMeta?.description ?? "",
+      };
+    });
   }, [dataSource.columnDefs, dataSource.columnMetadata]);
 
   const [metadata, setMetadata] = useState<ColumnMetadata[]>(initialMetadata);
@@ -298,6 +332,17 @@ export default function ColumnMetadataTable({
     [metadata, save],
   );
 
+  const handleValueOrderChange = useCallback(
+    (index: number, valueOrder: string[]) => {
+      const updated = metadata.map((m, i) =>
+        i === index ? { ...m, valueOrder } : m,
+      );
+      setMetadata(updated);
+      save(updated);
+    },
+    [metadata, save],
+  );
+
   const importStatus = dataSource.importInfo?.status;
   const importInProgress =
     importStatus === JobStatus.Running || importStatus === JobStatus.Pending;
@@ -355,7 +400,7 @@ export default function ColumnMetadataTable({
                   />
                 </TableCell>
                 <TableCell className="align-top">
-                  {isNumeric ? (
+                  {isNumeric || colDef?.type === ColumnType.String ? (
                     <Select
                       value={col.semanticType ?? ""}
                       onValueChange={(value) =>
@@ -366,10 +411,15 @@ export default function ColumnMetadataTable({
                       }
                     >
                       <SelectTrigger className="h-8 text-sm data-[placeholder]:text-black">
-                        <SelectValue placeholder="Number" />
+                        <SelectValue
+                          placeholder={isNumeric ? "Number" : "Text"}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {numericColumnSemanticTypes.map((type) => (
+                        {(isNumeric
+                          ? numericColumnSemanticTypes
+                          : stringColumnSemanticTypes
+                        ).map((type) => (
                           <SelectItem key={type} value={type}>
                             {ColumnSemanticTypeLabels[type]}
                           </SelectItem>
@@ -378,9 +428,7 @@ export default function ColumnMetadataTable({
                     </Select>
                   ) : (
                     <Badge variant="outline" className="text-sm font-normal">
-                      {colDef?.type === ColumnType.String
-                        ? "Text"
-                        : (colDef?.type ?? "Unknown")}
+                      {colDef?.type ?? "Unknown"}
                     </Badge>
                   )}
                 </TableCell>
@@ -401,9 +449,11 @@ export default function ColumnMetadataTable({
                     columnType={colDef?.type ?? ColumnType.Unknown}
                     nullIsZero={dataSource.nullIsZero}
                     currentMappings={col.valueColors ?? {}}
+                    columnMetadata={col}
                     onSave={(mappings) =>
                       handleColorMappingsChange(index, mappings)
                     }
+                    onReorder={(order) => handleValueOrderChange(index, order)}
                   />
                 </TableCell>
               </TableRow>
