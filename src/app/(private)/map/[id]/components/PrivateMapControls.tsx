@@ -30,6 +30,13 @@ export default function PrivateMapControls() {
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
 
+  // Lets global.css place the report-a-bug trigger in a row with the map's
+  // zoom controls (it defaults to the corner the zoom controls occupy)
+  useEffect(() => {
+    document.body.classList.add("map-page");
+    return () => document.body.classList.remove("map-page");
+  }, []);
+
   const handleCancelMode = () => {
     if (pinDropMode) {
       setPinDropMode(false);
@@ -93,8 +100,7 @@ export default function PrivateMapControls() {
         <MapStyleSelector />
       </div>
 
-      {/* bottom-20: clears the Sentry feedback button floating bottom-right */}
-      <div className="map-zoom-controls / absolute bottom-20 right-8 z-10 transition-transform duration-300 hidden md:block">
+      <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300 hidden md:block">
         <ZoomControl />
       </div>
 

@@ -14,9 +14,8 @@ export default function ZoomControl() {
   }
 
   return (
-    <div className="relative z-10 flex gap-1 p-1 group">
-      {/* bg element - to avoid animating shadow (bad performance) and bg and animate opacity instead */}
-      <div className="absolute left-0 right-0 bottom-0 top-0 -z-10 rounded-xl  shadow-sm bg-white transition-opacity opacity-0 group-hover:opacity-100"></div>
+    <div className="relative z-10 flex gap-1 p-1">
+      <div className="absolute left-0 right-0 bottom-0 top-0 -z-10 rounded-xl shadow-sm bg-white"></div>
 
       <button
         className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted text-primary cursor-pointer"
