@@ -565,7 +565,7 @@ export default function MarkerSettingsPanel({
             />
           </div>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs">Show legend</span>
+            <span className="text-xs">Legend</span>
             <Switch
               checked={Boolean(visualisation.legend?.show)}
               onCheckedChange={(checked) =>

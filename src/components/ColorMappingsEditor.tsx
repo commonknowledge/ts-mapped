@@ -9,7 +9,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X } from "lucide-react";
+import { CircleHelpIcon, GripVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ColorScheme } from "@/models/MapView";
 import { Button } from "@/shadcn/ui/button";
@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Switch } from "@/shadcn/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import {
   CHOROPLETH_COLOR_SCHEMES,
   getCategoryColorScale,
@@ -35,7 +36,7 @@ const GRADIENT_CLASS = "bg-gradient-to-r";
 const REVERSED_GRADIENT_CLASS = "bg-gradient-to-l";
 
 export const VALUE_ORDER_HINT =
-  "Drag to reorder. When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first. The same order drives scaled marker sizes and the legend.";
+  "When markers overlap on the map, values at the top of this list are drawn on top of those below — put the most important values (e.g. Critical) first.";
 
 interface ColorMappingsEditorProps {
   /** Sorted distinct values to display. `undefined` = still loading, `null` = too many values. */
@@ -153,7 +154,21 @@ export default function ColorMappingsEditor({
   return (
     <div className="p-2 flex flex-col gap-1">
       {sortable && reorderHint && (
-        <p className="text-xs text-muted-foreground pb-1">{reorderHint}</p>
+        <div className="flex items-center gap-1 pb-1 text-xs text-muted-foreground">
+          Drag to reorder
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CircleHelpIcon
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-neutral-500"
+                aria-label="Why order matters"
+                tabIndex={0}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-64">
+              <p>{reorderHint}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       )}
       {sortable ? (
         <DndContext
