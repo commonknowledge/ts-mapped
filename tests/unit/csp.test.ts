@@ -68,6 +68,21 @@ describe("buildCsp", () => {
       }
     });
 
+    test("allows the Sanity hosts the embedded Studio and live content need", () => {
+      const csp = buildCsp({ frameAncestors: "'self'", isProd: true });
+      const directives = Object.fromEntries(
+        csp.split("; ").map((d) => [d.split(" ")[0], d]),
+      );
+      // Studio getCurrentUser + content queries + live listeners
+      expect(directives["connect-src"]).toContain("https://*.api.sanity.io");
+      expect(directives["connect-src"]).toContain("https://*.apicdn.sanity.io");
+      expect(directives["connect-src"]).toContain("wss://*.api.sanity.io");
+      // Visual-editing bridge + module-federation code (bare host and subdomains)
+      expect(directives["connect-src"]).toContain("https://sanity-cdn.com");
+      expect(directives["script-src"]).toContain("https://sanity-cdn.com");
+      expect(directives["script-src"]).toContain("https://*.sanity-cdn.com");
+    });
+
     test("does not emit duplicate directive names", () => {
       const csp = buildCsp({
         frameAncestors: "*",
