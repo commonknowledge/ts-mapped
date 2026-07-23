@@ -9,6 +9,12 @@ declare module "vitest" {
         tableId: string;
         apiKey: string;
       };
+      baserow: {
+        apiUrl: string;
+        tableId: string;
+        email: string;
+        password: string;
+      };
       googlesheets: {
         spreadsheetId: string;
         sheetName: string;

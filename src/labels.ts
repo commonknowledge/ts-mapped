@@ -10,6 +10,7 @@ import type {
   GeocodingType,
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  baserowConfigSchema,
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
@@ -108,6 +109,7 @@ export const FilterTypeLabels: Record<
 type DataSourceConfigKey =
   | keyof z.infer<typeof actionNetworkConfigSchema>
   | keyof z.infer<typeof airtableConfigSchema>
+  | keyof z.infer<typeof baserowConfigSchema>
   | keyof z.infer<typeof googleSheetsConfigSchema>
   | keyof z.infer<typeof mailchimpConfigSchema>
   | keyof z.infer<typeof csvConfigSchema>
@@ -115,8 +117,11 @@ type DataSourceConfigKey =
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
+  apiUrl: "Baserow URL",
   baseId: "Base ID",
+  email: "Email",
   listId: "List ID",
+  password: "Password",
   oAuthCredentials: "OAuth Credentials",
   sheetName: "Sheet Name",
   spreadsheetId: "Spreadsheet ID",
@@ -129,6 +134,7 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {
   actionnetwork: "Action Network",
   airtable: "Airtable",
+  baserow: "Baserow",
   csv: "CSV",
   googlesheets: "Google Sheets",
   mailchimp: "Mailchimp",

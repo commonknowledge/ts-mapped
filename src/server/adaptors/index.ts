@@ -2,6 +2,7 @@ import { DataSourceType } from "@/models/DataSource";
 import logger from "@/server/services/logger";
 import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
+import { BaserowAdaptor } from "./baserow";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
 import { MailchimpAdaptor } from "./mailchimp";
@@ -25,6 +26,14 @@ export const getDataSourceAdaptor = (dataSource: {
         config.baseId,
         config.tableId,
       );
+    case DataSourceType.Baserow:
+      return new BaserowAdaptor({
+        dataSourceId: id,
+        apiUrl: config.apiUrl,
+        tableId: config.tableId,
+        email: config.email,
+        password: config.password,
+      });
     case DataSourceType.CSV:
       return new CSVAdaptor(config.url);
     case DataSourceType.GoogleSheets:

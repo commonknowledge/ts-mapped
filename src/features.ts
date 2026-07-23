@@ -24,6 +24,13 @@ export const DataSourceFeatures: Record<
     enrichment: true,
     syncToCrm: true,
   },
+  [DataSourceType.Baserow]: {
+    autoEnrich: true,
+    autoImport: true,
+    columnDeletion: true,
+    enrichment: true,
+    syncToCrm: true,
+  },
   [DataSourceType.CSV]: {
     autoEnrich: false,
     autoImport: false,

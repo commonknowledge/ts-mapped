@@ -2,6 +2,7 @@ import z from "zod";
 import {
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  baserowConfigSchema,
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
@@ -20,6 +21,7 @@ export type NewCSVConfig = z.infer<typeof newCSVConfigSchema>;
 export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  baserowConfigSchema,
   mailchimpConfigSchema,
   googleSheetsConfigSchema,
   newCSVConfigSchema,

@@ -36,6 +36,7 @@ const AirtableIconSVG = () => {
 const icons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: <div>AN</div>,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
+  [DataSourceType.Baserow]: <div>BR</div>,
   [DataSourceType.CSV]: <div>CSV</div>,
   [DataSourceType.GoogleSheets]: <div>GS</div>,
   [DataSourceType.Mailchimp]: <div>MC</div>,

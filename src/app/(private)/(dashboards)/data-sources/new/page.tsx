@@ -29,6 +29,7 @@ import {
 } from "@/shadcn/ui/select";
 import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
+import BaserowFields from "./fields/BaserowFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
@@ -280,6 +281,8 @@ function ConfigFields({
       return <ActionNetworkFields config={config} onChange={onChange} />;
     case DataSourceType.Airtable:
       return <AirtableFields config={config} onChange={onChange} />;
+    case DataSourceType.Baserow:
+      return <BaserowFields config={config} onChange={onChange} />;
     case DataSourceType.CSV:
       return <CSVFields config={config} onChange={onChange} />;
     case DataSourceType.GoogleSheets:
