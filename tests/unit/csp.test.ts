@@ -77,8 +77,10 @@ describe("buildCsp", () => {
       expect(directives["connect-src"]).toContain("https://*.api.sanity.io");
       expect(directives["connect-src"]).toContain("https://*.apicdn.sanity.io");
       expect(directives["connect-src"]).toContain("wss://*.api.sanity.io");
-      // Visual-editing bridge script
-      expect(directives["script-src"]).toContain("https://core.sanity-cdn.com");
+      // Visual-editing bridge + module-federation code (bare host and subdomains)
+      expect(directives["connect-src"]).toContain("https://sanity-cdn.com");
+      expect(directives["script-src"]).toContain("https://sanity-cdn.com");
+      expect(directives["script-src"]).toContain("https://*.sanity-cdn.com");
     });
 
     test("does not emit duplicate directive names", () => {
