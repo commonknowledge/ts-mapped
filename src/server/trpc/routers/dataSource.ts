@@ -436,6 +436,36 @@ export const dataSourceRouter = router({
         type: ColumnType.Unknown,
       }));
 
+      const columnNames = new Set(columnDefs.map((c) => c.name));
+
+      // Action Network events arrive with a title, start date, and server-side
+      // coordinates, so default the roles and geocoding to those columns to make
+      // the source usable on a map without further configuration.
+      const isActionNetworkEvents =
+        input.config.type === DataSourceType.ActionNetwork &&
+        input.config.recordType === "events";
+
+      const columnRoles =
+        isActionNetworkEvents && columnNames.has("title")
+          ? {
+              nameColumns: ["title"],
+              ...(columnNames.has("start_date")
+                ? { dateColumn: "start_date" }
+                : {}),
+            }
+          : { nameColumns: [] };
+
+      const geocodingConfig =
+        isActionNetworkEvents &&
+        columnNames.has("latitude") &&
+        columnNames.has("longitude")
+          ? {
+              type: GeocodingType.Coordinates as const,
+              latitudeColumn: "latitude",
+              longitudeColumn: "longitude",
+            }
+          : { type: GeocodingType.None as const };
+
       const dataSource = await createDataSource({
         ...input,
         autoEnrich: false,
@@ -443,8 +473,8 @@ export const dataSourceRouter = router({
         public: false,
         columnDefs,
         columnMetadata: [],
-        columnRoles: { nameColumns: [] },
-        geocodingConfig: { type: GeocodingType.None },
+        columnRoles,
+        geocodingConfig,
         enrichments: [],
       });
 

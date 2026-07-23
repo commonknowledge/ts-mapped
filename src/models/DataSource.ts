@@ -32,12 +32,20 @@ export enum DataSourceType {
 
 export const dataSourceTypes = Object.values(DataSourceType);
 
+export const actionNetworkRecordTypes = ["people", "events"] as const;
+
 export const actionNetworkConfigSchema = z.object({
   apiKey: z.string().nonempty(),
   type: z.literal(DataSourceType.ActionNetwork),
+  // Which Action Network collection to import. "events" crawls both the flat
+  // events endpoint and every event campaign's events (some events only appear
+  // via a campaign), then dedupes. Existing sources are backfilled to "people"
+  // by migration; the default keeps the create form valid with just an API key.
+  recordType: z.enum(actionNetworkRecordTypes).default("people"),
 });
 
 export type ActionNetworkConfig = z.infer<typeof actionNetworkConfigSchema>;
+export type ActionNetworkRecordType = (typeof actionNetworkRecordTypes)[number];
 
 export const airtableConfigSchema = z.object({
   type: z.literal(DataSourceType.Airtable),

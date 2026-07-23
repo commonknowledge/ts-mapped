@@ -129,6 +129,7 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   type: "Type",
   url: "URL",
   orgId: "Organisation ID",
+  recordType: "Record Type",
 };
 
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {

@@ -6,6 +6,7 @@ import {
 import logger from "@/server/services/logger";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { ExternalRecordUpdate } from "@/models/DataRecord";
+import type { ActionNetworkRecordType } from "@/models/DataSource";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 const ActionNetworkWebhookPayload = z.array(
@@ -87,13 +88,20 @@ const ActionNetworkWebhookPayload = z.array(
     .passthrough(),
 );
 
+const API_BASE = "https://actionnetwork.org/api/v2";
+
 export class ActionNetworkAdaptor implements DataSourceAdaptor {
   private apiKey: string;
+  private recordType: ActionNetworkRecordType;
   private baseUrl: string;
+  private embedKey: "osdi:people" | "osdi:events";
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, recordType: ActionNetworkRecordType = "people") {
     this.apiKey = apiKey;
-    this.baseUrl = "https://actionnetwork.org/api/v2/people";
+    this.recordType = recordType;
+    this.baseUrl =
+      recordType === "events" ? `${API_BASE}/events` : `${API_BASE}/people`;
+    this.embedKey = recordType === "events" ? "osdi:events" : "osdi:people";
   }
 
   async *extractExternalRecordIdsFromWebhookBody(
@@ -141,6 +149,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
+    if (this.recordType === "events") {
+      yield* this.fetchAllEvents();
+      return;
+    }
+
     let page = 1;
     let hasMore = true;
 
@@ -148,11 +161,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       try {
         const pageData = await this.fetchPage({ page });
 
-        if (!pageData._embedded || !pageData._embedded[`osdi:people`]) {
+        if (!pageData._embedded || !pageData._embedded[this.embedKey]) {
           break;
         }
 
-        const records = pageData._embedded[`osdi:people`];
+        const records = pageData._embedded[this.embedKey];
 
         for (const record of records) {
           const externalId = this.extractIdFromRecord(record);
@@ -176,15 +189,131 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
   }
 
+  // Events can live in two places: the flat /events collection and inside event
+  // campaigns. Some events only appear via a campaign, so we crawl campaigns
+  // first (capturing each campaign's title), then the flat collection, deduping
+  // by external id. Campaigns are crawled first so shared events keep their
+  // campaign name.
+  private async *fetchAllEvents(): AsyncGenerator<ExternalRecord> {
+    const seen = new Set<string>();
+
+    for await (const campaign of this.fetchCollection(
+      `${API_BASE}/event_campaigns`,
+      "action_network:event_campaigns",
+    )) {
+      const campaignId = this.extractIdFromRecord(campaign);
+      if (!campaignId) {
+        continue;
+      }
+      const campaignTitle =
+        typeof (campaign as { title?: unknown }).title === "string"
+          ? (campaign as { title: string }).title
+          : undefined;
+
+      for await (const event of this.fetchCollection(
+        `${API_BASE}/event_campaigns/${campaignId}/events`,
+        "osdi:events",
+      )) {
+        const externalId = this.extractIdFromRecord(event);
+        if (!externalId || seen.has(externalId)) {
+          continue;
+        }
+        seen.add(externalId);
+        yield {
+          externalId,
+          json: this.normalizeEvent(event, { campaignId, campaignTitle }),
+        };
+      }
+    }
+
+    for await (const event of this.fetchCollection(
+      `${API_BASE}/events`,
+      "osdi:events",
+    )) {
+      const externalId = this.extractIdFromRecord(event);
+      if (!externalId || seen.has(externalId)) {
+        continue;
+      }
+      seen.add(externalId);
+      yield {
+        externalId,
+        json: this.normalizeEvent(event, {}),
+      };
+    }
+  }
+
+  // Paginates an OSDI/HAL collection endpoint, yielding each embedded resource.
+  private async *fetchCollection(
+    url: string,
+    embedKey: string,
+  ): AsyncGenerator<Record<string, unknown>> {
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      try {
+        const pageUrl = new URL(url);
+        pageUrl.searchParams.set("page", page.toString());
+
+        const response = await fetch(pageUrl.toString(), {
+          headers: {
+            "OSDI-API-Token": this.apiKey,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const responseText = await response.text();
+          throw new Error(
+            `Bad collection response for ${url}: ${response.status}, ${responseText}`,
+          );
+        }
+
+        const json = (await response.json()) as {
+          _embedded?: Record<string, Record<string, unknown>[]>;
+          _links?: { next?: { href: string } };
+        };
+
+        const records = json._embedded?.[embedKey];
+        if (!records || records.length === 0) {
+          break;
+        }
+
+        for (const record of records) {
+          yield record;
+        }
+
+        hasMore = Boolean(json._links?.next?.href);
+        page++;
+      } catch (error) {
+        logger.error(`Error fetching collection page ${page} for ${url}`, {
+          error,
+        });
+        break;
+      }
+    }
+  }
+
   async fetchFirst(): Promise<ExternalRecord | null> {
+    // Events may only exist inside campaigns, so pull the first record from the
+    // full (deduped) crawl rather than the flat collection.
+    if (this.recordType === "events") {
+      for await (const record of this.fetchAllEvents()) {
+        if (Object.keys(record.json).length) {
+          return record;
+        }
+      }
+      return null;
+    }
+
     try {
       const pageData = await this.fetchPage({ page: 1, limit: 1 });
 
-      if (!pageData._embedded || !pageData._embedded[`osdi:people`]) {
+      if (!pageData._embedded || !pageData._embedded[this.embedKey]) {
         return null;
       }
 
-      const records = pageData._embedded[`osdi:people`];
+      const records = pageData._embedded[this.embedKey];
       if (records.length === 0) {
         return null;
       }
@@ -224,7 +353,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
 
     const json = (await response.json()) as {
-      _embedded: { "osdi:people": ExternalRecord[] };
+      _embedded: Record<string, ExternalRecord[]>;
       _links: { next: { href: string } };
     };
     if (typeof json !== "object") {
@@ -258,7 +387,10 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
           const record = await response.json();
           results.push({
             externalId,
-            json: this.normalizeRecord(record),
+            json:
+              this.recordType === "events"
+                ? this.normalizeEvent(record, {})
+                : this.normalizeRecord(record),
           });
         }
       } catch (error) {
@@ -285,6 +417,10 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   async updateRecords(recordUpdates: ExternalRecordUpdate[]): Promise<void> {
     // Action Network API has limited update capabilities depending on the resource type
     // For people, we can update certain fields
+
+    if (this.recordType === "events") {
+      throw new Error("Action Network event data sources are read-only.");
+    }
 
     for (const record of recordUpdates) {
       try {
@@ -332,6 +468,10 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   }
 
   async tagRecords(records: TaggedRecord[]): Promise<void> {
+    if (this.recordType === "events") {
+      throw new Error("Action Network event data sources are read-only.");
+    }
+
     for (const record of records) {
       try {
         const url = new URL(this.baseUrl);
@@ -419,6 +559,95 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
 
     return null;
+  }
+
+  private normalizeEvent(
+    input: unknown,
+    {
+      campaignId,
+      campaignTitle,
+    }: { campaignId?: string; campaignTitle?: string },
+  ): Record<string, unknown> {
+    const locationSchema = z
+      .object({
+        venue: z.string(),
+        address_lines: z.array(z.string()),
+        locality: z.string(),
+        region: z.string(),
+        postal_code: z.string(),
+        country: z.string(),
+        location: z
+          .object({ latitude: z.number(), longitude: z.number() })
+          .partial(),
+      })
+      .partial();
+
+    const eventSchema = z
+      .object({
+        title: z.string(),
+        description: z.string(),
+        start_date: z.string(),
+        end_date: z.string(),
+        status: z.string(),
+        browser_url: z.string(),
+        location: locationSchema,
+      })
+      .partial();
+
+    const parsed = eventSchema.safeParse(input);
+    if (!parsed.success) {
+      logger.warn("Error parsing Action Network event", {
+        error: parsed.error,
+      });
+      return {};
+    }
+    const event = parsed.data;
+    const location = event.location ?? {};
+
+    const normalized: Record<string, unknown> = {};
+
+    for (const field of [
+      "title",
+      "description",
+      "start_date",
+      "end_date",
+      "status",
+      "browser_url",
+    ] as const) {
+      if (event[field] !== undefined) {
+        normalized[field] = event[field];
+      }
+    }
+
+    if (location.venue !== undefined) normalized.venue = location.venue;
+    if (location.address_lines && location.address_lines.length > 0) {
+      normalized.address = location.address_lines.filter(Boolean).join(", ");
+    }
+    if (location.locality !== undefined)
+      normalized.locality = location.locality;
+    if (location.region !== undefined) normalized.region = location.region;
+    if (location.postal_code !== undefined) {
+      normalized.postcode = location.postal_code;
+    }
+    if (location.country !== undefined) normalized.country = location.country;
+
+    // Action Network geocodes events server-side, so coordinates usually arrive
+    // ready to use — no client-side geocoding needed.
+    if (typeof location.location?.latitude === "number") {
+      normalized.latitude = location.location.latitude;
+    }
+    if (typeof location.location?.longitude === "number") {
+      normalized.longitude = location.location.longitude;
+    }
+
+    if (campaignTitle !== undefined) {
+      normalized.event_campaign = campaignTitle;
+    }
+    if (campaignId !== undefined) {
+      normalized.event_campaign_id = campaignId;
+    }
+
+    return normalized;
   }
 
   private normalizeRecord(input: unknown): Record<string, unknown> {

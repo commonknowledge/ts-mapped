@@ -18,7 +18,7 @@ export const getDataSourceAdaptor = (dataSource: {
   const dataSourceType = config.type;
   switch (dataSourceType) {
     case DataSourceType.ActionNetwork:
-      return new ActionNetworkAdaptor(config.apiKey);
+      return new ActionNetworkAdaptor(config.apiKey, config.recordType);
     case DataSourceType.Airtable:
       return new AirtableAdaptor(
         id,
