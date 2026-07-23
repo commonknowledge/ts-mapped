@@ -38,6 +38,9 @@ export async function register() {
     await schedule("0 3 * * *", "refreshWebhooks", {});
     // Re-import all Zetkin data sources at 4:00am every day
     await schedule("0 4 * * *", "importZetkinDataSources", {});
+    // Re-import all Action Network event data sources at 5:00am every day
+    // (events have no webhook, so they need a scheduled refresh)
+    await schedule("0 5 * * *", "importActionNetworkEventDataSources", {});
 
     logger.info("Started");
   }

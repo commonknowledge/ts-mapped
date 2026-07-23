@@ -81,7 +81,7 @@ test("fetchAll yields records", async () => {
 test("fetchPage returns page data", async () => {
   const adaptor = new ActionNetworkAdaptor(credentials.actionnetwork.apiKey);
   const result = (await adaptor.fetchPage({ page: 1, limit: 5 })) as {
-    _embedded: { "osdi:people": ExternalRecord[] };
+    _embedded: Record<string, ExternalRecord[]>;
   };
   if (!result?._embedded) {
     throw new Error("No result from fetchPage");

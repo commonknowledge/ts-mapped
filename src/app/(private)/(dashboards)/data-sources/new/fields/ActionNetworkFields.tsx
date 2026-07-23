@@ -1,33 +1,68 @@
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceType } from "@/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
-import type { ActionNetworkConfig } from "@/models/DataSource";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import type {
+  ActionNetworkConfig,
+  ActionNetworkRecordType,
+} from "@/models/DataSource";
 
 export default function ActionNetworkFields({
   config,
   onChange,
 }: {
   config: Partial<ActionNetworkConfig>;
-  onChange: (config: Partial<Pick<ActionNetworkConfig, "apiKey">>) => void;
+  onChange: (
+    config: Partial<Pick<ActionNetworkConfig, "apiKey" | "recordType">>,
+  ) => void;
 }) {
   if (config.type !== DataSourceType.ActionNetwork) return;
 
   return (
-    <FormFieldWrapper
-      label="API Key"
-      id="apiKey"
-      hint="From the Start Organizing menu in Action Network, select&nbsp;Details&nbsp;>&nbsp;API & Sync."
-      helpText={HelpText}
-    >
-      <Input
-        type="text"
-        required
-        className="w-full"
+    <>
+      <FormFieldWrapper
+        label="API Key"
         id="apiKey"
-        value={config.apiKey || ""}
-        onChange={(e) => onChange({ apiKey: e.target.value })}
-      />
-    </FormFieldWrapper>
+        hint="From the Start Organizing menu in Action Network, select&nbsp;Details&nbsp;>&nbsp;API & Sync."
+        helpText={HelpText}
+      >
+        <Input
+          type="text"
+          required
+          className="w-full"
+          id="apiKey"
+          value={config.apiKey || ""}
+          onChange={(e) => onChange({ apiKey: e.target.value })}
+        />
+      </FormFieldWrapper>
+
+      <FormFieldWrapper
+        label="Import"
+        id="recordType"
+        hint="Import people (activists) or events. Events include those inside event campaigns."
+      >
+        <Select
+          value={config.recordType ?? "people"}
+          onValueChange={(value) =>
+            onChange({ recordType: value as ActionNetworkRecordType })
+          }
+        >
+          <SelectTrigger className="w-full" id="recordType">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="people">People</SelectItem>
+            <SelectItem value="events">Events</SelectItem>
+          </SelectContent>
+        </Select>
+      </FormFieldWrapper>
+    </>
   );
 }
 
@@ -39,7 +74,7 @@ const HelpText = (
       <a href="https://actionnetwork.org/" target="_blank" rel="noreferrer">
         Action Network
       </a>
-       account with&nbsp;
+      account with&nbsp;
       <a
         href="https://docs.n8n.io/integrations/builtin/credentials/actionnetwork/#request-api-access"
         target="_blank"
@@ -47,12 +82,12 @@ const HelpText = (
       >
         API key access enabled
       </a>
-       and an API Key.
+      and an API Key.
     </p>
     <ol>
       <li>Log in to your Action Network account.</li>
       <li>
-        From the Start Organizing menu, select Details&nbsp;&gt;&nbsp;
+        From the Start Organizing menu, select Details&nbsp;&gt;&nbsp;
         <a href="actionnetwork.org/apis" target="_blank" rel="noreferrer">
           API & Sync
         </a>
@@ -60,7 +95,7 @@ const HelpText = (
       </li>
       <li>Select the list you want to generate an API key for.</li>
       <li>Generate an API key for that list.</li>
-      <li>Copy the API Key and paste it into the API key field here.</li>
+      <li>Copy the API Key and paste it into the API key field here.</li>
     </ol>
   </>
 );

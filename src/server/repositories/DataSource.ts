@@ -112,6 +112,21 @@ export async function findDataSourcesByType(type: DataSourceType) {
     .execute();
 }
 
+// Action Network event sources have no webhook, so they are refreshed by a
+// scheduled re-import sweep (see importActionNetworkEventDataSources).
+export async function findActionNetworkEventDataSources() {
+  return await db
+    .selectFrom("dataSource")
+    .where(({ eb, ref, and }) =>
+      and([
+        eb(ref("config", "->>").key("type"), "=", DataSourceType.ActionNetwork),
+        eb(ref("config", "->>").key("recordType"), "=", "events"),
+      ]),
+    )
+    .selectAll()
+    .execute();
+}
+
 export function findReadableDataSources(userId: string | null | undefined) {
   return db
     .selectFrom("dataSource")

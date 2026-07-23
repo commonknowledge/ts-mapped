@@ -1,5 +1,6 @@
 import enrichDataRecords from "@/server/jobs/enrichDataRecords";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
+import importActionNetworkEventDataSources from "@/server/jobs/importActionNetworkEventDataSources";
 import importDataRecords from "@/server/jobs/importDataRecords";
 import importDataSource from "@/server/jobs/importDataSource";
 import importZetkinDataSources from "@/server/jobs/importZetkinDataSources";
@@ -13,6 +14,7 @@ const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
   {
     enrichDataSource,
     enrichDataRecords,
+    importActionNetworkEventDataSources,
     importDataSource,
     importDataRecords,
     importZetkinDataSources,
