@@ -292,6 +292,7 @@ export interface PublicMap {
   listed: boolean; // boolean, NOT NULL, DEFAULT false
   dataSourceConfigs: unknown[]; // jsonb, NOT NULL, DEFAULT []
   colorScheme: string | null; // text, NULL (renamed from colour_scheme -> color_scheme)
+  clusteringEnabled: boolean; // boolean, NOT NULL, DEFAULT true
   imageUrl: string | null; // text, NULL
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 

@@ -44,6 +44,7 @@ export function extractDraft(
     published: publicMap.published,
     dataSourceConfigs: publicMap.dataSourceConfigs,
     colorScheme: publicMap.colorScheme,
+    clusteringEnabled: publicMap.clusteringEnabled,
   };
 }
 
@@ -117,6 +118,7 @@ export function usePublicMapQuery() {
             viewId,
             host: "",
             colorScheme: "red" as const,
+            clusteringEnabled: true,
             name: "My Public Map",
             description: "",
             descriptionLong: "",

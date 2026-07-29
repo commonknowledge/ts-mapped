@@ -153,10 +153,19 @@ export function DataSourceMarkers({
   // Column-driven styling (private editor only)
   const visualisation = mapMode === "public" ? undefined : markerVisualisation;
 
-  // Read from the prop (not the private-only `visualisation`) so the chosen
-  // clustering mode also applies on public maps
-  const displayMode =
+  // Published maps only ever show clustered circles or plain pins, chosen by
+  // the publish switch — heatmap and overlap are editor-only display modes
+  const publicClustering = publicMap?.clusteringEnabled !== false;
+  const publicDisplayMode = publicClustering
+    ? MarkerDisplayMode.Circles
+    : MarkerDisplayMode.None;
+
+  // Read from the prop, not the private-only `visualisation`
+  const privateDisplayMode =
     markerVisualisation?.displayMode ?? MarkerDisplayMode.Circles;
+
+  const displayMode =
+    mapMode === "public" ? publicDisplayMode : privateDisplayMode;
   const iconColumn =
     visualisation?.iconMode === MarkerIconMode.Categories
       ? visualisation.iconColumn
@@ -267,6 +276,8 @@ export function DataSourceMarkers({
     color,
   ]);
 
+  const isHeatmap = displayMode === MarkerDisplayMode.Heatmap;
+
   // Only Circles mode clusters the source; icon pins simply appear once
   // points leave their clusters at high zoom
   const clustered = displayMode === MarkerDisplayMode.Circles;
@@ -291,10 +302,8 @@ export function DataSourceMarkers({
         asJson: ["concat", ["concat", ["get", "asJson"], ","]],
       }}
     >
-      {displayMode === MarkerDisplayMode.Circles && (
-        <ClustersLayer sourceId={sourceId} color={color} />
-      )}
-      {displayMode === MarkerDisplayMode.Heatmap && (
+      {clustered && <ClustersLayer sourceId={sourceId} color={color} />}
+      {isHeatmap && (
         <HeatmapLayer
           sourceId={sourceId}
           opacity={(visualisation?.opacityPct ?? 100) / 100}
@@ -305,7 +314,7 @@ export function DataSourceMarkers({
         color={color}
         pinStyle={pinStyle}
         filter={clustered ? UNCLUSTERED_FILTER : undefined}
-        minzoom={displayMode === MarkerDisplayMode.Heatmap ? 10 : undefined}
+        minzoom={isHeatmap ? 10 : undefined}
         overdraw={displayMode === MarkerDisplayMode.Overlap}
       />
     </Source>
