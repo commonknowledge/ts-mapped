@@ -100,8 +100,8 @@ export const buildIconImageExpression = ({
   ] as ExpressionSpecification;
 };
 
-const MIN_SIZE_FACTOR = 0.6;
-const MAX_SIZE_FACTOR = 1.8;
+const MIN_SIZE_FACTOR = 0.9;
+const MAX_SIZE_FACTOR = 2.1;
 
 /**
  * Each column value's size factor, in canonical value order (valueOrder ->
