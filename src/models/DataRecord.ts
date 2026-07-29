@@ -13,10 +13,27 @@ export interface ExternalRecordUpdate {
   }[];
 }
 
+const geocodeContextEntrySchema = z
+  .object({ name: z.string().optional() })
+  .passthrough();
+
+/** Mapbox v6 geocoding `properties.context`: a map of layer name
+ *  (e.g. "place", "region", "postcode") to that layer's details. */
+export const geocodeContextSchema = z.record(
+  z.string(),
+  geocodeContextEntrySchema,
+);
+
+export type GeocodeContext = z.infer<typeof geocodeContextSchema>;
+
 const geocodeResultSchema = z.object({
   areas: z.record(z.string(), z.string()),
   centralPoint: pointSchema.nullable(),
   samplePoint: pointSchema.nullable(),
+  // Raw Mapbox context captured at forward-geocode time (address sources).
+  // Absent for records geocoded another way; the Geocode enrichment
+  // reverse-geocodes from the point to fill the gap on demand.
+  geocodeContext: geocodeContextSchema.nullish(),
 });
 
 export type GeocodeResult = z.infer<typeof geocodeResultSchema>;

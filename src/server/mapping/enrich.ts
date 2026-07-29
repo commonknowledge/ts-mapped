@@ -7,7 +7,7 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { geocodeRecord } from "./geocode";
+import { geocodeRecord, mapboxReverseGeocode } from "./geocode";
 import type { ExternalRecordUpdate, GeocodeResult } from "@/models/DataRecord";
 import type {
   AreaEnrichment,
@@ -15,6 +15,7 @@ import type {
   DataSource,
   DataSourceEnrichment,
   Enrichment,
+  GeocodeEnrichment,
 } from "@/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
@@ -84,6 +85,9 @@ export const getEnrichedColumn = async (
     if (enrichment.sourceType === "DataSource") {
       return await getDataSourceEnrichedColumn(recordGeocodeResult, enrichment);
     }
+    if (enrichment.sourceType === "Geocode") {
+      return await getGeocodeEnrichedColumn(recordGeocodeResult, enrichment);
+    }
   } catch (error) {
     logger.warn(
       `${enrichment.sourceType} enrichment error for record ${record.externalId}`,
@@ -124,6 +128,27 @@ const getAreaEnrichedColumn = async (
       type: ColumnType.String,
     },
     value: area[enrichment.areaProperty],
+  };
+};
+
+const getGeocodeEnrichedColumn = async (
+  recordGeocodeResult: GeocodeResult,
+  enrichment: GeocodeEnrichment,
+): Promise<EnrichedColumn> => {
+  // Prefer context captured at forward-geocode time (address sources);
+  // otherwise reverse-geocode from the record's point (postcode/coordinate
+  // sources), which is cached to avoid repeat Mapbox requests.
+  let context = recordGeocodeResult.geocodeContext ?? null;
+  if (!context && recordGeocodeResult.centralPoint) {
+    context = await mapboxReverseGeocode(recordGeocodeResult.centralPoint);
+  }
+
+  return {
+    def: {
+      name: enrichment.contextType,
+      type: ColumnType.String,
+    },
+    value: context?.[enrichment.contextType]?.name ?? null,
   };
 };
 

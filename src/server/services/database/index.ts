@@ -21,6 +21,7 @@ import type { OrganisationTable } from "@/server/models/Organisation";
 import type { OrganisationUserTable } from "@/server/models/OrganisationUser";
 import type { PlacedMarkerTable } from "@/server/models/PlacedMarker";
 import type { PublicMapTable } from "@/server/models/PublicMap";
+import type { ReverseGeocodeCacheTable } from "@/server/models/ReverseGeocodeCache";
 import type { TurfTable } from "@/server/models/Turf";
 import type { UserTable } from "@/server/models/User";
 import type { WebhookRefreshLogTable } from "@/server/models/WebhookRefreshLog";
@@ -73,6 +74,7 @@ export interface Database {
   organisationUser: OrganisationUserTable;
   placedMarker: PlacedMarkerTable;
   publicMap: PublicMapTable;
+  reverseGeocodeCache: ReverseGeocodeCacheTable;
   turf: TurfTable;
   user: UserTable;
   webhookRefreshLog: WebhookRefreshLogTable;

@@ -147,6 +147,7 @@ export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
 export enum EnrichmentSourceType {
   Area = "Area",
   DataSource = "DataSource",
+  Geocode = "Geocode",
 }
 
 export const enrichmentSourceTypes = Object.values(EnrichmentSourceType);
@@ -157,6 +158,20 @@ export enum AreaPropertyType {
 }
 
 export const areaPropertyTypes = Object.values(AreaPropertyType);
+
+/** Mapbox geocoding context layers exposed as enrichment columns.
+ *  Values match the keys of the v6 `properties.context` object. */
+export enum GeocodeContextType {
+  Place = "place",
+  Locality = "locality",
+  Neighborhood = "neighborhood",
+  Postcode = "postcode",
+  District = "district",
+  Region = "region",
+  Country = "country",
+}
+
+export const geocodeContextTypes = Object.values(GeocodeContextType);
 
 const areaEnrichmentSchema = z.object({
   name: z.string().nonempty(),
@@ -176,9 +191,18 @@ const dataSourceEnrichmentSchema = z.object({
 
 export type DataSourceEnrichment = z.infer<typeof dataSourceEnrichmentSchema>;
 
+const geocodeEnrichmentSchema = z.object({
+  name: z.string().nonempty(),
+  sourceType: z.literal(EnrichmentSourceType.Geocode),
+  contextType: z.nativeEnum(GeocodeContextType),
+});
+
+export type GeocodeEnrichment = z.infer<typeof geocodeEnrichmentSchema>;
+
 export const enrichmentSchema = z.discriminatedUnion("sourceType", [
   areaEnrichmentSchema,
   dataSourceEnrichmentSchema,
+  geocodeEnrichmentSchema,
 ]);
 
 export type Enrichment = z.infer<typeof enrichmentSchema>;

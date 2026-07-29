@@ -1,12 +1,10 @@
 import type { GeocodeContext } from "@/models/DataRecord";
-import type { Point } from "@/models/shared";
 import type { ColumnType, Insertable } from "kysely";
 
-export interface GeocodeCacheTable {
-  address: string;
-  point: Point | null;
+export interface ReverseGeocodeCacheTable {
+  key: string;
   context: GeocodeContext | null;
   createdAt: ColumnType<Date, Date | undefined, Date>;
 }
 
-export type NewGeocodeCache = Insertable<GeocodeCacheTable>;
+export type NewReverseGeocodeCache = Insertable<ReverseGeocodeCacheTable>;

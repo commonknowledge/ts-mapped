@@ -7,12 +7,13 @@ import { toast } from "sonner";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
-import { AreaSetCodeLabels } from "@/labels";
+import { AreaSetCodeLabels, GeocodeContextTypeLabels } from "@/labels";
 import { AreaSetCode } from "@/models/AreaSet";
 import {
   AreaPropertyType,
   EnrichmentSourceType,
   enrichmentSchema,
+  geocodeContextTypes,
 } from "@/models/DataSource";
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -33,6 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import type {
+  GeocodeContextType} from "@/models/DataSource";
 
 const boundaryTypeOptions = Object.entries(AreaSetCodeLabels)
   .filter(([code]) => code !== AreaSetCode.PC)
@@ -49,11 +52,16 @@ export default function EnrichmentColumnDialog({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
-  const [columnType, setColumnType] = useState<"geographic" | "data" | "">("");
+  const [columnType, setColumnType] = useState<
+    "geographic" | "data" | "geocode" | ""
+  >("");
 
   // Geographic fields
   const [areaSetCode, setAreaSetCode] = useState("");
   const [areaProperty, setAreaProperty] = useState("");
+
+  // Address detail (Mapbox geocode context) field
+  const [contextType, setContextType] = useState("");
 
   // Data fields
   const [selectedDataSourceId, setSelectedDataSourceId] = useState("");
@@ -99,6 +107,9 @@ export default function EnrichmentColumnDialog({
     if (columnType === "data") {
       return selectedDataSourceId !== "" && selectedColumns.length > 0;
     }
+    if (columnType === "geocode") {
+      return contextType !== "";
+    }
     return false;
   }, [
     columnType,
@@ -106,6 +117,7 @@ export default function EnrichmentColumnDialog({
     areaProperty,
     selectedDataSourceId,
     selectedColumns,
+    contextType,
   ]);
 
   // Compute a suggested default name
@@ -116,8 +128,11 @@ export default function EnrichmentColumnDialog({
     if (columnType === "data" && selectedColumns.length === 1) {
       return selectedColumns[0];
     }
+    if (columnType === "geocode" && contextType) {
+      return GeocodeContextTypeLabels[contextType as GeocodeContextType];
+    }
     return "";
-  }, [columnType, areaSetCode, selectedColumns, areaProperty]);
+  }, [columnType, areaSetCode, selectedColumns, areaProperty, contextType]);
 
   // Auto-populate name when core fields become complete (unless user manually edited)
   useEffect(() => {
@@ -157,6 +172,7 @@ export default function EnrichmentColumnDialog({
     setAreaProperty("");
     setSelectedDataSourceId("");
     setSelectedColumns([]);
+    setContextType("");
   };
 
   const newEnrichments = useMemo(() => {
@@ -181,6 +197,14 @@ export default function EnrichmentColumnDialog({
       if (!enrichments.every((r) => r.success)) return null;
       return enrichments.map((r) => r.data);
     }
+    if (columnType === "geocode") {
+      const result = enrichmentSchema.safeParse({
+        name: `${ENRICHMENT_COLUMN_PREFIX}${name}`,
+        sourceType: EnrichmentSourceType.Geocode,
+        contextType,
+      });
+      return result.success ? [result.data] : null;
+    }
     return null;
   }, [
     columnType,
@@ -189,6 +213,7 @@ export default function EnrichmentColumnDialog({
     areaProperty,
     selectedDataSourceId,
     selectedColumns,
+    contextType,
   ]);
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -225,12 +250,13 @@ export default function EnrichmentColumnDialog({
           <FormFieldWrapper id="column-type" label="Lookup type">
             <Select
               value={columnType}
-              onValueChange={(value: "geographic" | "data") => {
+              onValueChange={(value: "geographic" | "data" | "geocode") => {
                 setColumnType(value);
                 setAreaSetCode("");
                 setAreaProperty("");
                 setSelectedDataSourceId("");
                 setSelectedColumns([]);
+                setContextType("");
                 setName("");
                 setNameManuallyEdited(false);
               }}
@@ -241,6 +267,7 @@ export default function EnrichmentColumnDialog({
               <SelectContent>
                 <SelectItem value="geographic">Boundary lookup</SelectItem>
                 <SelectItem value="data">Data lookup</SelectItem>
+                <SelectItem value="geocode">Address detail</SelectItem>
               </SelectContent>
             </Select>
           </FormFieldWrapper>
@@ -313,8 +340,27 @@ export default function EnrichmentColumnDialog({
             </>
           )}
 
+          {columnType === "geocode" && (
+            <FormFieldWrapper id="context-type" label="Detail">
+              <Select value={contextType} onValueChange={setContextType}>
+                <SelectTrigger id="context-type">
+                  <SelectValue placeholder="Select an address detail" />
+                </SelectTrigger>
+                <SelectContent>
+                  {geocodeContextTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {GeocodeContextTypeLabels[type]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormFieldWrapper>
+          )}
+
           {coreFieldsComplete &&
-            (columnType === "geographic" || selectedColumns.length === 1) && (
+            (columnType === "geographic" ||
+              columnType === "geocode" ||
+              selectedColumns.length === 1) && (
               <FormFieldWrapper id="column-name" label="Column name">
                 <Input
                   id="column-name"

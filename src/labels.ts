@@ -7,6 +7,7 @@ import type {
   ColumnSemanticType,
   DataSourceRecordType,
   EnrichmentSourceType,
+  GeocodeContextType,
   GeocodingType,
   actionNetworkConfigSchema,
   airtableConfigSchema,
@@ -146,7 +147,18 @@ export const EnrichmentSourceTypeLabels: Record<EnrichmentSourceType, string> =
   {
     Area: "Geocoded area",
     DataSource: "Mapped data source",
+    Geocode: "Address detail",
   };
+
+export const GeocodeContextTypeLabels: Record<GeocodeContextType, string> = {
+  place: "Town / city",
+  locality: "Locality",
+  neighborhood: "Neighbourhood",
+  postcode: "Postcode",
+  district: "District / county",
+  region: "Region / nation",
+  country: "Country",
+};
 
 export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
   Address: 'Address, e.g. "113-115 Fonthill Road, N4 3HH"',

@@ -403,6 +403,18 @@ export interface DataSourceOrganisationOverride {
 export interface GeocodeCache {
   address: string; // text, PRIMARY KEY
   point: unknown; // geography, NULLABLE
+  context: unknown; // jsonb, NULLABLE — Mapbox forward-geocode context
+  createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
+}
+
+/**
+ * reverseGeocodeCache Table
+ * Caches Mapbox reverse-geocode context by rounded coordinate key, so
+ * enrichment of non-address sources (postcodes, coordinates) reuses results.
+ */
+export interface ReverseGeocodeCache {
+  key: string; // text, PRIMARY KEY — "lng,lat" rounded to 5dp
+  context: unknown; // jsonb, NULLABLE
   createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
 }
 
@@ -432,6 +444,7 @@ export interface Database {
 
   // Caches
   geocodeCache: GeocodeCache;
+  reverseGeocodeCache: ReverseGeocodeCache;
 
   // Maps & Views
   map: Map;

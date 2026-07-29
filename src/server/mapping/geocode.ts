@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { getBooleanEnvVar } from "@/env";
 import { AreaSetCode } from "@/models/AreaSet";
+import { geocodeContextSchema } from "@/models/DataRecord";
 import {
   type AddressGeocodingConfig,
   type AreaGeocodingConfig,
@@ -16,7 +17,7 @@ import {
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { geojsonPointToPoint } from "../utils/geo";
-import type { GeocodeResult } from "@/models/DataRecord";
+import type { GeocodeContext, GeocodeResult } from "@/models/DataRecord";
 import type { Point } from "@/models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
 
@@ -200,8 +201,11 @@ const geocodeRecordByAddress = async (
     }
   }
 
+  let geocodeContext: GeocodeContext | null = null;
   if (!point) {
-    point = await mapboxGeocode(address);
+    const geocoded = await mapboxGeocode(address);
+    point = geocoded.point;
+    geocodeContext = geocoded.context;
     if (!point) {
       throw new Error(`Geocode request returned no features`);
     }
@@ -211,6 +215,7 @@ const geocodeRecordByAddress = async (
     areas,
     centralPoint: point,
     samplePoint: point,
+    geocodeContext,
   };
 
   const mappedAreas = await findAreasByPoint({
@@ -374,17 +379,28 @@ const postcodesIOLookup = async (
   };
 };
 
-const mapboxGeocode = async (address: string): Promise<Point | null> => {
+/** Safely parse a raw Mapbox `properties.context` value into our schema. */
+const parseContext = (raw: unknown): GeocodeContext | null => {
+  if (!raw) {
+    return null;
+  }
+  const parsed = geocodeContextSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+};
+
+const mapboxGeocode = async (
+  address: string,
+): Promise<{ point: Point | null; context: GeocodeContext | null }> => {
   const cached = await db
     .selectFrom("geocodeCache")
-    .select("point")
+    .select(["point", "context"])
     .where("address", "=", address)
     .where("createdAt", ">", sql<Date>`now() - interval '4 weeks'`)
     .executeTakeFirst();
 
   if (cached) {
     logger.silly(`Geocode cache hit for "${address}"`);
-    return cached.point;
+    return { point: cached.point, context: parseContext(cached.context) };
   }
 
   logger.silly(`Geocode cache miss for "${address}", calling Mapbox API`);
@@ -403,23 +419,85 @@ const mapboxGeocode = async (address: string): Promise<Point | null> => {
     throw new Error(`Geocode request failed: ${response.status}`);
   }
   const results = (await response.json()) as {
-    features?: { id: string; geometry: GeoJSONPoint }[];
+    features?: {
+      id: string;
+      geometry: GeoJSONPoint;
+      properties?: { context?: unknown };
+    }[];
   };
 
-  const point: Point | null = results.features?.length
+  const feature = results.features?.[0];
+  const point: Point | null = feature
     ? {
-        lng: results.features[0].geometry.coordinates[0],
-        lat: results.features[0].geometry.coordinates[1],
+        lng: feature.geometry.coordinates[0],
+        lat: feature.geometry.coordinates[1],
       }
     : null;
+  const context = feature ? parseContext(feature.properties?.context) : null;
 
   await db
     .insertInto("geocodeCache")
-    .values({ address, point })
+    .values({ address, point, context })
     .onConflict((oc) =>
-      oc.column("address").doUpdateSet({ point, createdAt: sql`now()` }),
+      oc
+        .column("address")
+        .doUpdateSet({ point, context, createdAt: sql`now()` }),
     )
     .execute();
 
-  return point;
+  return { point, context };
+};
+
+/**
+ * Reverse geocode a point to its Mapbox context (place, region, etc.), cached
+ * by rounded coordinate key. Used by the Geocode enrichment for records that
+ * were not forward-geocoded via Mapbox (e.g. postcode or coordinate sources).
+ * The 4-week cache TTL matches Mapbox's Temporary Geocoding storage terms.
+ */
+export const mapboxReverseGeocode = async (
+  point: Point,
+): Promise<GeocodeContext | null> => {
+  const key = `${point.lng.toFixed(5)},${point.lat.toFixed(5)}`;
+  const cached = await db
+    .selectFrom("reverseGeocodeCache")
+    .select("context")
+    .where("key", "=", key)
+    .where("createdAt", ">", sql<Date>`now() - interval '4 weeks'`)
+    .executeTakeFirst();
+
+  if (cached) {
+    logger.silly(`Reverse geocode cache hit for "${key}"`);
+    return parseContext(cached.context);
+  }
+
+  logger.silly(`Reverse geocode cache miss for "${key}", calling Mapbox API`);
+  const reverseUrl = new URL(
+    "https://api.mapbox.com/search/geocode/v6/reverse",
+  );
+  reverseUrl.searchParams.set("longitude", String(point.lng));
+  reverseUrl.searchParams.set("latitude", String(point.lat));
+  reverseUrl.searchParams.set(
+    "access_token",
+    process.env.MAPBOX_SECRET_TOKEN || "",
+  );
+
+  const response = await fetch(reverseUrl);
+  if (!response.ok) {
+    throw new Error(`Reverse geocode request failed: ${response.status}`);
+  }
+  const results = (await response.json()) as {
+    features?: { properties?: { context?: unknown } }[];
+  };
+
+  const context = parseContext(results.features?.[0]?.properties?.context);
+
+  await db
+    .insertInto("reverseGeocodeCache")
+    .values({ key, context })
+    .onConflict((oc) =>
+      oc.column("key").doUpdateSet({ context, createdAt: sql`now()` }),
+    )
+    .execute();
+
+  return context;
 };
