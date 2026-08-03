@@ -86,7 +86,7 @@
     "mapbox-gl": "^3.10.0",
     "minio": "^8.0.7",
     "next": "^16.2.11",
-    "next-sanity": "^13.1.5",
+    "next-sanity": "^13.2.3",
     "next-themes": "^0.4.6",
     "node-html-parser": "^7.0.1",
     "nodemailer": "^9.0.3",
@@ -163,6 +163,11 @@
   },
   "overrides": {
     "@types/react": "19.2.9",
-    "@types/react-dom": "19.2.3"
+    "@types/react-dom": "19.2.3",
+    "next": "$next",
+    "postcss": "$postcss",
+    "@vercel/frameworks": {
+      "js-yaml": "^3.15.0"
+    }
   }
 }
