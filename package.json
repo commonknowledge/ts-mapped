@@ -105,7 +105,7 @@
     "recharts": "^3.4.1",
     "sanity": "^5.5.0",
     "sanity-plugin-mux-input": "^5.0.5",
-    "sharp": "^0.34.4",
+    "sharp": "^0.35.3",
     "sonner": "^2.0.7",
     "styled-components": "^6.1.19",
     "superjson": "^2.2.2",
@@ -156,7 +156,7 @@
   "optionalDependencies": {
     "@floating-ui/core": "^1.7.3",
     "@floating-ui/dom": "^1.7.4",
-    "@img/sharp-linux-x64": "^0.34.1",
+    "@img/sharp-linux-x64": "^0.35.3",
     "@ngrok/ngrok-linux-x64-gnu": "^1.5",
     "@rollup/rollup-linux-x64-gnu": "^4.44",
     "lightningcss-linux-x64-gnu": "^1.30.1"
@@ -168,6 +168,7 @@
     "postcss": "$postcss",
     "@vercel/frameworks": {
       "js-yaml": "^3.15.0"
-    }
+    },
+    "sharp": "$sharp"
   }
 }
