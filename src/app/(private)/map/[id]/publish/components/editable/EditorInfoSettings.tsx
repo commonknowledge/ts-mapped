@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import { Switch } from "@/shadcn/ui/switch";
 import { Textarea } from "@/shadcn/ui/textarea";
 import {
   usePublicMapValue,
@@ -121,6 +122,21 @@ export default function EditorInfoSettings() {
             ))}
           </SelectContent>
         </Select>
+      </FormFieldWrapper>
+
+      <FormFieldWrapper
+        label="Cluster markers"
+        id="Cluster markers"
+        hint="Group nearby markers into a single circle until you zoom in"
+        isHorizontal
+      >
+        <Switch
+          id="Cluster markers"
+          checked={publicMap?.clusteringEnabled !== false}
+          onCheckedChange={(checked) =>
+            updatePublicMap({ clusteringEnabled: checked })
+          }
+        />
       </FormFieldWrapper>
     </div>
   );

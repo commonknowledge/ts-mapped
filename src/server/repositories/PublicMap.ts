@@ -123,6 +123,7 @@ export function saveDraft(input: {
       listed: input.listed ?? false,
       dataSourceConfigs: [],
       colorScheme: "red",
+      clusteringEnabled: true,
       draft: input.draft,
     })
     .onConflict((oc) =>

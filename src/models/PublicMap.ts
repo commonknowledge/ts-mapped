@@ -56,6 +56,8 @@ export const publicMapDraftSchema = z.object({
   published: z.boolean(),
   dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
   colorScheme: z.string(),
+  // Whether markers cluster at low zoom on the published map
+  clusteringEnabled: z.boolean(),
 });
 
 export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;

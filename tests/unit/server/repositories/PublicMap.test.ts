@@ -45,6 +45,7 @@ function makeDraft(dataSourceIds: string[]) {
     imageUrl: "",
     published: true,
     colorScheme: "red",
+    clusteringEnabled: true,
     dataSourceConfigs: dataSourceIds.map((id) => ({
       allowUserEdit: false,
       allowUserSubmit: false,

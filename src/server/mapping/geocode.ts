@@ -409,6 +409,10 @@ const mapboxGeocode = async (
   );
   geocodeUrl.searchParams.set("q", address);
   geocodeUrl.searchParams.set("country", "GB");
+  // Prefix matching is for typeahead search boxes, not batch geocoding of
+  // known addresses: it lets "Worthing, West Sussex" match "West Sussex
+  // County Council" in Chichester ahead of the town of Worthing
+  geocodeUrl.searchParams.set("autocomplete", "false");
   geocodeUrl.searchParams.set(
     "access_token",
     process.env.MAPBOX_SECRET_TOKEN || "",
