@@ -147,7 +147,7 @@ export const EnrichmentSourceTypeLabels: Record<EnrichmentSourceType, string> =
   {
     Area: "Geocoded area",
     DataSource: "Mapped data source",
-    Geocode: "Address detail",
+    Geocode: "Mapbox standard field",
   };
 
 export const GeocodeContextTypeLabels: Record<GeocodeContextType, string> = {

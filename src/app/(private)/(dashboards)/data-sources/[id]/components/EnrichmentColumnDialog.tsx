@@ -34,8 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import type {
-  GeocodeContextType} from "@/models/DataSource";
+import type { GeocodeContextType } from "@/models/DataSource";
 
 const boundaryTypeOptions = Object.entries(AreaSetCodeLabels)
   .filter(([code]) => code !== AreaSetCode.PC)
@@ -60,7 +59,7 @@ export default function EnrichmentColumnDialog({
   const [areaSetCode, setAreaSetCode] = useState("");
   const [areaProperty, setAreaProperty] = useState("");
 
-  // Address detail (Mapbox geocode context) field
+  // Mapbox standard field (geocode context)
   const [contextType, setContextType] = useState("");
 
   // Data fields
@@ -267,7 +266,7 @@ export default function EnrichmentColumnDialog({
               <SelectContent>
                 <SelectItem value="geographic">Boundary lookup</SelectItem>
                 <SelectItem value="data">Data lookup</SelectItem>
-                <SelectItem value="geocode">Address detail</SelectItem>
+                <SelectItem value="geocode">Mapbox standard field</SelectItem>
               </SelectContent>
             </Select>
           </FormFieldWrapper>
@@ -341,10 +340,10 @@ export default function EnrichmentColumnDialog({
           )}
 
           {columnType === "geocode" && (
-            <FormFieldWrapper id="context-type" label="Detail">
+            <FormFieldWrapper id="context-type" label="Field">
               <Select value={contextType} onValueChange={setContextType}>
                 <SelectTrigger id="context-type">
-                  <SelectValue placeholder="Select an address detail" />
+                  <SelectValue placeholder="Select a field" />
                 </SelectTrigger>
                 <SelectContent>
                   {geocodeContextTypes.map((type) => (

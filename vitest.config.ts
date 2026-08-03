@@ -10,6 +10,7 @@ interface TestCredentials extends VitestCredentials {
   env: {
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
+    MAPBOX_SECRET_TOKEN: string;
     NGROK_AUTHTOKEN: string;
     ZETKIN_CLIENT_ID: string;
     ZETKIN_CLIENT_SECRET: string;
