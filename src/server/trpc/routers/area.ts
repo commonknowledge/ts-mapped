@@ -7,10 +7,10 @@ import {
   searchAreas,
 } from "@/server/repositories/Area";
 import { getAreaStats } from "@/server/stats";
-import { dataSourceReadProcedure, protectedProcedure, router } from "../index";
+import { dataSourceReadProcedure, router, viewerProcedure } from "../index";
 
 export const areaRouter = router({
-  byCode: protectedProcedure
+  byCode: viewerProcedure
     .input(
       z.object({
         areaSetCode: z.nativeEnum(AreaSetCode),
@@ -21,7 +21,7 @@ export const areaRouter = router({
       const area = await findAreaByCodeWithGeometry(code, areaSetCode);
       return area ?? null;
     }),
-  search: protectedProcedure
+  search: viewerProcedure
     .input(
       z.object({
         search: z.string().min(1).max(200),

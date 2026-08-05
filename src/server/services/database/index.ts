@@ -16,6 +16,7 @@ import type { InspectorDataSourceConfigTable } from "@/server/models/InspectorDa
 import type { InvitationTable } from "@/server/models/Invitation";
 import type { JobTable } from "@/server/models/Job";
 import type { MapTable } from "@/server/models/Map";
+import type { MapShareTable } from "@/server/models/MapShare";
 import type { MapViewTable } from "@/server/models/MapView";
 import type { OrganisationTable } from "@/server/models/Organisation";
 import type { OrganisationUserTable } from "@/server/models/OrganisationUser";
@@ -68,6 +69,7 @@ export interface Database {
   geocodeCache: GeocodeCacheTable;
   invitation: InvitationTable;
   map: MapTable;
+  mapShare: MapShareTable;
   mapView: MapViewTable;
   inspectorDataSourceConfig: InspectorDataSourceConfigTable;
   organisation: OrganisationTable;

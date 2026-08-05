@@ -2,10 +2,15 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
+import { getShareGrants } from "@/auth/shareGrants";
 import { TRIAL_EXPIRED_MESSAGE } from "@/constants";
 import { UserRole } from "@/models/User";
 import { getClientIp } from "@/server/services/ratelimit";
-import { canReadDataSource } from "@/server/utils/auth";
+import {
+  canReadDataSource,
+  findValidShareGrantForMap,
+  hasValidShareGrant,
+} from "@/server/utils/auth";
 import {
   hasPasswordHashSerializer,
   serverDataSourceSerializer,
@@ -15,6 +20,7 @@ import { findMapById } from "../repositories/Map";
 import { findOrganisationForUser } from "../repositories/Organisation";
 import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
+import type { ShareGrant } from "@/authTypes";
 
 export async function createContext(opts?: { req?: Request }) {
   const session = await getServerSession();
@@ -23,10 +29,16 @@ export async function createContext(opts?: { req?: Request }) {
     user = await findUserById(session.currentUser.id);
   }
   const ip = opts?.req ? getClientIp(opts.req) : "unknown";
-  return { user, ip };
+  const shareGrants = await getShareGrants();
+  return { user, ip, shareGrants };
 }
 
-export type Context = Awaited<ReturnType<typeof createContext>>;
+// `shareGrants` is optional so server-side callers and tests that construct
+// a context by hand can omit it (absent = no grants).
+export type Context = Omit<
+  Awaited<ReturnType<typeof createContext>>,
+  "shareGrants"
+> & { shareGrants?: ShareGrant[] };
 
 // Prevent sensitive fields being sent to the client
 superjson.registerCustom(serverDataSourceSerializer, "DataSource");
@@ -65,13 +77,16 @@ const t = initTRPC.context<Context>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
+const isTrialExpired = (user: { trialEndsAt?: Date | null }) =>
+  Boolean(user.trialEndsAt && new Date(user.trialEndsAt) < new Date());
+
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.user)
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be logged in to perform this action.",
     });
-  if (ctx.user.trialEndsAt && new Date(ctx.user.trialEndsAt) < new Date()) {
+  if (isTrialExpired(ctx.user)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: TRIAL_EXPIRED_MESSAGE,
@@ -81,6 +96,34 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+/**
+ * Allows authenticated users, and anonymous visitors holding at least one
+ * valid share grant (read-only map share cookie). Use for mildly protected
+ * reads that shared-map viewers need (e.g. area search) without opening
+ * them to the public internet. Procedures must not assume `ctx.user`.
+ */
+const enforceUserOrShareGrant = t.middleware(async ({ ctx, next }) => {
+  if (ctx.user) {
+    if (isTrialExpired(ctx.user)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: TRIAL_EXPIRED_MESSAGE,
+      });
+    }
+    return next({ ctx: { user: ctx.user } });
+  }
+  const hasGrant = await hasValidShareGrant(ctx.shareGrants);
+  if (!hasGrant) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to perform this action.",
+    });
+  }
+  return next({ ctx: { user: null } });
+});
+
+export const viewerProcedure = t.procedure.use(enforceUserOrShareGrant);
 
 const enforceUserIsSuperadmin = t.middleware(({ ctx, next }) => {
   if (ctx.user?.role !== UserRole.Superadmin)
@@ -134,7 +177,11 @@ export const dataSourceReadProcedure = publicProcedure
         message: "Data source not found",
       });
 
-    const hasAccess = await canReadDataSource(dataSource, ctx.user?.id);
+    const hasAccess = await canReadDataSource({
+      dataSource,
+      userId: ctx.user?.id,
+      shareGrants: ctx.shareGrants,
+    });
     if (!hasAccess) {
       throw new TRPCError({
         code: ctx.user ? "NOT_FOUND" : "UNAUTHORIZED",
@@ -210,6 +257,11 @@ export const mapReadProcedure = publicProcedure
 
     const publicMap = await findPublishedPublicMapByMapId(map.id);
     if (publicMap) {
+      return next({ ctx: { map } });
+    }
+
+    const shareGrant = await findValidShareGrantForMap(ctx.shareGrants, map.id);
+    if (shareGrant) {
       return next({ ctx: { map } });
     }
 

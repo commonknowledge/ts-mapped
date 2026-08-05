@@ -279,7 +279,10 @@ export const dataSourceRouter = router({
           referencedDataSourceIds,
         );
         for (const ds of referencedDataSources) {
-          const hasAccess = await canReadDataSource(ds, ctx.user.id);
+          const hasAccess = await canReadDataSource({
+            dataSource: ds,
+            userId: ctx.user.id,
+          });
           if (!hasAccess) {
             throw new TRPCError({
               code: "FORBIDDEN",
@@ -497,7 +500,10 @@ export const dataSourceRouter = router({
             referencedDataSourceIds,
           );
           for (const ds of referencedDataSources) {
-            const hasAccess = await canReadDataSource(ds, ctx.user.id);
+            const hasAccess = await canReadDataSource({
+              dataSource: ds,
+              userId: ctx.user.id,
+            });
             if (!hasAccess) {
               throw new TRPCError({
                 code: "FORBIDDEN",

@@ -5,6 +5,7 @@ import { dataSourceRouter } from "./routers/dataSource";
 import { folderRouter } from "./routers/folder";
 import { invitationRouter } from "./routers/invitation";
 import { mapRouter } from "./routers/map";
+import { mapShareRouter } from "./routers/mapShare";
 import { mapViewRouter } from "./routers/mapView";
 import { oauthRouter } from "./routers/oauth";
 import { organisationRouter } from "./routers/organisation";
@@ -24,6 +25,7 @@ export const appRouter = router({
   folder: folderRouter,
   placedMarker: placedMarkerRouter,
   turf: turfRouter,
+  mapShare: mapShareRouter,
   mapView: mapViewRouter,
   organisation: organisationRouter,
   publicMap: publicMapRouter,
