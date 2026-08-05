@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
+import { getShareGrants } from "@/auth/shareGrants";
 import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -35,7 +36,12 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const canRead = await checkAccess(dataSource, currentUser?.id);
+  const shareGrants = await getShareGrants();
+  const canRead = await checkAccess({
+    dataSource,
+    userId: currentUser?.id,
+    shareGrants,
+  });
   if (!canRead) {
     return new NextResponse("Not found", { status: 404 });
   }

@@ -51,6 +51,9 @@ export const GE_DATA_SOURCE_NAME = "2024 General Election Results";
 
 export const JWT_LIFETIME_SECONDS = 24 * 60 * 60;
 
+// Lifetime of a read-only map share grant (see ShareGrant in authTypes.ts)
+export const SHARE_GRANT_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
+
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 

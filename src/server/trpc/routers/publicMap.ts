@@ -40,7 +40,10 @@ export const publicMapRouter = router({
           message: "Data source not found",
         });
       }
-      const canRead = await canReadDataSource(dataSource, ctx.user.id);
+      const canRead = await canReadDataSource({
+        dataSource,
+        userId: ctx.user.id,
+      });
       if (!canRead) {
         throw new TRPCError({
           code: "NOT_FOUND",
