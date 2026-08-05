@@ -26,6 +26,7 @@ import { useMapId, useMapRef } from "../hooks/useMapCore";
 import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
+import ShareMapDialog from "./ShareMapDialog";
 
 export default function PrivateMapNavbar() {
   const mapId = useMapId();
@@ -37,6 +38,10 @@ export default function PrivateMapNavbar() {
   const { currentOrganisation } = useOrganisations();
   const showPublishButton = useFeatureFlagEnabled(
     Feature.PublicMaps,
+    currentOrganisation?.features,
+  );
+  const showShareButton = useFeatureFlagEnabled(
+    Feature.SharedMaps,
     currentOrganisation?.features,
   );
   const [isEditingName, setIsEditingName] = useState(false);
@@ -219,6 +224,8 @@ export default function PrivateMapNavbar() {
         </div>
         <div className="flex items-center gap-4">
           <SearchBox />
+
+          {showShareButton && mapId && <ShareMapDialog mapId={mapId} />}
 
           {showPublishButton && mapId && view && (
             <MapModeToggle mode="private" />
