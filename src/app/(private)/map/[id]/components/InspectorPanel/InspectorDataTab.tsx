@@ -3,6 +3,7 @@ import { LayersIcon, Settings2Icon } from "lucide-react";
 import { useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { useMapEditable } from "@/app/(private)/map/[id]/hooks/useMapEditable";
 import { useOpenInspectorConfig } from "@/app/(private)/map/[id]/hooks/useOpenInspectorConfig";
 import { useViewInspectorConfig } from "@/app/(private)/map/[id]/hooks/useViewInspectorConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -88,6 +89,7 @@ export default function InspectorDataTab() {
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
     useOpenInspectorConfig(dataSource?.id);
+  const editable = useMapEditable();
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -238,15 +240,17 @@ export default function InspectorDataTab() {
                   <p className="truncate">{dataSource.name}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                className="cursor-pointer shrink-0 text-muted-foreground hover:text-foreground"
-                aria-label="Configure inspector"
-                title="Configure inspector"
-                onClick={openConfig}
-              >
-                <Settings2Icon className="h-4 w-4" />
-              </button>
+              {editable && (
+                <button
+                  type="button"
+                  className="cursor-pointer shrink-0 text-muted-foreground hover:text-foreground"
+                  aria-label="Configure inspector"
+                  title="Configure inspector"
+                  onClick={openConfig}
+                >
+                  <Settings2Icon className="h-4 w-4" />
+                </button>
+              )}
             </div>
           )}
 
@@ -311,15 +315,17 @@ export default function InspectorDataTab() {
             defaultExpanded={index === 0}
           />
         ))}
-      <Button
-        variant="outline"
-        className="w-full"
-        size="sm"
-        onClick={() => setConfigDialogOpen(true)}
-      >
-        <Settings2Icon />
-        Manage inspector data
-      </Button>
+      {editable && (
+        <Button
+          variant="outline"
+          className="w-full"
+          size="sm"
+          onClick={() => setConfigDialogOpen(true)}
+        >
+          <Settings2Icon />
+          Manage inspector data
+        </Button>
+      )}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>

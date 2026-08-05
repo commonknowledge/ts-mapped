@@ -17,6 +17,7 @@ import { useDisplayAreaStat } from "@/app/(private)/map/[id]/hooks/useDisplayAre
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import { useMapEditable } from "@/app/(private)/map/[id]/hooks/useMapEditable";
 import { useSelectedAreas } from "@/app/(private)/map/[id]/hooks/useSelectedAreas";
 import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSelectedSecondaryArea";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
@@ -55,6 +56,7 @@ export default function InspectorPanel() {
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
   const organisationId = useOrganisationId();
+  const editable = useMapEditable();
 
   // Selecting something new re-opens a minimised inspector
   const contentKey = `${type ?? ""}:${String(inspectorContent?.name ?? "")}`;
@@ -365,14 +367,16 @@ export default function InspectorPanel() {
       </UnderlineTabs>
       {type === LayerType.Boundary && (
         <div className="border-t p-3 flex flex-col gap-2">
-          <Button
-            className="w-full"
-            onClick={handleAddToMyAreas}
-            disabled={savingTurf || !areaGeoJson}
-          >
-            <PlusIcon />
-            Add to areas
-          </Button>
+          {editable && (
+            <Button
+              className="w-full"
+              onClick={handleAddToMyAreas}
+              disabled={savingTurf || !areaGeoJson}
+            >
+              <PlusIcon />
+              Add to areas
+            </Button>
+          )}
           <Button
             variant="secondary"
             className="w-full"
@@ -386,7 +390,8 @@ export default function InspectorPanel() {
       )}
       {hasData &&
         type !== LayerType.Boundary &&
-        ((isDetailsView && focusedRecord?.geocodePoint) || dataSource) && (
+        ((isDetailsView && focusedRecord?.geocodePoint) ||
+          (dataSource && editable)) && (
           <div className="border-t p-3 flex flex-col gap-2">
             {isDetailsView && focusedRecord?.geocodePoint && (
               <Button onClick={handleFlyToMarker}>
@@ -394,7 +399,7 @@ export default function InspectorPanel() {
                 View on map
               </Button>
             )}
-            {dataSource && (
+            {dataSource && editable && (
               <Button
                 variant="secondary"
                 onClick={() => setSelectedDataSourceId(dataSource.id)}

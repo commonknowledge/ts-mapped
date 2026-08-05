@@ -3,7 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
-import { isPublicMapRouteAtom } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
+import {
+  isPublicMapRouteAtom,
+  isReadOnlyRouteAtom,
+} from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import {
@@ -18,11 +21,17 @@ export function useDataSources() {
   const trpc = useTRPC();
   const organisationId = useOrganisationId();
   const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
+  const isReadOnlyRoute = useAtomValue(isReadOnlyRouteAtom);
   const isSuperadminDataSourceRoute = useAtomValue(
     isSuperadminDataSourceRouteAtom,
   );
   const mapId = useMapId();
   const viewId = useViewId();
+
+  // Routes serving anonymous viewers (the public map page and the
+  // read-only shared map page) list only the data sources the map/view
+  // visualises; `listReadable` requires an authenticated user.
+  const isAnonymousViewerRoute = isPublicMapRoute || isReadOnlyRoute;
 
   const listPublicQuery = useQuery(
     trpc.dataSource.listPublic.queryOptions(undefined, {
@@ -35,20 +44,20 @@ export function useDataSources() {
       {
         activeOrganisationId: organisationId ?? undefined,
       },
-      { enabled: !isPublicMapRoute && !isSuperadminDataSourceRoute },
+      { enabled: !isAnonymousViewerRoute && !isSuperadminDataSourceRoute },
     ),
   );
 
   const listForMapViewQuery = useQuery(
     trpc.dataSource.listForMapView.queryOptions(
       { mapId: mapId ?? "", viewId: viewId ?? "" },
-      { enabled: isPublicMapRoute && Boolean(mapId) && Boolean(viewId) },
+      { enabled: isAnonymousViewerRoute && Boolean(mapId) && Boolean(viewId) },
     ),
   );
 
   const query = isSuperadminDataSourceRoute
     ? listPublicQuery
-    : isPublicMapRoute
+    : isAnonymousViewerRoute
       ? listForMapViewQuery
       : listReadableQuery;
 

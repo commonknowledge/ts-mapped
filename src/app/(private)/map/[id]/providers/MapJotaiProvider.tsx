@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   type MapMode,
   isPublicMapRouteAtom,
+  isReadOnlyRouteAtom,
   mapIdAtom,
   mapModeAtom,
   viewIdAtom,
@@ -18,16 +19,21 @@ import type { ReactNode } from "react";
  * `isPublicMapRoute` is `true` only on the standalone public page (`/public/[host]`).
  * The navbar visibility and editor-mode flag are derived from this single boolean,
  * and `mapMode` is derived from the URL.
+ *
+ * `isReadOnlyRoute` is `true` only on the shared map page (`/share/[token]`),
+ * where anonymous viewers see the private map without editing affordances.
  */
 export default function MapJotaiProvider({
   mapId,
   viewId,
   isPublicMapRoute = false,
+  isReadOnlyRoute = false,
   children,
 }: {
   mapId: string;
   viewId?: string;
   isPublicMapRoute?: boolean;
+  isReadOnlyRoute?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -36,6 +42,7 @@ export default function MapJotaiProvider({
         mapId={mapId}
         viewId={viewId}
         isPublicMapRoute={isPublicMapRoute}
+        isReadOnlyRoute={isReadOnlyRoute}
       >
         {children}
       </HydrateAtoms>
@@ -47,11 +54,13 @@ function HydrateAtoms({
   mapId,
   viewId,
   isPublicMapRoute,
+  isReadOnlyRoute,
   children,
 }: {
   mapId: string;
   viewId?: string;
   isPublicMapRoute: boolean;
+  isReadOnlyRoute: boolean;
   children: ReactNode;
 }) {
   // On the private route, derive mapMode + viewId from the URL so the very
@@ -71,6 +80,7 @@ function HydrateAtoms({
     [viewIdAtom, resolvedViewId || null],
     [mapModeAtom, resolvedMapMode],
     [isPublicMapRouteAtom, isPublicMapRoute],
+    [isReadOnlyRouteAtom, isReadOnlyRoute],
   ]);
 
   return children;

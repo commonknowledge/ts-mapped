@@ -4,9 +4,13 @@ import { getShareGrants } from "@/auth/shareGrants";
 import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findMapShareVisualisingDataSource } from "@/server/repositories/MapShare";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
 import { findPublicMapByViewId } from "@/server/repositories/PublicMap";
-import { canReadDataSource } from "@/server/utils/auth";
+import {
+  canReadDataSource,
+  getValidShareGrantMapIds,
+} from "@/server/utils/auth";
 import { closeRecordStream } from "@/server/utils/stream";
 import {
   buildName,
@@ -72,15 +76,28 @@ export async function GET(
 
   // Marker styling (icon/size/colour by column) needs the raw column values on
   // the features. The column list is client-supplied but only honoured for
-  // authenticated users: `canReadDataSource` passes anonymous requests for
-  // public data sources and published public maps, and those must stay on
-  // minimal properties. Authenticated readers can already fetch full record
-  // JSON via tRPC, so this grants them nothing new.
-  const includeProperties = currentUser?.id
-    ? parseIncludeProperties(
-        request?.nextUrl?.searchParams.get("properties") || null,
-      )
-    : [];
+  // authenticated users and shared-map viewers whose grant covers this data
+  // source: `canReadDataSource` also passes anonymous requests for public
+  // data sources and published public maps, and those must stay on minimal
+  // properties. Grant holders and authenticated readers can already fetch
+  // full record JSON via tRPC, so this grants them nothing new.
+  const sharedMapIds = currentUser?.id
+    ? []
+    : await getValidShareGrantMapIds(shareGrants);
+  const grantCoversDataSource =
+    sharedMapIds.length > 0 &&
+    Boolean(
+      await findMapShareVisualisingDataSource({
+        dataSourceId: dataSource.id,
+        mapIds: sharedMapIds,
+      }),
+    );
+  const includeProperties =
+    currentUser?.id || grantCoversDataSource
+      ? parseIncludeProperties(
+          request?.nextUrl?.searchParams.get("properties") || null,
+        )
+      : [];
 
   // Timeline filtering: when the data source declares a date column, expose
   // the record's month key, derived from the date parsed at import time
