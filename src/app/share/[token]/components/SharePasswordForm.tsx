@@ -2,7 +2,7 @@
 
 import { LockIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 
@@ -22,10 +22,12 @@ export default function SharePasswordForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [isRefreshing, startTransition] = useTransition();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password || submitting) {
+    if (!password || submitting || verified) {
       return;
     }
     setSubmitting(true);
@@ -37,7 +39,15 @@ export default function SharePasswordForm({
         body: JSON.stringify({ password }),
       });
       if (response.ok) {
-        router.refresh();
+        setVerified(true);
+        startTransition(() => router.refresh());
+        return;
+      }
+      if (response.status === 404) {
+        // The share was disabled or its token rotated while the form was
+        // open: refresh so the server renders the real outcome (the 404
+        // page) rather than reporting an incorrect password
+        startTransition(() => router.refresh());
         return;
       }
       if (response.status === 429) {
@@ -51,6 +61,26 @@ export default function SharePasswordForm({
       setSubmitting(false);
     }
   };
+
+  // Cookie-stick detection, shared with `ShareClaim`: the grant cookie is
+  // httpOnly and `router.refresh()` reports nothing back, so the only way
+  // to learn whether the cookie stuck is to see what the server renders.
+  // `isRefreshing` spans the full refresh round-trip, and a refresh
+  // preserves client component state — so once a correct password's
+  // refresh has finished, either the server saw the grant and swapped in
+  // the map (unmounting us), or this same instance is still mounted,
+  // meaning the browser is blocking cookies. Without this the form would
+  // silently re-appear and the viewer would resubmit forever.
+  if (verified && !isRefreshing) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center p-8 text-center">
+        <p className="max-w-[40ch] text-base">
+          This shared map needs cookies to work. Please enable cookies for this
+          site and reload the page.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-neutral-50 p-4">
@@ -76,8 +106,11 @@ export default function SharePasswordForm({
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <Button type="submit" disabled={!password || submitting}>
-          {submitting ? "Checking..." : "View map"}
+        <Button
+          type="submit"
+          disabled={!password || submitting || verified || isRefreshing}
+        >
+          {submitting || verified || isRefreshing ? "Checking..." : "View map"}
         </Button>
       </form>
     </div>

@@ -8,7 +8,9 @@ import { useEffect, useRef, useState, useTransition } from "react";
 // browser is not storing our cookies
 const RECENT_CLAIM_WINDOW_MS = 5000;
 
-const CLAIM_ATTEMPT_KEY = "shareClaimAttemptedAt";
+// Scoped per token: a successful claim on one share must not mark a
+// different share's link, opened moments later in the same tab, as blocked
+const claimAttemptKey = (token: string) => `shareClaimAttemptedAt:${token}`;
 
 /**
  * The invisible claim step for a passwordless share: on mount, asks the
@@ -33,12 +35,14 @@ export default function ShareClaim({ token }: { token: string }) {
     didRun.current = true;
 
     try {
-      const lastAttempt = Number(sessionStorage.getItem(CLAIM_ATTEMPT_KEY));
+      const lastAttempt = Number(
+        sessionStorage.getItem(claimAttemptKey(token)),
+      );
       if (Date.now() - lastAttempt < RECENT_CLAIM_WINDOW_MS) {
         setStatus("blocked");
         return;
       }
-      sessionStorage.setItem(CLAIM_ATTEMPT_KEY, String(Date.now()));
+      sessionStorage.setItem(claimAttemptKey(token), String(Date.now()));
     } catch {
       // Storage being unavailable means cookies are blocked too
       setStatus("blocked");
@@ -58,8 +62,14 @@ export default function ShareClaim({ token }: { token: string }) {
     void claim();
   }, [token, router]);
 
-  // A finished refresh that still renders this component means the server
-  // saw no grant: the cookie did not stick
+  // Cookie-stick detection, shared with `SharePasswordForm`: the grant
+  // cookie is httpOnly and `router.refresh()` reports nothing back, so the
+  // only way to learn whether the cookie stuck is to see what the server
+  // renders. `isRefreshing` spans the full refresh round-trip, and a
+  // refresh preserves client component state — so once the claim's refresh
+  // has finished, either the server saw the grant and swapped in the map
+  // (unmounting us), or this same instance is still mounted, meaning the
+  // cookie did not stick.
   const blocked =
     status === "blocked" || (status === "claimed" && !isRefreshing);
 
