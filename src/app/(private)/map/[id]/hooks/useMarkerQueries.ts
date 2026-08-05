@@ -41,8 +41,9 @@ export function useMarkerQueries() {
 
       // Columns used by this view's marker styling must be present on the
       // marker features for Mapbox match expressions to read them. Only
-      // honoured by the server for authenticated readers. Sorted so the
-      // query key is stable regardless of config field order.
+      // honoured by the server for authenticated readers and shared-map
+      // viewers whose grant covers the data source. Sorted so the query
+      // key is stable regardless of config field order.
       const visualisation = view?.config.markerVisualisations?.[dataSourceId];
       const propertyColumns = [
         ...new Set(
