@@ -17,17 +17,19 @@ export default function ReadOnlyNavbar() {
   const { data: map } = useMapQuery(mapId);
 
   return (
-    <Navbar>
-      <div className="flex justify-between items-center gap-4 w-full">
-        <div className="flex items-center gap-4 min-w-0">
-          <p className="truncate max-w-[300px] text-sm text-neutral-600">
-            {map ? map.name : "Loading..."}
-          </p>
-          <ReadOnlyMapViews />
+    <div className="pointer-events-auto">
+      <Navbar>
+        <div className="flex justify-between items-center gap-4 w-full">
+          <div className="flex items-center gap-4 min-w-0">
+            <p className="truncate max-w-[300px] text-sm text-neutral-600">
+              {map ? map.name : "Loading..."}
+            </p>
+            <ReadOnlyMapViews />
+          </div>
+          <SearchBox />
         </div>
-        <SearchBox />
-      </div>
-    </Navbar>
+      </Navbar>
+    </div>
   );
 }
 
