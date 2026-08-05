@@ -1,5 +1,5 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import ReadOnlyMapControls from "@/app/(private)/map/[id]/components/readonly/ReadOnlyMapControls";
 import ReadOnlyNavbar from "@/app/(private)/map/[id]/components/readonly/ReadOnlyNavbar";
 import SharedMap from "@/app/(private)/map/[id]/components/SharedMap";
@@ -9,12 +9,13 @@ import { findMapById } from "@/server/repositories/Map";
 import { findMapShareByToken } from "@/server/repositories/MapShare";
 import { findValidShareGrantForMap } from "@/server/utils/auth";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
+import ShareClaim from "./components/ShareClaim";
 import SharePasswordForm from "./components/SharePasswordForm";
 import type { Metadata } from "next";
 
 interface Props {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ viewId?: string; c?: string }>;
+  searchParams: Promise<{ viewId?: string }>;
 }
 
 export async function generateMetadata({
@@ -32,7 +33,7 @@ export async function generateMetadata({
 
 export default async function SharedMapPage({ params, searchParams }: Props) {
   const { token } = await params;
-  const { viewId: requestedViewId, c: claimed } = await searchParams;
+  const { viewId: requestedViewId } = await searchParams;
 
   const share = await findMapShareByToken(token);
   if (!share || !share.enabled) {
@@ -49,17 +50,10 @@ export default async function SharedMapPage({ params, searchParams }: Props) {
         <SharePasswordForm token={token} mapName={map?.name ?? "Shared map"} />
       );
     }
-    // Passwordless: the grant cookie is minted by a route handler (cookies
-    // cannot be set during page render) which redirects back here. `c=1`
-    // marks a completed claim, so blocked cookies show a message instead
-    // of looping.
-    if (claimed) {
-      return <CookiesRequiredMessage />;
-    }
-    const claimPath = requestedViewId
-      ? `/api/share/${token}/claim?viewId=${encodeURIComponent(requestedViewId)}`
-      : `/api/share/${token}/claim`;
-    redirect(claimPath);
+    // Passwordless: the grant cookie is minted by the claim endpoint
+    // (cookies cannot be set during page render). ShareClaim calls it and
+    // refreshes, after which the grant check above passes.
+    return <ShareClaim token={token} />;
   }
 
   const caller = await createCaller();
@@ -96,16 +90,5 @@ export default async function SharedMapPage({ params, searchParams }: Props) {
         </div>
       </MapJotaiProvider>
     </HydrationBoundary>
-  );
-}
-
-function CookiesRequiredMessage() {
-  return (
-    <div className="flex h-screen w-full items-center justify-center p-8 text-center">
-      <p className="max-w-[40ch] text-base">
-        This shared map needs cookies to work. Please enable cookies for this
-        site and reload the page.
-      </p>
-    </div>
   );
 }
