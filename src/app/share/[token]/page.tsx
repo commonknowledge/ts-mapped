@@ -1,5 +1,6 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import ReadOnlyMapControls from "@/app/(private)/map/[id]/components/readonly/ReadOnlyMapControls";
 import ReadOnlyNavbar from "@/app/(private)/map/[id]/components/readonly/ReadOnlyNavbar";
 import SharedMap from "@/app/(private)/map/[id]/components/SharedMap";
@@ -18,12 +19,17 @@ interface Props {
   searchParams: Promise<{ viewId?: string }>;
 }
 
+// Deduplicate the lookups between generateMetadata and the page render
+// (memoised per request, and only within this module)
+const getShareByToken = cache(findMapShareByToken);
+const getMapById = cache(findMapById);
+
 export async function generateMetadata({
   params,
 }: Pick<Props, "params">): Promise<Metadata> {
   const { token } = await params;
-  const share = await findMapShareByToken(token);
-  const map = share?.enabled ? await findMapById(share.mapId) : null;
+  const share = await getShareByToken(token);
+  const map = share?.enabled ? await getMapById(share.mapId) : null;
   return {
     title: map ? `${map.name} - Mapped` : "Mapped",
     // Share links are unlisted: never index them
@@ -35,7 +41,7 @@ export default async function SharedMapPage({ params, searchParams }: Props) {
   const { token } = await params;
   const { viewId: requestedViewId } = await searchParams;
 
-  const share = await findMapShareByToken(token);
+  const share = await getShareByToken(token);
   if (!share || !share.enabled) {
     notFound();
   }
@@ -45,7 +51,7 @@ export default async function SharedMapPage({ params, searchParams }: Props) {
 
   if (!grant) {
     if (share.passwordHash) {
-      const map = await findMapById(share.mapId);
+      const map = await getMapById(share.mapId);
       return (
         <SharePasswordForm token={token} mapName={map?.name ?? "Shared map"} />
       );
