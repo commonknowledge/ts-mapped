@@ -13,6 +13,14 @@ export const mapModeAtom = atom<MapMode>("private");
  */
 export const isPublicMapRouteAtom = atom<boolean>(false);
 
+/**
+ * `true` on the read-only shared map page (`/share/[token]`), `false`
+ * everywhere else. Components use `useMapEditable()` to hide editing
+ * affordances, and `useMapViews` skips server writes so view-config
+ * changes (map style, timeline) stay client-side only.
+ */
+export const isReadOnlyRouteAtom = atom<boolean>(false);
+
 /** Derived: the navbar is visible exactly when we are NOT on the public route. */
 export const showNavbarAtom = atom<boolean>(
   (get) => !get(isPublicMapRouteAtom),

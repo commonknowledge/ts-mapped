@@ -1,5 +1,6 @@
 "use client";
 
+import { useMapEditable } from "../../hooks/useMapEditable";
 import { useOpenInspectorConfig } from "../../hooks/useOpenInspectorConfig";
 import DataRecordsPanel from "./DataRecordsPanel";
 import { InspectorConfigModal } from "./InspectorConfigModal";
@@ -20,6 +21,7 @@ export default function ConfigurableDataRecordsPanel({
 }) {
   const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
     useOpenInspectorConfig(dataSourceId);
+  const editable = useMapEditable();
 
   return (
     <>
@@ -29,7 +31,7 @@ export default function ConfigurableDataRecordsPanel({
         isLoading={isLoading}
         defaultExpanded={defaultExpanded}
         hint={hint}
-        onClickConfigure={openConfig}
+        onClickConfigure={editable ? openConfig : undefined}
       />
       {config && (
         <InspectorConfigModal

@@ -52,3 +52,13 @@ export async function checkForgotPasswordAttempt(ip: string): Promise<boolean> {
   const count = await recordAttempt(`rate_limit:forgot_password:${ip}`);
   return count <= FORGOT_PASSWORD_MAX_ATTEMPTS;
 }
+
+const SHARE_PASSWORD_MAX_ATTEMPTS = 5;
+
+export async function checkSharePasswordAttempt(
+  ip: string,
+  token: string,
+): Promise<boolean> {
+  const count = await recordAttempt(`rate_limit:share_password:${token}:${ip}`);
+  return count <= SHARE_PASSWORD_MAX_ATTEMPTS;
+}

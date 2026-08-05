@@ -12,6 +12,7 @@ import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
 import { useDebouncedCallback } from "./useDebouncedCallback";
 import { useMapId } from "./useMapCore";
+import { useIsReadOnlyRoute } from "./useMapEditable";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
 
@@ -23,6 +24,11 @@ export function useMapViews() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
+  // On the read-only shared map page, view-config changes (map style,
+  // timeline range) update the query cache for instant feedback but are
+  // never persisted — anonymous viewers cannot write, and their tweaks
+  // should reset on reload.
+  const isReadOnlyRoute = useIsReadOnlyRoute();
 
   // Get views directly from cache
   const views = mapData?.views;
@@ -73,7 +79,7 @@ export function useMapViews() {
 
   const insertView = useCallback(
     (view: Omit<View, "position">) => {
-      if (!mapId) return;
+      if (!mapId || isReadOnlyRoute) return;
 
       const newView = {
         ...view,
@@ -102,6 +108,7 @@ export function useMapViews() {
     },
     [
       mapId,
+      isReadOnlyRoute,
       views,
       setViewId,
       setDirtyViewIds,
@@ -155,7 +162,9 @@ export function useMapViews() {
       const updatedViews =
         views?.map((v) => (v.id === view.id ? view : v)) || [];
 
-      setDirtyViewIds((ids) => ids.concat([view.id]));
+      if (!isReadOnlyRoute) {
+        setDirtyViewIds((ids) => ids.concat([view.id]));
+      }
 
       // Synchronously update cache BEFORE calling mutation for instant UI feedback
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
@@ -171,10 +180,13 @@ export function useMapViews() {
         };
       });
 
-      updateViewMutate({ mapId, views: updatedViews });
+      if (!isReadOnlyRoute) {
+        updateViewMutate({ mapId, views: updatedViews });
+      }
     },
     [
       mapId,
+      isReadOnlyRoute,
       setDirtyViewIds,
       queryClient,
       trpc.map.byId,
@@ -247,7 +259,7 @@ export function useMapViews() {
 
   const deleteView = useCallback(
     (viewId: string) => {
-      if (!mapId) return;
+      if (!mapId || isReadOnlyRoute) return;
 
       // Synchronously update cache BEFORE calling mutation for instant UI feedback
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
@@ -260,7 +272,7 @@ export function useMapViews() {
 
       deleteViewMutate({ mapId, viewId });
     },
-    [mapId, queryClient, trpc.map.byId, deleteViewMutate],
+    [mapId, isReadOnlyRoute, queryClient, trpc.map.byId, deleteViewMutate],
   );
 
   return {
