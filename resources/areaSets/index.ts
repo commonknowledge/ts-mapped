@@ -163,6 +163,15 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
     nameKey: "Diocese",
   },
   {
+    code: AreaSetCode.PUA26,
+    name: "Proposed Unitary Authorities 2026",
+    filename: "proposed_unitary_authorities.geojson",
+    link: "https://commonslibrary.parliament.uk/research-briefings/cbp-10608/",
+    isNationalGridSRID: false,
+    codeKey: "Name",
+    nameKey: "Name",
+  },
+  {
     code: AreaSetCode.ICB22,
     name: "NHS Integrated Care Boards 2022",
     filename: "icb_2022.geojson",

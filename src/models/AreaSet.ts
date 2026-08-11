@@ -19,6 +19,7 @@ export enum AreaSetCode {
   SENC22 = "SENC22",
   COED26 = "COED26",
   ICB22 = "ICB22",
+  PUA26 = "PUA26",
 }
 export const areaSetCodes = Object.values(AreaSetCode);
 
@@ -58,6 +59,7 @@ export const AreaSetSizes: Record<AreaSetCode, number> = {
   [AreaSetCode.SPC22]: 4,
   [AreaSetCode.SENC22]: 4,
   [AreaSetCode.CTYUA24]: 6,
+  [AreaSetCode.PUA26]: 6,
   [AreaSetCode.CAUTH25]: 6,
   [AreaSetCode.COED26]: 6,
   [AreaSetCode.ICB22]: 6,
