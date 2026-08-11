@@ -100,8 +100,9 @@ export const buildIconImageExpression = ({
   ] as ExpressionSpecification;
 };
 
-const MIN_SIZE_FACTOR = 0.6;
-const MAX_SIZE_FACTOR = 1.8;
+// The smallest value keeps the normal marker size; larger values scale up
+const MIN_SIZE_FACTOR = 1;
+const MAX_SIZE_FACTOR = 2.2;
 
 /**
  * Each column value's size factor, in canonical value order (valueOrder ->

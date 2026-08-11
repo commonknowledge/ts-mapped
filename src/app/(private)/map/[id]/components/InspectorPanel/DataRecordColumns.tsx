@@ -396,7 +396,7 @@ function MarkerEncodingValue({
       )}
       {sizeFactor !== undefined && (
         <span
-          className="w-[18px] flex items-center justify-center shrink-0"
+          className="w-[22px] flex items-center justify-center shrink-0"
           aria-hidden
         >
           <span

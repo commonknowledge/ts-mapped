@@ -183,7 +183,7 @@ function DataSourceMarkerLegend({
         <LegendSection label={sizeColumn}>
           {sizeRows.map(({ value, factor }) => (
             <div key={value} className="flex items-center gap-2">
-              <span className="w-[18px] flex items-center justify-center shrink-0">
+              <span className="w-[22px] flex items-center justify-center shrink-0">
                 <span
                   className="rounded-full bg-neutral-400"
                   style={{
