@@ -3,6 +3,7 @@ import { boundingBoxSchema } from "@/models/Area";
 import { AreaSetCode } from "@/models/AreaSet";
 import { CalculationType } from "@/models/shared";
 import {
+  findAreaByCode,
   findAreaByCodeWithGeometry,
   searchAreas,
 } from "@/server/repositories/Area";
@@ -20,6 +21,18 @@ export const areaRouter = router({
     .query(async ({ input: { code, areaSetCode } }) => {
       const area = await findAreaByCodeWithGeometry(code, areaSetCode);
       return area ?? null;
+    }),
+  /** Name lookup without the geometry payload of `byCode` */
+  nameByCode: viewerProcedure
+    .input(
+      z.object({
+        areaSetCode: z.nativeEnum(AreaSetCode),
+        code: z.string(),
+      }),
+    )
+    .query(async ({ input: { code, areaSetCode } }) => {
+      const area = await findAreaByCode(code, areaSetCode);
+      return area ? { code: area.code, name: area.name } : null;
     }),
   search: viewerProcedure
     .input(

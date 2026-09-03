@@ -24,6 +24,7 @@ import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
+import ContainingAreas from "./ContainingAreas";
 import DataRecordColumns from "./DataRecordColumns";
 import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataConfig from "./InspectorDataConfig";
@@ -104,6 +105,7 @@ export default function InspectorDataTab() {
   );
 
   const isBoundary = type === LayerType.Boundary;
+  const isSingleMarker = type === LayerType.Marker || type === LayerType.Member;
   const hasChoroplethVisualisation = Boolean(
     choroplethDataSource?.id && viewConfig.areaDataColumn,
   );
@@ -252,6 +254,10 @@ export default function InspectorDataTab() {
                 </button>
               )}
             </div>
+          )}
+
+          {isSingleMarker && (
+            <ContainingAreas recordAreas={recordData?.geocodeResult?.areas} />
           )}
 
           {(() => {

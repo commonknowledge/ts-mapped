@@ -110,7 +110,7 @@ function TextOrNumberValue({
   return (
     <span
       className={cn(
-        "font-medium tabular-nums whitespace-normal break-all min-w-0 inline-flex items-baseline gap-2 rounded px-1.5 py-0.5",
+        "font-medium tabular-nums whitespace-normal break-words min-w-0 inline-flex items-baseline gap-2 rounded px-1.5 py-0.5",
         smartBg ? "border border-black/5" : "px-0 py-0 rounded-none border-0",
       )}
       style={smartBg ? { backgroundColor: smartBg } : undefined}
@@ -554,12 +554,7 @@ function DataRecordColumnItem({
   return (
     <div className={cn("min-w-0", isLargeText && "col-span-2")}>
       <PropertyLabel column={column} dataSourceId={dataSourceId} />
-      <dd
-        className={cn(
-          "min-w-0 whitespace-normal",
-          isLargeText ? "break-words" : "break-all",
-        )}
-      >
+      <dd className="min-w-0 whitespace-normal break-words">
         <DataRecordPropertyValue
           value={json[column]}
           name={column}
