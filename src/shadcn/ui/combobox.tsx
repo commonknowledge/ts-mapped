@@ -108,6 +108,9 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                       <CommandItem
                         key={option.value}
                         value={option.value}
+                        // cmdk filters on `value`, which may be an opaque
+                        // id; the label is what the user types to search
+                        keywords={[option.label]}
                         onSelect={() => handleSelect(option.value)}
                       >
                         <Check
