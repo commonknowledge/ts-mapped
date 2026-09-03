@@ -37,22 +37,25 @@ let keepAlive = false;
 program
   .command("backfillAreaSet <areaSetCode>")
   .description(
-    "Enqueue jobs to add a newly imported area set to existing geocoded records, without re-geocoding",
+    "Add a newly imported area set to existing geocoded records, without re-geocoding",
   )
-  .option("--only <ids...>", "Only enqueue these data source IDs")
+  .option("--only <ids...>", "Only process these data source IDs")
+  .option(
+    "--from <dataSourceId>",
+    "Resume from after this data source ID (the last one logged as completed)",
+  )
   .option("--batchSize <batchSize>", "The data record batch size")
   .option(
     "--batchInterval <batchInterval>",
     "Time to sleep between batches, in milliseconds",
   )
-  .option("--queue <queue>", "Queue to enqueue onto")
   .action(async (areaSetCode, options) => {
     await backfillAreaSet({
       areaSetCode,
       onlyIds: options.only,
+      fromDataSourceId: options.from || null,
       batchSize: Number(options.batchSize) || undefined,
       batchIntervalMillis: Number(options.batchInterval) || undefined,
-      queue: options.queue,
     });
   });
 
