@@ -40,6 +40,7 @@ export enum AreaSetGroupCode {
   SOA22 = "SOA22",
   COED26 = "COED26",
   ICB22 = "ICB22",
+  PUA26 = "PUA26",
 }
 export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 

@@ -269,6 +269,19 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  PUA26: [
+    {
+      areaSetCode: AreaSetCode.PUA26,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "Name",
+        featureNameProperty: "Name",
+        layerId: "9699f0d4efb722932ca0",
+        sourceId: "commonknowledge.yjl7acwe0770",
+      },
+    },
+  ],
 };
 
 export const HEX_CHOROPLETH_LAYER_CONFIG: ChoroplethLayerConfig = {

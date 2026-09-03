@@ -80,6 +80,7 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   SOA22: "Scottish Inter. Zone ➔ Data Zone ➔ Output Area",
   COED26: "Church of England Diocese",
   ICB22: "NHS Integrated Care Board",
+  PUA26: "Proposed Unitary Authority",
 };
 
 export const AreaSetGroupCodeYears: Record<AreaSetGroupCode, string> = {
@@ -97,6 +98,7 @@ export const AreaSetGroupCodeYears: Record<AreaSetGroupCode, string> = {
   SOA22: "2022 &mdash; present",
   COED26: "2026 &mdash; present",
   ICB22: "2022 &mdash; present",
+  PUA26: "Proposed",
 };
 
 export const FilterTypeLabels: Record<
