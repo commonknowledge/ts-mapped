@@ -179,3 +179,25 @@ const updateRecordGroupGeocodePoint = (
     group.geocodePoint = record.geocodePoint;
   }
 };
+
+/**
+ * Join the values of a String column's source columns for display. Single-line
+ * values are joined with commas; if any value contains a line break (e.g. a
+ * Baserow long text field) each value is shown as its own paragraph instead.
+ * Render the result with `whitespace-pre-line` to preserve the line breaks.
+ */
+export const formatStringColumn = ({
+  sourceColumns,
+  json,
+}: {
+  sourceColumns: string[];
+  json: Record<string, unknown>;
+}): string => {
+  const values = sourceColumns
+    .map((c) => json[c])
+    .filter(Boolean)
+    .map(String);
+  const isMultiLine = values.some((v) => v.includes("\n"));
+  const separator = isMultiLine ? "\n\n" : ", ";
+  return values.join(separator);
+};

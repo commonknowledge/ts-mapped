@@ -21,6 +21,7 @@ import {
 } from "../hooks/usePublicMap";
 import {
   buildPublicMapName,
+  formatStringColumn,
   groupRecords,
   jsonToAirtablePrefill,
   toBooleanOrUnknown,
@@ -218,7 +219,7 @@ export default function DataRecordSidebar() {
                     "Description"}
                 </span>
               </EditablePublicMapProperty>
-              <p>
+              <p className="whitespace-pre-line break-words">
                 {description && description !== recordGroup.name
                   ? description
                   : "–"}
@@ -313,11 +314,11 @@ export default function DataRecordSidebar() {
                     {columnConfig.label}
                   </span>
                 </EditablePublicMapProperty>
-                <span>
-                  {columnConfig.sourceColumns
-                    .map((c) => selectedRecordDetails.json[c])
-                    .filter(Boolean)
-                    .join(", ") || "–"}
+                <span className="whitespace-pre-line break-words">
+                  {formatStringColumn({
+                    sourceColumns: columnConfig.sourceColumns,
+                    json: selectedRecordDetails.json,
+                  }) || "–"}
                 </span>
               </div>
             )}
