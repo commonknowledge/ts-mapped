@@ -1,3 +1,4 @@
+import backfillAreaSet from "@/server/jobs/backfillAreaSet";
 import enrichDataRecords from "@/server/jobs/enrichDataRecords";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importActionNetworkEventDataSources from "@/server/jobs/importActionNetworkEventDataSources";
@@ -12,6 +13,7 @@ import { DEFAULT_QUEUE, boss, ensureQueue } from "./queue";
 
 const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
   {
+    backfillAreaSet,
     enrichDataSource,
     enrichDataRecords,
     importActionNetworkEventDataSources,

@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { SignJWT } from "jose";
+import backfillAreaSet from "@/server/commands/backfillAreaSet";
 import backfillRecordDates from "@/server/commands/backfillRecordDates";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importAreaSet from "@/server/commands/importAreaSet";
@@ -32,6 +33,28 @@ import { runWorker } from "@/server/services/worker";
 const program = new Command();
 
 let keepAlive = false;
+
+program
+  .command("backfillAreaSet <areaSetCode>")
+  .description(
+    "Enqueue jobs to add a newly imported area set to existing geocoded records, without re-geocoding",
+  )
+  .option("--only <ids...>", "Only enqueue these data source IDs")
+  .option("--batchSize <batchSize>", "The data record batch size")
+  .option(
+    "--batchInterval <batchInterval>",
+    "Time to sleep between batches, in milliseconds",
+  )
+  .option("--queue <queue>", "Queue to enqueue onto")
+  .action(async (areaSetCode, options) => {
+    await backfillAreaSet({
+      areaSetCode,
+      onlyIds: options.only,
+      batchSize: Number(options.batchSize) || undefined,
+      batchIntervalMillis: Number(options.batchInterval) || undefined,
+      queue: options.queue,
+    });
+  });
 
 program
   .command("backfillRecordDates")
