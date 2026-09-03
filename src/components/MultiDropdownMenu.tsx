@@ -93,7 +93,7 @@ export default function MultiDropdownMenu({
               {item.icon && <span className="mr-2">{item.icon}</span>}
               {item.label}
             </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
+            <DropdownMenuSubContent className="max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto">
               {item.items.map((subItem, subIndex) => {
                 return renderDropdownItem(subItem, subIndex);
               })}

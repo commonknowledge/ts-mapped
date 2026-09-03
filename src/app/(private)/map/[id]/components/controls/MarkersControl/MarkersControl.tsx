@@ -30,6 +30,11 @@ import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
 
+const sortDataSourcesByName = <T extends { name: string }>(dataSources: T[]) =>
+  [...dataSources].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+  );
+
 export default function MarkersControl() {
   const router = useRouter();
   const { mapConfig, updateMapConfig } = useMapConfig();
@@ -75,10 +80,11 @@ export default function MarkersControl() {
   };
 
   const getMemberDataSourceDropdownItems = () => {
-    const memberDataSources =
+    const memberDataSources = sortDataSourcesByName(
       dataSources?.filter((dataSource) => {
         return dataSource.recordType === DataSourceRecordType.Members;
-      }) || [];
+      }) || [],
+    );
 
     return memberDataSources.map((dataSource) => {
       const selected = dataSource.id === mapConfig.membersDataSourceId;
@@ -96,10 +102,11 @@ export default function MarkersControl() {
   };
 
   const getMarkerDataSourceDropdownItems = () => {
-    const markerDataSources =
+    const markerDataSources = sortDataSourcesByName(
       dataSources?.filter((dataSource) => {
         return dataSource.recordType !== DataSourceRecordType.Members;
-      }) || [];
+      }) || [],
+    );
 
     return markerDataSources.map((dataSource) => {
       const selected = mapConfig.markerDataSourceIds.includes(dataSource.id);
