@@ -5,8 +5,10 @@ import { useSubscription } from "@trpc/tanstack-react-query";
 import { Download, HelpCircle, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { DataSourceFeatures } from "@/features";
+import { DataSourceTypeLabels } from "@/labels";
 import { ColumnType, DataSourceType, JobStatus } from "@/models/DataSource";
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import {
@@ -21,6 +23,7 @@ import {
 } from "@/shadcn/ui/alert-dialog";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
+import { Switch } from "@/shadcn/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import EnrichmentColumnDialog from "./EnrichmentColumnDialog";
 
@@ -39,6 +42,7 @@ export default function EnrichmentTable({
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
   const [deleteColumn, setDeleteColumn] = useState<string | null>(null);
+  const [confirmWriteBack, setConfirmWriteBack] = useState(false);
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -54,6 +58,27 @@ export default function EnrichmentTable({
       },
     }),
   );
+
+  const { mutate: updateAutoEnrich, isPending: updatingAutoEnrich } =
+    useMutation(
+      trpc.dataSource.updateConfig.mutationOptions({
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.byId.queryKey({
+              dataSourceId: dataSource.id,
+            }),
+          });
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.checkWebhookStatus.queryKey({
+              dataSourceId: dataSource.id,
+            }),
+          });
+        },
+        onError: (error) => {
+          toast.error(error.message || "Could not update data source.");
+        },
+      }),
+    );
 
   const { mutate: deleteEnrichmentColumns } = useMutation(
     trpc.dataSource.deleteEnrichmentColumns.mutationOptions({
@@ -161,7 +186,8 @@ export default function EnrichmentTable({
     ),
   );
 
-  const onClickEnrichRecords = () => {
+  const onConfirmWriteBack = () => {
+    setConfirmWriteBack(false);
     setEnriching(true);
     setEnrichmentCount(0);
     enqueueEnrichDataSourceJob({ dataSourceId: dataSource.id });
@@ -189,8 +215,29 @@ export default function EnrichmentTable({
     });
   };
 
+  const features = DataSourceFeatures[dataSource.config.type];
+  const sourceLabel = DataSourceTypeLabels[dataSource.config.type];
+  const hasEnrichments = dataSource.enrichments.length > 0;
+
   return (
     <div className="p-4 mx-auto w-full">
+      {features.autoEnrich && (
+        <div className="mb-6">
+          <FormFieldWrapper
+            label="Automatically enrich data"
+            hint={`When enabled, new and updated records will be enriched and written to ${sourceLabel} as soon as they sync to Mapped.`}
+            isHorizontal
+          >
+            <Switch
+              checked={dataSource.autoEnrich}
+              disabled={updatingAutoEnrich}
+              onCheckedChange={(autoEnrich) =>
+                updateAutoEnrich({ dataSourceId: dataSource.id, autoEnrich })
+              }
+            />
+          </FormFieldWrapper>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm text-muted-foreground">
           {!isCSV && displayEnrichmentProgress && (
@@ -202,31 +249,32 @@ export default function EnrichmentTable({
         </div>
         <div className="flex items-center gap-2">
           <EnrichmentColumnDialog dataSource={dataSource} />
-          {isCSV ? (
-            dataSource.enrichments.length === 0 ? (
-              <Button disabled>
+          {hasEnrichments ? (
+            <Button asChild variant={isCSV ? "default" : "outline"}>
+              <a
+                href={`/api/data-sources/${dataSource.id}/enriched-csv`}
+                download
+              >
                 <Download />
                 Download enriched CSV
-              </Button>
-            ) : (
-              <Button asChild>
-                <a
-                  href={`/api/data-sources/${dataSource.id}/enriched-csv`}
-                  download
-                >
-                  <Download />
-                  Download enriched CSV
-                </a>
-              </Button>
-            )
+              </a>
+            </Button>
           ) : (
+            <Button disabled variant={isCSV ? "default" : "outline"}>
+              <Download />
+              Download enriched CSV
+            </Button>
+          )}
+          {!isCSV && (
             <Button
               type="button"
-              onClick={onClickEnrichRecords}
-              disabled={enriching || dataSource.enrichments.length === 0}
+              onClick={() => setConfirmWriteBack(true)}
+              disabled={enriching || !hasEnrichments}
             >
               <RefreshCw className={enriching ? "animate-spin" : ""} />
-              {enriching ? "Enriching…" : "Enrich records"}
+              {enriching
+                ? `Writing to ${sourceLabel}…`
+                : `Write enrichments to ${sourceLabel}`}
             </Button>
           )}
         </div>
@@ -368,6 +416,29 @@ export default function EnrichmentTable({
           )}
         </div>
       )}
+
+      <AlertDialog open={confirmWriteBack} onOpenChange={setConfirmWriteBack}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Write enrichments to {sourceLabel}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will add or update the following columns in {sourceLabel}
+              for every record:{" "}
+              {dataSource.enrichments.map((e) => e.name).join(", ")}. To get the
+              enriched data without changing {sourceLabel}, download the
+              enriched CSV instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onConfirmWriteBack}>
+              Write to {sourceLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={deleteColumn !== null}

@@ -1,7 +1,6 @@
 import { stringify } from "csv-stringify/sync";
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
-import { DataSourceType } from "@/models/DataSource";
 import { getEnrichedColumn } from "@/server/mapping/enrich";
 import { streamOrderedDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -46,13 +45,6 @@ export async function GET(
   const dataSource = await findDataSourceById(id);
   if (!dataSource) {
     return new NextResponse("Not found", { status: 404 });
-  }
-
-  if (dataSource.config.type !== DataSourceType.CSV) {
-    return new NextResponse(
-      "Only CSV data sources support enriched CSV download",
-      { status: 400 },
-    );
   }
 
   const organisationUser = await findOrganisationUser(
