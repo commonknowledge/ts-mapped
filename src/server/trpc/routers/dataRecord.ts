@@ -19,6 +19,7 @@ import {
   findDataRecordsByDataSource,
   findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
+  findSampleDataRecords,
   getColumnStat,
   updateDataRecordJson,
 } from "@/server/repositories/DataRecord";
@@ -244,6 +245,11 @@ export const dataRecordRouter = router({
         );
         return { records, count };
       },
+    ),
+  sample: dataSourceReadProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(50) }))
+    .query(({ input: { dataSourceId, limit } }) =>
+      findSampleDataRecords({ dataSourceId, limit }),
     ),
   columnStat: dataSourceReadProcedure
     .input(

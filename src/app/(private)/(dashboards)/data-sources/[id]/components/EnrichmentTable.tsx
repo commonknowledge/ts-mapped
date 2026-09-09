@@ -102,14 +102,12 @@ export default function EnrichmentTable({
     }),
   );
 
-  const { data, isLoading } = useQuery(
-    trpc.dataRecord.list.queryOptions({
-      dataSourceId: dataSource.id,
-      page: 0,
-    }),
+  const sampleQueryInput = { dataSourceId: dataSource.id, limit: 10 };
+  const { data: sampleRecords, isLoading } = useQuery(
+    trpc.dataRecord.sample.queryOptions(sampleQueryInput),
   );
 
-  const records = useMemo(() => data?.records.slice(0, 10) ?? [], [data]);
+  const records = useMemo(() => sampleRecords ?? [], [sampleRecords]);
 
   const existingColumns = dataSource.columnDefs ?? [];
   const existingColumnNames = new Set(existingColumns.map((col) => col.name));
@@ -160,20 +158,14 @@ export default function EnrichmentTable({
           }
           if (dataSourceEvent.event === "ImportComplete") {
             queryClient.invalidateQueries({
-              queryKey: trpc.dataRecord.list.queryKey({
-                dataSourceId: dataSource.id,
-                page: 0,
-              }),
+              queryKey: trpc.dataRecord.sample.queryKey(sampleQueryInput),
             });
           }
           if (dataSourceEvent.event === "EnrichmentComplete") {
             setEnriching(false);
             setLastEnriched(dataSourceEvent.at);
             queryClient.invalidateQueries({
-              queryKey: trpc.dataRecord.list.queryKey({
-                dataSourceId: dataSource.id,
-                page: 0,
-              }),
+              queryKey: trpc.dataRecord.sample.queryKey(sampleQueryInput),
             });
             queryClient.invalidateQueries({
               queryKey: trpc.dataSource.byId.queryKey({
@@ -409,9 +401,9 @@ export default function EnrichmentTable({
               )}
             </tbody>
           </table>
-          {data && data.count.total > records.length && (
+          {dataSource.recordCount > records.length && (
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              Showing {records.length} of {data.count.total} records
+              Showing {records.length} of {dataSource.recordCount} records
             </p>
           )}
         </div>

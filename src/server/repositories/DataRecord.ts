@@ -97,6 +97,27 @@ export async function getColumnStat(
   return typeof value === "number" && !Number.isNaN(value) ? value : null;
 }
 
+/**
+ * A small sample of records for previews, with geocoded records first so
+ * enrichment previews have values to show.
+ */
+export function findSampleDataRecords({
+  dataSourceId,
+  limit,
+}: {
+  dataSourceId: string;
+  limit: number;
+}) {
+  return db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .orderBy(sql`geocode_point IS NOT NULL`, "desc")
+    .orderBy("id asc")
+    .limit(limit)
+    .selectAll()
+    .execute();
+}
+
 export function getFirstDataRecord(dataSourceId: string) {
   return db
     .selectFrom("dataRecord")
