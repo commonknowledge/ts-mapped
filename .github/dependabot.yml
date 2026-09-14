@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/London
+    open-pull-requests-limit: 5
+    groups:
+      # One PR a week for everything that is a minor or patch bump.
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      # Keep tightly coupled families together when they bump a major.
+      sanity:
+        patterns: ["sanity", "@sanity/*", "next-sanity", "sanity-plugin-*"]
+      trpc:
+        patterns: ["@trpc/*"]
+      tiptap:
+        patterns: ["@tiptap/*"]
+      radix:
+        patterns: ["@radix-ui/*"]
+      react-email:
+        patterns: ["react-email", "@react-email/*"]
+      vitest:
+        patterns: ["vitest", "@vitest/*", "@vitejs/*"]
+    ignore:
+      # TypeScript 7 is the Go rewrite; typescript-eslint caps at <6.1 for now.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
