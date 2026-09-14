@@ -61,6 +61,7 @@ describe("dataRecord router tests", () => {
       path: "",
       type: "query",
       signal: undefined,
+      batchIndex: 0,
     });
     expect(recordsByRegion.match).toBe("Contains");
     expect(
@@ -159,6 +160,7 @@ describe("dataRecord router tests", () => {
       path: "",
       type: "query",
       signal: undefined,
+      batchIndex: 0,
     });
     expect(recordsByConstituency.match).toBe("Exact");
     expect(
@@ -204,6 +206,7 @@ describe("dataRecord router tests", () => {
       path: "",
       type: "query",
       signal: undefined,
+      batchIndex: 0,
     });
     expect(recordsByWard.match).toBe("ContainedBy");
     expect(
@@ -249,6 +252,7 @@ describe("dataRecord router tests", () => {
       path: "",
       type: "query",
       signal: undefined,
+      batchIndex: 0,
     });
     expect(recordsByWardApproximate.match).toBe("Approximate");
     expect(
@@ -294,6 +298,7 @@ describe("dataRecord router tests", () => {
       path: "",
       type: "query",
       signal: undefined,
+      batchIndex: 0,
     });
     expect(recordsByWardNone.match).toBe("Approximate");
     expect(

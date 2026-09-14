@@ -70,6 +70,7 @@ describe("dataSource router tests", () => {
           path: "",
           type: "query",
           signal: undefined,
+          batchIndex: 0,
         }),
       ).rejects.toThrow(TRPCError);
 
@@ -80,6 +81,7 @@ describe("dataSource router tests", () => {
           path: "",
           type: "query",
           signal: undefined,
+          batchIndex: 0,
         });
       } catch (e) {
         expect(e).toBeInstanceOf(TRPCError);
@@ -108,6 +110,7 @@ describe("dataSource router tests", () => {
         path: "",
         type: "query",
         signal: undefined,
+        batchIndex: 0,
       });
 
       const ids = result.map((ds) => ds.id);
@@ -135,6 +138,7 @@ describe("dataSource router tests", () => {
         path: "",
         type: "query",
         signal: undefined,
+        batchIndex: 0,
       });
 
       const ids = result.map((r) => r.id);
@@ -155,6 +159,7 @@ describe("dataSource router tests", () => {
           path: "",
           type: "query",
           signal: undefined,
+          batchIndex: 0,
         }),
       ).rejects.toThrow(TRPCError);
 
@@ -165,6 +170,7 @@ describe("dataSource router tests", () => {
           path: "",
           type: "query",
           signal: undefined,
+          batchIndex: 0,
         });
       } catch (e) {
         expect(e).toBeInstanceOf(TRPCError);
@@ -196,6 +202,7 @@ describe("dataSource router tests", () => {
         path: "",
         type: "query",
         signal: undefined,
+        batchIndex: 0,
       });
 
       const ids = result.map((ds) => ds.id);
