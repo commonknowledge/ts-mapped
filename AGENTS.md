@@ -204,7 +204,17 @@ ESLint enforces these rules automatically (run `npm run lint` to fix):
 
 ## Testing
 
-Tests use Vitest. The full test suite starts ngrok, pg-boss, and a webhook server, and reads from `test_credentials.json` — it is slow and has external dependencies. **Only run the tests relevant to your change.**
+Tests use Vitest. There are three tiers; pick the smallest one that covers the change.
+
+| Change                                 | Run                               |
+| -------------------------------------- | --------------------------------- |
+| Dependency bump (Dependabot or manual) | `npm run test:deps`               |
+| Small change to one area               | The unit test files for that area |
+| New feature or large refactor          | `npm test` (the full suite)       |
+
+**Only run the full suite for new features or large refactors.** It starts ngrok, pg-boss and a webhook server, reads from `test_credentials.json`, and hits live CRMs, so it is slow (over a minute) and flaky (third-party rate limits and timeouts). Failures in `tests/unit/server/adaptors/*` on an unrelated change are almost always that flakiness, not the change.
+
+`npm run test:deps` runs `tests/deps/` only: one file per load-bearing dependency (kysely, tRPC, zod, jotai, ioredis, pg-boss, react-email + nodemailer, csv-parse, turf, minio, zetkin), asserting the ways this codebase uses it. It needs only the docker-compose Postgres and Redis and finishes in seconds. **When a dependency gets a major bump, add or extend its file there** with whatever the changelog says changed that we rely on. See `tests/deps/README.md`.
 
 ```bash
 # Run a single test file
