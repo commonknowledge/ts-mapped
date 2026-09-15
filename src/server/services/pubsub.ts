@@ -258,8 +258,13 @@ export const getPubSub = () => {
     // Create two separate Redis clients from the environment variable
     // Redis requires separate connections for publish and subscribe operations
     // because subscribing puts the connection in a special mode
-    const publishClient = new Redis(process.env.REDIS_URL || "");
-    const subscribeClient = new Redis(process.env.REDIS_URL || "");
+    // ioredis 6 defaults to RESP3; keep RESP2 so pub/sub message shapes are unchanged.
+    const publishClient = new Redis(process.env.REDIS_URL || "", {
+      protocol: 2,
+    });
+    const subscribeClient = new Redis(process.env.REDIS_URL || "", {
+      protocol: 2,
+    });
     pubsub = new RedisPubSub({ publishClient, subscribeClient });
   }
   return pubsub;

@@ -1,7 +1,8 @@
-import { GithubIcon, HeartHandshakeIcon, MailIcon } from "lucide-react";
+import { HeartHandshakeIcon, MailIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import { getServerSession } from "@/auth";
+import GithubIcon from "@/components/icons/GithubIcon";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
 import CTA from "@/components/marketing/CTA";
