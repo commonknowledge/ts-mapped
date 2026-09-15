@@ -80,7 +80,7 @@
     "http-proxy": "^1.18.1",
     "ioredis": "^6.0.0",
     "jose": "^6.2.12",
-    "jotai": "^2.20.3",
+    "jotai": "^3.0.0",
     "kysely": "^0.29.5",
     "lucide-react": "^1.46.0",
     "mapbox-gl": "^3.30.0",
