@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useAtomValueRawSync, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { AreaSetGroupCode } from "@/models/AreaSet";
@@ -33,8 +33,11 @@ export function useMapViews() {
   // Get views directly from cache
   const views = mapData?.views;
 
+  // Fall back to the first view during render rather than waiting for
+  // useInitialMapViewEffect to write viewIdAtom, so components that mount in
+  // the same commit as the map data never render with an empty view config.
   const view = useMemo(
-    () => views?.find((v) => v.id === viewId) || null,
+    () => views?.find((v) => v.id === viewId) || views?.[0] || null,
     [viewId, views],
   );
 
@@ -290,8 +293,17 @@ export function useMapViews() {
  * Hook for managing map view state
  * Includes currently selected viewId and dirty tracking for unsaved changes
  */
+// Route-level atoms (map ID, view ID, map mode) are written during mount: by
+// MapJotaiProvider's hydration and by effects such as useInitialMapViewEffect.
+// jotai 3's `useAtomValue` no longer re-renders once after subscribing, so a
+// component that rendered before such a write and subscribed after it would
+// keep the stale value until the atom next changed (see "A subtle mount-timing
+// change in v3" in the jotai docs). `useAtomValueRawSync` is built on
+// useSyncExternalStore and always picks up writes made during mount. Only use
+// it for atoms that are written while readers are mounting; everything else
+// stays on `useAtomValue`.
 export function useMapViewState() {
-  const viewId = useAtomValue(viewIdAtom);
+  const viewId = useAtomValueRawSync(viewIdAtom);
   const setViewId = useSetAtom(viewIdAtom);
   const dirtyViewIds = useAtomValue(dirtyViewIdsAtom);
   const setDirtyViewIds = useSetAtom(dirtyViewIdsAtom);
@@ -306,11 +318,14 @@ export function useMapViewState() {
 
 // Individual hooks for granular access
 export function useViewId() {
-  return useAtomValue(viewIdAtom);
+  return useAtomValueRawSync(viewIdAtom);
 }
 
-export function useViewIdAtom() {
-  return useAtom(viewIdAtom);
+export function useViewIdAtom(): [
+  string | null,
+  (viewId: string | null) => void,
+] {
+  return [useAtomValueRawSync(viewIdAtom), useSetAtom(viewIdAtom)];
 }
 
 export function useSetViewId() {

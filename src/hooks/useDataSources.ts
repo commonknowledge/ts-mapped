@@ -13,7 +13,7 @@ import {
   useMapViews,
   useViewId,
 } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
+import { useIsSuperadminDataSourceRoute } from "@/atoms/dataSourceAtoms";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useTRPC } from "@/services/trpc/react";
 
@@ -22,9 +22,7 @@ export function useDataSources() {
   const organisationId = useOrganisationId();
   const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
   const isReadOnlyRoute = useAtomValue(isReadOnlyRouteAtom);
-  const isSuperadminDataSourceRoute = useAtomValue(
-    isSuperadminDataSourceRouteAtom,
-  );
+  const isSuperadminDataSourceRoute = useIsSuperadminDataSourceRoute();
   const mapId = useMapId();
   const viewId = useViewId();
 

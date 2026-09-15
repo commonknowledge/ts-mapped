@@ -42,6 +42,10 @@ export function useInitialMapViewEffect() {
     viewsInitialized.current = true;
 
     if (mapData?.views && mapData.views.length > 0) {
+      // useMapViews already falls back to the first view during render, so
+      // nothing depends on the timing of this write. It still has to happen
+      // so that raw viewIdAtom readers (URL sync, the publish-mode query,
+      // inspector config) see a real ID when the URL had none.
       const nextView =
         mapData.views.find((v) => v.id === viewId) || mapData.views[0];
       setViewId(nextView.id);

@@ -1,15 +1,14 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import EditColumnMetadataModal from "@/app/(private)/components/EditColumnMetadataModal/EditColumnMetadataModal";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import { isSuperadminDataSourceRouteAtom } from "@/atoms/dataSourceAtoms";
+import { useSuperadminDataSourceRouteEffect } from "@/atoms/dataSourceAtoms";
 import { useCurrentUser } from "@/hooks";
 import { useDataSources } from "@/hooks/useDataSources";
 import { UserRole } from "@/models/User";
@@ -31,13 +30,7 @@ export default function DataSourceConfigPage() {
   const trpc = useTRPC();
   const { updateDataSource, invalidateAll } = useDataSourceListCache();
 
-  const setIsSuperadminDataSourceRoute = useSetAtom(
-    isSuperadminDataSourceRouteAtom,
-  );
-  useEffect(() => {
-    setIsSuperadminDataSourceRoute(true);
-    return () => setIsSuperadminDataSourceRoute(false);
-  }, [setIsSuperadminDataSourceRoute]);
+  useSuperadminDataSourceRouteEffect();
 
   const { data: dataSources, isPending, getDataSourceById } = useDataSources();
 
