@@ -33,11 +33,20 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
   {
     code: AreaSetCode.W25,
     name: "UK Wards 2025",
-    filename: "wards.geojson",
+    filename: "wards_2025.geojson",
     link: "https://geoportal.statistics.gov.uk/datasets/6ba7cf950a504d82809131c945fe70f1_0/about",
     isNationalGridSRID: false,
     codeKey: "WD25CD",
     nameKey: "WD25NM",
+  },
+  {
+    code: AreaSetCode.W26,
+    name: "UK Wards 2026",
+    filename: "wards_2026.geojson",
+    link: "https://geoportal.statistics.gov.uk/datasets/10c346276bf64c588916179d01c6e68f_0/about",
+    isNationalGridSRID: true,
+    codeKey: "WD26CD",
+    nameKey: "WD26NM",
   },
   {
     code: AreaSetCode.LSOA21,

@@ -71,16 +71,16 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
-  W25: [
+  W26: [
     {
-      areaSetCode: AreaSetCode.W25,
+      areaSetCode: AreaSetCode.W26,
       minZoom: 6,
       requiresBoundingBox: false,
       mapbox: {
-        featureCodeProperty: "WD25CD",
-        featureNameProperty: "WD25NM",
-        layerId: "wards",
-        sourceId: "commonknowledge.9cnmf4m1",
+        featureCodeProperty: "WD26CD",
+        featureNameProperty: "WD26NM",
+        layerId: "a00cd68b6806cd7b52b9",
+        sourceId: "commonknowledge.8s7xkf9u6qht",
       },
     },
     {
