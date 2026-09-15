@@ -50,7 +50,7 @@ describe("zod", () => {
     expect(result.success).toBe(false);
     if (result.success) return;
     expect(result.error).toBeInstanceOf(ZodError);
-    const flat = result.error.flatten();
+    const flat = z.flattenError(result.error);
     expect(flat.fieldErrors.name).toBeDefined();
     expect(flat.fieldErrors.count).toBeDefined();
     expect(flat.formErrors).toEqual([]);
@@ -58,8 +58,10 @@ describe("zod", () => {
 
   test("schema.partial() and z.infer round trip", () => {
     const partial = organisationSchema.partial();
-    // .partial() makes the .default([]) field optional, so it is omitted.
-    expect(partial.parse({ name: "x" })).toEqual({ name: "x" });
+    // zod 4: .partial() keeps .default(), so defaulted fields are filled in
+    // even when absent (zod 3 omitted them). Anything that spreads a
+    // partial-parsed input into an update must not rely on absence.
+    expect(partial.parse({ name: "x" })).toEqual({ name: "x", features: [] });
     const value: z.infer<typeof organisationSchema> = {
       id: "1",
       name: "n",

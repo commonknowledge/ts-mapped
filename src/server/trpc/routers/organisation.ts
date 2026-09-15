@@ -87,7 +87,7 @@ export const organisationRouter = router({
     .input(
       z.object({
         name: z.string().min(1),
-        email: z.string().email(),
+        email: z.email(),
       }),
     )
     .mutation(async ({ input, ctx }) => {

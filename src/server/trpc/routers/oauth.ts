@@ -47,7 +47,7 @@ export const oauthRouter = router({
     }),
 
   googleExchangeOAuthCode: publicProcedure
-    .input(z.object({ redirectSuccessUrl: z.string().url() }))
+    .input(z.object({ redirectSuccessUrl: z.url() }))
     .mutation(async ({ input }) => {
       const parsed = new URL(input.redirectSuccessUrl);
       const code = parsed.searchParams.get("code");
@@ -109,7 +109,7 @@ export const oauthRouter = router({
   }),
 
   zetkinExchangeOAuthCode: publicProcedure
-    .input(z.object({ redirectSuccessUrl: z.string().url() }))
+    .input(z.object({ redirectSuccessUrl: z.url() }))
     .mutation(async ({ input }) => {
       const zetkin = createZetkinClient();
       await zetkin.authenticate(input.redirectSuccessUrl);

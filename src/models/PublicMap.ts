@@ -13,7 +13,7 @@ export const publicMapColumnTypes = Object.values(PublicMapColumnType);
 export const publicMapColumnSchema = z.object({
   label: z.string(),
   sourceColumns: z.array(z.string()),
-  type: z.nativeEnum(PublicMapColumnType),
+  type: z.enum(PublicMapColumnType),
 });
 
 export type PublicMapColumn = z.infer<typeof publicMapColumnSchema>;

@@ -23,7 +23,7 @@ export enum AreaSetCode {
 }
 export const areaSetCodes = Object.values(AreaSetCode);
 
-export const areaSetCode = z.nativeEnum(AreaSetCode);
+export const areaSetCode = z.enum(AreaSetCode);
 
 export enum AreaSetGroupCode {
   WMC24 = "WMC24",
@@ -44,7 +44,7 @@ export enum AreaSetGroupCode {
 }
 export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 
-export const areaSetGroupCode = z.nativeEnum(AreaSetGroupCode);
+export const areaSetGroupCode = z.enum(AreaSetGroupCode);
 
 export const AreaSetSizes: Record<AreaSetCode, number> = {
   [AreaSetCode.PC]: 1,

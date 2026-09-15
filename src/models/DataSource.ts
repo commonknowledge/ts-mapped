@@ -62,7 +62,6 @@ export const baserowConfigSchema = z.object({
   type: z.literal(DataSourceType.Baserow),
   // Configurable to support self-hosted Baserow instances
   apiUrl: z
-    .string()
     .url()
     .refine(
       (url) => url.startsWith("http://") || url.startsWith("https://"),
@@ -73,7 +72,7 @@ export const baserowConfigSchema = z.object({
   // Baserow has no OAuth flow, and its database tokens cannot create fields or
   // manage webhooks, so the integration signs in as a user to obtain a JWT.
   // Users are advised to create a dedicated bot account for this.
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().nonempty(),
 });
 
@@ -176,8 +175,8 @@ export const geocodeContextTypes = Object.values(GeocodeContextType);
 const areaEnrichmentSchema = z.object({
   name: z.string().nonempty(),
   sourceType: z.literal(EnrichmentSourceType.Area),
-  areaSetCode: z.nativeEnum(AreaSetCode),
-  areaProperty: z.nativeEnum(AreaPropertyType),
+  areaSetCode: z.enum(AreaSetCode),
+  areaProperty: z.enum(AreaPropertyType),
 });
 
 export type AreaEnrichment = z.infer<typeof areaEnrichmentSchema>;
@@ -194,7 +193,7 @@ export type DataSourceEnrichment = z.infer<typeof dataSourceEnrichmentSchema>;
 const geocodeEnrichmentSchema = z.object({
   name: z.string().nonempty(),
   sourceType: z.literal(EnrichmentSourceType.Geocode),
-  contextType: z.nativeEnum(GeocodeContextType),
+  contextType: z.enum(GeocodeContextType),
 });
 
 export type GeocodeEnrichment = z.infer<typeof geocodeEnrichmentSchema>;
@@ -227,13 +226,13 @@ export type AddressGeocodingConfig = z.infer<typeof addressGeocodingSchema>;
 const nameGeocodingSchema = z.object({
   type: z.literal(GeocodingType.Name),
   column: z.string().nonempty(),
-  areaSetCode: z.nativeEnum(AreaSetCode),
+  areaSetCode: z.enum(AreaSetCode),
 });
 
 const codeGeocodingSchema = z.object({
   type: z.literal(GeocodingType.Code),
   column: z.string().nonempty(),
-  areaSetCode: z.nativeEnum(AreaSetCode),
+  areaSetCode: z.enum(AreaSetCode),
 });
 
 const coordinatesGeocodingSchema = z.object({
@@ -321,7 +320,7 @@ export type DefaultInspectorConfig = z.infer<
 
 export const defaultChoroplethConfigSchema = z.object({
   column: z.string(),
-  calculationType: z.nativeEnum(CalculationType),
+  calculationType: z.enum(CalculationType),
 });
 export type DefaultChoroplethConfig = z.infer<
   typeof defaultChoroplethConfigSchema
@@ -329,7 +328,7 @@ export type DefaultChoroplethConfig = z.infer<
 
 export const columnDefSchema = z.object({
   name: z.string(),
-  type: z.nativeEnum(ColumnType),
+  type: z.enum(ColumnType),
 });
 
 export type ColumnDef = z.infer<typeof columnDefSchema>;
@@ -341,7 +340,7 @@ export const columnMetadataSchema = z.object({
   displayName: z.string().optional(),
   description: z.string(),
   valueLabels: z.record(z.string(), z.string()),
-  semanticType: z.nativeEnum(ColumnSemanticType).optional(),
+  semanticType: z.enum(ColumnSemanticType).optional(),
   valueColors: z.record(z.string(), z.string()).optional(),
   // Marker icon shape name per column value (see marker icon sprites)
   valueIcons: z.record(z.string(), z.string()).optional(),
@@ -376,8 +375,8 @@ export const dataSourceSchema = z.object({
   name: z.string().min(1, "Name is required"),
   autoEnrich: z.boolean(),
   autoImport: z.boolean(),
-  recordType: z.nativeEnum(DataSourceRecordType, {
-    errorMap: () => ({ message: "Valid record type is required" }),
+  recordType: z.enum(DataSourceRecordType, {
+    error: "Valid record type is required",
   }),
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const invitationSchema = z.object({
   id: z.string(),
-  email: z.string().email().trim().toLowerCase(),
+  email: z.email().trim().toLowerCase(),
   name: z.string().trim(),
   organisationId: z.string(),
   senderOrganisationId: z.string(),

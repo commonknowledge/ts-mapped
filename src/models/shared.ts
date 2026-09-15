@@ -32,10 +32,10 @@ export enum InspectorComparisonStat {
 
 export const inspectorColumnSchema = z.object({
   name: z.string(),
-  displayFormat: z.nativeEnum(ColumnDisplayFormat).optional(),
+  displayFormat: z.enum(ColumnDisplayFormat).optional(),
   scaleMax: z.number().int().min(2).max(10).optional(),
   barColor: z.string().optional(),
-  comparisonStat: z.nativeEnum(InspectorComparisonStat).optional(),
+  comparisonStat: z.enum(InspectorComparisonStat).optional(),
 });
 export type InspectorColumn = z.infer<typeof inspectorColumnSchema>;
 
@@ -60,5 +60,5 @@ export enum CalculationType {
   Mode = "Mode",
 }
 export const calculationTypes = Object.values(CalculationType);
-export const calculationType = z.nativeEnum(CalculationType);
+export const calculationType = z.enum(CalculationType);
 export const DEFAULT_CALCULATION_TYPE = CalculationType.Avg;

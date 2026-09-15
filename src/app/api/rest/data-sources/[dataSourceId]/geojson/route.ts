@@ -39,7 +39,7 @@ const queryParamsSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val ? parseInt(val, 10) : 0))
-    .pipe(z.number().int().min(0).default(0)),
+    .pipe(z.number().int().min(0)),
   sort: z
     .string()
     .optional()
@@ -58,7 +58,7 @@ const queryParamsSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => val === "true")
-    .pipe(z.boolean().default(false)),
+    .pipe(z.boolean()),
 });
 
 /**

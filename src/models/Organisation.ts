@@ -7,12 +7,12 @@ export enum Feature {
   SyncToCrm = "SyncToCrm",
 }
 
-export const featureSchema = z.nativeEnum(Feature);
+export const featureSchema = z.enum(Feature);
 
 export const organisationSchema = z.object({
   id: z.string(),
   name: z.string().trim(),
-  avatarUrl: z.string().url().trim().nullish(),
+  avatarUrl: z.url().trim().nullish(),
   features: z.array(featureSchema).default([]),
   createdAt: z.date(),
 });
