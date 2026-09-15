@@ -44,6 +44,15 @@ export type Context = Omit<
 superjson.registerCustom(serverDataSourceSerializer, "DataSource");
 superjson.registerCustom(hasPasswordHashSerializer, "HasPasswordHash");
 
+// zod 4 types flatten() on a ZodError<unknown> with fieldErrors as {}. The
+// client indexes fieldErrors by field name, so hand it the real shape.
+const flattenZodError = (
+  error: ZodError,
+): {
+  formErrors: string[];
+  fieldErrors: Record<string, string[] | undefined>;
+} => z.flattenError(error);
+
 /**
  * Initialization of tRPC backend
  * Should be done only once per backend!
@@ -63,7 +72,7 @@ const t = initTRPC.context<Context>().create({
           : undefined,
         zodError:
           error.code === "BAD_REQUEST" && error.cause instanceof ZodError
-            ? error.cause.flatten()
+            ? flattenZodError(error.cause)
             : null,
       },
     };

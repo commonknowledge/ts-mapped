@@ -82,7 +82,7 @@ export const dataRecordRouter = router({
   byAreaCode: dataSourceReadProcedure
     .input(
       z.object({
-        areaSetCode: z.nativeEnum(AreaSetCode),
+        areaSetCode: z.enum(AreaSetCode),
         areaCode: z.string(),
       }),
     )
@@ -255,7 +255,7 @@ export const dataRecordRouter = router({
     .input(
       z.object({
         columnName: z.string(),
-        stat: z.nativeEnum(InspectorComparisonStat),
+        stat: z.enum(InspectorComparisonStat),
       }),
     )
     .query(async ({ input }) => {

@@ -13,7 +13,7 @@ import { protectedProcedure, router, superadminProcedure } from "../index";
 export const userRouter = router({
   list: superadminProcedure.query(() => listUsers()),
   clearTrial: superadminProcedure
-    .input(z.object({ userId: z.string().uuid() }))
+    .input(z.object({ userId: z.uuid() }))
     .mutation(async ({ input }) => {
       return clearUserTrial(input.userId);
     }),
@@ -21,7 +21,7 @@ export const userRouter = router({
     .input(
       z.object({
         userId: z.string(),
-        role: z.nativeEnum(UserRole).nullable(),
+        role: z.enum(UserRole).nullable(),
       }),
     )
     .mutation(async ({ input }) => {

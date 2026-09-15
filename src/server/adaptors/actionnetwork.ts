@@ -50,12 +50,14 @@ const ActionNetworkWebhookPayload = z.array(
               }),
             )
             .optional(),
-          custom_fields: z.record(z.unknown()).optional(),
+          custom_fields: z.record(z.string(), z.unknown()).optional(),
           languages_spoken: z.array(z.string()).optional(),
           employer: z.string().optional(),
           occupation: z.string().optional(),
         }),
-        "action_network:referrer_data": z.record(z.unknown()).optional(),
+        "action_network:referrer_data": z
+          .record(z.string(), z.unknown())
+          .optional(),
         add_tags: z.array(z.string()).optional(),
         _links: z
           .object({
@@ -680,7 +682,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         postal_addresses: z.array(
           z.object({ postal_code: z.string(), primary: z.boolean() }).partial(),
         ),
-        custom_fields: z.record(z.unknown()),
+        custom_fields: z.record(z.string(), z.unknown()),
         languages_spoken: z.array(z.string()),
       })
       .partial();

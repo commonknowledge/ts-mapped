@@ -176,7 +176,7 @@ export function GeocodingConfigFields({
         </>
       )}
 
-      {typeSelectValue in AreaGeocodingType.Values && (
+      {typeSelectValue in AreaGeocodingType.enum && (
         <>
           <CustomSelect
             id="config-location-column-area-code"

@@ -13,11 +13,11 @@ export const passwordSchema = z
 export const userSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
-  email: z.string().email().trim().toLowerCase(),
+  email: z.email().trim().toLowerCase(),
   name: z.string().trim(),
-  avatarUrl: z.string().url().trim().nullish(),
+  avatarUrl: z.url().trim().nullish(),
   passwordHash: z.string(),
-  role: z.nativeEnum(UserRole).nullish(),
+  role: z.enum(UserRole).nullish(),
   trialEndsAt: z.date().nullish(),
 });
 

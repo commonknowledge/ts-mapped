@@ -4,8 +4,8 @@ import { DataSourceRecordType, DataSourceType } from "./DataSource";
 export const oAuthStateSchema = z
   .object({
     dataSourceName: z.string().optional(),
-    recordType: z.nativeEnum(DataSourceRecordType).optional(),
-    dataSourceType: z.nativeEnum(DataSourceType).optional(),
+    recordType: z.enum(DataSourceRecordType).optional(),
+    dataSourceType: z.enum(DataSourceType).optional(),
   })
   .catch({
     dataSourceName: undefined,

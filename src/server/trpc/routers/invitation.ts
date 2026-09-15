@@ -26,7 +26,7 @@ export const invitationRouter = router({
       z
         .object({
           name: z.string(),
-          email: z.string().email(),
+          email: z.email(),
           senderOrganisationId: z.string(),
           organisationId: z.string().nullish(),
           organisationName: z.string().nullish(),
@@ -116,7 +116,7 @@ export const invitationRouter = router({
       }
     }),
   list: advocateProcedure
-    .input(z.object({ senderOrganisationId: z.string().uuid() }))
+    .input(z.object({ senderOrganisationId: z.uuid() }))
     .query(async ({ input, ctx }) => {
       const org = await findOrganisationForUser(
         input.senderOrganisationId,

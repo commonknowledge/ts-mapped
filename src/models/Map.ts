@@ -7,8 +7,8 @@ export const mapConfigSchema = z.object({
   membersDataSourceId: z.string().nullish(),
   // Marker layer colours live in the map view config ("markerColors" there);
   // migrated out of the map config by the marker_colors_to_view migration.
-  placedMarkerColors: z.record(hexColorSchema).optional(),
-  folderColors: z.record(hexColorSchema).optional(),
+  placedMarkerColors: z.record(z.string(), hexColorSchema).optional(),
+  folderColors: z.record(z.string(), hexColorSchema).optional(),
   turfColor: hexColorSchema.optional(),
 });
 

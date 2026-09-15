@@ -14,7 +14,7 @@ export const areaRouter = router({
   byCode: viewerProcedure
     .input(
       z.object({
-        areaSetCode: z.nativeEnum(AreaSetCode),
+        areaSetCode: z.enum(AreaSetCode),
         code: z.string(),
       }),
     )
@@ -26,7 +26,7 @@ export const areaRouter = router({
   nameByCode: viewerProcedure
     .input(
       z.object({
-        areaSetCode: z.nativeEnum(AreaSetCode),
+        areaSetCode: z.enum(AreaSetCode),
         code: z.string(),
       }),
     )
@@ -48,8 +48,8 @@ export const areaRouter = router({
       z.object({
         // areaSetCode needs to be nullable so that an empty response can be returned
         // when the user has no area selected
-        areaSetCode: z.nativeEnum(AreaSetCode).nullable(),
-        calculationType: z.nativeEnum(CalculationType),
+        areaSetCode: z.enum(AreaSetCode).nullable(),
+        calculationType: z.enum(CalculationType),
         column: z.string(),
         secondaryColumn: z.string().optional(),
         includeColumns: z.array(z.string()).optional().nullable(),
