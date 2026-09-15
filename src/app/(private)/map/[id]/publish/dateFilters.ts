@@ -8,11 +8,7 @@ import {
 } from "date-fns";
 
 export type DateFilterKey =
-  | "today"
-  | "tomorrow"
-  | "thisWeek"
-  | "nextWeek"
-  | "thisWeekend";
+  "today" | "tomorrow" | "thisWeek" | "nextWeek" | "thisWeekend";
 
 export const DATE_FILTER_OPTIONS: { key: DateFilterKey; label: string }[] = [
   { key: "today", label: "Today" },

@@ -48,8 +48,7 @@ export function useUpdateInspectorConfig() {
   const debouncedMutate = useDebouncedCallback(() => {
     if (!mapId || !viewId) return;
     const configs = queryClient.getQueryData(queryKey) as
-      | InspectorConfig[]
-      | undefined;
+      InspectorConfig[] | undefined;
     if (!configs) return;
     mutateRaw({ mapId, viewId, configs });
   }, 600);
