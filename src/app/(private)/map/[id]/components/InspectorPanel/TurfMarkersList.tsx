@@ -49,25 +49,23 @@ export default function TurfMarkersList() {
           markers: result.data
             ? result.data.records
                 .filter((r) => r.geocodePoint !== null)
-                .map(
-                  (r): MarkerFeature => ({
-                    type: "Feature",
-                    geometry: {
-                      // [0, 0] should never happen because this query is filtering by geocodePoint
-                      coordinates: [
-                        r.geocodePoint?.lng || 0,
-                        r.geocodePoint?.lat || 0,
-                      ],
-                      type: "Point",
-                    },
-                    properties: {
-                      id: r.id,
-                      name: buildName(dataSource, r),
-                      dataSourceId: r.dataSourceId,
-                      matched: true,
-                    },
-                  }),
-                )
+                .map((r): MarkerFeature => ({
+                  type: "Feature",
+                  geometry: {
+                    // [0, 0] should never happen because this query is filtering by geocodePoint
+                    coordinates: [
+                      r.geocodePoint?.lng || 0,
+                      r.geocodePoint?.lat || 0,
+                    ],
+                    type: "Point",
+                  },
+                  properties: {
+                    id: r.id,
+                    name: buildName(dataSource, r),
+                    dataSourceId: r.dataSourceId,
+                    matched: true,
+                  },
+                }))
             : [],
         };
       }),

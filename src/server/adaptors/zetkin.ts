@@ -298,8 +298,7 @@ export class ZetkinAdaptor implements DataSourceAdaptor {
         .post({ slug, title: fieldName, type: "text" });
 
       const created = createResponse?.data?.data as
-        | ZetkinCustomField
-        | undefined;
+        ZetkinCustomField | undefined;
 
       if (
         !created ||

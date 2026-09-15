@@ -161,8 +161,7 @@ export function useSetPublicMap() {
   return useCallback(
     (
       updater:
-        | NonNullable<PublicMapData>
-        | ((prev: PublicMapData) => PublicMapData),
+        NonNullable<PublicMapData> | ((prev: PublicMapData) => PublicMapData),
     ) => {
       if (typeof updater === "function") {
         queryClient.setQueryData<PublicMapData>(queryKey, (old) =>

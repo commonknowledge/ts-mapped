@@ -16,9 +16,7 @@ import type { MapViewConfig } from "@/models/MapView";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource =
-  | RouterOutputs["dataSource"]["listReadable"][number]
-  | null
-  | undefined;
+  RouterOutputs["dataSource"]["listReadable"][number] | null | undefined;
 
 interface SteppedBarsProps {
   colorScheme: NumericColorScheme;

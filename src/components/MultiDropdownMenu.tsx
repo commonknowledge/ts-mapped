@@ -45,10 +45,7 @@ export interface DropdownSubMenu {
   label: string | React.ReactNode;
   icon?: React.ReactNode;
   items: (
-    | DropdownItem
-    | DropdownSeparator
-    | DropdownSubComponent
-    | DropdownSubMenu
+    DropdownItem | DropdownSeparator | DropdownSubComponent | DropdownSubMenu
   )[];
 }
 
@@ -60,10 +57,7 @@ export interface DropdownSubComponent {
 }
 
 export type DropdownMenuItemType =
-  | DropdownItem
-  | DropdownSeparator
-  | DropdownSubMenu
-  | DropdownSubComponent;
+  DropdownItem | DropdownSeparator | DropdownSubMenu | DropdownSubComponent;
 
 export default function MultiDropdownMenu({
   children,

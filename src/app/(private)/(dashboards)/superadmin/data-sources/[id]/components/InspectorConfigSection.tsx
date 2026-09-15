@@ -148,13 +148,11 @@ export function InspectorConfigSection({
   );
 
   const handleAddAll = useCallback(() => {
-    const newItems = availableColumns.map(
-      (n): InspectorItem => ({
-        type: "column",
-        name: n,
-        displayFormat: inferDisplayFormatFromColumnName(n),
-      }),
-    );
+    const newItems = availableColumns.map((n): InspectorItem => ({
+      type: "column",
+      name: n,
+      displayFormat: inferDisplayFormatFromColumnName(n),
+    }));
     onChange({ items: [...items, ...newItems] });
   }, [items, availableColumns, onChange]);
 
