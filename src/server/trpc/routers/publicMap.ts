@@ -29,7 +29,6 @@ export const publicMapRouter = router({
   list: organisationProcedure.query(async ({ ctx }) => {
     return findPublicMapsByOrganisationId(ctx.organisation.id);
   }),
-  // TODO: verify that the user has access to the provided data source
   create: organisationProcedure
     .input(z.object({ dataSourceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
