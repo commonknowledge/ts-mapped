@@ -16,6 +16,8 @@ import {
   buildName,
   buildPublicMapName,
   formatRecordDate,
+  getEventDate,
+  getHidePastEvents,
   getListingSort,
   toMonthKey,
 } from "@/utils/dataRecord";
@@ -68,11 +70,16 @@ export async function GET(
   });
 
   // When the public map listing is sorted by date, include the parsed and
-  // formatted record date on each marker so the popup can display it.
+  // formatted record date on each marker so the popup can display it, plus
+  // the raw timestamp so the client can hide past events at the source level.
   const includeDate =
     Boolean(publicMapDataSourceConfig) &&
-    getListingSort({ dataSource, dataSourceConfig: publicMapDataSourceConfig })
-      .sortBy === "date";
+    (getListingSort({ dataSource, dataSourceConfig: publicMapDataSourceConfig })
+      .sortBy === "date" ||
+      getHidePastEvents({
+        dataSource,
+        dataSourceConfig: publicMapDataSourceConfig,
+      }));
 
   // Marker styling (icon/size/colour by column) needs the raw column values on
   // the features. The column list is client-supplied but only honoured for
@@ -146,6 +153,12 @@ export async function GET(
                         dataRecord: dr,
                         dataSourceConfig: publicMapDataSourceConfig,
                       }),
+                      timestamp:
+                        getEventDate({
+                          dataSource,
+                          dataRecord: dr,
+                          dataSourceConfig: publicMapDataSourceConfig,
+                        })?.getTime() ?? null,
                     }
                   : {}),
                 ...(dateColumn

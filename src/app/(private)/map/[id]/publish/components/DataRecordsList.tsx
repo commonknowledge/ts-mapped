@@ -6,7 +6,11 @@ import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorSt
 import { useMapRef } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
 import { formatRecordDate, getListingSort } from "@/utils/dataRecord";
-import { useFilteredRecords } from "../hooks/usePublicFilters";
+import { PAST_EVENTS_FILTER_KEY } from "../dateFilters";
+import {
+  useFilteredRecords,
+  usePublicDateFilter,
+} from "../hooks/usePublicFilters";
 import { usePublicMapValue, useSearchLocation } from "../hooks/usePublicMap";
 import {
   buildPublicMapName,
@@ -37,6 +41,7 @@ export default function DataRecordsList({
   const { setSelectedRecords, focusedRecord } = useInspectorState();
   const mapRef = useMapRef();
   const filteredRecords = useFilteredRecords();
+  const publicDateFilter = usePublicDateFilter();
   const searchLocation = useSearchLocation();
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -56,15 +61,22 @@ export default function DataRecordsList({
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
 
+  const dataSourceId = dataRecordsQuery.data?.id;
+  const showingPastEvents = Boolean(
+    dataSourceId && publicDateFilter[dataSourceId] === PAST_EVENTS_FILTER_KEY,
+  );
+
   const recordGroups = useMemo(() => {
     // While a location search is active, keep the server's distance order
-    // (nearest first). Otherwise apply the configured name/date sort.
+    // (nearest first). Otherwise apply the configured name/date sort, most
+    // recent first while browsing past events.
     const sortedRecords = searchLocation
       ? filteredRecords
       : sortRecordsForListing({
           records: filteredRecords,
           dataSource: dataRecordsQuery.data,
           dataSourceConfig,
+          sortDirectionOverride: showingPastEvents ? "desc" : undefined,
         });
     return groupRecords(dataSourceConfig, sortedRecords);
   }, [
@@ -72,6 +84,7 @@ export default function DataRecordsList({
     dataSourceConfig,
     filteredRecords,
     searchLocation,
+    showingPastEvents,
   ]);
 
   if (!recordGroups?.length) {

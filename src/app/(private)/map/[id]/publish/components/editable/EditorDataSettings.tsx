@@ -21,7 +21,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import { getListingSort } from "@/utils/dataRecord";
+import { getHidePastEvents, getListingSort } from "@/utils/dataRecord";
 import {
   useActiveDataSourceId,
   usePublicDataSourceIds,
@@ -249,10 +249,15 @@ export default function EditorDataSettings() {
 
                     {/* Listing Sort */}
                     {(() => {
+                      const dataSource = getDataSourceById(
+                        dataSourceConfig.dataSourceId,
+                      );
                       const { sortBy, sortDirection } = getListingSort({
-                        dataSource: getDataSourceById(
-                          dataSourceConfig.dataSourceId,
-                        ),
+                        dataSource,
+                        dataSourceConfig,
+                      });
+                      const hidePastEvents = getHidePastEvents({
+                        dataSource,
                         dataSourceConfig,
                       });
                       return (
@@ -312,6 +317,26 @@ export default function EditorDataSettings() {
                                 ))}
                               </SelectContent>
                             </Select>
+                          </div>
+                          <div className="flex gap-2 items-center justify-between">
+                            <div className="flex flex-col">
+                              <Label className="text-xs font-medium">
+                                Hide past events
+                              </Label>
+                              <span className="text-xs text-muted-foreground">
+                                Only list dates from today onwards. Visitors can
+                                still choose &ldquo;Past events&rdquo;.
+                              </span>
+                            </div>
+                            <Switch
+                              checked={hidePastEvents}
+                              onCheckedChange={(checked) =>
+                                updateDataSourceConfig(
+                                  dataSourceConfig.dataSourceId,
+                                  { hidePastEvents: checked },
+                                )
+                              }
+                            />
                           </div>
                         </div>
                       );

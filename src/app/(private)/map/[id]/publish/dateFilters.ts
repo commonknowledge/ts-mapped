@@ -5,10 +5,13 @@ import {
   endOfWeek,
   startOfDay,
   startOfWeek,
+  subDays,
 } from "date-fns";
 
 export type DateFilterKey =
-  "today" | "tomorrow" | "thisWeek" | "nextWeek" | "thisWeekend";
+  "today" | "tomorrow" | "thisWeek" | "nextWeek" | "thisWeekend" | "past";
+
+export const PAST_EVENTS_FILTER_KEY: DateFilterKey = "past";
 
 export const DATE_FILTER_OPTIONS: { key: DateFilterKey; label: string }[] = [
   { key: "today", label: "Today" },
@@ -17,6 +20,11 @@ export const DATE_FILTER_OPTIONS: { key: DateFilterKey; label: string }[] = [
   { key: "nextWeek", label: "Next week" },
   { key: "thisWeekend", label: "This weekend" },
 ];
+
+// Only offered when the data source hides past events, as the way back to
+// the hidden records.
+export const PAST_EVENTS_FILTER_OPTION: { key: DateFilterKey; label: string } =
+  { key: PAST_EVENTS_FILTER_KEY, label: "Past events" };
 
 // Weeks start on Monday (UK convention).
 const WEEK_OPTIONS = { weekStartsOn: 1 } as const;
@@ -55,5 +63,8 @@ export function getDateFilterRange(key: DateFilterKey): {
         end: endOfDay(addDays(monday, 6)), // Sunday
       };
     }
+    case "past":
+      // Everything before today; see getPastEventsCutoff
+      return { start: new Date(0), end: endOfDay(subDays(now, 1)) };
   }
 }

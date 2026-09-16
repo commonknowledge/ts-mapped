@@ -11,8 +11,10 @@ import {
   MarkerIconMode,
   MarkerSizeMode,
 } from "@/models/MapView";
+import { getHidePastEvents, getPastEventsCutoff } from "@/utils/dataRecord";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useMapMode } from "../../hooks/useMapCore";
+import { PAST_EVENTS_FILTER_KEY } from "../../publish/dateFilters";
 import {
   useFilteredRecords,
   usePublicDateFilter,
@@ -77,6 +79,21 @@ export function DataSourceMarkers({
 
   const dataSourceId = dataSourceMarkers.dataSourceId;
 
+  // Public maps that hide past events drop them at the source level (so
+  // cluster counts stay correct), unless the "Past events" filter is active,
+  // in which case the client-filter exclusion below handles it.
+  const { getDataSourceById } = useDataSources();
+  const hidePastEvents =
+    Boolean(publicMap) &&
+    getHidePastEvents({
+      dataSource: getDataSourceById(dataSourceId),
+      dataSourceConfig: publicMap?.dataSourceConfigs.find(
+        (c) => c.dataSourceId === dataSourceId,
+      ),
+    });
+  const showingPastEvents =
+    publicDateFilter[dataSourceId] === PAST_EVENTS_FILTER_KEY;
+
   const safeMarkers = useMemo<FeatureCollection>(() => {
     const hasClientFilters =
       Object.keys(publicFilters).length > 0 ||
@@ -98,6 +115,15 @@ export function DataSourceMarkers({
           typeof f.properties.month === "number" &&
           f.properties.month >= filterTimeRange.start &&
           f.properties.month <= filterTimeRange.end,
+      );
+    }
+
+    if (hidePastEvents && !showingPastEvents) {
+      const cutoff = getPastEventsCutoff().getTime();
+      features = features.filter(
+        (f) =>
+          typeof f.properties.timestamp !== "number" ||
+          f.properties.timestamp >= cutoff,
       );
     }
 
@@ -131,6 +157,8 @@ export function DataSourceMarkers({
     publicDateFilter,
     hideFilteredMarkers,
     filterTimeRange,
+    hidePastEvents,
+    showingPastEvents,
   ]);
 
   const sourceId = `${dataSourceId}-markers`;
@@ -190,7 +218,6 @@ export function DataSourceMarkers({
 
   // Canonical distinct values (all records, server-side) so default colour
   // assignment matches the legend; loaded features are the fallback.
-  const { getDataSourceById } = useDataSources();
   const nullIsZero = getDataSourceById(dataSourceId)?.nullIsZero;
   const colorColumnValues = useColumnValues({
     dataSourceId,

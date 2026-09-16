@@ -35,6 +35,11 @@ export const publicMapDataSourceConfigSchema = z.object({
   dateFormat: z.string().optional(),
   sortBy: z.enum(["name", "date"]).optional(),
   sortDirection: z.enum(["asc", "desc"]).optional(),
+  // Hide records whose date is before today from the public listing and map.
+  // Unset means "on for Events data sources, off otherwise" (see
+  // getHidePastEvents); the public sidebar offers a "Past events" filter to
+  // reach the hidden records.
+  hidePastEvents: z.boolean().optional(),
   additionalColumns: z.array(publicMapColumnSchema),
   positiveTooltip: z.string().optional(),
   negativeTooltip: z.string().optional(),

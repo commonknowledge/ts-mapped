@@ -41,6 +41,9 @@ export interface MarkerFeature {
     matched: boolean;
     // Formatted record date, only set when the listing is sorted by date.
     date?: string;
+    // Event date as epoch milliseconds (null when the record has no parseable
+    // date), only set on public maps that sort by date or hide past events.
+    timestamp?: number | null;
     // Record month key (year * 12 + zero-based month), only set when the
     // data source has a dateColumn role.
     month?: number | null;
@@ -59,6 +62,9 @@ export interface MarkerFeatureWithoutDataSourceId {
     matched: boolean;
     // Formatted record date, only set when the listing is sorted by date.
     date?: string;
+    // Event date as epoch milliseconds (null when the record has no parseable
+    // date), only set on public maps that sort by date or hide past events.
+    timestamp?: number | null;
     // Record month key (year * 12 + zero-based month), only set when the
     // data source has a dateColumn role.
     month?: number | null;

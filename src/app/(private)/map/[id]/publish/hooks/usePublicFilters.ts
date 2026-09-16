@@ -1,13 +1,20 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useMemo } from "react";
 import { PublicMapColumnType } from "@/models/PublicMap";
-import { getListingSort, parseDate } from "@/utils/dataRecord";
+import {
+  getEventDate,
+  getHidePastEvents,
+  getListingSort,
+  getPastEventsCutoff,
+  isPastEvent,
+  parseDate,
+} from "@/utils/dataRecord";
 import {
   publicDateFilterAtom,
   publicFiltersAtom,
 } from "../atoms/publicFiltersAtoms";
 import { ALLOWED_FILTERS, TRANS_FRIENDLY_HOST } from "../const";
-import { getDateFilterRange } from "../dateFilters";
+import { PAST_EVENTS_FILTER_KEY, getDateFilterRange } from "../dateFilters";
 import { filterRecords, getActiveFilters } from "../filtersHelpers";
 import { usePublicDataRecordsQueries } from "./usePublicDataRecordsQueries";
 import {
@@ -166,7 +173,21 @@ export function useFilteredRecords() {
       : undefined;
     const sortedByDate =
       getListingSort({ dataSource, dataSourceConfig }).sortBy === "date";
-    if (dateFilterKey && sortedByDate) {
+    const hidePastEvents = getHidePastEvents({ dataSource, dataSourceConfig });
+    const showingPastEvents =
+      hidePastEvents && dateFilterKey === PAST_EVENTS_FILTER_KEY;
+    const cutoff = getPastEventsCutoff();
+
+    if (showingPastEvents) {
+      // Only records with a real date can be "past"; undated records stay in
+      // the default listing instead.
+      records = records.filter((record) =>
+        isPastEvent(
+          getEventDate({ dataSource, dataRecord: record, dataSourceConfig }),
+          cutoff,
+        ),
+      );
+    } else if (dateFilterKey && sortedByDate) {
       const { start, end } = getDateFilterRange(dateFilterKey);
       records = records.filter((record) => {
         const date = parseDate({
@@ -176,6 +197,14 @@ export function useFilteredRecords() {
         });
         return date >= start && date <= end;
       });
+    } else if (hidePastEvents) {
+      records = records.filter(
+        (record) =>
+          !isPastEvent(
+            getEventDate({ dataSource, dataRecord: record, dataSourceConfig }),
+            cutoff,
+          ),
+      );
     }
 
     return records;

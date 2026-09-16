@@ -23,15 +23,19 @@ export const sortRecordsForListing = ({
   records,
   dataSource,
   dataSourceConfig,
+  sortDirectionOverride,
 }: {
   records: DataRecord[];
   dataSource: DataSource | null | undefined;
   dataSourceConfig: PublicMapDataSourceConfig | null | undefined;
+  // e.g. most recent first while the "Past events" filter is active
+  sortDirectionOverride?: "asc" | "desc";
 }): DataRecord[] => {
-  const { sortBy, sortDirection } = getListingSort({
+  const { sortBy, sortDirection: configuredDirection } = getListingSort({
     dataSource,
     dataSourceConfig,
   });
+  const sortDirection = sortDirectionOverride ?? configuredDirection;
   const sign = sortDirection === "desc" ? -1 : 1;
 
   if (sortBy === "date") {

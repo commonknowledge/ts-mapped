@@ -1,4 +1,4 @@
-import { format, parse } from "date-fns";
+import { format, parse, startOfDay } from "date-fns";
 import { DataSourceRecordType } from "@/models/DataSource";
 import type { DataSource } from "@/models/DataSource";
 import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
@@ -24,6 +24,30 @@ export const getListingSort = ({
     (sortBy === "date" && !isEvents ? "desc" : "asc");
   return { sortBy, sortDirection };
 };
+
+// Whether a public map data source hides past events. Unset config defaults
+// to hiding them for Events data sources only, mirroring getListingSort.
+export const getHidePastEvents = ({
+  dataSource,
+  dataSourceConfig,
+}: {
+  dataSource: { recordType?: DataSourceRecordType } | null | undefined;
+  dataSourceConfig:
+    Pick<PublicMapDataSourceConfig, "hidePastEvents"> | null | undefined;
+}): boolean => {
+  return (
+    dataSourceConfig?.hidePastEvents ??
+    dataSource?.recordType === DataSourceRecordType.Events
+  );
+};
+
+// "Past" means before the start of today, so an event later today still
+// counts as upcoming.
+export const getPastEventsCutoff = (now: Date = new Date()): Date =>
+  startOfDay(now);
+
+export const isPastEvent = (date: Date | null, cutoff: Date): boolean =>
+  date !== null && date < cutoff;
 
 export function buildName(
   dataSource: DataSource | null | undefined,
@@ -108,6 +132,29 @@ export function parseRecordDate({
   return parseDateValue(json[dateColumn], dateFormat);
 }
 
+/**
+ * A record's event date, honouring the public map config's date column and
+ * format overrides. Null when the record has no parseable date. Unlike
+ * `parseDate` there is no createdAt fallback, so undated records are never
+ * mistaken for past events.
+ */
+export function getEventDate({
+  dataSource,
+  dataRecord,
+  dataSourceConfig,
+}: {
+  dataSource: DataSource | null | undefined;
+  dataRecord: { json: Record<string, unknown> };
+  dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
+}): Date | null {
+  return parseRecordDate({
+    json: dataRecord.json,
+    dateColumn:
+      dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn,
+    dateFormat: dataSourceConfig?.dateFormat || dataSource?.dateFormat,
+  });
+}
+
 export function parseDate({
   dataSource,
   dataRecord,
@@ -118,12 +165,7 @@ export function parseDate({
   // Public map config that overrides the data source's date column/format when set.
   dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
 }) {
-  const date = parseRecordDate({
-    json: dataRecord.json,
-    dateColumn:
-      dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn,
-    dateFormat: dataSourceConfig?.dateFormat || dataSource?.dateFormat,
-  });
+  const date = getEventDate({ dataSource, dataRecord, dataSourceConfig });
   return date ?? dataRecord.createdAt;
 }
 

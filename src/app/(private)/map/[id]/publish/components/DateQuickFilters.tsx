@@ -2,8 +2,8 @@
 
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { Button } from "@/shadcn/ui/button";
-import { getListingSort } from "@/utils/dataRecord";
-import { DATE_FILTER_OPTIONS } from "../dateFilters";
+import { getHidePastEvents, getListingSort } from "@/utils/dataRecord";
+import { DATE_FILTER_OPTIONS, PAST_EVENTS_FILTER_OPTION } from "../dateFilters";
 import {
   usePublicDateFilter,
   useSetPublicDateFilter,
@@ -29,7 +29,12 @@ export default function DateQuickFilters({
   const { setSelectedRecords } = useInspectorState();
 
   const { sortBy } = getListingSort({ dataSource, dataSourceConfig });
-  if (sortBy !== "date" || !dataSourceId) {
+  const hidePastEvents = getHidePastEvents({ dataSource, dataSourceConfig });
+  const options = [
+    ...(sortBy === "date" ? DATE_FILTER_OPTIONS : []),
+    ...(hidePastEvents ? [PAST_EVENTS_FILTER_OPTION] : []),
+  ];
+  if (!options.length || !dataSourceId) {
     return null;
   }
 
@@ -46,7 +51,7 @@ export default function DateQuickFilters({
 
   return (
     <div className="flex flex-wrap gap-2 px-2 pt-2">
-      {DATE_FILTER_OPTIONS.map((option) => {
+      {options.map((option) => {
         const isActive = active === option.key;
         return (
           <Button
