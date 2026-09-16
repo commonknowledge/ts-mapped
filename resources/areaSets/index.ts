@@ -49,6 +49,15 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
     nameKey: "WD26NM",
   },
   {
+    code: AreaSetCode.CED26,
+    name: "County Electoral Divisions 2026",
+    filename: "county_electoral_divisions_2026.geojson",
+    link: "https://geoportal.statistics.gov.uk/datasets/2c74d83f50c0420d8045481761cc8a60_0/about",
+    isNationalGridSRID: true,
+    codeKey: "CED26CD",
+    nameKey: "CED26NM",
+  },
+  {
     code: AreaSetCode.LSOA21,
     name: "Lower Super Output Areas 2021",
     filename: "lsoas.geojson",

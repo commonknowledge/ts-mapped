@@ -95,6 +95,30 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  CED26: [
+    {
+      areaSetCode: AreaSetCode.CED26,
+      minZoom: 6,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "CED26CD",
+        featureNameProperty: "CED26NM",
+        layerId: "f3dab85344b71107828f",
+        sourceId: "commonknowledge.bh8njnuiut80",
+      },
+    },
+    {
+      areaSetCode: AreaSetCode.CTYUA24,
+      minZoom: 2,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "CTYUA24CD",
+        featureNameProperty: "CTYUA24NM",
+        layerId: "counties",
+        sourceId: "commonknowledge.5s67wwy7",
+      },
+    },
+  ],
   LAD25: [
     {
       areaSetCode: AreaSetCode.LAD25,

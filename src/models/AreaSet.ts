@@ -6,6 +6,7 @@ export enum AreaSetCode {
   LAD25 = "LAD25",
   W25 = "W25",
   W26 = "W26",
+  CED26 = "CED26",
   LSOA21 = "LSOA21",
   MSOA21 = "MSOA21",
   OA21 = "OA21",
@@ -29,6 +30,7 @@ export const areaSetCode = z.enum(AreaSetCode);
 export enum AreaSetGroupCode {
   WMC24 = "WMC24",
   CTYUA24 = "CTYUA24",
+  CED26 = "CED26",
   LAD25 = "LAD25",
   W26 = "W26",
   MSOA21 = "MSOA21",
@@ -58,6 +60,7 @@ export const AreaSetSizes: Record<AreaSetCode, number> = {
   [AreaSetCode.W25]: 3,
   [AreaSetCode.W26]: 3,
   [AreaSetCode.LAD25]: 4,
+  [AreaSetCode.CED26]: 4,
   [AreaSetCode.WMC24]: 4,
   [AreaSetCode.SPC22]: 4,
   [AreaSetCode.SENC22]: 4,
