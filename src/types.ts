@@ -39,11 +39,13 @@ export interface MarkerFeature {
     name: string;
     dataSourceId: string;
     matched: boolean;
-    // Formatted record date, only set when the listing is sorted by date.
+    // Formatted record date, only set on public maps that sort by date or
+    // hide past events.
     date?: string;
-    // Event date as epoch milliseconds (null when the record has no parseable
-    // date), only set on public maps that sort by date or hide past events.
-    timestamp?: number | null;
+    // Raw event date column value (null when empty), only set on public maps
+    // that sort by date or hide past events. Parsed on the client so the
+    // past-events cutoff uses the visitor's timezone.
+    dateValue?: string | null;
     // Record month key (year * 12 + zero-based month), only set when the
     // data source has a dateColumn role.
     month?: number | null;
@@ -60,11 +62,13 @@ export interface MarkerFeatureWithoutDataSourceId {
     id: string;
     name: string;
     matched: boolean;
-    // Formatted record date, only set when the listing is sorted by date.
+    // Formatted record date, only set on public maps that sort by date or
+    // hide past events.
     date?: string;
-    // Event date as epoch milliseconds (null when the record has no parseable
-    // date), only set on public maps that sort by date or hide past events.
-    timestamp?: number | null;
+    // Raw event date column value (null when empty), only set on public maps
+    // that sort by date or hide past events. Parsed on the client so the
+    // past-events cutoff uses the visitor's timezone.
+    dateValue?: string | null;
     // Record month key (year * 12 + zero-based month), only set when the
     // data source has a dateColumn role.
     month?: number | null;

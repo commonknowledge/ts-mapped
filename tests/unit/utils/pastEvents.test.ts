@@ -6,6 +6,7 @@ import {
 import { DataSourceRecordType } from "@/models/DataSource";
 import {
   getEventDate,
+  getEventDateValue,
   getHidePastEvents,
   getPastEventsCutoff,
   isPastEvent,
@@ -48,6 +49,32 @@ describe("getHidePastEvents", () => {
         dataSourceConfig: { hidePastEvents: true },
       }),
     ).toBe(true);
+  });
+});
+
+describe("getEventDateValue", () => {
+  it("returns the raw column value as a string, or null when empty", () => {
+    expect(
+      getEventDateValue({
+        dataSource: null,
+        dataRecord: { json: { date: "2026-09-20" } },
+        dataSourceConfig,
+      }),
+    ).toBe("2026-09-20");
+    expect(
+      getEventDateValue({
+        dataSource: null,
+        dataRecord: { json: { date: "" } },
+        dataSourceConfig,
+      }),
+    ).toBeNull();
+    expect(
+      getEventDateValue({
+        dataSource: null,
+        dataRecord: { json: { date: "2026-09-20" } },
+        dataSourceConfig: null,
+      }),
+    ).toBeNull();
   });
 });
 
@@ -97,10 +124,8 @@ describe("past events cutoff", () => {
   });
 
   it("the Past events quick filter ends where the cutoff begins", () => {
-    const { start, end } = getDateFilterRange(PAST_EVENTS_FILTER_KEY);
-    const today = getPastEventsCutoff();
+    const { start, end } = getDateFilterRange(PAST_EVENTS_FILTER_KEY, now);
     expect(start.getTime()).toBe(0);
-    expect(end.getTime()).toBeLessThan(today.getTime());
-    expect(today.getTime() - end.getTime()).toBeLessThanOrEqual(1);
+    expect(end.getTime()).toBe(cutoff.getTime() - 1);
   });
 });

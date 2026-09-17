@@ -16,7 +16,7 @@ import {
   buildName,
   buildPublicMapName,
   formatRecordDate,
-  getEventDate,
+  getEventDateValue,
   getHidePastEvents,
   getListingSort,
   toMonthKey,
@@ -69,9 +69,10 @@ export async function GET(
     userId: currentUser?.id,
   });
 
-  // When the public map listing is sorted by date, include the parsed and
-  // formatted record date on each marker so the popup can display it, plus
-  // the raw timestamp so the client can hide past events at the source level.
+  // When the public map listing is sorted by date or hides past events,
+  // include the formatted record date on each marker for the popup, plus
+  // the raw date value so the client can hide past events at the source level
+  // (parsed client-side, so "today" is the visitor's day, not the server's).
   const includeDate =
     Boolean(publicMapDataSourceConfig) &&
     (getListingSort({ dataSource, dataSourceConfig: publicMapDataSourceConfig })
@@ -153,12 +154,11 @@ export async function GET(
                         dataRecord: dr,
                         dataSourceConfig: publicMapDataSourceConfig,
                       }),
-                      timestamp:
-                        getEventDate({
-                          dataSource,
-                          dataRecord: dr,
-                          dataSourceConfig: publicMapDataSourceConfig,
-                        })?.getTime() ?? null,
+                      dateValue: getEventDateValue({
+                        dataSource,
+                        dataRecord: dr,
+                        dataSourceConfig: publicMapDataSourceConfig,
+                      }),
                     }
                   : {}),
                 ...(dateColumn

@@ -11,7 +11,13 @@ import {
   MarkerIconMode,
   MarkerSizeMode,
 } from "@/models/MapView";
-import { getHidePastEvents, getPastEventsCutoff } from "@/utils/dataRecord";
+import {
+  getEventDateFormat,
+  getHidePastEvents,
+  getPastEventsCutoff,
+  isPastEvent,
+  parseDateValue,
+} from "@/utils/dataRecord";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useMapMode } from "../../hooks/useMapCore";
 import { PAST_EVENTS_FILTER_KEY } from "../../publish/dateFilters";
@@ -83,14 +89,13 @@ export function DataSourceMarkers({
   // cluster counts stay correct), unless the "Past events" filter is active,
   // in which case the client-filter exclusion below handles it.
   const { getDataSourceById } = useDataSources();
+  const dataSource = getDataSourceById(dataSourceId);
+  const dataSourceConfig = publicMap?.dataSourceConfigs.find(
+    (c) => c.dataSourceId === dataSourceId,
+  );
   const hidePastEvents =
-    Boolean(publicMap) &&
-    getHidePastEvents({
-      dataSource: getDataSourceById(dataSourceId),
-      dataSourceConfig: publicMap?.dataSourceConfigs.find(
-        (c) => c.dataSourceId === dataSourceId,
-      ),
-    });
+    Boolean(publicMap) && getHidePastEvents({ dataSource, dataSourceConfig });
+  const eventDateFormat = getEventDateFormat({ dataSource, dataSourceConfig });
   const showingPastEvents =
     publicDateFilter[dataSourceId] === PAST_EVENTS_FILTER_KEY;
 
@@ -119,11 +124,15 @@ export function DataSourceMarkers({
     }
 
     if (hidePastEvents && !showingPastEvents) {
-      const cutoff = getPastEventsCutoff().getTime();
+      // Parsed here (not on the server) so the cutoff and the date share the
+      // visitor's timezone, matching the listing in useFilteredRecords.
+      const cutoff = getPastEventsCutoff();
       features = features.filter(
         (f) =>
-          typeof f.properties.timestamp !== "number" ||
-          f.properties.timestamp >= cutoff,
+          !isPastEvent(
+            parseDateValue(f.properties.dateValue, eventDateFormat),
+            cutoff,
+          ),
       );
     }
 
@@ -159,6 +168,7 @@ export function DataSourceMarkers({
     filterTimeRange,
     hidePastEvents,
     showingPastEvents,
+    eventDateFormat,
   ]);
 
   const sourceId = `${dataSourceId}-markers`;

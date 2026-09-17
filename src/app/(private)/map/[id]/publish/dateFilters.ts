@@ -32,11 +32,13 @@ const WEEK_OPTIONS = { weekStartsOn: 1 } as const;
 /**
  * Inclusive date range for a quick filter, evaluated relative to now.
  */
-export function getDateFilterRange(key: DateFilterKey): {
+export function getDateFilterRange(
+  key: DateFilterKey,
+  now: Date = new Date(),
+): {
   start: Date;
   end: Date;
 } {
-  const now = new Date();
   switch (key) {
     case "today":
       return { start: startOfDay(now), end: endOfDay(now) };

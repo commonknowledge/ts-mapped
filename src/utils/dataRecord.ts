@@ -132,6 +132,54 @@ export function parseRecordDate({
   return parseDateValue(json[dateColumn], dateFormat);
 }
 
+interface EventDateSource {
+  columnRoles: { dateColumn?: string };
+  dateFormat?: string | null;
+}
+type EventDateConfig = { dateColumn?: string; dateFormat?: string } | null;
+
+/**
+ * The date format for a data source's event dates, honouring the public map
+ * config's override. Shared by the server (markers API) and client (listing,
+ * map) so both parse the same way.
+ */
+export function getEventDateFormat({
+  dataSource,
+  dataSourceConfig,
+}: {
+  dataSource: EventDateSource | null | undefined;
+  dataSourceConfig?: EventDateConfig;
+}): string | null | undefined {
+  return dataSourceConfig?.dateFormat || dataSource?.dateFormat;
+}
+
+/**
+ * A record's raw event date column value as a string, honouring the public
+ * map config's date column override. Null when there is no date column or
+ * the value is empty. Sent on marker features so the client can parse dates
+ * in the visitor's timezone rather than the server's.
+ */
+export function getEventDateValue({
+  dataSource,
+  dataRecord,
+  dataSourceConfig,
+}: {
+  dataSource: EventDateSource | null | undefined;
+  dataRecord: { json: Record<string, unknown> };
+  dataSourceConfig?: EventDateConfig;
+}): string | null {
+  const dateColumn =
+    dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn;
+  if (!dateColumn) {
+    return null;
+  }
+  const value = dataRecord.json[dateColumn];
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+  return String(value);
+}
+
 /**
  * A record's event date, honouring the public map config's date column and
  * format overrides. Null when the record has no parseable date. Unlike
@@ -143,16 +191,14 @@ export function getEventDate({
   dataRecord,
   dataSourceConfig,
 }: {
-  dataSource: DataSource | null | undefined;
+  dataSource: EventDateSource | null | undefined;
   dataRecord: { json: Record<string, unknown> };
-  dataSourceConfig?: { dateColumn?: string; dateFormat?: string } | null;
+  dataSourceConfig?: EventDateConfig;
 }): Date | null {
-  return parseRecordDate({
-    json: dataRecord.json,
-    dateColumn:
-      dataSourceConfig?.dateColumn || dataSource?.columnRoles.dateColumn,
-    dateFormat: dataSourceConfig?.dateFormat || dataSource?.dateFormat,
-  });
+  return parseDateValue(
+    getEventDateValue({ dataSource, dataRecord, dataSourceConfig }),
+    getEventDateFormat({ dataSource, dataSourceConfig }),
+  );
 }
 
 export function parseDate({

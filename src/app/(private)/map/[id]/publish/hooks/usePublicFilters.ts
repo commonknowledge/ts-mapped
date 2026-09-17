@@ -176,6 +176,10 @@ export function useFilteredRecords() {
     const hidePastEvents = getHidePastEvents({ dataSource, dataSourceConfig });
     const showingPastEvents =
       hidePastEvents && dateFilterKey === PAST_EVENTS_FILTER_KEY;
+    // "Past events" is only a quick filter while the setting is on; a stale
+    // selection left over from switching it off is ignored.
+    const quickFilterKey =
+      dateFilterKey === PAST_EVENTS_FILTER_KEY ? undefined : dateFilterKey;
     const cutoff = getPastEventsCutoff();
 
     if (showingPastEvents) {
@@ -187,24 +191,34 @@ export function useFilteredRecords() {
           cutoff,
         ),
       );
-    } else if (dateFilterKey && sortedByDate) {
-      const { start, end } = getDateFilterRange(dateFilterKey);
-      records = records.filter((record) => {
-        const date = parseDate({
-          dataSource,
-          dataRecord: record,
-          dataSourceConfig,
+    } else {
+      if (quickFilterKey && sortedByDate) {
+        const { start, end } = getDateFilterRange(quickFilterKey);
+        records = records.filter((record) => {
+          const date = parseDate({
+            dataSource,
+            dataRecord: record,
+            dataSourceConfig,
+          });
+          return date >= start && date <= end;
         });
-        return date >= start && date <= end;
-      });
-    } else if (hidePastEvents) {
-      records = records.filter(
-        (record) =>
-          !isPastEvent(
-            getEventDate({ dataSource, dataRecord: record, dataSourceConfig }),
-            cutoff,
-          ),
-      );
+      }
+      // Applied on top of any quick filter ("This week" spans the calendar
+      // week, so it can reach back before today), matching the map, which
+      // drops past markers whenever the "Past events" filter is not active.
+      if (hidePastEvents) {
+        records = records.filter(
+          (record) =>
+            !isPastEvent(
+              getEventDate({
+                dataSource,
+                dataRecord: record,
+                dataSourceConfig,
+              }),
+              cutoff,
+            ),
+        );
+      }
     }
 
     return records;
