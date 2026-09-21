@@ -65,10 +65,12 @@ const errorLink: TRPCLink<AppRouter> = () => {
               const redirectTo = encodeURIComponent(
                 window.location.pathname + window.location.search,
               );
+              // Next lint complains about this, but it's actually better after logout to force a full page reload
               window.location.href = `/login?redirectTo=${redirectTo}`;
               return;
             }
             if (err.data?.code === "FORBIDDEN") {
+              // Next lint complains about this, but it's actually better after logout to force a full page reload
               window.location.href = DEFAULT_AUTH_REDIRECT;
               return;
             }
