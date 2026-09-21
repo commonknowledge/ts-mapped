@@ -86,7 +86,7 @@ export default function DataSourceTabs({
 
   return (
     <Tabs value={defaultTabId} onValueChange={onTabChange} className="min-h-0">
-      <div className="flex items-center gap-2 px-4">
+      <div className="flex items-center gap-2 px-4 pt-4">
         <TabsList
           className="grid w-full"
           style={{
