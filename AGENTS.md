@@ -137,12 +137,14 @@ await db.insertInto("dataSource").values({ config: JSON.stringify({ type: "csv",
 
 ### PointPlugin
 
-The `PointPlugin` handles serialisation of PostGIS geometry/geography columns:
+PostGIS geography columns are handled in two halves:
 
-- **Writing**: pass `{ lat: number, lng: number }` and the plugin converts it to `SRID=4326;POINT(lng lat)` WKT automatically. The same applies to `Polygon` and `MultiPolygon` GeoJSON objects.
-- **Reading**: WKB hex strings returned by PostGIS are automatically parsed back to `{ lat, lng }` (or GeoJSON Polygon/MultiPolygon).
+- **Reading**: the `PointPlugin` parses WKB hex strings returned by PostGIS back to `{ lat, lng }` (or GeoJSON Polygon/MultiPolygon for the `polygon` and `geography` columns).
+- **Writing**: never pass a plain `{ lat, lng }` object. Build the value with `toGeography(point)` from `@/server/services/database/geography`, which returns a `ST_SetSRID(ST_MakePoint(...), 4326)::geography` expression. Polygons are written with an explicit `ST_GeomFromGeoJSON(...)` expression (see `upsertTurf`).
 
-If a new PostGIS geometry column does not appear to be working (values come back as raw hex strings, or writes fail silently), check whether the column name/type is covered by the plugin's detection logic in `src/server/services/database/plugins/PointPlugin.ts`.
+Geometry is deliberately **not** inferred from a value's shape: data record JSON can legitimately contain `lat` and `lng` keys, and guessing turned that JSON into a point. Type every geography column as `GeographyColumn<...>` (from `@/server/models/geography`) in its `*Table` type so that TypeScript rejects a raw object at the write site.
+
+If a new PostGIS geometry column does not appear to be working on read (values come back as raw hex strings), check whether the column name/type is covered by the parsing logic in `src/server/services/database/plugins/PointPlugin.ts`.
 
 ## tRPC
 

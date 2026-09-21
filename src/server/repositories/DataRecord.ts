@@ -7,6 +7,7 @@ import {
 import { FilterOperator, FilterType } from "@/models/MapView";
 import { InspectorComparisonStat } from "@/models/shared";
 import { db } from "@/server/services/database";
+import { toGeography } from "@/server/services/database/geography";
 import { monthKeyRangeToDates } from "@/utils/dataRecord";
 import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
@@ -412,7 +413,12 @@ export function upsertDataRecords(dataRecords: NewDataRecord[]) {
   if (dataRecords.length === 0) return [];
   return db
     .insertInto("dataRecord")
-    .values(dataRecords)
+    .values(
+      dataRecords.map((record) => ({
+        ...record,
+        geocodePoint: toGeography(record.geocodePoint),
+      })),
+    )
     .onConflict((oc) =>
       oc.columns(["externalId", "dataSourceId"]).doUpdateSet((eb) => ({
         json: eb.ref("excluded.json"),

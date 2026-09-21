@@ -15,6 +15,7 @@ import {
   findAreasByPoint,
 } from "@/server/repositories/Area";
 import { db } from "@/server/services/database";
+import { toGeography } from "@/server/services/database/geography";
 import logger from "@/server/services/logger";
 import { geojsonPointToPoint } from "../utils/geo";
 import type { GeocodeContext, GeocodeResult } from "@/models/DataRecord";
@@ -439,13 +440,14 @@ const mapboxGeocode = async (
     : null;
   const context = feature ? parseContext(feature.properties?.context) : null;
 
+  const pointExpr = toGeography(point);
   await db
     .insertInto("geocodeCache")
-    .values({ address, point, context })
+    .values({ address, point: pointExpr, context })
     .onConflict((oc) =>
       oc
         .column("address")
-        .doUpdateSet({ point, context, createdAt: sql`now()` }),
+        .doUpdateSet({ point: pointExpr, context, createdAt: sql`now()` }),
     )
     .execute();
 
