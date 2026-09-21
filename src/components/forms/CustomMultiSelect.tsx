@@ -39,8 +39,12 @@ export default function CustomMultiSelect({
   const [search, setSearch] = useState("");
   const enableSearch = allOptions?.length > 3;
 
-  const onSelect = (currentValue: string) => {
-    onChange(currentValue);
+  // Pass the option from the closure rather than cmdk's `onSelect` argument:
+  // cmdk trims item values, and String.prototype.trim() also strips a leading
+  // byte order mark, so a column named "\uFEFFTitle" would come back as
+  // "Title" and never match the record key.
+  const onSelect = (option: string) => {
+    onChange(option);
     setSearch("");
   };
 
@@ -87,7 +91,7 @@ export default function CustomMultiSelect({
                   <CommandItem
                     key={option}
                     value={option}
-                    onSelect={(currentValue: string) => onSelect(currentValue)}
+                    onSelect={() => onSelect(option)}
                   >
                     {option}
                     <Check
