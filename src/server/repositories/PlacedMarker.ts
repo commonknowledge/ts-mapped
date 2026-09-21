@@ -1,6 +1,6 @@
 import { db } from "@/server/services/database";
 import { toGeography } from "@/server/services/database/geography";
-import type { NewPlacedMarkerInput } from "@/server/models/PlacedMarker";
+import type { NewPlacedMarker } from "@/server/models/PlacedMarker";
 
 export function findPlacedMarkersByMapId(mapId: string) {
   return db
@@ -23,7 +23,7 @@ export async function deletePlacedMarkersByFolderId(folderId: string) {
     .execute();
 }
 
-export async function upsertPlacedMarker(placedMarker: NewPlacedMarkerInput) {
+export async function upsertPlacedMarker(placedMarker: NewPlacedMarker) {
   const values = {
     ...placedMarker,
     point: toGeography(placedMarker.point),

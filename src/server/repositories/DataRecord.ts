@@ -12,7 +12,7 @@ import { monthKeyRangeToDates } from "@/utils/dataRecord";
 import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
 import type { Point } from "@/models/shared";
-import type { NewDataRecordInput } from "@/server/models/DataRecord";
+import type { NewDataRecord } from "@/server/models/DataRecord";
 import type { Database } from "@/server/services/database";
 import type {
   AliasableExpression,
@@ -409,7 +409,7 @@ function getDataRecordByDataSourceAndAreaCodeQuery(
     .selectAll();
 }
 
-export function upsertDataRecords(dataRecords: NewDataRecordInput[]) {
+export function upsertDataRecords(dataRecords: NewDataRecord[]) {
   if (dataRecords.length === 0) return [];
   return db
     .insertInto("dataRecord")

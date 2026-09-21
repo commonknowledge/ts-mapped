@@ -7,10 +7,15 @@ export type PlacedMarkerTable = Omit<PlacedMarker, "point"> & {
   id: Generated<string>;
   point: GeographyColumn<Point>;
 };
-export type NewPlacedMarker = Insertable<PlacedMarkerTable>;
-export type PlacedMarkerUpdate = Updateable<PlacedMarkerTable>;
 
-/** A placed marker to upsert, with its point as a plain `{ lat, lng }`. */
-export type NewPlacedMarkerInput = Omit<NewPlacedMarker, "point"> & {
+// Repositories take the point as a plain `{ lat, lng }` and convert it with
+// `toGeography` themselves, so callers never build the SQL expression.
+export type NewPlacedMarker = Omit<Insertable<PlacedMarkerTable>, "point"> & {
   point: Point;
+};
+export type PlacedMarkerUpdate = Omit<
+  Updateable<PlacedMarkerTable>,
+  "point"
+> & {
+  point?: Point;
 };
