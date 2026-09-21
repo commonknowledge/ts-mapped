@@ -8,6 +8,7 @@ import {
 import { getEnrichedColumn } from "@/server/mapping/enrich";
 import { geocodeRecord, mapboxReverseGeocode } from "@/server/mapping/geocode";
 import { db } from "@/server/services/database";
+import { toGeography } from "@/server/services/database/geography";
 
 const MOCK_CONTEXT = {
   place: { name: "London" },
@@ -136,7 +137,7 @@ describe("geocode cache", () => {
       .insertInto("geocodeCache")
       .values({
         address,
-        point: { lat: 0, lng: 0 },
+        point: toGeography({ lat: 0, lng: 0 }),
       })
       .execute();
     await db

@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { GeocodingType } from "@/models/DataSource";
 import { db } from "@/server/services/database";
+import { toGeography } from "@/server/services/database/geography";
 import logger from "@/server/services/logger";
 import type { AddressGeocodingConfig } from "@/models/DataSource";
 import type { Point } from "@/models/shared";
@@ -36,7 +37,7 @@ export default async function populateGeocodeCache() {
         .trim();
       if (!address) continue;
 
-      entries.push({ address, point: record.geocodePoint as Point | null });
+      entries.push({ address, point: record.geocodePoint });
     }
 
     if (entries.length === 0) {
@@ -55,7 +56,12 @@ export default async function populateGeocodeCache() {
       const batch = deduplicated.slice(i, i + batchSize);
       await db
         .insertInto("geocodeCache")
-        .values(batch)
+        .values(
+          batch.map((entry) => ({
+            ...entry,
+            point: toGeography(entry.point),
+          })),
+        )
         .onConflict((oc) => oc.column("address").doNothing())
         .execute();
       inserted += batch.length;

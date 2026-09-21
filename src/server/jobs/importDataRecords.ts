@@ -9,7 +9,6 @@ import logger from "@/server/services/logger";
 import { batchAsync } from "../utils";
 import { importBatch, inferColumnSemanticTypes } from "./importDataSource";
 import type { GeocodeResult } from "@/models/DataRecord";
-import type { Point } from "@/models/shared";
 
 const importDataRecords = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
@@ -60,7 +59,7 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
           {
             json: r.json as Record<string, unknown>,
             geocodeResult: r.geocodeResult as GeocodeResult | null,
-            geocodePoint: r.geocodePoint as Point | null,
+            geocodePoint: r.geocodePoint,
           },
         ]),
       );

@@ -1,4 +1,3 @@
-import { OperationNodeTransformer } from "kysely";
 import logger from "../../../services/logger"; // Relative import required for Kysely CLI
 import type { Point } from "@/models/shared";
 import type { MultiPolygon, Polygon } from "geojson";
@@ -6,18 +5,24 @@ import type {
   KyselyPlugin,
   PluginTransformQueryArgs,
   PluginTransformResultArgs,
-  PrimitiveValueListNode,
   QueryResult,
   RootOperationNode,
   UnknownRow,
-  ValueNode,
 } from "kysely";
 
+/**
+ * Parses PostGIS geography values on *read*: WKB hex strings become
+ * `{ lat, lng }` points, or GeoJSON Polygon/MultiPolygon for the `polygon`
+ * and `geography` columns.
+ *
+ * Writes are deliberately not handled here. Geometry cannot be inferred from
+ * a value's shape (a data record's JSON may itself contain `lat` and `lng`
+ * keys), so geography columns are typed as `GeographyColumn` and written via
+ * `toGeography` in `@/server/services/database/geography`.
+ */
 export class PointPlugin implements KyselyPlugin {
-  readonly #transformer = new PointTransformer();
-
   transformQuery(args: PluginTransformQueryArgs): RootOperationNode {
-    return this.#transformer.transformNode(args.node);
+    return args.node;
   }
 
   async transformResult(
@@ -29,132 +34,6 @@ export class PointPlugin implements KyselyPlugin {
   }
 }
 
-class PointTransformer extends OperationNodeTransformer {
-  protected transformValue(node: ValueNode): ValueNode {
-    return {
-      ...node,
-      value: this.maybeTransformGeometry(node.value),
-    };
-  }
-
-  protected transformPrimitiveValueList(
-    node: PrimitiveValueListNode,
-  ): PrimitiveValueListNode {
-    return {
-      ...node,
-      values: node.values.map((v) => this.maybeTransformGeometry(v)),
-    };
-  }
-
-  private maybeTransformGeometry(value: unknown) {
-    if (isPoint(value)) {
-      return mapPoint(value);
-    }
-    if (isMultiPolygon(value)) {
-      return mapMultiPolygon(value);
-    }
-    if (isPolygon(value)) {
-      return mapPolygon(value);
-    }
-    return value;
-  }
-}
-
-function mapPoint(point: Point): string {
-  return `SRID=4326;POINT(${point.lng} ${point.lat})`;
-}
-
-function mapPolygon(polygon: Polygon): string {
-  // Convert coordinates array to WKT format
-  const rings = polygon.coordinates
-    .map((ring) => {
-      const coords = ring.map((coord) => `${coord[0]} ${coord[1]}`).join(", ");
-      return `(${coords})`;
-    })
-    .join(", ");
-
-  return `SRID=4326;POLYGON(${rings})`;
-}
-
-function mapMultiPolygon(multiPolygon: MultiPolygon): string {
-  // Convert MultiPolygon coordinates to WKT format
-  const polygons = multiPolygon.coordinates
-    .map((polygon) => {
-      const rings = polygon
-        .map((ring) => {
-          const coords = ring
-            .map((coord) => `${coord[0]} ${coord[1]}`)
-            .join(", ");
-          return `(${coords})`;
-        })
-        .join(", ");
-      return `(${rings})`;
-    })
-    .join(", ");
-
-  return `SRID=4326;MULTIPOLYGON(${polygons})`;
-}
-
-function isPoint(point: unknown): point is Point {
-  return (
-    typeof point === "object" &&
-    point !== null &&
-    "lat" in point &&
-    "lng" in point
-  );
-}
-
-function isPolygon(polygon: unknown): polygon is Polygon {
-  const isP =
-    typeof polygon === "object" &&
-    polygon !== null &&
-    "type" in polygon &&
-    polygon.type === "Polygon" &&
-    "coordinates" in polygon &&
-    Array.isArray(polygon.coordinates) &&
-    polygon.coordinates.length > 0 &&
-    polygon.coordinates.every(
-      (ring) =>
-        Array.isArray(ring) &&
-        ring.every(
-          (coord) =>
-            Array.isArray(coord) &&
-            coord.length === 2 &&
-            typeof coord[0] === "number" &&
-            typeof coord[1] === "number",
-        ),
-    );
-  return isP;
-}
-
-function isMultiPolygon(multiPolygon: unknown): multiPolygon is MultiPolygon {
-  return (
-    typeof multiPolygon === "object" &&
-    multiPolygon !== null &&
-    "type" in multiPolygon &&
-    multiPolygon.type === "MultiPolygon" &&
-    "coordinates" in multiPolygon &&
-    Array.isArray(multiPolygon.coordinates) &&
-    multiPolygon.coordinates.length > 0 &&
-    multiPolygon.coordinates.every(
-      (polygon) =>
-        Array.isArray(polygon) &&
-        polygon.every(
-          (ring) =>
-            Array.isArray(ring) &&
-            ring.every(
-              (coord) =>
-                Array.isArray(coord) &&
-                coord.length === 2 &&
-                typeof coord[0] === "number" &&
-                typeof coord[1] === "number",
-            ),
-        ),
-    )
-  );
-}
-
-// --- New: handle reading from DB ---
 function mapDbRowPoints(row: Record<string, unknown>): Record<string, unknown> {
   const mapped: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {

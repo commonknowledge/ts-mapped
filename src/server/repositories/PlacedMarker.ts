@@ -1,5 +1,6 @@
 import { db } from "@/server/services/database";
-import type { NewPlacedMarker } from "@/server/models/PlacedMarker";
+import { toGeography } from "@/server/services/database/geography";
+import type { NewPlacedMarkerInput } from "@/server/models/PlacedMarker";
 
 export function findPlacedMarkersByMapId(mapId: string) {
   return db
@@ -22,11 +23,15 @@ export async function deletePlacedMarkersByFolderId(folderId: string) {
     .execute();
 }
 
-export async function upsertPlacedMarker(placedMarker: NewPlacedMarker) {
+export async function upsertPlacedMarker(placedMarker: NewPlacedMarkerInput) {
+  const values = {
+    ...placedMarker,
+    point: toGeography(placedMarker.point),
+  };
   return db
     .insertInto("placedMarker")
-    .values(placedMarker)
-    .onConflict((oc) => oc.columns(["id"]).doUpdateSet(placedMarker))
+    .values(values)
+    .onConflict((oc) => oc.columns(["id"]).doUpdateSet(values))
     .returningAll()
     .executeTakeFirstOrThrow();
 }

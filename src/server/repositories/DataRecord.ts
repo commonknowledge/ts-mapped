@@ -7,11 +7,12 @@ import {
 import { FilterOperator, FilterType } from "@/models/MapView";
 import { InspectorComparisonStat } from "@/models/shared";
 import { db } from "@/server/services/database";
+import { toGeography } from "@/server/services/database/geography";
 import { monthKeyRangeToDates } from "@/utils/dataRecord";
 import type { ExternalRecordUpdate } from "@/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/models/MapView";
 import type { Point } from "@/models/shared";
-import type { NewDataRecord } from "@/server/models/DataRecord";
+import type { NewDataRecordInput } from "@/server/models/DataRecord";
 import type { Database } from "@/server/services/database";
 import type {
   AliasableExpression,
@@ -408,11 +409,16 @@ function getDataRecordByDataSourceAndAreaCodeQuery(
     .selectAll();
 }
 
-export function upsertDataRecords(dataRecords: NewDataRecord[]) {
+export function upsertDataRecords(dataRecords: NewDataRecordInput[]) {
   if (dataRecords.length === 0) return [];
   return db
     .insertInto("dataRecord")
-    .values(dataRecords)
+    .values(
+      dataRecords.map((record) => ({
+        ...record,
+        geocodePoint: toGeography(record.geocodePoint),
+      })),
+    )
     .onConflict((oc) =>
       oc.columns(["externalId", "dataSourceId"]).doUpdateSet((eb) => ({
         json: eb.ref("excluded.json"),
