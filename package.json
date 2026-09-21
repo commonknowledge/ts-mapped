@@ -138,7 +138,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitejs/plugin-react": "^5.2.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "eslint-plugin-unused-imports": "^4.4.1",
@@ -151,7 +151,7 @@
     "typescript": "^5",
     "typescript-eslint": "^8.70.0",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "optionalDependencies": {
     "@floating-ui/core": "^1.8.0",
