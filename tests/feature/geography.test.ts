@@ -22,11 +22,16 @@ import { toGeography } from "@/server/services/database/geography";
  */
 describe("geography columns", () => {
   const toRemove: string[] = [];
+  const cacheAddress = "geography-test";
+
+  const deleteCacheRow = () =>
+    db.deleteFrom("geocodeCache").where("address", "=", cacheAddress).execute();
 
   afterAll(async () => {
     for (const id of toRemove) {
       await deleteDataSource(id);
     }
+    await deleteCacheRow();
   });
 
   const createSource = async (config: {
@@ -92,27 +97,18 @@ describe("geography columns", () => {
     const records = await readRecords(dataSource.id);
     expect(records.map((r) => r.geocodePoint)).toEqual([point, null]);
 
-    const row = await db
-      .selectFrom("geocodeCache")
-      .select("point")
-      .where("address", "=", "geography-test")
-      .executeTakeFirst();
-    expect(row).toBeUndefined();
+    // Clear any row left behind by an aborted earlier run
+    await deleteCacheRow();
     await db
       .insertInto("geocodeCache")
-      .values({ address: "geography-test", point: toGeography(point) })
-      .onConflict((oc) => oc.column("address").doNothing())
+      .values({ address: cacheAddress, point: toGeography(point) })
       .execute();
     const cached = await db
       .selectFrom("geocodeCache")
       .select("point")
-      .where("address", "=", "geography-test")
+      .where("address", "=", cacheAddress)
       .executeTakeFirstOrThrow();
     expect(cached.point).toEqual(point);
-    await db
-      .deleteFrom("geocodeCache")
-      .where("address", "=", "geography-test")
-      .execute();
   });
 
   test("record JSON with lat and lng keys is stored as JSON, not a point", async () => {

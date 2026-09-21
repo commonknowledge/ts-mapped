@@ -15,8 +15,9 @@ import type {
 
 /**
  * Better handling of JSON serialization. Only works if *all* object/array fields
- * in the database are `jsonb` columns (excluding geometry types which are handled
- * by the higher priority PointPlugin).
+ * in the database are `jsonb` columns. Geography columns are never written as
+ * plain objects: use `toGeography` from `@/server/services/database/geography`,
+ * which produces a SQL expression this plugin leaves untouched.
  *
  * See: https://github.com/kysely-org/kysely/pull/138
  */
