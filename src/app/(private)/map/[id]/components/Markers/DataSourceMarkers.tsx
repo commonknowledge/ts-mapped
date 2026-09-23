@@ -63,6 +63,7 @@ export function DataSourceMarkers({
   colorMappings,
   hideFilteredMarkers = false,
   filterTimeRange = null,
+  onChoropleth = false,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
@@ -75,6 +76,9 @@ export function DataSourceMarkers({
    *  sources with a date column and the timeline enabled. Features without
    *  a parseable month are hidden while active. */
   filterTimeRange?: { start: number; end: number } | null;
+  /** A choropleth fill is painted: markers switch to the high-contrast
+   *  two-tone style (see ClustersLayer) */
+  onChoropleth?: boolean;
 }) {
   const filteredRecords = useFilteredRecords();
   const publicFilters = usePublicFilters();
@@ -339,7 +343,13 @@ export function DataSourceMarkers({
         asJson: ["concat", ["concat", ["get", "asJson"], ","]],
       }}
     >
-      {clustered && <ClustersLayer sourceId={sourceId} color={color} />}
+      {clustered && (
+        <ClustersLayer
+          sourceId={sourceId}
+          color={color}
+          onChoropleth={onChoropleth}
+        />
+      )}
       {isHeatmap && (
         <HeatmapLayer
           sourceId={sourceId}
@@ -353,6 +363,7 @@ export function DataSourceMarkers({
         filter={clustered ? UNCLUSTERED_FILTER : undefined}
         minzoom={isHeatmap ? 10 : undefined}
         overdraw={displayMode === MarkerDisplayMode.Overlap}
+        onChoropleth={onChoropleth}
       />
     </Source>
   );
