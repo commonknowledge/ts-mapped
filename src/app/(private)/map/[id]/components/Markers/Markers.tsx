@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 
+import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
@@ -18,6 +19,15 @@ export default function Markers() {
   const { getDataSourceById } = useDataSources();
   const mapRef = useMapRef();
   const { activeRange } = useTimelineFilter();
+  const areaStats = useAreaStats().data;
+
+  // A choropleth fill is painted only when it is switched on, boundaries are
+  // selected and there are stats to colour them with (Choropleth.tsx)
+  const hasAreaStats = Boolean(areaStats?.stats.length);
+  const onChoropleth =
+    Boolean(viewConfig.showChoropleth) &&
+    Boolean(viewConfig.areaSetGroupCode) &&
+    hasAreaStats;
 
   // The timeline filter only applies to sources with a date column,
   // matching the markers API
@@ -81,6 +91,7 @@ export default function Markers() {
           colorMappings={viewConfig.colorMappings}
           hideFilteredMarkers={viewConfig.hideFilteredMarkers}
           filterTimeRange={getFilterRange(memberMarkers.dataSourceId)}
+          onChoropleth={onChoropleth}
         />
       )}
       {otherMarkers.map((markers) => {
@@ -106,6 +117,7 @@ export default function Markers() {
             colorMappings={viewConfig.colorMappings}
             hideFilteredMarkers={viewConfig.hideFilteredMarkers}
             filterTimeRange={getFilterRange(markers.dataSourceId)}
+            onChoropleth={onChoropleth}
           />
         );
       })}

@@ -30,6 +30,7 @@ export function PinsLayer({
   filter,
   minzoom = 0,
   overdraw = false,
+  onChoropleth = false,
 }: {
   sourceId: string;
   color: string;
@@ -43,11 +44,15 @@ export function PinsLayer({
   /** Overlap styling: semi-transparent strokeless dots so density reads
    *  through overdraw */
   overdraw?: boolean;
+  /** A choropleth fill is painted beneath the pins: widen the white
+   *  stroke/halo so pins keep a clear edge against saturated fills */
+  onChoropleth?: boolean;
 }) {
   const pinColor = pinStyle?.color ?? color;
   const sizeFactor = pinStyle?.sizeFactor ?? 1;
   const opacity = pinStyle?.opacity ?? 1;
   const showLabels = pinStyle?.showLabels ?? true;
+  const haloWidth = onChoropleth ? 2 : 1;
 
   const pinOpacity: ExpressionSpecification = [
     "*",
@@ -97,7 +102,7 @@ export function PinsLayer({
             "icon-color": pinColor,
             "icon-opacity": pinOpacity,
             "icon-halo-color": "#ffffff",
-            "icon-halo-width": 1,
+            "icon-halo-width": haloWidth,
           }}
         />
       ) : (
@@ -121,7 +126,7 @@ export function PinsLayer({
             ],
             "circle-color": pinColor,
             "circle-opacity": pinOpacity,
-            "circle-stroke-width": overdraw ? 0 : 1,
+            "circle-stroke-width": overdraw ? 0 : haloWidth,
             "circle-stroke-color": "#ffffff",
             "circle-stroke-opacity": opacity,
           }}

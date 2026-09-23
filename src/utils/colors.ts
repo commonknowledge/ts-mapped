@@ -136,9 +136,11 @@ export const getCategoryColorScale = (values: string[]) => {
     PARTY_COLORS[value.toLowerCase()] ?? ordinalScale(value);
 };
 
-/** Converts a `#rgb`/`#rrggbb` hex or `rgb(...)` colour to an `rgba(...)`
- *  string with the given alpha. Returns null for unrecognised formats. */
-export const colorWithAlpha = (color: string, alpha: number): string | null => {
+/** Parses a `#rgb`/`#rrggbb` hex or `rgb(...)` colour into its channels.
+ *  Returns null for unrecognised formats. */
+export const parseRgb = (
+  color: string,
+): { r: number; g: number; b: number } | null => {
   const trimmed = color.trim();
   const hexMatch = trimmed.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
   if (hexMatch) {
@@ -146,16 +148,78 @@ export const colorWithAlpha = (color: string, alpha: number): string | null => {
     if (hex.length === 3) {
       hex = `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`;
     }
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    return {
+      r: parseInt(hex.slice(0, 2), 16),
+      g: parseInt(hex.slice(2, 4), 16),
+      b: parseInt(hex.slice(4, 6), 16),
+    };
   }
   const rgbMatch = trimmed.match(
     /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i,
   );
   if (rgbMatch) {
-    return `rgba(${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}, ${alpha})`;
+    return {
+      r: Number(rgbMatch[1]),
+      g: Number(rgbMatch[2]),
+      b: Number(rgbMatch[3]),
+    };
   }
   return null;
+};
+
+/** Converts a `#rgb`/`#rrggbb` hex or `rgb(...)` colour to an `rgba(...)`
+ *  string with the given alpha. Returns null for unrecognised formats. */
+export const colorWithAlpha = (color: string, alpha: number): string | null => {
+  const rgb = parseRgb(color);
+  if (!rgb) {
+    return null;
+  }
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+};
+
+/** WCAG relative luminance, 0 (black) to 1 (white). */
+const getRelativeLuminance = ({
+  r,
+  g,
+  b,
+}: {
+  r: number;
+  g: number;
+  b: number;
+}) => {
+  const linear = (channel: number) => {
+    const c = channel / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+};
+
+/** Luminance above which a colour is too pale to read against white. */
+const MAX_RING_LUMINANCE = 0.45;
+
+/**
+ * Returns a version of the marker colour that reads clearly against a white
+ * background, for use as the edge and count colour of a white cluster
+ * marker. Colours that are already dark enough are returned unchanged
+ * (normalised to `rgb(...)` if they were parsed); pale colours are darkened
+ * until they cross the luminance threshold, preserving hue.
+ */
+export const getContrastingRingColor = (color: string): string => {
+  const rgb = parseRgb(color);
+  if (!rgb) {
+    return color;
+  }
+  let { r, g, b } = rgb;
+  let luminance = getRelativeLuminance({ r, g, b });
+  // Darken in small steps so the hue is preserved
+  while (luminance > MAX_RING_LUMINANCE && (r > 0 || g > 0 || b > 0)) {
+    r = Math.floor(r * 0.9);
+    g = Math.floor(g * 0.9);
+    b = Math.floor(b * 0.9);
+    luminance = getRelativeLuminance({ r, g, b });
+  }
+  if (r === rgb.r && g === rgb.g && b === rgb.b) {
+    return color;
+  }
+  return `rgb(${r}, ${g}, ${b})`;
 };
