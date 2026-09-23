@@ -18,6 +18,21 @@
 3. Open the dev server at https://localhost:3000
 4. Log in with username `hello@commonknowledge.coop` and password `1234`.
 
+### Troubleshooting: every page and API route returns 500 in dev
+
+If `npm run dev` fails with `Can't resolve '@vercel/turbopack-next/internal/font/google/font'`
+and `next/font/google queries have exactly one entry`, Turbopack has cached a Google
+Fonts response that uses dynamic-subset URLs (`fonts.gstatic.com/l/font?kit=…&skey=…`).
+It can't parse the `&` in those URLs, and in dev that one compile error turns every
+route into a 500, the REST API included. Stop the dev server, delete the cache and
+start again:
+
+```bash
+rm -rf .next/dev
+```
+
+`next dev --webpack` isn't affected, so it also works as a stopgap.
+
 ### Migrations
 
 - Create with `npm run kysely migrate:make [name]`

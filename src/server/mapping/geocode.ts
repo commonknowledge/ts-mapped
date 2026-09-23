@@ -244,8 +244,20 @@ const geocodeRecordByCoordinates = async (
     throw new Error(`Missing longitude column "${longitudeColumn}" in row`);
   }
 
-  const lat = Number(dataRecordJson[latitudeColumn]);
-  const lng = Number(dataRecordJson[longitudeColumn]);
+  const rawLat = dataRecordJson[latitudeColumn];
+  const rawLng = dataRecordJson[longitudeColumn];
+  // Number("") and Number(null) are 0, which would silently place a record
+  // with no coordinates at 0,0 in the Gulf of Guinea.
+  const isBlank = (v: unknown) =>
+    v === null || v === undefined || String(v).trim() === "";
+  if (isBlank(rawLat) || isBlank(rawLng)) {
+    throw new Error(
+      `Missing coordinates: latitude=${rawLat}, longitude=${rawLng}`,
+    );
+  }
+
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
 
   if (isNaN(lat) || isNaN(lng)) {
     throw new Error(

@@ -27,4 +27,24 @@ describe("geocode", () => {
     expect(result?.centralPoint?.lng).toBeCloseTo(-0.8, 0);
     expect(result?.areas[AreaSetCode.PC]).toBe("HP20 2QB");
   });
+
+  test("geocodeRecord by coordinates returns null for blank coordinates rather than 0,0", async () => {
+    const geocodingConfig = {
+      type: GeocodingType.Coordinates as const,
+      latitudeColumn: "latitude",
+      longitudeColumn: "longitude",
+    };
+
+    for (const [latitude, longitude] of [
+      ["", ""],
+      ["", "-1.5"],
+      [null, null],
+    ]) {
+      const result = await geocodeRecord(
+        { externalId: "test-blank", json: { latitude, longitude } },
+        geocodingConfig,
+      );
+      expect(result).toBeNull();
+    }
+  });
 });
