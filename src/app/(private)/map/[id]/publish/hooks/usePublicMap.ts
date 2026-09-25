@@ -17,6 +17,7 @@ export {
   useSetPublicMap,
   useUpdatePublicMap,
   useUpdateDataSourceConfig,
+  useReorderDataSourceConfigs,
   useUpdateAdditionalColumn,
 } from "./usePublicMapQuery";
 

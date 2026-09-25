@@ -49,10 +49,11 @@ export default function DataSourcesSelect() {
             onSelect={(e) => e.preventDefault()}
             onCheckedChange={(checked) => {
               if (checked) {
+                // Append so the new data source appears last on the public map
                 updatePublicMap({
-                  dataSourceConfigs: [createDataSourceConfig(ds)].concat(
-                    publicMap?.dataSourceConfigs || [],
-                  ),
+                  dataSourceConfigs: (
+                    publicMap?.dataSourceConfigs || []
+                  ).concat(createDataSourceConfig(ds)),
                 });
                 // Add the data source to the private map
                 if (markerDataSources.includes(ds.id)) {

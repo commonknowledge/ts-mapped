@@ -19,15 +19,24 @@ export const getMarkerDataSourceIds = (mapConfig: MapConfig) => {
  * This is the canonical list of data sources visible on a public map:
  * a data source must be configured in both the private mapConfig AND the
  * public map's dataSourceConfigs to be shown.
+ *
+ * The order of `dataSourceConfigs` is the order the data sources appear
+ * in on the public map (e.g. the sidebar pills), and is user-editable
+ * from the public map editor.
  */
 export function getPublicDataSourceIds(
   mapConfig: MapConfig,
   dataSourceConfigs: PublicMapDataSourceConfig[],
 ): string[] {
-  const configuredIds = new Set(dataSourceConfigs.map((c) => c.dataSourceId));
-  return getMarkerDataSourceIds(mapConfig).filter((id) =>
-    configuredIds.has(id),
-  );
+  const markerIds = new Set(getMarkerDataSourceIds(mapConfig));
+  const ids: string[] = [];
+  for (const config of dataSourceConfigs) {
+    const id = config.dataSourceId;
+    if (markerIds.has(id) && !ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+  return ids;
 }
 
 /**

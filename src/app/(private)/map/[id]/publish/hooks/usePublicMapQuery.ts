@@ -1,5 +1,6 @@
 "use client";
 
+import { arrayMove } from "@dnd-kit/sortable";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -214,6 +215,36 @@ export function useUpdateDataSourceConfig() {
             ...draft,
             dataSourceConfigs: draft.dataSourceConfigs.map((dsc) =>
               dsc.dataSourceId === dataSourceId ? { ...dsc, ...updates } : dsc,
+            ),
+          },
+        };
+      });
+    },
+    [queryClient, queryKey],
+  );
+}
+
+/**
+ * Move a data source config to a new index in the **draft**. The order of
+ * `dataSourceConfigs` is the order data sources appear in on the public map.
+ */
+export function useReorderDataSourceConfigs() {
+  const queryKey = usePublicMapQueryKey();
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => {
+      queryClient.setQueryData<NonNullable<PublicMapData>>(queryKey, (old) => {
+        if (!old) return old;
+        const draft = getWorkingDraft(old);
+        return {
+          ...old,
+          draft: {
+            ...draft,
+            dataSourceConfigs: arrayMove(
+              draft.dataSourceConfigs,
+              fromIndex,
+              toIndex,
             ),
           },
         };

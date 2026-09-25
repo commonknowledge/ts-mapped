@@ -14,13 +14,15 @@ import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
  * must be re-fetched once the draft is saved.
  */
 function listingSignature(configs: PublicMapDataSourceConfig[]): string {
-  return JSON.stringify(
-    configs.map((c) => ({
+  // Sorted by ID so that re-ordering data sources doesn't trigger a refetch
+  const sorted = configs
+    .map((c) => ({
       dataSourceId: c.dataSourceId,
       nameColumns: c.nameColumns,
       descriptionColumn: c.descriptionColumn,
-    })),
-  );
+    }))
+    .sort((a, b) => a.dataSourceId.localeCompare(b.dataSourceId));
+  return JSON.stringify(sorted);
 }
 
 /**

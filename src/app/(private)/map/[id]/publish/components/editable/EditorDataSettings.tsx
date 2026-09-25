@@ -20,7 +20,7 @@ import {
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { Tabs, TabsContent } from "@/shadcn/ui/tabs";
 import { getHidePastEvents, getListingSort } from "@/utils/dataRecord";
 import {
   useActiveDataSourceId,
@@ -31,6 +31,7 @@ import {
 } from "../../hooks/usePublicMap";
 import DataSourcesSelect from "../DataSourcesSelect";
 import ColumnCard from "./ColumnCard";
+import SortableDataSourceTabsList from "./SortableDataSourceTabsList";
 
 export default function EditorDataSettings() {
   const publicMap = usePublicMapValue();
@@ -101,25 +102,7 @@ export default function EditorDataSettings() {
           onValueChange={setActiveDataSourceId}
         >
           <div className="flex items-center gap-2 mb-4">
-            <TabsList
-              className="grid w-full"
-              style={{
-                gridTemplateColumns: `repeat(${
-                  markerDataSourceIds.length
-                }, 1fr)`,
-              }}
-            >
-              {markerDataSourceIds.map((id) => {
-                const dsc = publicMap.dataSourceConfigs.find(
-                  (c) => c.dataSourceId === id,
-                );
-                return (
-                  <TabsTrigger value={id} key={id}>
-                    {dsc?.dataSourceLabel ?? id}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+            <SortableDataSourceTabsList dataSourceIds={markerDataSourceIds} />
             <DataSourcesSelect />
           </div>
 
