@@ -63,7 +63,7 @@ export default function MapModeToggle({ mode }: MapModeToggleProps) {
             : "text-neutral-500 hover:text-neutral-700",
         )}
       >
-        Share
+        Publish
       </button>
     </div>
   );
