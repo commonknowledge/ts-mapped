@@ -1,4 +1,6 @@
 import { Layer } from "react-map-gl/mapbox";
+import { useMarkerAppearance } from "../../hooks/useMarkerAppearance";
+import { INK_COLOR } from "../../styles";
 import type { ExpressionSpecification } from "mapbox-gl";
 
 const NOT_MATCHED_CASE = [
@@ -53,6 +55,9 @@ export function PinsLayer({
   const opacity = pinStyle?.opacity ?? 1;
   const showLabels = pinStyle?.showLabels ?? true;
   const haloWidth = onChoropleth ? 2 : 1;
+  // Ring: ink dot with the marker colour as its outline, so the colour never
+  // has to compete with a choropleth fill of the same hue
+  const isRing = useMarkerAppearance() === "ring" && !overdraw;
 
   const pinOpacity: ExpressionSpecification = [
     "*",
@@ -124,10 +129,14 @@ export function PinsLayer({
               16,
               ["*", 8, sizeFactor],
             ],
-            "circle-color": pinColor,
+            "circle-color": isRing ? INK_COLOR : pinColor,
             "circle-opacity": pinOpacity,
-            "circle-stroke-width": overdraw ? 0 : haloWidth,
-            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": isRing
+              ? ["interpolate", ["linear"], ["zoom"], 8, 1.5, 16, 3]
+              : overdraw
+                ? 0
+                : haloWidth,
+            "circle-stroke-color": isRing ? pinColor : "#ffffff",
             "circle-stroke-opacity": opacity,
           }}
         />

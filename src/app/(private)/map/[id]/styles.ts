@@ -63,6 +63,9 @@ export interface mapColor {
   textColor?: string;
 }
 
+// Mapped's navy, used for the light editor's ring markers and chrome
+export const INK_COLOR = "#15213b";
+
 export const mapColors: Record<
   "member" | "dataSource" | "markers" | "areas" | "geography",
   mapColor

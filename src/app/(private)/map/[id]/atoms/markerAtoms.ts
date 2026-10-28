@@ -8,6 +8,9 @@ export const dataSourceVisibilityAtom = atom<Record<string, boolean>>({});
 export const dropPinClickHandlerAtom = atom<
   ((e: mapboxgl.MapMouseEvent) => void) | null
 >(null);
+// "ring" draws marker circles as an ink dot ringed in the marker colour,
+// legible on any choropleth fill (used by the light editor prototype)
+export const markerAppearanceAtom = atom<"classic" | "ring">("classic");
 // Data source whose marker settings panel is open (null = closed)
 export const markerSettingsDataSourceIdAtom = atom<string | null>(null);
 

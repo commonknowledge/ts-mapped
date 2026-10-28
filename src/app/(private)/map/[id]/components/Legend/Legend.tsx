@@ -17,12 +17,7 @@ import {
   useDataSources,
 } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
-import {
-  AreaSetCodeLabels,
-  AreaSetCodeYears,
-  AreaSetGroupCodeLabels,
-  AreaSetGroupCodeYears,
-} from "@/labels";
+import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/models/DataSource";
 import { MapType } from "@/models/MapView";
 import { CalculationType } from "@/models/shared";
@@ -34,7 +29,6 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
   Select,
   SelectContent,
@@ -45,29 +39,34 @@ import {
 import { cn } from "@/shadcn/utils";
 import { useColorScheme } from "../../colors";
 import { useAreaStats } from "../../data";
-import {
-  DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR,
-  mapColorPalette,
-} from "../../styles";
+
 import BivariateLegend from "../BivariateLagend";
 import {
   dataRecordsWillAggregate,
   getValidAreaSetGroupCodes,
 } from "../Choropleth/areas";
-import {
-  CHOROPLETH_AREA_SET_CODES,
-  getDefaultAreaSetGroupCode,
-} from "../Choropleth/configs";
+import { getDefaultAreaSetGroupCode } from "../Choropleth/configs";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import { IncludeColumnsModal } from "../controls/VisualisationPanel/IncludeColumnsModal";
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
 import { LegendBars } from "./LegendBars";
-import type { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
+import SecondaryBoundariesControl from "./SecondaryBoundariesControl";
+import type { AreaSetGroupCode } from "@/models/AreaSet";
 
 export default function Legend({
   onClearRequest,
+  showBoundaryControls = true,
+  showLegendBars = true,
+  framed = true,
 }: {
   onClearRequest?: () => void;
+  /** The light editor shows boundary pickers in its own Boundaries section */
+  showBoundaryControls?: boolean;
+  /** The light editor shows the colour key in its sidebar, and only the data
+   *  controls (source, column, aggregation) in the visualisation flyout */
+  showLegendBars?: boolean;
+  /** Draw the bordered card; off when embedded in another panel */
+  framed?: boolean;
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
@@ -81,20 +80,6 @@ export default function Legend({
     null,
   );
   const [bivariatePickerOpen, setBivariatePickerOpen] = useState(false);
-  const [secondaryBoundariesOpen, setSecondaryBoundariesOpen] = useState(
-    Boolean(viewConfig.secondaryAreaSetCode),
-  );
-
-  useEffect(() => {
-    if (viewConfig.secondaryAreaSetCode) {
-      setSecondaryBoundariesOpen(true);
-    }
-  }, [viewConfig.secondaryAreaSetCode]);
-
-  const secondaryBoundaryStrokeColor =
-    viewConfig.secondaryBoundaryStrokeColor ||
-    DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR;
-  const secondaryBoundarySwatches = mapColorPalette.map((c) => c.color);
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -226,7 +211,12 @@ export default function Legend({
   };
 
   return (
-    <div className="group flex flex-col rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
+    <div
+      className={cn(
+        "group flex flex-col w-full",
+        framed && "rounded-sm overflow-auto bg-white border border-neutral-200",
+      )}
+    >
       {/* Data source + column */}
       <div className="flex flex-col gap-2 p-2">
         <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
@@ -437,7 +427,7 @@ export default function Legend({
       </div>
 
       {/* Colour bars */}
-      {isLoading ? (
+      {!showLegendBars ? null : isLoading ? (
         <div className="flex items-center justify-center px-3 py-4">
           <LoaderPinwheel className="w-5 h-5 animate-spin text-neutral-400" />
         </div>
@@ -507,7 +497,7 @@ export default function Legend({
         </div>
       )}
 
-      {viewConfig.mapType !== MapType.Hex && (
+      {showBoundaryControls && viewConfig.mapType !== MapType.Hex && (
         <div className="border-t border-neutral-100 px-3 py-3">
           <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
             Boundaries
@@ -586,153 +576,8 @@ export default function Legend({
       )}
 
       {/* Secondary boundaries */}
-      {viewConfig.mapType !== MapType.Hex && (
-        <div className="px-3 pb-3">
-          {!secondaryBoundariesOpen && !viewConfig.secondaryAreaSetCode ? (
-            <button
-              type="button"
-              className="text-xs text-muted-foreground underline cursor-pointer text-left hover:text-foreground transition-colors"
-              onClick={() => setSecondaryBoundariesOpen(true)}
-            >
-              Add secondary boundaries
-            </button>
-          ) : (
-            <div className="flex items-center justify-between gap-2 mb-1 mt-2">
-              <p className="text-xs text-muted-foreground font-mono font-medium uppercase">
-                Secondary boundaries
-              </p>
-              <button
-                type="button"
-                className="text-xs text-muted-foreground underline cursor-pointer text-left hover:text-foreground transition-colors"
-                onClick={() => {
-                  updateViewConfig({ secondaryAreaSetCode: null });
-                  setSecondaryBoundariesOpen(false);
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          )}
-          {(secondaryBoundariesOpen || viewConfig.secondaryAreaSetCode) && (
-            <div className="flex items-center gap-2">
-              <Select
-                value={viewConfig.secondaryAreaSetCode || NULL_UUID}
-                onValueChange={(value) => {
-                  const nextValue =
-                    value === NULL_UUID ? null : (value as AreaSetCode);
-                  updateViewConfig({ secondaryAreaSetCode: nextValue });
-                  if (!nextValue) {
-                    setSecondaryBoundariesOpen(false);
-                  }
-                }}
-              >
-                <SelectTrigger
-                  size="sm"
-                  className="h-8 w-full text-xs font-normal shadow-xs hover:border-action-hover"
-                >
-                  <SelectValue placeholder="Secondary boundaries…">
-                    {viewConfig.secondaryAreaSetCode
-                      ? AreaSetCodeLabels[viewConfig.secondaryAreaSetCode]
-                      : "No secondary boundaries"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NULL_UUID}>
-                    No secondary boundaries
-                  </SelectItem>
-                  {CHOROPLETH_AREA_SET_CODES.map((code) => (
-                    <SelectItem key={code} value={code}>
-                      <div className="flex flex-col">
-                        <span>{AreaSetCodeLabels[code]}</span>
-                        <span
-                          className="text-xs text-muted-foreground"
-                          dangerouslySetInnerHTML={{
-                            __html: AreaSetCodeYears[code],
-                          }}
-                        />
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "h-8 w-8 rounded-lg border border-input shadow-xs flex items-center justify-center",
-                      "hover:border-action-hover transition-colors",
-                      "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
-                    )}
-                    aria-label="Secondary boundary stroke colour"
-                    title="Secondary boundary stroke colour"
-                  >
-                    <span
-                      className="h-4 w-4 rounded-full border border-black/15"
-                      style={{ backgroundColor: secondaryBoundaryStrokeColor }}
-                    />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-56 p-3">
-                  <p className="text-xs font-medium mb-2">Stroke colour</p>
-                  <div className="flex flex-wrap gap-2">
-                    {secondaryBoundarySwatches.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={cn(
-                          "h-7 w-7 rounded-full border border-black/10",
-                          "hover:scale-[1.02] transition-transform",
-                          c === secondaryBoundaryStrokeColor &&
-                            "ring-2 ring-ring ring-offset-2 ring-offset-background",
-                        )}
-                        style={{ backgroundColor: c }}
-                        onClick={() =>
-                          updateViewConfig({ secondaryBoundaryStrokeColor: c })
-                        }
-                        aria-label={`Set stroke colour to ${c}`}
-                      />
-                    ))}
-                    <label className="h-7 w-7 rounded-full border border-black/10 relative overflow-hidden cursor-pointer">
-                      <input
-                        type="color"
-                        className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
-                        value={secondaryBoundaryStrokeColor}
-                        onChange={(e) =>
-                          updateViewConfig({
-                            secondaryBoundaryStrokeColor: e.target.value,
-                          })
-                        }
-                        aria-label="Custom stroke colour"
-                      />
-                      <span
-                        className="absolute inset-0"
-                        style={{
-                          backgroundColor: secondaryBoundaryStrokeColor,
-                        }}
-                        aria-hidden
-                      />
-                    </label>
-                  </div>
-                  {viewConfig.secondaryBoundaryStrokeColor && (
-                    <button
-                      type="button"
-                      className="mt-3 text-xs text-muted-foreground underline hover:text-foreground transition-colors"
-                      onClick={() =>
-                        updateViewConfig({
-                          secondaryBoundaryStrokeColor: null,
-                        })
-                      }
-                    >
-                      Reset to default
-                    </button>
-                  )}
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
-        </div>
+      {showBoundaryControls && viewConfig.mapType !== MapType.Hex && (
+        <SecondaryBoundariesControl className="px-3 pb-3" />
       )}
 
       {/* Data source modal */}

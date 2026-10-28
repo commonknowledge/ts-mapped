@@ -1,5 +1,7 @@
 import { Layer } from "react-map-gl/mapbox";
 import { getContrastingRingColor } from "@/utils/colors";
+import { useMarkerAppearance } from "../../hooks/useMarkerAppearance";
+import { INK_COLOR } from "../../styles";
 import type { ExpressionSpecification } from "mapbox-gl";
 
 export const UNCLUSTERED_FILTER: ExpressionSpecification = [
@@ -57,7 +59,10 @@ export function ClustersLayer({
   onChoropleth: boolean;
 }) {
   const edgeColor = getContrastingRingColor(color);
-  const opacity = clusterOpacity(onChoropleth ? 0.875 : 0.8);
+  // Ring: an ink disc ringed in the marker colour with a white count,
+  // matching the individual ring markers in PinsLayer
+  const isRing = useMarkerAppearance() === "ring";
+  const opacity = clusterOpacity(isRing ? 0.95 : onChoropleth ? 0.875 : 0.8);
   return (
     <>
       <Layer
@@ -68,10 +73,10 @@ export function ClustersLayer({
         filter={CLUSTER_FILTER}
         paint={{
           "circle-radius": CLUSTER_RADIUS,
-          "circle-color": onChoropleth ? "#ffffff" : color,
+          "circle-color": isRing ? INK_COLOR : onChoropleth ? "#ffffff" : color,
           "circle-opacity": opacity,
-          "circle-stroke-width": onChoropleth ? EDGE_WIDTH : 0,
-          "circle-stroke-color": edgeColor,
+          "circle-stroke-width": isRing ? 3 : onChoropleth ? EDGE_WIDTH : 0,
+          "circle-stroke-color": isRing ? color : edgeColor,
           "circle-stroke-opacity": opacity,
         }}
       />
@@ -87,7 +92,11 @@ export function ClustersLayer({
           "text-size": 12,
         }}
         paint={{
-          "text-color": onChoropleth ? edgeColor : "#000000",
+          "text-color": isRing
+            ? "#ffffff"
+            : onChoropleth
+              ? edgeColor
+              : "#000000",
         }}
       />
     </>

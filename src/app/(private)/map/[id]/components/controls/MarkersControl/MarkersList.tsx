@@ -22,12 +22,17 @@ import useSortableList from "../SortableList/hooks/useSortableList";
 import SortableFolderItem from "../SortableList/SortableFolderItem";
 import UnassignedFolder from "../SortableList/UnassignedFolder";
 import MarkerDragOverlay from "./MarkerDragOverlay";
+import type { DataSourceRowProps } from "../DataSourceItem";
 import type { DropdownMenuItemType } from "@/components/MultiDropdownMenu";
+import type { ComponentType } from "react";
 
 export default function MarkersList({
   dropdownItems,
+  DataSourceRow = DataSourceControl,
 }: {
   dropdownItems?: DropdownMenuItemType[];
+  /** Row for member/marker data sources; the light editor swaps in its own */
+  DataSourceRow?: ComponentType<DataSourceRowProps>;
 }) {
   const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
@@ -92,7 +97,7 @@ export default function MarkersList({
             {/* Member data source */}
             {membersDataSource && (
               <div className="flex flex-col gap-1">
-                <DataSourceControl
+                <DataSourceRow
                   key={membersDataSource.id}
                   dataSource={membersDataSource}
                   isSelected={membersDataSource.id === selectedDataSourceId}
@@ -106,7 +111,7 @@ export default function MarkersList({
             {markerDataSources && markerDataSources.length > 0 && (
               <div className="flex flex-col gap-1">
                 {markerDataSources.map((dataSource) => (
-                  <DataSourceControl
+                  <DataSourceRow
                     key={dataSource.id}
                     dataSource={dataSource}
                     isSelected={dataSource.id === selectedDataSourceId}

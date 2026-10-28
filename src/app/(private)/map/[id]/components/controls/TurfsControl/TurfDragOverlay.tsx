@@ -1,5 +1,6 @@
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import { useMapConfig } from "../../../hooks/useMapConfig";
+import { getTurfDisplayName } from "../../../utils/turf";
 import type { Turf } from "@/models/Turf";
 
 export default function TurfDragOverlay({ turf }: { turf: Turf }) {
@@ -18,7 +19,7 @@ export default function TurfDragOverlay({ turf }: { turf: Turf }) {
       />
       <div className="grow pl-3">
         <span className="text-sm leading-relaxed flex-1 break-all">
-          {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+          {getTurfDisplayName(turf)}
         </span>
       </div>
     </div>

@@ -32,8 +32,18 @@ import Loading from "./Loading";
 import MapInfoPopup from "./MapInfoPopup";
 import PrivateMapControls from "./PrivateMapControls";
 import MapTable from "./table/MapTable";
+import type { VisualisationPanelOptions } from "./controls/VisualisationPanel/VisualisationPanel";
+import type { ReactNode } from "react";
 
-export default function PrivateMapOverlay() {
+export default function PrivateMapOverlay({
+  controlPanel = <ControlPanel />,
+  visualisationPanelOptions,
+}: {
+  /** Left layers panel; the light editor swaps in its own. Must keep
+   *  CONTROL_PANEL_WIDTH, which the camera, flyouts and inspector rely on. */
+  controlPanel?: ReactNode;
+  visualisationPanelOptions?: VisualisationPanelOptions;
+} = {}) {
   const mapRef = useMapRef();
   const showControls = useShowControls();
   const mapId = useMapId();
@@ -114,12 +124,11 @@ export default function PrivateMapOverlay() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex w-full grow min-h-0 relative">
-        <div className="pointer-events-auto">
-          <ControlPanel />
-        </div>
+        <div className="pointer-events-auto">{controlPanel}</div>
         <div className="pointer-events-auto">
           <VisualisationPanel
             positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
+            {...visualisationPanelOptions}
           />
         </div>
         <div className="pointer-events-auto">

@@ -27,6 +27,7 @@ import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES } from "@/utils/colors";
 import { VISUALISATION_PANEL_WIDTH } from "../../../styles";
 import SteppedColorEditor from "./SteppedColorEditor";
+import type { ReactNode } from "react";
 
 const SELECT_TO_BUTTON_CLASSES =
   "bg-background hover:bg-accent hover:text-accent-foreground hover:border-border font-medium cursor-pointer";
@@ -95,11 +96,19 @@ function SetCategoryColorsButton() {
   );
 }
 
+export interface VisualisationPanelOptions {
+  title?: string;
+  /** Rendered above the style settings, e.g. the light editor's data pickers */
+  header?: ReactNode;
+}
+
 export default function VisualisationPanel({
   positionLeft,
+  title = "Style settings",
+  header,
 }: {
   positionLeft: number;
-}) {
+} & VisualisationPanelOptions) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
   const dataSource = useChoroplethDataSource();
@@ -137,7 +146,7 @@ export default function VisualisationPanel({
       }}
     >
       <div className="flex justify-between items-start gap-6 / text-sm">
-        <h3 className="mt-2 font-medium">Style settings</h3>
+        <h3 className="mt-2 font-medium">{title}</h3>
         <button
           aria-label="Close visualisation panel"
           className="text-muted-foreground hover:text-primary cursor-pointer"
@@ -149,11 +158,15 @@ export default function VisualisationPanel({
 
       <Separator />
 
+      {header}
+
       {!hasDataSource ? (
-        <p className="text-xs text-muted-foreground">
-          Select a data source and column from the legend panel to configure
-          style options.
-        </p>
+        header ? null : (
+          <p className="text-xs text-muted-foreground">
+            Select a data source and column from the legend panel to configure
+            style options.
+          </p>
+        )
       ) : (
         <>
           <div className="space-y-2">

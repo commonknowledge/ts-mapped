@@ -167,6 +167,23 @@ export const markerVisualisationSchema = z.object({
 
 export type MarkerVisualisation = z.infer<typeof markerVisualisationSchema>;
 
+// A data source + column the user has added to a view's visualisation list,
+// with the styling it had when last active
+export const savedVisualisationSchema = z.object({
+  id: z.string(),
+  areaDataSourceId: z.string(),
+  areaDataColumn: z.string(),
+  areaDataSecondaryColumn: z.string().optional(),
+  calculationType: z.enum(CalculationType).optional(),
+  colorScheme: z.enum(ColorScheme).nullish(),
+  reverseColorScheme: z.boolean().nullish(),
+  colorScaleType: z.enum(ColorScaleType).optional(),
+  customColor: z.string().optional(),
+  includeColumnsString: z.string().optional(),
+});
+
+export type SavedVisualisation = z.infer<typeof savedVisualisationSchema>;
+
 export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
@@ -204,6 +221,10 @@ export const mapViewConfigSchema = z.object({
   timelineFilter: z.object({ start: z.number(), end: z.number() }).optional(),
   // Categorical choropleth legend lists values descending when set
   legendSortDesc: z.boolean().optional(),
+  // Visualisations the user can switch between; the active one's live
+  // settings are the area* / colour fields above
+  savedVisualisations: z.array(savedVisualisationSchema).optional(),
+  activeVisualisationId: z.string().optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

@@ -30,6 +30,7 @@ import { Switch } from "@/shadcn/ui/switch";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { buildName } from "@/utils/dataRecord";
 import { mapColors } from "../../styles";
+import { getTurfDisplayName } from "../../utils/turf";
 import type {
   DropdownMenuItemType,
   DropdownSubComponent,
@@ -666,7 +667,7 @@ function buildDropdownItems({
 
   const turfItems: DropdownMenuItemType[] = turfs.map((turf) => ({
     type: "item",
-    label: turf.label || `Area: ${turf.area?.toFixed(2)}m²`,
+    label: getTurfDisplayName(turf),
     onClick: () => {
       addFilter({
         type: FilterType.GEO,

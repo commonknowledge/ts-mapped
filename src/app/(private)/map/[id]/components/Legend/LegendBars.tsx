@@ -1,4 +1,5 @@
 import { ArrowDownNarrowWide, ArrowUpNarrowWide } from "lucide-react";
+import { useState } from "react";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { DUMMY_COUNT_COLUMN } from "@/constants";
@@ -228,15 +229,21 @@ interface CategoricBarsProps {
   areaStats: CombinedAreaStats | null | undefined;
   dataSource: DataSource;
   viewConfig: MapViewConfig;
+  /** Light editor: no sort toggle, and long lists collapse to the first few */
+  compact?: boolean;
 }
+
+const COMPACT_CATEGORY_LIMIT = 8;
 
 export function CategoricBars({
   colorScheme,
   areaStats,
   dataSource,
   viewConfig,
+  compact = false,
 }: CategoricBarsProps) {
   const { updateViewConfig } = useMapViews();
+  const [showAll, setShowAll] = useState(false);
   const categoriesInData = new Set(
     areaStats?.stats
       .map((stat) => String(stat.primary))
@@ -266,22 +273,35 @@ export function CategoricBars({
     sortedKeys.reverse();
   }
 
+  const isTruncated =
+    compact && !showAll && sortedKeys.length > COMPACT_CATEGORY_LIMIT;
+  const visibleKeys = isTruncated
+    ? sortedKeys.slice(0, COMPACT_CATEGORY_LIMIT)
+    : sortedKeys;
+
   return (
-    <div className="flex max-h-[min(35vh,14rem)] min-h-0 w-full flex-col gap-1.5 overflow-y-auto py-1 pr-0.5">
-      <button
-        type="button"
-        className="self-end flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
-        aria-label={sortDesc ? "Sort ascending" : "Sort descending"}
-        onClick={() => updateViewConfig({ legendSortDesc: !sortDesc })}
-      >
-        {sortDesc ? (
-          <ArrowUpNarrowWide className="h-3 w-3" />
-        ) : (
-          <ArrowDownNarrowWide className="h-3 w-3" />
-        )}
-        {sortDesc ? "Descending" : "Ascending"}
-      </button>
-      {sortedKeys.map((key) => {
+    <div
+      className={cn(
+        "flex min-h-0 w-full flex-col overflow-y-auto pr-0.5",
+        compact ? "gap-1" : "max-h-[min(35vh,14rem)] gap-1.5 py-1",
+      )}
+    >
+      {!compact && (
+        <button
+          type="button"
+          className="self-end flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
+          aria-label={sortDesc ? "Sort ascending" : "Sort descending"}
+          onClick={() => updateViewConfig({ legendSortDesc: !sortDesc })}
+        >
+          {sortDesc ? (
+            <ArrowUpNarrowWide className="h-3 w-3" />
+          ) : (
+            <ArrowDownNarrowWide className="h-3 w-3" />
+          )}
+          {sortDesc ? "Descending" : "Ascending"}
+        </button>
+      )}
+      {visibleKeys.map((key) => {
         let label = valueLabels[key];
         if (
           !label &&
@@ -293,13 +313,25 @@ export function CategoricBars({
         return (
           <div className="flex items-center gap-2 text-xs" key={key}>
             <div
-              className="w-3 h-3 flex-shrink-0 border border-neutral-300"
+              className={cn(
+                "w-3 h-3 flex-shrink-0",
+                compact ? "rounded-sm" : "border border-neutral-300",
+              )}
               style={{ backgroundColor: colorScheme.colorMap[key] }}
             />
-            <span>{label || key}</span>
+            <span className={cn(compact && "truncate")}>{label || key}</span>
           </div>
         );
       })}
+      {compact && sortedKeys.length > COMPACT_CATEGORY_LIMIT && (
+        <button
+          type="button"
+          onClick={() => setShowAll(!showAll)}
+          className="mt-0.5 self-start cursor-pointer text-xs text-neutral-500 hover:text-neutral-900"
+        >
+          {showAll ? "Show fewer" : `Show all ${sortedKeys.length}`}
+        </button>
+      )}
     </div>
   );
 }
@@ -309,6 +341,7 @@ interface LegendBarsProps {
   viewConfig: MapViewConfig;
   areaStats: CombinedAreaStats | null | undefined;
   dataSource: DataSource;
+  compact?: boolean;
 }
 
 export function LegendBars({
@@ -316,6 +349,7 @@ export function LegendBars({
   viewConfig,
   areaStats,
   dataSource,
+  compact = false,
 }: LegendBarsProps) {
   if (colorScheme.colorSchemeType === "numeric") {
     const steppedColorSteps =
@@ -349,6 +383,7 @@ export function LegendBars({
       areaStats={areaStats}
       dataSource={dataSource}
       viewConfig={viewConfig}
+      compact={compact}
     />
   );
 }

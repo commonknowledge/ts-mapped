@@ -1,6 +1,5 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import {
   EyeIcon,
   EyeOffIcon,
@@ -9,13 +8,8 @@ import {
   SlidersHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { useDataSources } from "@/hooks/useDataSources";
-import { useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,144 +26,44 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import { LayerType } from "@/types";
-import { useDataRecords } from "../../hooks/useDataRecords";
-import { useLayers } from "../../hooks/useLayers";
-import { useMapConfig } from "../../hooks/useMapConfig";
-import { useMapViews } from "../../hooks/useMapViews";
-import { useMarkerSettings } from "../../hooks/useMarkerSettings";
-import { mapColors } from "../../styles";
+import { useDataSourceItem } from "../../hooks/useDataSourceItem";
 import ControlWrapper from "./ControlWrapper";
-import type { DataSourceType } from "@/models/DataSource";
+import type { DataSourceItemSource } from "../../hooks/useDataSourceItem";
+import type { LayerType } from "@/types";
+
+export interface DataSourceRowProps {
+  dataSource: DataSourceItemSource;
+  isSelected: boolean;
+  handleDataSourceSelect: (id: string) => void;
+  layerType: LayerType;
+}
 
 export default function DataSourceItem({
   dataSource,
   isSelected,
   handleDataSourceSelect,
   layerType,
-}: {
-  dataSource: {
-    id: string;
-    name: string;
-    config: { type: DataSourceType };
-    recordCount?: number;
-    createdAt?: Date;
-  };
-  isSelected: boolean;
-  handleDataSourceSelect: (id: string) => void;
-  layerType: LayerType;
-}) {
-  const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
-  const { mapConfig, updateMapConfig } = useMapConfig();
-  const { view, viewConfig } = useMapViews();
-  const trpc = useTRPC();
-  const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
-  const { getDataSourceById } = useDataSources();
-  const { markerSettingsDataSourceId, setMarkerSettingsDataSourceId } =
-    useMarkerSettings();
-
-  const fullDataSource = getDataSourceById(dataSource.id);
-
-  const dataSourceView = useMemo(
-    () =>
-      view?.dataSourceViews.find((dsv) => dsv.dataSourceId === dataSource.id),
-    [dataSource.id, view?.dataSourceViews],
-  );
-
-  const hasActiveFilter =
-    (dataSourceView?.filter?.children?.length ?? 0) > 0 ||
-    Boolean(dataSourceView?.search);
-
-  const { data: dataRecordsResult, isFetching: matchedCountLoading } =
-    useDataRecords(hasActiveFilter ? dataSource.id : "", 0);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [editName, setEditName] = useState(dataSource.name);
-  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isFocusing = useRef(false);
-
-  const layerColor =
-    layerType === LayerType.Member
-      ? mapColors.member.color
-      : mapColors.markers.color;
-
-  const isVisible = getDataSourceVisibility(dataSource?.id);
-
-  // Get current color: view override, then data source default, then layer color
-  const currentColor =
-    viewConfig.markerColors?.[dataSource.id] ??
-    fullDataSource?.defaultMarkerColor ??
-    layerColor;
-
-  // Focus management for rename input
-  useEffect(() => {
-    if (isRenaming) {
-      isFocusing.current = true;
-      setTimeout(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }, 10);
-      setTimeout(() => {
-        isFocusing.current = false;
-      }, 500);
-    }
-  }, [isRenaming]);
-
-  // Update editName when dataSource.name changes
-  useEffect(() => {
-    setEditName(dataSource.name);
-  }, [dataSource.name]);
-
-  // Update name mutation
-  const { mutate: updateName } = useMutation(
-    trpc.dataSource.updateConfig.mutationOptions({
-      onSuccess: () => {
-        void invalidateDataSources();
-        toast.success("Data source renamed successfully");
-        setIsRenaming(false);
-      },
-      onError: () => {
-        toast.error("Failed to rename data source");
-        setEditName(dataSource.name); // Reset on error
-      },
-    }),
-  );
-
-  const handleSaveRename = () => {
-    if (editName.trim() && editName !== dataSource.name) {
-      updateName({
-        dataSourceId: dataSource.id,
-        name: editName.trim(),
-      });
-    } else {
-      setEditName(dataSource.name);
-      setIsRenaming(false);
-    }
-  };
-
-  const handleRemoveFromMap = () => {
-    if (layerType === LayerType.Member) {
-      // Remove members data source
-      updateMapConfig({ membersDataSourceId: null });
-      toast.success("Data source removed from map");
-    } else if (layerType === LayerType.Marker) {
-      // Remove from marker data sources array
-      updateMapConfig({
-        markerDataSourceIds: mapConfig.markerDataSourceIds.filter(
-          (id) => id !== dataSource.id,
-        ),
-      });
-      toast.success("Data source removed from map");
-    }
-    // Don't leave the settings panel editing a source that left the map
-    if (markerSettingsDataSourceId === dataSource.id) {
-      setMarkerSettingsDataSourceId(null);
-    }
-    setShowRemoveDialog(false);
-  };
-
-  const matchedRecordCount =
-    dataRecordsResult?.count?.matched ?? dataSource.recordCount;
+}: DataSourceRowProps) {
+  const {
+    isVisible,
+    toggleVisibility,
+    currentColor,
+    toggleSettings,
+    openSettings,
+    matchedRecordCount,
+    matchedCountLoading,
+    isRenaming,
+    setIsRenaming,
+    editName,
+    setEditName,
+    inputRef,
+    handleSaveRename,
+    handleCancelRename,
+    handleRenameBlur,
+    showRemoveDialog,
+    setShowRemoveDialog,
+    handleRemoveFromMap,
+  } = useDataSourceItem({ dataSource, layerType });
 
   return (
     <>
@@ -177,15 +71,9 @@ export default function DataSourceItem({
         name={dataSource.name}
         layerType={layerType}
         isVisible={isVisible}
-        onVisibilityToggle={() =>
-          setDataSourceVisibility(dataSource?.id, !isVisible)
-        }
+        onVisibilityToggle={toggleVisibility}
         color={currentColor}
-        onOpenSettings={() =>
-          setMarkerSettingsDataSourceId(
-            markerSettingsDataSourceId === dataSource.id ? null : dataSource.id,
-          )
-        }
+        onOpenSettings={toggleSettings}
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
@@ -210,12 +98,9 @@ export default function DataSourceItem({
                       className="text-sm font-medium border-none outline-none bg-transparent w-full"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleSaveRename();
-                        if (e.key === "Escape") {
-                          setEditName(dataSource.name);
-                          setIsRenaming(false);
-                        }
+                        if (e.key === "Escape") handleCancelRename();
                       }}
-                      onBlur={() => !isFocusing.current && handleSaveRename()}
+                      onBlur={handleRenameBlur}
                       ref={inputRef}
                     />
                   ) : (
@@ -261,9 +146,7 @@ export default function DataSourceItem({
               <PencilIcon size={12} />
               Rename
             </ContextMenuItem>
-            <ContextMenuItem
-              onClick={() => setDataSourceVisibility(dataSource.id, !isVisible)}
-            >
+            <ContextMenuItem onClick={toggleVisibility}>
               {isVisible ? (
                 <>
                   <EyeOffIcon size={12} />
@@ -277,9 +160,7 @@ export default function DataSourceItem({
               )}
             </ContextMenuItem>
             <ContextMenuSeparator />
-            <ContextMenuItem
-              onClick={() => setMarkerSettingsDataSourceId(dataSource.id)}
-            >
+            <ContextMenuItem onClick={openSettings}>
               <SlidersHorizontalIcon size={12} />
               Marker settings
             </ContextMenuItem>

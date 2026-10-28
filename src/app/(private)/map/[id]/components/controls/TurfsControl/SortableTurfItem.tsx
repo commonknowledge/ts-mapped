@@ -24,6 +24,7 @@ import { useMapRef } from "../../../hooks/useMapCore";
 import { useTurfMutations } from "../../../hooks/useTurfMutations";
 import { useTurfState } from "../../../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
+import { getTurfDisplayName } from "../../../utils/turf";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import type { Turf } from "@/models/Turf";
@@ -159,7 +160,7 @@ export default function SortableTurfItem({
                     }
                   }}
                 >
-                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                  {getTurfDisplayName(turf)}
                 </button>
               </ContextMenuTrigger>
               <ContextMenuContent>
@@ -236,7 +237,7 @@ export default function SortableTurfItem({
       <DeleteConfirmationDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        description={`This action cannot be undone. This will permanently delete the area "${turf.label || `Area: ${turf.area?.toFixed(2)}m²`}".`}
+        description={`This action cannot be undone. This will permanently delete the area "${getTurfDisplayName(turf)}".`}
         onConfirm={handleDelete}
       />
     </>

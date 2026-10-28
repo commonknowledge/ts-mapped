@@ -1,0 +1,206 @@
+[
+  {
+    "code": "W08000001",
+    "name": "Wales",
+    "first": "Lab",
+    "seats": { "Lab": 27, "LD": 1, "PC": 4 },
+    "totalSeats": 32,
+    "turnout": 56.2,
+    "shares": {
+      "Con": 18.2,
+      "Lab": 37,
+      "LD": 6.5,
+      "RUK": 16.9,
+      "Green": 4.7,
+      "PC": 14.8,
+      "Other": 2
+    }
+  },
+  {
+    "code": "S15000001",
+    "name": "Scotland",
+    "first": "Lab",
+    "seats": { "SNP": 9, "Lab": 37, "Con": 5, "LD": 6 },
+    "totalSeats": 57,
+    "turnout": 59.2,
+    "shares": {
+      "Con": 12.7,
+      "Lab": 35.3,
+      "LD": 9.7,
+      "RUK": 7,
+      "Green": 3.8,
+      "SNP": 30,
+      "Other": 1.5
+    }
+  },
+  {
+    "code": "E15000008",
+    "name": "South East",
+    "first": "Lab",
+    "seats": { "Lab": 36, "Con": 30, "LD": 24, "Green": 1 },
+    "totalSeats": 91,
+    "turnout": 64.6,
+    "shares": {
+      "Con": 30.6,
+      "Lab": 24.5,
+      "LD": 21.9,
+      "RUK": 14,
+      "Green": 6.9,
+      "Other": 2.1
+    }
+  },
+  {
+    "code": "E15000005",
+    "name": "West Midlands",
+    "first": "Lab",
+    "seats": { "Con": 15, "Lab": 38, "Ind": 1, "Green": 1, "LD": 2 },
+    "totalSeats": 57,
+    "turnout": 57.3,
+    "shares": {
+      "Con": 27.6,
+      "Lab": 34,
+      "LD": 8.8,
+      "RUK": 18.1,
+      "Green": 6.6,
+      "Other": 4.9
+    }
+  },
+  {
+    "code": "E15000002",
+    "name": "North West",
+    "first": "Lab",
+    "seats": { "Lab": 65, "Ind": 1, "LD": 3, "Con": 3, "Spk": 1 },
+    "totalSeats": 73,
+    "turnout": 56.7,
+    "shares": {
+      "Con": 18.8,
+      "Lab": 44,
+      "LD": 7.8,
+      "RUK": 16.6,
+      "Green": 7,
+      "Other": 5.8
+    }
+  },
+  {
+    "code": "E15000004",
+    "name": "East Midlands",
+    "first": "Lab",
+    "seats": { "Lab": 29, "RUK": 2, "Con": 15, "Ind": 1 },
+    "totalSeats": 47,
+    "turnout": 60.8,
+    "shares": {
+      "Con": 29.4,
+      "Lab": 35.3,
+      "LD": 6.4,
+      "RUK": 18.9,
+      "Green": 6.3,
+      "Other": 3.7
+    }
+  },
+  {
+    "code": "E15000007",
+    "name": "London",
+    "first": "Lab",
+    "seats": { "Lab": 59, "Con": 9, "LD": 6, "Ind": 1 },
+    "totalSeats": 75,
+    "turnout": 58.7,
+    "shares": {
+      "Con": 20.5,
+      "Lab": 43,
+      "LD": 11,
+      "RUK": 8.7,
+      "Green": 10.1,
+      "Other": 6.7
+    }
+  },
+  {
+    "code": "E15000003",
+    "name": "Yorkshire and The Humber",
+    "first": "Lab",
+    "seats": { "Lab": 43, "Con": 9, "Ind": 1, "LD": 1 },
+    "totalSeats": 54,
+    "turnout": 55.7,
+    "shares": {
+      "Con": 22.8,
+      "Lab": 40.9,
+      "LD": 7.1,
+      "RUK": 16.7,
+      "Green": 7.5,
+      "Other": 5
+    }
+  },
+  {
+    "code": "E15000006",
+    "name": "East of England",
+    "first": "Lab",
+    "seats": { "Con": 23, "Lab": 27, "LD": 7, "RUK": 3, "Green": 1 },
+    "totalSeats": 61,
+    "turnout": 62,
+    "shares": {
+      "Con": 30.6,
+      "Lab": 29.4,
+      "LD": 13.2,
+      "RUK": 17.5,
+      "Green": 6.9,
+      "Other": 2.4
+    }
+  },
+  {
+    "code": "E15000009",
+    "name": "South West",
+    "first": "Lab",
+    "seats": { "LD": 22, "Lab": 24, "Con": 11, "Green": 1 },
+    "totalSeats": 58,
+    "turnout": 64.9,
+    "shares": {
+      "Con": 28.2,
+      "Lab": 24.5,
+      "LD": 24.7,
+      "RUK": 13.8,
+      "Green": 7.4,
+      "Other": 1.4
+    }
+  },
+  {
+    "code": "N07000001",
+    "name": "Northern Ireland",
+    "first": "SF",
+    "seats": {
+      "DUP": 5,
+      "SF": 7,
+      "SDLP": 2,
+      "APNI": 1,
+      "TUV": 1,
+      "Ind": 1,
+      "UUP": 1
+    },
+    "totalSeats": 18,
+    "turnout": 57.2,
+    "shares": {
+      "Con": 0.1,
+      "Green": 1.1,
+      "DUP": 22.1,
+      "SF": 27,
+      "SDLP": 11.1,
+      "UUP": 12.2,
+      "APNI": 15,
+      "Other": 11.4
+    }
+  },
+  {
+    "code": "E15000001",
+    "name": "North East",
+    "first": "Lab",
+    "seats": { "Lab": 26, "Con": 1 },
+    "totalSeats": 27,
+    "turnout": 56.6,
+    "shares": {
+      "Con": 20.2,
+      "Lab": 45.4,
+      "LD": 5.9,
+      "RUK": 19.9,
+      "Green": 6,
+      "Other": 2.6
+    }
+  }
+]
