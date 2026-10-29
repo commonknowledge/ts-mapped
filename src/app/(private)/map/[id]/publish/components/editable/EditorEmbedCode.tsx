@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { getAbsoluteUrl } from "@/utils/appUrl";
+import { getAbsoluteUrl, getPublicMapUrl } from "@/utils/appUrl";
 import { usePublicMapValue } from "../../hooks/usePublicMap";
 
 /**
@@ -21,9 +21,8 @@ export default function EditorEmbedCode() {
     return null;
   }
 
-  const protocol = new URL(getAbsoluteUrl()).protocol;
   const snippet = [
-    `<div data-mapped-map="${protocol}//${publicMap.host}" style="height: 600px"></div>`,
+    `<div data-mapped-map="${getPublicMapUrl(publicMap.host)}" style="height: 600px"></div>`,
     `<script src="${getAbsoluteUrl("embed.js")}" async></script>`,
   ].join("\n");
 

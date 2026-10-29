@@ -39,6 +39,10 @@ export const DEFAULT_CUSTOM_COLOR = "#3b82f6";
 
 export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 
+// In dev, public map subdomains are served through the http proxy on 3001
+// (see createHttpsTunnel in server/services/urls.ts), not the https server
+export const DEV_PUBLIC_MAP_BASE_URL = "http://localhost:3001";
+
 export const DUMMY_COUNT_COLUMN = "__count";
 
 export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";

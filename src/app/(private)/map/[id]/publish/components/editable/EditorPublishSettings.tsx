@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTRPC } from "@/services/trpc/react";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
+import { getPublicMapBaseUrl } from "@/utils/appUrl";
 import {
   useHostAvailable,
   usePublicMapValue,
@@ -96,16 +97,13 @@ export default function EditorPublishSettings() {
   }
 
   // Helper functions
-  const getBaseUrl = () =>
-    new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001");
-
   const makeHost = (subdomain: string) => {
-    const baseHost = getBaseUrl().host;
+    const baseHost = getPublicMapBaseUrl().host;
     return `${subdomain}.${baseHost}`;
   };
 
   const getPublicMapUrlAfterSubDomain = () => {
-    const baseHost = getBaseUrl().host;
+    const baseHost = getPublicMapBaseUrl().host;
     return `.${baseHost}`;
   };
 
@@ -113,7 +111,7 @@ export default function EditorPublishSettings() {
     <div className="flex flex-col gap-2">
       <Label>URL</Label>
       <div className="flex items-center gap-2">
-        <span className="text-sm text-neutral-500">{`${getBaseUrl().protocol}//`}</span>
+        <span className="text-sm text-neutral-500">{`${getPublicMapBaseUrl().protocol}//`}</span>
         <Input
           type="text"
           placeholder="my-map"

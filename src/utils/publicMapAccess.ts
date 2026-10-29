@@ -1,7 +1,5 @@
-import {
-  DEV_NEXT_PUBLIC_BASE_URL,
-  PUBLIC_MAP_ACCESS_TOKEN_PARAM,
-} from "@/constants";
+import { PUBLIC_MAP_ACCESS_TOKEN_PARAM } from "@/constants";
+import { getPublicMapBaseUrl, getPublicMapUrl } from "./appUrl";
 
 // Compare pages ignoring query string, fragment and a trailing slash
 const pageKey = (url: URL) =>
@@ -62,15 +60,8 @@ export function buildPublicMapAccessLink({
   const base =
     findEmbedUrl({ embedUrls, pageUrl: requestedFromUrl }) ??
     embedUrls[0] ??
-    publicMapSubdomainUrl(host);
+    getPublicMapUrl(host ?? getPublicMapBaseUrl().host);
   const url = new URL(base);
   url.searchParams.set(PUBLIC_MAP_ACCESS_TOKEN_PARAM, token);
   return url.toString();
 }
-
-const publicMapSubdomainUrl = (host: string | null) => {
-  const baseUrl = new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
-  );
-  return `${baseUrl.protocol}//${host ?? baseUrl.host}/`;
-};

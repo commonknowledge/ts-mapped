@@ -3,6 +3,7 @@
 import { Loader2, Redo2, Upload } from "lucide-react";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
+import { getPublicMapBaseUrl } from "@/utils/appUrl";
 import {
   useHasDraftChanges,
   useHostAvailable,
@@ -29,9 +30,6 @@ export default function PublishControls() {
 
   const switchChecked = publicMap.published;
 
-  const getBaseUrl = () =>
-    new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001");
-
   return (
     <div className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-3 shadow-md">
       {/* Switch + label */}
@@ -55,7 +53,7 @@ export default function PublishControls() {
             <>
               Published at{" "}
               <a
-                href={`${getBaseUrl().protocol}//${publishedHost}`}
+                href={`${getPublicMapBaseUrl().protocol}//${publishedHost}`}
                 target="_blank"
                 className="underline hover:text-neutral-800"
               >
