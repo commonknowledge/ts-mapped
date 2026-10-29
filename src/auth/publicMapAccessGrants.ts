@@ -1,38 +1,16 @@
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { PUBLIC_MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
+import { addToGrantsCookie, getGrantsCookie } from "./grantsCookie";
 import type { PublicMapAccessGrant } from "@/authTypes";
 
 export const PUBLIC_MAP_ACCESS_COOKIE = "PublicMapAccess";
 
-// Cap the cookie size; adding a grant beyond the cap drops the oldest
-const MAX_PUBLIC_MAP_ACCESS_GRANTS = 10;
-
 /**
- * Read and verify the public map access cookie. Returns [] for missing,
- * invalid or expired cookies. Grants returned here are only *candidates*:
- * callers must validate them against the live publicMapAccess row (see
- * `canViewPublicMap` in server/utils/auth.ts).
+ * The visitor's public map access grants. Callers must validate them
+ * against the live publicMapAccess row (see `canViewPublicMap` in
+ * server/utils/auth.ts).
  */
-export async function getPublicMapAccessGrants(): Promise<
-  PublicMapAccessGrant[]
-> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(PUBLIC_MAP_ACCESS_COOKIE);
-  if (!cookie?.value) {
-    return [];
-  }
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
-    const { payload } = await jwtVerify<{ grants: PublicMapAccessGrant[] }>(
-      cookie.value,
-      secret,
-    );
-    return Array.isArray(payload.grants) ? payload.grants : [];
-  } catch {
-    // Don't bother logging invalid JWTs
-    return [];
-  }
+export function getPublicMapAccessGrants(): Promise<PublicMapAccessGrant[]> {
+  return getGrantsCookie<PublicMapAccessGrant>(PUBLIC_MAP_ACCESS_COOKIE);
 }
 
 /**
@@ -46,33 +24,22 @@ export async function getPublicMapAccessGrants(): Promise<
  * block unpartitioned third-party cookies. The grant therefore only applies
  * under the top-level site it was minted on.
  */
-export async function addPublicMapAccessGrant({
+export function addPublicMapAccessGrant({
   accessId,
   publicMapId,
 }: {
   accessId: string;
   publicMapId: string;
 }): Promise<void> {
-  const existing = await getPublicMapAccessGrants();
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const grants: PublicMapAccessGrant[] = [
-    { accessId, publicMapId, iat: nowSeconds },
-    ...existing.filter((grant) => grant.publicMapId !== publicMapId),
-  ].slice(0, MAX_PUBLIC_MAP_ACCESS_GRANTS);
-
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
-  const token = await new SignJWT({ grants })
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(nowSeconds + PUBLIC_MAP_ACCESS_LIFETIME_SECONDS)
-    .sign(secret);
-
-  const cookieStore = await cookies();
-  cookieStore.set(PUBLIC_MAP_ACCESS_COOKIE, token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    partitioned: true,
-    path: "/",
-    maxAge: PUBLIC_MAP_ACCESS_LIFETIME_SECONDS,
+  return addToGrantsCookie<PublicMapAccessGrant>({
+    name: PUBLIC_MAP_ACCESS_COOKIE,
+    grant: { accessId, publicMapId, iat: Math.floor(Date.now() / 1000) },
+    replaces: (grant) => grant.publicMapId === publicMapId,
+    lifetimeSeconds: PUBLIC_MAP_ACCESS_LIFETIME_SECONDS,
+    cookieOptions: {
+      sameSite: "none",
+      partitioned: true,
+      maxAge: PUBLIC_MAP_ACCESS_LIFETIME_SECONDS,
+    },
   });
 }

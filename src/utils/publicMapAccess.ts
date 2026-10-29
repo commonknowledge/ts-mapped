@@ -56,7 +56,8 @@ export function getEmbedContext({
 /**
  * Where a magic link points: back to the page the request came from, if its
  * site is still listed, else the map's own address. The token is added as a
- * query parameter.
+ * query parameter. Null if there is nowhere to point: the site is no longer
+ * listed and the map has no address of its own.
  */
 export function buildPublicMapAccessLink({
   host,
@@ -68,10 +69,16 @@ export function buildPublicMapAccessLink({
   embedOrigins: string[];
   requestedFromUrl: string | null;
   token: string;
-}): string {
+}): string | null {
   const context = getEmbedContext({ embedOrigins, pageUrl: requestedFromUrl });
-  const base =
-    context.kind === "embedded" ? context.pageUrl : getPublicMapUrl(host ?? "");
+  let base: string;
+  if (context.kind === "embedded") {
+    base = context.pageUrl;
+  } else if (host) {
+    base = getPublicMapUrl(host);
+  } else {
+    return null;
+  }
   const url = new URL(base);
   url.searchParams.set(PUBLIC_MAP_ACCESS_TOKEN_PARAM, token);
   return url.toString();

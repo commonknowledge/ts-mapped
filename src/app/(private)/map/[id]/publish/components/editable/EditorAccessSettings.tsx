@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import z from "zod";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapAccessMode } from "@/models/PublicMap";
@@ -13,6 +13,7 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { toOrigin } from "@/utils/publicMapAccess";
 import {
   usePublicMapValue,
+  useSetFieldInvalid,
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
 
@@ -103,7 +104,8 @@ export default function EditorAccessSettings() {
 /**
  * A one-per-line list. The draft only accepts valid values (it is
  * validated when auto-saved), so the text is buffered while typing and
- * committed on blur once every line is valid.
+ * committed on blur once every line is valid. Until then, publishing is
+ * blocked, as it would silently use the last valid list.
  */
 function ListField({
   label,
@@ -125,17 +127,33 @@ function ListField({
   onCommit: (values: string[]) => void;
 }) {
   const [text, setText] = useState<string | null>(null);
+  const setFieldInvalid = useSetFieldInvalid();
+
+  // Hidden fields (e.g. after switching to open access) don't block publishing
+  useEffect(
+    () => () => setFieldInvalid(label, false),
+    [label, setFieldInvalid],
+  );
+
+  const parse = (value: string) => {
+    const parsed = [
+      ...new Set(
+        value
+          .split(/[\s,]+/)
+          .map((line) => normalise(line.trim()))
+          .filter(Boolean),
+      ),
+    ];
+    return { parsed, invalid: parsed.filter((line) => !isValid(line)) };
+  };
 
   const value = text ?? values.join("\n");
-  const parsed = [
-    ...new Set(
-      value
-        .split(/[\s,]+/)
-        .map((line) => normalise(line.trim()))
-        .filter(Boolean),
-    ),
-  ];
-  const invalid = parsed.filter((line) => !isValid(line));
+  const { parsed, invalid } = parse(value);
+
+  const onChange = (next: string) => {
+    setText(next);
+    setFieldInvalid(label, parse(next).invalid.length > 0);
+  };
 
   const commit = () => {
     if (text === null || invalid.length > 0) {
@@ -156,7 +174,7 @@ function ListField({
         id={label}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         onBlur={commit}
         className="w-full shadow-none"
         rows={3}

@@ -1,4 +1,7 @@
-import type { PublicMapAccess } from "@/models/PublicMapAccess";
+import type {
+  PublicMapAccess,
+  PublicMapAccessToken,
+} from "@/models/PublicMapAccess";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export type PublicMapAccessTable = PublicMapAccess & {
@@ -7,3 +10,9 @@ export type PublicMapAccessTable = PublicMapAccess & {
 };
 export type NewPublicMapAccess = Insertable<PublicMapAccessTable>;
 export type PublicMapAccessUpdate = Updateable<PublicMapAccessTable>;
+
+export type PublicMapAccessTokenTable = PublicMapAccessToken & {
+  id: Generated<string>;
+  issuedAt: Generated<Date>;
+};
+export type NewPublicMapAccessToken = Insertable<PublicMapAccessTokenTable>;

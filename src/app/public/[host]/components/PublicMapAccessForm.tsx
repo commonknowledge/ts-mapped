@@ -151,8 +151,7 @@ export default function PublicMapAccessForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {claimStatus === "invalid" && (
         <p className="text-sm text-red-600">
-          That link has expired or been replaced by a newer one. Enter your
-          email to get a new link.
+          That link has expired. Enter your email to get a new link.
         </p>
       )}
       <p className="text-sm">

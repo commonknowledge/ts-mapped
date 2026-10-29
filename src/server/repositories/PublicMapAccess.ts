@@ -1,3 +1,4 @@
+import { PUBLIC_MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
 import { PublicMapAccessStatus } from "@/models/PublicMapAccess";
 import { db } from "@/server/services/database";
 
@@ -9,11 +10,18 @@ export function findPublicMapAccessById(id: string) {
     .executeTakeFirst();
 }
 
+/** The access row a magic link is for, with when that link was issued. */
 export function findPublicMapAccessByTokenHash(tokenHash: string) {
   return db
-    .selectFrom("publicMapAccess")
-    .where("tokenHash", "=", tokenHash)
-    .selectAll()
+    .selectFrom("publicMapAccessToken")
+    .innerJoin(
+      "publicMapAccess",
+      "publicMapAccess.id",
+      "publicMapAccessToken.publicMapAccessId",
+    )
+    .where("publicMapAccessToken.tokenHash", "=", tokenHash)
+    .selectAll("publicMapAccess")
+    .select("publicMapAccessToken.issuedAt as tokenIssuedAt")
     .executeTakeFirst();
 }
 
@@ -37,9 +45,8 @@ export async function findOrCreatePublicMapAccess({
       publicMapId,
       email: email.toLowerCase(),
       status: PublicMapAccessStatus.Pending,
-      tokenHash: null,
-      tokenIssuedAt: null,
       requestedFromUrl,
+      moderatorsNotifiedAt: null,
       decidedAt: null,
     })
     .onConflict((oc) => oc.columns(["publicMapId", "email"]).doNothing())
@@ -58,40 +65,72 @@ export async function findOrCreatePublicMapAccess({
   return { access, created: false };
 }
 
-/**
- * Store the hash of a newly issued magic link token, replacing (and so
- * invalidating) any previous link for this row.
- */
-export function setPublicMapAccessTokenHash({
-  id,
-  tokenHash,
-}: {
-  id: string;
-  tokenHash: string;
-}) {
-  return db
+/** Record that moderators have been emailed about this request. */
+export async function setPublicMapAccessModeratorsNotified(id: string) {
+  await db
     .updateTable("publicMapAccess")
-    .set({ tokenHash, tokenIssuedAt: new Date() })
+    .set({ moderatorsNotifiedAt: new Date() })
     .where("id", "=", id)
-    .returningAll()
-    .executeTakeFirstOrThrow();
+    .execute();
 }
 
 /**
- * Approve, reject or revoke. Bumps `decidedAt`, which invalidates any
- * grant minted before this decision.
+ * Store the hash of a newly issued magic link token. Earlier links keep
+ * working until they expire; expired ones are cleared out here.
+ */
+export async function addPublicMapAccessToken({
+  publicMapAccessId,
+  tokenHash,
+}: {
+  publicMapAccessId: string;
+  tokenHash: string;
+}) {
+  const expiredBefore = new Date(
+    Date.now() - PUBLIC_MAP_ACCESS_LIFETIME_SECONDS * 1000,
+  );
+  await db
+    .deleteFrom("publicMapAccessToken")
+    .where("publicMapAccessId", "=", publicMapAccessId)
+    .where("issuedAt", "<", expiredBefore)
+    .execute();
+  await db
+    .insertInto("publicMapAccessToken")
+    .values({ publicMapAccessId, tokenHash })
+    .execute();
+}
+
+/**
+ * Approve, reject or revoke. Only applies if the status is still
+ * `fromStatus`, so two moderators deciding at once can't both succeed:
+ * returns undefined for the one who lost.
+ *
+ * Bumps `decidedAt`, which invalidates any grant minted before this
+ * decision. Anything but approval also deletes the visitor's magic links,
+ * so approving them again later does not bring old links back to life.
  */
 export function setPublicMapAccessStatus({
   id,
+  fromStatus,
   status,
 }: {
   id: string;
+  fromStatus: PublicMapAccessStatus;
   status: PublicMapAccessStatus;
 }) {
-  return db
-    .updateTable("publicMapAccess")
-    .set({ status, decidedAt: new Date() })
-    .where("id", "=", id)
-    .returningAll()
-    .executeTakeFirst();
+  return db.transaction().execute(async (tx) => {
+    const updated = await tx
+      .updateTable("publicMapAccess")
+      .set({ status, decidedAt: new Date() })
+      .where("id", "=", id)
+      .where("status", "=", fromStatus)
+      .returningAll()
+      .executeTakeFirst();
+    if (updated && status !== PublicMapAccessStatus.Approved) {
+      await tx
+        .deleteFrom("publicMapAccessToken")
+        .where("publicMapAccessId", "=", id)
+        .execute();
+    }
+    return updated;
+  });
 }

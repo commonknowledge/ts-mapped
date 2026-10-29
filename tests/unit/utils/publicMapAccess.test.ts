@@ -102,8 +102,8 @@ describe("buildPublicMapAccessLink", () => {
       requestedFromUrl: null,
       token: "abc",
     });
-    expect(new URL(link).host).toBe("praxis.localhost:3001");
-    expect(new URL(link).searchParams.get("mapped_access")).toBe("abc");
+    expect(new URL(link ?? "").host).toBe("praxis.localhost:3001");
+    expect(new URL(link ?? "").searchParams.get("mapped_access")).toBe("abc");
   });
 
   test("a page whose website has since been removed links to the map's own address", () => {
@@ -113,6 +113,17 @@ describe("buildPublicMapAccessLink", () => {
       requestedFromUrl: "https://partner.example.org/map",
       token: "abc",
     });
-    expect(new URL(link).host).toBe("praxis.localhost:3001");
+    expect(new URL(link ?? "").host).toBe("praxis.localhost:3001");
+  });
+
+  test("no link when the website is gone and the map has no address", () => {
+    expect(
+      buildPublicMapAccessLink({
+        host: null,
+        embedOrigins: [],
+        requestedFromUrl: "https://partner.example.org/map",
+        token: "abc",
+      }),
+    ).toBeNull();
   });
 });

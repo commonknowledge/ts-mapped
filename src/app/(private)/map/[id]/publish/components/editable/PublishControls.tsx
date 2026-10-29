@@ -6,6 +6,7 @@ import { Switch } from "@/shadcn/ui/switch";
 import { getPublicMapBaseUrl } from "@/utils/appUrl";
 import {
   useHasDraftChanges,
+  useHasInvalidFields,
   useHostAvailable,
   usePublicMapValue,
 } from "../../hooks/usePublicMap";
@@ -15,6 +16,7 @@ export default function PublishControls() {
   const publicMap = usePublicMapValue();
   const hasDraftChanges = useHasDraftChanges();
   const hostAvailable = useHostAvailable();
+  const hasInvalidFields = useHasInvalidFields();
 
   const {
     loading,
@@ -91,7 +93,7 @@ export default function PublishControls() {
               size="sm"
               className="h-6 px-1.5 text-xs"
               onClick={handleApplyDraft}
-              disabled={loading || hostAvailable === false}
+              disabled={loading || hostAvailable === false || hasInvalidFields}
             >
               <Upload className="w-3 h-3 mr-1" />
               Publish

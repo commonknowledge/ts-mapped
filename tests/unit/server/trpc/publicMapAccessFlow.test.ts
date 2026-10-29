@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("@/server/services/mailer", () => ({
-  sendEmail: vi.fn(),
+  sendEmail: vi.fn(async () => true),
 }));
 // Each email template is rendered just before its sendEmail call, so
 // capturing template props in order lines them up with the sendEmail calls
@@ -29,7 +29,10 @@ import { createMap, deleteMap } from "@/server/repositories/Map";
 import { upsertMapView } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { applyDraft } from "@/server/repositories/PublicMap";
-import { findPublicMapAccessById } from "@/server/repositories/PublicMapAccess";
+import {
+  findPublicMapAccessById,
+  setPublicMapAccessStatus,
+} from "@/server/repositories/PublicMapAccess";
 import { db } from "@/server/services/database";
 import { sendEmail } from "@/server/services/mailer";
 import { findClaimablePublicMapAccess } from "@/server/services/publicMapAccess";
@@ -181,6 +184,49 @@ describe("moderated public map access flow", () => {
     expect(mockSendEmail).not.toHaveBeenCalled();
   });
 
+  test("if no moderator could be emailed, asking again retries", async () => {
+    mockSendEmail.mockResolvedValue(false);
+    await expect(
+      caller.request({
+        publicMapId: moderatedPublicMapId,
+        email: "retry@example.org",
+      }),
+    ).rejects.toThrow();
+    mockSendEmail.mockResolvedValue(true);
+    mockSendEmail.mockClear();
+    templateProps.length = 0;
+
+    await caller.request({
+      publicMapId: moderatedPublicMapId,
+      email: "retry@example.org",
+    });
+    expect(mockSendEmail).toHaveBeenCalledTimes(MODERATORS.length);
+
+    // Once a moderator has the request, asking again sends nothing
+    mockSendEmail.mockClear();
+    await caller.request({
+      publicMapId: moderatedPublicMapId,
+      email: "retry@example.org",
+    });
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  test("one moderator's email failing still counts as notified", async () => {
+    mockSendEmail.mockResolvedValueOnce(false);
+    await caller.request({
+      publicMapId: moderatedPublicMapId,
+      email: "partial@example.org",
+    });
+    expect(mockSendEmail).toHaveBeenCalledTimes(MODERATORS.length);
+
+    mockSendEmail.mockClear();
+    await caller.request({
+      publicMapId: moderatedPublicMapId,
+      email: "partial@example.org",
+    });
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
   test("a request from an embed on an unlisted website is refused", async () => {
     await expect(
       caller.request({
@@ -223,6 +269,47 @@ describe("moderated public map access flow", () => {
     ).rejects.toMatchObject({ code: "CONFLICT" });
   });
 
+  test("a decision only applies if nobody else decided first", async () => {
+    const updated = await setPublicMapAccessStatus({
+      id: accessId,
+      fromStatus: PublicMapAccessStatus.Pending,
+      status: PublicMapAccessStatus.Rejected,
+    });
+    expect(updated).toBeUndefined();
+    const access = await findPublicMapAccessById(accessId);
+    expect(access?.status).toBe(PublicMapAccessStatus.Approved);
+  });
+
+  test("if the link email fails, the approval is undone so it can be retried", async () => {
+    await caller.request({
+      publicMapId: moderatedPublicMapId,
+      email: "unlucky@example.org",
+    });
+    const token = moderationToken(emailsTo(MODERATORS[0])[0].reviewUrl);
+
+    mockSendEmail.mockResolvedValueOnce(false);
+    await expect(
+      caller.decide({ token, status: PublicMapAccessStatus.Approved }),
+    ).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
+    const review = await caller.review({ token });
+    expect(review.status).toBe(PublicMapAccessStatus.Pending);
+
+    const result = await caller.decide({
+      token,
+      status: PublicMapAccessStatus.Approved,
+    });
+    expect(result.status).toBe(PublicMapAccessStatus.Approved);
+    const links = emailsTo("unlucky@example.org");
+    expect(links).toHaveLength(2);
+    // Only the link that was actually emailed works
+    expect(
+      await findClaimablePublicMapAccess(magicToken(links[0].link)),
+    ).toBeNull();
+    expect(
+      await findClaimablePublicMapAccess(magicToken(links[1].link)),
+    ).not.toBeNull();
+  });
+
   test("an approved visitor asking again gets a new link without the moderator", async () => {
     await caller.request({
       publicMapId: moderatedPublicMapId,
@@ -236,8 +323,9 @@ describe("moderated public map access flow", () => {
       true,
     );
 
-    // The new link replaces the old one
-    expect(await findClaimablePublicMapAccess(firstLinkToken)).toBeNull();
+    // Both links work, so a request made in the visitor's name can't break
+    // a link they have yet to click
+    expect(await findClaimablePublicMapAccess(firstLinkToken)).not.toBeNull();
     expect(
       await findClaimablePublicMapAccess(magicToken(linkEmail.link)),
     ).not.toBeNull();
@@ -260,11 +348,24 @@ describe("moderated public map access flow", () => {
     const token = magicToken(emailsTo("visitor@example.org")[0].link);
     const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
     await db
-      .updateTable("publicMapAccess")
-      .set({ tokenIssuedAt: eightDaysAgo })
-      .where("id", "=", accessId)
+      .updateTable("publicMapAccessToken")
+      .set({ issuedAt: eightDaysAgo })
+      .where("publicMapAccessId", "=", accessId)
       .execute();
     expect(await findClaimablePublicMapAccess(token)).toBeNull();
+    expect(await findClaimablePublicMapAccess(firstLinkToken)).toBeNull();
+
+    // Expired links are cleared out when the next one is issued
+    await caller.request({
+      publicMapId: moderatedPublicMapId,
+      email: "visitor@example.org",
+    });
+    const remaining = await db
+      .selectFrom("publicMapAccessToken")
+      .where("publicMapAccessId", "=", accessId)
+      .selectAll()
+      .execute();
+    expect(remaining).toHaveLength(1);
   });
 
   test("revoking stops links working and stops new links being sent", async () => {
@@ -289,6 +390,18 @@ describe("moderated public map access flow", () => {
 
     const access = await findPublicMapAccessById(accessId);
     expect(access?.status).toBe(PublicMapAccessStatus.Revoked);
+  });
+
+  test("approving again after a revoke does not bring old links back", async () => {
+    await caller.decide({
+      token: reviewToken,
+      status: PublicMapAccessStatus.Approved,
+    });
+    expect(await findClaimablePublicMapAccess(firstLinkToken)).toBeNull();
+    const [linkEmail] = emailsTo("visitor@example.org");
+    expect(
+      await findClaimablePublicMapAccess(magicToken(linkEmail.link)),
+    ).not.toBeNull();
   });
 
   test("unknown tokens are not claimable", async () => {

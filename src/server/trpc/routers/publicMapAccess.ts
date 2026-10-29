@@ -14,6 +14,8 @@ import {
 } from "@/server/services/publicMapAccess";
 import { getEmbedContext } from "@/utils/publicMapAccess";
 import { publicProcedure, router } from "../index";
+import type { PublicMapAccess } from "@/models/PublicMapAccess";
+import type { PublicMapForAccess } from "@/server/services/publicMapAccess";
 
 // The decisions a moderator can make from each status
 const allowedDecisions: Record<PublicMapAccessStatus, PublicMapAccessStatus[]> =
@@ -118,23 +120,72 @@ export const publicMapAccessRouter = router({
     )
     .mutation(async ({ input }) => {
       const { access, publicMap } = await findModeratedAccess(input.token);
+      // Most likely another moderator decided first: the page refetches
+      const alreadyDecided = new TRPCError({
+        code: "CONFLICT",
+        message: "This request has already been decided.",
+      });
       if (!allowedDecisions[access.status].includes(input.status)) {
-        // Most likely another moderator decided first: the page refetches
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "This request has already been decided.",
-        });
+        throw alreadyDecided;
       }
       const updated = await setPublicMapAccessStatus({
         id: access.id,
+        fromStatus: access.status,
         status: input.status,
       });
       if (!updated) {
-        throw notFound();
+        throw alreadyDecided;
       }
       if (updated.status === PublicMapAccessStatus.Approved) {
-        await sendPublicMapAccessLink({ publicMap, access: updated });
+        await sendApprovalLink({
+          publicMap,
+          access: updated,
+          previousStatus: access.status,
+        });
       }
       return toReviewState({ access: updated, mapName: publicMap.name });
     }),
 });
+
+/**
+ * Email a newly approved visitor their link. If that fails, the approval
+ * is undone, so the review page never claims a link was sent when it
+ * wasn't, and the moderator can try again.
+ */
+async function sendApprovalLink({
+  publicMap,
+  access,
+  previousStatus,
+}: {
+  publicMap: PublicMapForAccess;
+  access: PublicMapAccess;
+  previousStatus: PublicMapAccessStatus;
+}) {
+  let sent = false;
+  let sendError: unknown = null;
+  try {
+    sent = await sendPublicMapAccessLink({ publicMap, access });
+  } catch (error) {
+    sendError = error;
+  }
+  if (sent) {
+    return;
+  }
+  await setPublicMapAccessStatus({
+    id: access.id,
+    fromStatus: PublicMapAccessStatus.Approved,
+    status: previousStatus,
+  });
+  if (sendError) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Couldn't email the visitor their link. Please try again.",
+      cause: sendError,
+    });
+  }
+  throw new TRPCError({
+    code: "PRECONDITION_FAILED",
+    message:
+      "There's nowhere to send the visitor: the website they asked from is no longer listed, and the map has no address of its own. Give the map a subdomain or list the website again, then publish and try again.",
+  });
+}

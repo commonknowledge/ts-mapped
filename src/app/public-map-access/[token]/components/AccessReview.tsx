@@ -57,7 +57,13 @@ export default function AccessReview({ token }: { token: string }) {
           {statusText[review.status]}.
         </p>
         <p className="text-xs text-muted-foreground">
-          Requested {review.requestedAt.toLocaleString("en-GB")}
+          Requested{" "}
+          {review.requestedAt.toLocaleString("en-GB", {
+            // Fixed, so the server and browser render the same text
+            timeZone: "Europe/London",
+            dateStyle: "medium",
+            timeStyle: "short",
+          })}
         </p>
         {error && <p className="text-sm text-red-600">{error.message}</p>}
         {review.allowedDecisions.length > 0 && (

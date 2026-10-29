@@ -252,6 +252,7 @@ describe("moderated public map access control", () => {
   test("once approved, a grant unlocks the map, its data and its config", async () => {
     await setPublicMapAccessStatus({
       id: access.id,
+      fromStatus: PublicMapAccessStatus.Pending,
       status: PublicMapAccessStatus.Approved,
     });
     const grants = [grantFor(access)];
@@ -298,6 +299,7 @@ describe("moderated public map access control", () => {
     const grant = grantFor(access);
     await setPublicMapAccessStatus({
       id: access.id,
+      fromStatus: PublicMapAccessStatus.Approved,
       status: PublicMapAccessStatus.Revoked,
     });
     await expect(
@@ -310,6 +312,7 @@ describe("moderated public map access control", () => {
     const oldGrant = grantFor(access, -60);
     await setPublicMapAccessStatus({
       id: access.id,
+      fromStatus: PublicMapAccessStatus.Revoked,
       status: PublicMapAccessStatus.Approved,
     });
     expect(await canRead(DS_MODERATED_ONLY, [oldGrant])).toBe(false);

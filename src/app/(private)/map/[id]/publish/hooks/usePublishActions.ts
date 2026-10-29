@@ -6,6 +6,7 @@ import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
 import {
+  useHasInvalidFields,
   useHostAvailable,
   usePublicMapValue,
   usePublishedPublicMapValue,
@@ -13,6 +14,8 @@ import {
   useUpdatePublicMap,
 } from "./usePublicMap";
 import { extractDraft } from "./usePublicMapQuery";
+
+const INVALID_FIELDS_MESSAGE = "Fix the highlighted fields before publishing.";
 
 function getSubdomain(host: string | undefined) {
   if (!host) return "";
@@ -29,6 +32,7 @@ export function usePublishActions() {
   const updatePublicMap = useUpdatePublicMap();
   const setPublicMap = useSetPublicMap();
   const hostAvailable = useHostAvailable();
+  const hasInvalidFields = useHasInvalidFields();
   const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -80,6 +84,10 @@ export function usePublishActions() {
     if (!publicMap || !mapId) return;
 
     if (checked) {
+      if (hasInvalidFields) {
+        toast.error(INVALID_FIELDS_MESSAGE);
+        return;
+      }
       if (hostAvailable === false) {
         toast.error("Subdomain is taken — choose another before publishing.");
         return;
@@ -110,6 +118,10 @@ export function usePublishActions() {
 
   const handleApplyDraft = () => {
     if (!publicMap || !mapId) return;
+    if (hasInvalidFields) {
+      toast.error(INVALID_FIELDS_MESSAGE);
+      return;
+    }
     if (hostAvailable === false) {
       toast.error("Subdomain is taken — choose another before publishing.");
       return;

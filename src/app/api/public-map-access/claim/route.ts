@@ -10,7 +10,7 @@ import type { NextRequest } from "next/server";
  * refreshes so the server component sees the grant.
  *
  * The link is not used up: the same link works on another device until it
- * expires or a newer one is issued.
+ * expires, even after newer links have been issued.
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   let token = "";
