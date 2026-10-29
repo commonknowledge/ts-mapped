@@ -296,7 +296,7 @@ export interface PublicMap {
   imageUrl: string | null; // text, NULL
   accessMode: string; // text, NOT NULL, DEFAULT 'Open' ('Open' | 'Moderated')
   moderatorEmails: string[]; // jsonb, NOT NULL, DEFAULT []
-  embedUrl: string; // text, NOT NULL, DEFAULT ''
+  embedUrls: string[]; // jsonb, NOT NULL, DEFAULT []
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 
   // FOREIGN KEYS:
@@ -315,6 +315,7 @@ export interface PublicMapAccess {
   status: string; // text, NOT NULL ('Pending' | 'Approved' | 'Rejected' | 'Revoked')
   tokenHash: string | null; // text, UNIQUE, NULL - hash of the current magic link token
   tokenIssuedAt: Date | null; // timestamp, NULL
+  requestedFromUrl: string | null; // text, NULL - embedding page the request came from
   decidedAt: Date | null; // timestamp, NULL - grants minted before this are invalid
   createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
 

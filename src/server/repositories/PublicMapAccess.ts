@@ -9,16 +9,27 @@ export function findPublicMapAccessById(id: string) {
     .executeTakeFirst();
 }
 
+export function findPublicMapAccessByTokenHash(tokenHash: string) {
+  return db
+    .selectFrom("publicMapAccess")
+    .where("tokenHash", "=", tokenHash)
+    .selectAll()
+    .executeTakeFirst();
+}
+
 /**
  * Record a visitor's request for access. A repeat request for the same
- * email returns the existing row unchanged, whatever its status.
+ * email keeps the existing row and its status, but remembers the page it
+ * came from, if known (so a fresh magic link goes back to that page).
  */
 export async function findOrCreatePublicMapAccess({
   publicMapId,
   email,
+  requestedFromUrl = null,
 }: {
   publicMapId: string;
   email: string;
+  requestedFromUrl?: string | null;
 }) {
   const created = await db
     .insertInto("publicMapAccess")
@@ -28,6 +39,7 @@ export async function findOrCreatePublicMapAccess({
       status: PublicMapAccessStatus.Pending,
       tokenHash: null,
       tokenIssuedAt: null,
+      requestedFromUrl,
       decidedAt: null,
     })
     .onConflict((oc) => oc.columns(["publicMapId", "email"]).doNothing())
@@ -37,12 +49,37 @@ export async function findOrCreatePublicMapAccess({
     return { access: created, created: true };
   }
   const access = await db
-    .selectFrom("publicMapAccess")
+    .updateTable("publicMapAccess")
+    .set(({ fn, ref, val }) => ({
+      requestedFromUrl: fn.coalesce(
+        val(requestedFromUrl),
+        ref("requestedFromUrl"),
+      ),
+    }))
     .where("publicMapId", "=", publicMapId)
     .where("email", "=", email.toLowerCase())
-    .selectAll()
+    .returningAll()
     .executeTakeFirstOrThrow();
   return { access, created: false };
+}
+
+/**
+ * Store the hash of a newly issued magic link token, replacing (and so
+ * invalidating) any previous link for this row.
+ */
+export function setPublicMapAccessTokenHash({
+  id,
+  tokenHash,
+}: {
+  id: string;
+  tokenHash: string;
+}) {
+  return db
+    .updateTable("publicMapAccess")
+    .set({ tokenHash, tokenIssuedAt: new Date() })
+    .where("id", "=", id)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }
 
 /**

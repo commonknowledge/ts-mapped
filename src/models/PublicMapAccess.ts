@@ -16,6 +16,7 @@ export const publicMapAccessSchema = z.object({
   status: z.enum(PublicMapAccessStatus),
   tokenHash: z.string().nullable(),
   tokenIssuedAt: z.date().nullable(),
+  requestedFromUrl: z.string().nullable(),
   decidedAt: z.date().nullable(),
   createdAt: z.date(),
 });

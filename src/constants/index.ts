@@ -58,6 +58,15 @@ export const SHARE_GRANT_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
 // grant it mints (see PublicMapAccessGrant in authTypes.ts)
 export const PUBLIC_MAP_ACCESS_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
 
+// Query parameter carrying a moderated public map's magic link token, on
+// the embedding page (forwarded into the iframe by embed.js) or on the
+// map's own subdomain
+export const PUBLIC_MAP_ACCESS_TOKEN_PARAM = "mapped_access";
+
+// Query parameter embed.js adds to the iframe URL, telling the map which
+// page it is embedded on (iframes cannot read their parent's URL)
+export const PUBLIC_MAP_EMBED_PAGE_PARAM = "mapped_page";
+
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 

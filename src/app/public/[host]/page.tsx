@@ -46,6 +46,7 @@ export default async function PublicMapPage({ params }: Props) {
   if (!publicMap.accessGranted) {
     return (
       <PublicMapAccessGate
+        publicMapId={publicMap.id}
         name={publicMap.name}
         description={publicMap.description}
       />

@@ -74,9 +74,10 @@ export const publicMapDraftSchema = z.object({
   // Emailed about new access requests on a moderated map. Never sent to
   // visitors (stripped by publicMap.get).
   moderatorEmails: z.array(z.email()),
-  // The page the map is embedded on, where magic links point. Empty means
-  // the map's own subdomain.
-  embedUrl: z.union([z.url(), z.literal("")]),
+  // The pages the map is embedded on. Magic links only ever point at one of
+  // these (the one the request came from, else the first), or at the map's
+  // own subdomain when empty.
+  embedUrls: z.array(z.url()),
 });
 
 export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;

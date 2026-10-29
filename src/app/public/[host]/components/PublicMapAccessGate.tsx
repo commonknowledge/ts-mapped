@@ -1,4 +1,5 @@
 import { LockIcon } from "lucide-react";
+import PublicMapAccessForm from "./PublicMapAccessForm";
 
 /**
  * Shown instead of a moderated public map to visitors without an access
@@ -6,9 +7,11 @@ import { LockIcon } from "lucide-react";
  * needs the public map's name and description.
  */
 export default function PublicMapAccessGate({
+  publicMapId,
   name,
   description,
 }: {
+  publicMapId: string;
   name: string;
   description: string;
 }) {
@@ -24,7 +27,7 @@ export default function PublicMapAccessGate({
             <p className="text-sm text-muted-foreground">{description}</p>
           )}
         </div>
-        <p className="text-sm">Access to this map is by request.</p>
+        <PublicMapAccessForm publicMapId={publicMapId} />
       </div>
     </div>
   );

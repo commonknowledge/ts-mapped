@@ -8,11 +8,13 @@ import type { Kysely } from "kysely";
  *
  * - `public_map.access_mode`: "Open" (anyone) or "Moderated"
  * - `public_map.moderator_emails`: who is emailed about new requests
- * - `public_map.embed_url`: the page the map is embedded on, where magic
- *   links point; empty means the map's own subdomain
+ * - `public_map.embed_urls`: the pages the map is embedded on. Magic links
+ *   only ever point at one of these (or the map's own subdomain when the
+ *   list is empty), so a request cannot send a token to an arbitrary site.
  * - `public_map_access`: one row per (public map, email). `token_hash` is
- *   the current magic link; `decided_at` invalidates viewer grants minted
- *   before the latest approve/reject/revoke.
+ *   the current magic link; `requested_from_url` is the embedding page the
+ *   request came from; `decided_at` invalidates viewer grants minted before
+ *   the latest approve/reject/revoke.
  */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
@@ -21,12 +23,14 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("moderatorEmails", "jsonb", (col) =>
       col.notNull().defaultTo(sql`'[]'::jsonb`),
     )
-    .addColumn("embedUrl", "text", (col) => col.notNull().defaultTo(""))
+    .addColumn("embedUrls", "jsonb", (col) =>
+      col.notNull().defaultTo(sql`'[]'::jsonb`),
+    )
     .execute();
 
   await sql`
     UPDATE public_map
-    SET draft = draft || '{"accessMode": "Open", "moderatorEmails": [], "embedUrl": ""}'::jsonb
+    SET draft = draft || '{"accessMode": "Open", "moderatorEmails": [], "embedUrls": []}'::jsonb
     WHERE draft IS NOT NULL
   `.execute(db);
 
@@ -40,6 +44,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("status", "text", (col) => col.notNull())
     .addColumn("tokenHash", "text", (col) => col.unique())
     .addColumn("tokenIssuedAt", "timestamp")
+    .addColumn("requestedFromUrl", "text")
     .addColumn("decidedAt", "timestamp")
     .addColumn("createdAt", "timestamp", (col) =>
       col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`),
@@ -63,7 +68,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   await sql`
     UPDATE public_map
-    SET draft = draft - 'accessMode' - 'moderatorEmails' - 'embedUrl'
+    SET draft = draft - 'accessMode' - 'moderatorEmails' - 'embedUrls'
     WHERE draft IS NOT NULL
   `.execute(db);
 
@@ -71,6 +76,6 @@ export async function down(db: Kysely<any>): Promise<void> {
     .alterTable("publicMap")
     .dropColumn("accessMode")
     .dropColumn("moderatorEmails")
-    .dropColumn("embedUrl")
+    .dropColumn("embedUrls")
     .execute();
 }

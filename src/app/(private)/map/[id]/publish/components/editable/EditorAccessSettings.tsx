@@ -2,7 +2,6 @@ import { useState } from "react";
 import z from "zod";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapAccessMode } from "@/models/PublicMap";
-import { Input } from "@/shadcn/ui/input";
 import {
   Select,
   SelectContent,
@@ -16,12 +15,6 @@ import {
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
 
-const parseEmails = (value: string) =>
-  value
-    .split(/[\s,]+/)
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-
 const isEmail = (value: string) => z.email().safeParse(value).success;
 const isUrl = (value: string) => z.url().safeParse(value).success;
 
@@ -29,47 +22,11 @@ export default function EditorAccessSettings() {
   const publicMap = usePublicMapValue();
   const updatePublicMap = useUpdatePublicMap();
 
-  // Text buffers: the draft only accepts valid emails and URLs (it is
-  // validated when auto-saved), so half-typed values are committed on blur
-  const [moderatorEmailsText, setModeratorEmailsText] = useState<string | null>(
-    null,
-  );
-  const [embedUrlText, setEmbedUrlText] = useState<string | null>(null);
-
   if (!publicMap) {
     return null;
   }
 
   const moderated = publicMap.accessMode === PublicMapAccessMode.Moderated;
-
-  const moderatorEmailsValue =
-    moderatorEmailsText ?? publicMap.moderatorEmails.join("\n");
-  const invalidEmails = parseEmails(moderatorEmailsValue).filter(
-    (email) => !isEmail(email),
-  );
-
-  const embedUrlValue = embedUrlText ?? publicMap.embedUrl;
-  const embedUrlInvalid = Boolean(embedUrlValue) && !isUrl(embedUrlValue);
-
-  const commitModeratorEmails = () => {
-    if (moderatorEmailsText === null) {
-      return;
-    }
-    if (invalidEmails.length === 0) {
-      updatePublicMap({ moderatorEmails: parseEmails(moderatorEmailsText) });
-      setModeratorEmailsText(null);
-    }
-  };
-
-  const commitEmbedUrl = () => {
-    if (embedUrlText === null) {
-      return;
-    }
-    if (!embedUrlInvalid) {
-      updatePublicMap({ embedUrl: embedUrlText.trim() });
-      setEmbedUrlText(null);
-    }
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,45 +61,88 @@ export default function EditorAccessSettings() {
 
       {moderated && (
         <>
-          <FormFieldWrapper
+          <ListField
             label="Moderator emails"
-            id="Moderator emails"
             hint="One per line. Each is emailed when someone requests access."
-            error={
-              invalidEmails.length
-                ? `Not a valid email: ${invalidEmails.join(", ")}`
-                : null
-            }
-          >
-            <Textarea
-              id="Moderator emails"
-              placeholder="moderator@example.org"
-              value={moderatorEmailsValue}
-              onChange={(e) => setModeratorEmailsText(e.target.value)}
-              onBlur={commitModeratorEmails}
-              className="w-full shadow-none"
-              rows={3}
-            />
-          </FormFieldWrapper>
-
-          <FormFieldWrapper
-            label="Embedded on page"
-            id="Embed page URL"
-            hint="The page the map is embedded on. Access links take visitors there. Leave blank to link to the map's own address."
-            error={embedUrlInvalid ? "Not a valid URL" : null}
-          >
-            <Input
-              id="Embed page URL"
-              placeholder="https://example.org/map"
-              value={embedUrlValue}
-              onChange={(e) => setEmbedUrlText(e.target.value)}
-              onBlur={commitEmbedUrl}
-              className="w-full shadow-none"
-              type="url"
-            />
-          </FormFieldWrapper>
+            placeholder="moderator@example.org"
+            values={publicMap.moderatorEmails}
+            isValid={isEmail}
+            invalidMessage="Not a valid email"
+            normalise={(value) => value.toLowerCase()}
+            onCommit={(moderatorEmails) => updatePublicMap({ moderatorEmails })}
+          />
+          <ListField
+            label="Embedded on pages"
+            hint="One per line. Access links take visitors back to the page they asked from, if it is listed here, otherwise to the first page. Leave blank to link to the map's own address."
+            placeholder="https://example.org/map"
+            values={publicMap.embedUrls}
+            isValid={isUrl}
+            invalidMessage="Not a valid URL"
+            onCommit={(embedUrls) => updatePublicMap({ embedUrls })}
+          />
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * A one-per-line list. The draft only accepts valid values (it is
+ * validated when auto-saved), so the text is buffered while typing and
+ * committed on blur once every line is valid.
+ */
+function ListField({
+  label,
+  hint,
+  placeholder,
+  values,
+  isValid,
+  invalidMessage,
+  normalise = (value) => value,
+  onCommit,
+}: {
+  label: string;
+  hint: string;
+  placeholder: string;
+  values: string[];
+  isValid: (value: string) => boolean;
+  invalidMessage: string;
+  normalise?: (value: string) => string;
+  onCommit: (values: string[]) => void;
+}) {
+  const [text, setText] = useState<string | null>(null);
+
+  const value = text ?? values.join("\n");
+  const parsed = value
+    .split(/[\s,]+/)
+    .map((line) => normalise(line.trim()))
+    .filter(Boolean);
+  const invalid = parsed.filter((line) => !isValid(line));
+
+  const commit = () => {
+    if (text === null || invalid.length > 0) {
+      return;
+    }
+    onCommit(parsed);
+    setText(null);
+  };
+
+  return (
+    <FormFieldWrapper
+      label={label}
+      id={label}
+      hint={hint}
+      error={invalid.length ? `${invalidMessage}: ${invalid.join(", ")}` : null}
+    >
+      <Textarea
+        id={label}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        className="w-full shadow-none"
+        rows={3}
+      />
+    </FormFieldWrapper>
   );
 }

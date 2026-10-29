@@ -16,6 +16,14 @@ export function findPublicMapByHost(host: string) {
     .executeTakeFirst();
 }
 
+export function findPublicMapById(id: string) {
+  return db
+    .selectFrom("publicMap")
+    .where("id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
+
 /**
  * All published public maps of this map (one per view at most). Returns
  * every match, not just the first, because whether a visitor may see each
@@ -134,7 +142,7 @@ export function saveDraft(input: {
       clusteringEnabled: true,
       accessMode: PublicMapAccessMode.Open,
       moderatorEmails: [],
-      embedUrl: "",
+      embedUrls: [],
       draft: input.draft,
     })
     .onConflict((oc) =>
