@@ -67,7 +67,17 @@ export function useMarkerQueries() {
 
       return {
         enabled: Boolean(view), // Prevent duplicate marker query while view is loading
-        queryKey: ["markers", dataSourceId, filter, search, properties],
+        // publicMapViewId is in the key because it changes the response
+        // (public labels, and the dates used to hide past events): without
+        // it, switching from explore to publish reused explore's markers
+        queryKey: [
+          "markers",
+          dataSourceId,
+          filter,
+          search,
+          properties,
+          publicMapViewId,
+        ],
         queryFn: async () => {
           const params = new URLSearchParams();
           params.set("filter", filter);
