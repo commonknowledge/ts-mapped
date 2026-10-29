@@ -10,17 +10,14 @@ import {
   setPublicMapAccessTokenHash,
 } from "@/server/repositories/PublicMapAccess";
 import { getAbsoluteUrl } from "@/utils/appUrl";
-import {
-  buildPublicMapAccessLink,
-  findEmbedUrl,
-} from "@/utils/publicMapAccess";
+import { buildPublicMapAccessLink } from "@/utils/publicMapAccess";
 import { sendEmail } from "./mailer";
 import type { PublicMap } from "@/models/PublicMap";
 import type { PublicMapAccess } from "@/models/PublicMapAccess";
 
 type PublicMapForAccess = Pick<
   PublicMap,
-  "id" | "name" | "host" | "embedUrls" | "moderatorEmails"
+  "id" | "name" | "host" | "embedOrigins" | "moderatorEmails"
 >;
 
 const MODERATION_TOKEN_PURPOSE = "moderatePublicMapAccess";
@@ -66,24 +63,24 @@ export async function verifyModerationToken(
  * - new email: stored as pending, and every moderator is emailed
  * - already approved: a fresh magic link is emailed straight away
  * - pending, rejected or revoked: nothing is sent
+ *
+ * `requestedFromUrl` is the page on a listed site the request came from, or
+ * null for the map's own address. Its magic link goes back there. Callers
+ * must refuse requests from unlisted sites (see getEmbedContext).
  */
 export async function requestPublicMapAccess({
   publicMap,
   email,
-  pageUrl,
+  requestedFromUrl,
 }: {
   publicMap: PublicMapForAccess;
   email: string;
-  pageUrl: string | null;
+  requestedFromUrl: string | null;
 }): Promise<void> {
   const { access, created } = await findOrCreatePublicMapAccess({
     publicMapId: publicMap.id,
     email,
-    // Only remember pages the map is configured to be embedded on
-    requestedFromUrl: findEmbedUrl({
-      embedUrls: publicMap.embedUrls,
-      pageUrl,
-    }),
+    requestedFromUrl,
   });
 
   if (created) {
@@ -136,7 +133,7 @@ export async function sendPublicMapAccessLink({
   });
   const link = buildPublicMapAccessLink({
     host: publicMap.host,
-    embedUrls: publicMap.embedUrls,
+    embedOrigins: publicMap.embedOrigins,
     requestedFromUrl: access.requestedFromUrl,
     token,
   });

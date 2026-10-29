@@ -8,13 +8,14 @@ import type { Kysely } from "kysely";
  *
  * - `public_map.access_mode`: "Open" (anyone) or "Moderated"
  * - `public_map.moderator_emails`: who is emailed about new requests
- * - `public_map.embed_urls`: the pages the map is embedded on. Magic links
- *   only ever point at one of these (or the map's own subdomain when the
- *   list is empty), so a request cannot send a token to an arbitrary site.
+ * - `public_map.embed_origins`: the sites (origins) a moderated map may be
+ *   embedded on. Requests from embeds on other sites are refused, so a magic
+ *   link can only ever point at a listed site or the map's own subdomain.
  * - `public_map_access`: one row per (public map, email). `token_hash` is
- *   the current magic link; `requested_from_url` is the embedding page the
- *   request came from; `decided_at` invalidates viewer grants minted before
- *   the latest approve/reject/revoke.
+ *   the current magic link; `requested_from_url` is the page of a listed
+ *   site the latest request came from (null for the map's own address);
+ *   `decided_at` invalidates viewer grants minted before the latest
+ *   approve/reject/revoke.
  */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
@@ -23,14 +24,14 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("moderatorEmails", "jsonb", (col) =>
       col.notNull().defaultTo(sql`'[]'::jsonb`),
     )
-    .addColumn("embedUrls", "jsonb", (col) =>
+    .addColumn("embedOrigins", "jsonb", (col) =>
       col.notNull().defaultTo(sql`'[]'::jsonb`),
     )
     .execute();
 
   await sql`
     UPDATE public_map
-    SET draft = draft || '{"accessMode": "Open", "moderatorEmails": [], "embedUrls": []}'::jsonb
+    SET draft = draft || '{"accessMode": "Open", "moderatorEmails": [], "embedOrigins": []}'::jsonb
     WHERE draft IS NOT NULL
   `.execute(db);
 
@@ -68,7 +69,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   await sql`
     UPDATE public_map
-    SET draft = draft - 'accessMode' - 'moderatorEmails' - 'embedUrls'
+    SET draft = draft - 'accessMode' - 'moderatorEmails' - 'embedOrigins'
     WHERE draft IS NOT NULL
   `.execute(db);
 
@@ -76,6 +77,6 @@ export async function down(db: Kysely<any>): Promise<void> {
     .alterTable("publicMap")
     .dropColumn("accessMode")
     .dropColumn("moderatorEmails")
-    .dropColumn("embedUrls")
+    .dropColumn("embedOrigins")
     .execute();
 }

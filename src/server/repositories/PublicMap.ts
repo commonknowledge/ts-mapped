@@ -142,7 +142,7 @@ export function saveDraft(input: {
       clusteringEnabled: true,
       accessMode: PublicMapAccessMode.Open,
       moderatorEmails: [],
-      embedUrls: [],
+      embedOrigins: [],
       draft: input.draft,
     })
     .onConflict((oc) =>

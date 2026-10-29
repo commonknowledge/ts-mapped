@@ -19,8 +19,8 @@ export function findPublicMapAccessByTokenHash(tokenHash: string) {
 
 /**
  * Record a visitor's request for access. A repeat request for the same
- * email keeps the existing row and its status, but remembers the page it
- * came from, if known (so a fresh magic link goes back to that page).
+ * email keeps the existing row and its status, but records where it came
+ * from (so a fresh magic link goes back there).
  */
 export async function findOrCreatePublicMapAccess({
   publicMapId,
@@ -50,12 +50,7 @@ export async function findOrCreatePublicMapAccess({
   }
   const access = await db
     .updateTable("publicMapAccess")
-    .set(({ fn, ref, val }) => ({
-      requestedFromUrl: fn.coalesce(
-        val(requestedFromUrl),
-        ref("requestedFromUrl"),
-      ),
-    }))
+    .set({ requestedFromUrl })
     .where("publicMapId", "=", publicMapId)
     .where("email", "=", email.toLowerCase())
     .returningAll()

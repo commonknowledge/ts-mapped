@@ -1,102 +1,118 @@
 import { describe, expect, test } from "vitest";
 import {
   buildPublicMapAccessLink,
-  findEmbedUrl,
+  getEmbedContext,
+  toOrigin,
 } from "@/utils/publicMapAccess";
 
-const EMBED_URLS = [
-  "https://partner.example.org/map",
-  "https://other.example.net/resources/map/",
+const EMBED_ORIGINS = [
+  "https://partner.example.org",
+  "https://other.example.net",
 ];
 
-describe("findEmbedUrl", () => {
-  test("matches a configured page, ignoring query, fragment and trailing slash", () => {
-    expect(
-      findEmbedUrl({
-        embedUrls: EMBED_URLS,
-        pageUrl: "https://other.example.net/resources/map?utm=x#top",
-      }),
-    ).toBe("https://other.example.net/resources/map/");
+describe("toOrigin", () => {
+  test("keeps only the website part of an address", () => {
+    expect(toOrigin("https://partner.example.org/map/?a=1#top")).toBe(
+      "https://partner.example.org",
+    );
+    expect(toOrigin("http://localhost:8080/")).toBe("http://localhost:8080");
   });
 
-  test("returns the configured URL, not the visitor-supplied one", () => {
+  test("rejects anything that isn't an http(s) address", () => {
+    expect(toOrigin("partner.example.org")).toBeNull();
+    expect(toOrigin("javascript:alert(1)")).toBeNull();
+    expect(toOrigin("ftp://partner.example.org")).toBeNull();
+  });
+});
+
+describe("getEmbedContext", () => {
+  test("no embedding page means the map's own address", () => {
     expect(
-      findEmbedUrl({
-        embedUrls: EMBED_URLS,
-        pageUrl: "https://partner.example.org/map/?evil=1",
-      }),
-    ).toBe("https://partner.example.org/map");
+      getEmbedContext({ embedOrigins: EMBED_ORIGINS, pageUrl: null }),
+    ).toEqual({ kind: "direct" });
   });
 
-  test("rejects other pages on a configured site", () => {
+  test("any page on a listed website is allowed, and kept exactly", () => {
     expect(
-      findEmbedUrl({
-        embedUrls: EMBED_URLS,
-        pageUrl: "https://partner.example.org/elsewhere",
+      getEmbedContext({
+        embedOrigins: EMBED_ORIGINS,
+        pageUrl: "https://other.example.net/resources/map?page_id=12#top",
       }),
-    ).toBeNull();
+    ).toEqual({
+      kind: "embedded",
+      pageUrl: "https://other.example.net/resources/map?page_id=12",
+    });
   });
 
-  test("rejects a lookalike origin", () => {
+  test("a stale token on the page is dropped", () => {
     expect(
-      findEmbedUrl({
-        embedUrls: EMBED_URLS,
-        pageUrl: "https://partner.example.org.evil.com/map",
+      getEmbedContext({
+        embedOrigins: EMBED_ORIGINS,
+        pageUrl: "https://partner.example.org/map?mapped_access=old",
       }),
-    ).toBeNull();
+    ).toEqual({ kind: "embedded", pageUrl: "https://partner.example.org/map" });
   });
 
-  test("rejects missing and malformed URLs", () => {
-    expect(findEmbedUrl({ embedUrls: EMBED_URLS, pageUrl: null })).toBeNull();
+  test("an unlisted website is reported with its origin", () => {
     expect(
-      findEmbedUrl({ embedUrls: EMBED_URLS, pageUrl: "not a url" }),
-    ).toBeNull();
+      getEmbedContext({
+        embedOrigins: EMBED_ORIGINS,
+        pageUrl: "https://elsewhere.example.com/map",
+      }),
+    ).toEqual({ kind: "unlisted", origin: "https://elsewhere.example.com" });
+  });
+
+  test("lookalike origins and other protocols or ports are unlisted", () => {
+    for (const pageUrl of [
+      "https://partner.example.org.evil.com/map",
+      "http://partner.example.org/map",
+      "https://partner.example.org:8443/map",
+      "https://sub.partner.example.org/map",
+    ]) {
+      expect(
+        getEmbedContext({ embedOrigins: EMBED_ORIGINS, pageUrl }).kind,
+      ).toBe("unlisted");
+    }
+  });
+
+  test("a malformed page address is unlisted", () => {
+    expect(
+      getEmbedContext({ embedOrigins: EMBED_ORIGINS, pageUrl: "not a url" }),
+    ).toEqual({ kind: "unlisted", origin: null });
   });
 });
 
 describe("buildPublicMapAccessLink", () => {
   test("links back to the page the request came from", () => {
     const link = buildPublicMapAccessLink({
-      host: "praxis.localhost:3000",
-      embedUrls: EMBED_URLS,
-      requestedFromUrl: "https://other.example.net/resources/map/",
+      host: "praxis.localhost:3001",
+      embedOrigins: EMBED_ORIGINS,
+      requestedFromUrl: "https://other.example.net/resources/map?page_id=12",
       token: "abc",
     });
     expect(link).toBe(
-      "https://other.example.net/resources/map/?mapped_access=abc",
+      "https://other.example.net/resources/map?page_id=12&mapped_access=abc",
     );
   });
 
-  test("falls back to the first embed page when the request page is no longer configured", () => {
+  test("a request from the map's own address links back there", () => {
     const link = buildPublicMapAccessLink({
-      host: "praxis.localhost:3000",
-      embedUrls: EMBED_URLS,
-      requestedFromUrl: "https://removed.example.org/map",
-      token: "abc",
-    });
-    expect(link).toBe("https://partner.example.org/map?mapped_access=abc");
-  });
-
-  test("keeps an embed page's own query string", () => {
-    const link = buildPublicMapAccessLink({
-      host: null,
-      embedUrls: ["https://partner.example.org/?page_id=12"],
+      host: "praxis.localhost:3001",
+      embedOrigins: EMBED_ORIGINS,
       requestedFromUrl: null,
       token: "abc",
     });
-    expect(link).toBe(
-      "https://partner.example.org/?page_id=12&mapped_access=abc",
-    );
-  });
-
-  test("falls back to the map's own subdomain when no embed pages are configured", () => {
-    const link = buildPublicMapAccessLink({
-      host: "praxis.localhost:3000",
-      embedUrls: [],
-      requestedFromUrl: null,
-      token: "abc",
-    });
-    expect(new URL(link).host).toBe("praxis.localhost:3000");
+    expect(new URL(link).host).toBe("praxis.localhost:3001");
     expect(new URL(link).searchParams.get("mapped_access")).toBe("abc");
+  });
+
+  test("a page whose website has since been removed links to the map's own address", () => {
+    const link = buildPublicMapAccessLink({
+      host: "praxis.localhost:3001",
+      embedOrigins: ["https://other.example.net"],
+      requestedFromUrl: "https://partner.example.org/map",
+      token: "abc",
+    });
+    expect(new URL(link).host).toBe("praxis.localhost:3001");
   });
 });

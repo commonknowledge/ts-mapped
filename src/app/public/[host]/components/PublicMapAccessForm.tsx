@@ -25,8 +25,10 @@ type ClaimStatus = "none" | "claiming" | "claimed" | "invalid";
  */
 export default function PublicMapAccessForm({
   publicMapId,
+  mapUrl,
 }: {
   publicMapId: string;
+  mapUrl: string;
 }) {
   const router = useRouter();
   const trpc = useTRPC();
@@ -34,6 +36,10 @@ export default function PublicMapAccessForm({
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>("none");
   const [isRefreshing, startTransition] = useTransition();
   const [email, setEmail] = useState("");
+  // In an iframe without embed.js (e.g. a hand-written <iframe>): requests
+  // and magic links can't work here, as the map can't tell which page it
+  // is on
+  const [isBareIframe, setIsBareIframe] = useState(false);
 
   const {
     mutate: requestAccess,
@@ -49,6 +55,12 @@ export default function PublicMapAccessForm({
     didClaim.current = true;
 
     const url = new URL(window.location.href);
+    const isFramed = window.self !== window.top;
+    if (isFramed && !url.searchParams.has(PUBLIC_MAP_EMBED_PAGE_PARAM)) {
+      setIsBareIframe(true);
+      return;
+    }
+
     const token = url.searchParams.get(PUBLIC_MAP_ACCESS_TOKEN_PARAM);
     if (!token) {
       return;
@@ -87,6 +99,23 @@ export default function PublicMapAccessForm({
     );
     requestAccess({ publicMapId, email, pageUrl });
   };
+
+  if (isBareIframe) {
+    return (
+      <div className="flex flex-col gap-2 text-sm">
+        <p className="font-medium">
+          This map needs to be embedded using the embed code from Mapped.
+        </p>
+        <p>
+          You can still{" "}
+          <a href={mapUrl} target="_blank" className="underline">
+            request access at the map&apos;s own address
+          </a>
+          .
+        </p>
+      </div>
+    );
+  }
 
   if (
     claimStatus === "claiming" ||

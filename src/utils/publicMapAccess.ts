@@ -1,66 +1,77 @@
 import { PUBLIC_MAP_ACCESS_TOKEN_PARAM } from "@/constants";
-import { getPublicMapBaseUrl, getPublicMapUrl } from "./appUrl";
+import { getPublicMapUrl } from "./appUrl";
 
-// Compare pages ignoring query string, fragment and a trailing slash
-const pageKey = (url: URL) =>
-  `${url.origin}${url.pathname.replace(/\/+$/, "")}`;
-
-const parseUrl = (value: string | null | undefined) => {
+const parseHttpUrl = (value: string | null | undefined) => {
   if (!value) {
     return null;
   }
   try {
-    return new URL(value);
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url : null;
   } catch {
     return null;
   }
 };
 
 /**
- * The configured embed page that `pageUrl` is on, or null if it is not one
- * of them. Returns the *configured* URL rather than the visitor-supplied
- * one, so nothing from the request ends up in a magic link.
+ * The site part of a web address ("https://example.org/a/b" becomes
+ * "https://example.org"), or null if it isn't an http(s) address.
  */
-export function findEmbedUrl({
-  embedUrls,
-  pageUrl,
-}: {
-  embedUrls: string[];
-  pageUrl: string | null | undefined;
-}): string | null {
-  const page = parseUrl(pageUrl);
-  if (!page) {
-    return null;
-  }
-  for (const embedUrl of embedUrls) {
-    const embed = parseUrl(embedUrl);
-    if (embed && pageKey(embed) === pageKey(page)) {
-      return embedUrl;
-    }
-  }
-  return null;
+export function toOrigin(value: string): string | null {
+  return parseHttpUrl(value)?.origin ?? null;
 }
 
 /**
- * Where a magic link points: the embed page the request came from if it is
- * still configured, else the first configured embed page, else the map's
- * own subdomain. The token is added as a query parameter.
+ * Where a moderated map is being viewed from, judged by the embedding page
+ * embed.js reported (absent when the map is opened at its own address):
+ * - "direct": the map's own address
+ * - "embedded": a page on one of the listed sites (`pageUrl` is that page)
+ * - "unlisted": embedded on a site that is not listed. Access requests from
+ *   here are refused, so magic links only ever go to listed sites.
+ */
+export type EmbedContext =
+  | { kind: "direct" }
+  | { kind: "embedded"; pageUrl: string }
+  | { kind: "unlisted"; origin: string | null };
+
+export function getEmbedContext({
+  embedOrigins,
+  pageUrl,
+}: {
+  embedOrigins: string[];
+  pageUrl: string | null | undefined;
+}): EmbedContext {
+  if (!pageUrl) {
+    return { kind: "direct" };
+  }
+  const page = parseHttpUrl(pageUrl);
+  if (!page || !embedOrigins.includes(page.origin)) {
+    return { kind: "unlisted", origin: page?.origin ?? null };
+  }
+  page.hash = "";
+  page.searchParams.delete(PUBLIC_MAP_ACCESS_TOKEN_PARAM);
+  return { kind: "embedded", pageUrl: page.toString() };
+}
+
+/**
+ * Where a magic link points: back to the page the request came from, if its
+ * site is still listed, else the map's own address. The token is added as a
+ * query parameter.
  */
 export function buildPublicMapAccessLink({
   host,
-  embedUrls,
+  embedOrigins,
   requestedFromUrl,
   token,
 }: {
   host: string | null;
-  embedUrls: string[];
+  embedOrigins: string[];
   requestedFromUrl: string | null;
   token: string;
 }): string {
+  const context = getEmbedContext({ embedOrigins, pageUrl: requestedFromUrl });
   const base =
-    findEmbedUrl({ embedUrls, pageUrl: requestedFromUrl }) ??
-    embedUrls[0] ??
-    getPublicMapUrl(host ?? getPublicMapBaseUrl().host);
+    context.kind === "embedded" ? context.pageUrl : getPublicMapUrl(host ?? "");
   const url = new URL(base);
   url.searchParams.set(PUBLIC_MAP_ACCESS_TOKEN_PARAM, token);
   return url.toString();

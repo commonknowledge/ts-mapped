@@ -12,6 +12,7 @@ import {
   sendPublicMapAccessLink,
   verifyModerationToken,
 } from "@/server/services/publicMapAccess";
+import { getEmbedContext } from "@/utils/publicMapAccess";
 import { publicProcedure, router } from "../index";
 
 // The decisions a moderator can make from each status
@@ -71,8 +72,8 @@ export const publicMapAccessRouter = router({
       z.object({
         publicMapId: z.string(),
         email: z.email(),
-        // The embedding page, as reported by embed.js. Only used if it is
-        // one of the map's configured embed pages.
+        // The embedding page, as reported by embed.js; absent when the map
+        // is opened at its own address
         pageUrl: z.string().nullish(),
       }),
     )
@@ -84,10 +85,22 @@ export const publicMapAccessRouter = router({
       if (!publicMap || !acceptsRequests) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Map not found" });
       }
+      const context = getEmbedContext({
+        embedOrigins: publicMap.embedOrigins,
+        pageUrl: input.pageUrl,
+      });
+      if (context.kind === "unlisted") {
+        // The gate already shows this instead of the form; this is the
+        // backstop that keeps magic links off unlisted sites
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This map hasn't been set up to be embedded on this site.",
+        });
+      }
       await requestPublicMapAccess({
         publicMap,
         email: input.email,
-        pageUrl: input.pageUrl ?? null,
+        requestedFromUrl: context.kind === "embedded" ? context.pageUrl : null,
       });
     }),
   review: publicProcedure

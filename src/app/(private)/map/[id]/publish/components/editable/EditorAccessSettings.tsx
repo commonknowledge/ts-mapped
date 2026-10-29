@@ -10,13 +10,14 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Textarea } from "@/shadcn/ui/textarea";
+import { toOrigin } from "@/utils/publicMapAccess";
 import {
   usePublicMapValue,
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
 
 const isEmail = (value: string) => z.email().safeParse(value).success;
-const isUrl = (value: string) => z.url().safeParse(value).success;
+const isOrigin = (value: string) => toOrigin(value) === value;
 
 export default function EditorAccessSettings() {
   const publicMap = usePublicMapValue();
@@ -72,13 +73,27 @@ export default function EditorAccessSettings() {
             onCommit={(moderatorEmails) => updatePublicMap({ moderatorEmails })}
           />
           <ListField
-            label="Embedded on pages"
-            hint="One per line. Access links take visitors back to the page they asked from, if it is listed here, otherwise to the first page. Leave blank to link to the map's own address."
-            placeholder="https://example.org/map"
-            values={publicMap.embedUrls}
-            isValid={isUrl}
-            invalidMessage="Not a valid URL"
-            onCommit={(embedUrls) => updatePublicMap({ embedUrls })}
+            label="Websites this map is embedded on"
+            hint={
+              <>
+                One website per line, e.g. https://example.org. The map can then
+                be embedded on any page of that website, and access links take
+                visitors back to the page they asked from. Anything after the
+                website&apos;s address is ignored.
+                <br />
+                <br />
+                If the map is embedded on a website that isn&apos;t listed, it
+                shows &ldquo;This map hasn&apos;t been set up to be embedded on
+                this site&rdquo; instead of the request form. The map&apos;s own
+                address always works, listed or not.
+              </>
+            }
+            placeholder="https://example.org"
+            values={publicMap.embedOrigins}
+            isValid={isOrigin}
+            invalidMessage="Not a website address"
+            normalise={(value) => toOrigin(value) ?? value}
+            onCommit={(embedOrigins) => updatePublicMap({ embedOrigins })}
           />
         </>
       )}
@@ -102,7 +117,7 @@ function ListField({
   onCommit,
 }: {
   label: string;
-  hint: string;
+  hint: React.ReactNode;
   placeholder: string;
   values: string[];
   isValid: (value: string) => boolean;
@@ -113,10 +128,14 @@ function ListField({
   const [text, setText] = useState<string | null>(null);
 
   const value = text ?? values.join("\n");
-  const parsed = value
-    .split(/[\s,]+/)
-    .map((line) => normalise(line.trim()))
-    .filter(Boolean);
+  const parsed = [
+    ...new Set(
+      value
+        .split(/[\s,]+/)
+        .map((line) => normalise(line.trim()))
+        .filter(Boolean),
+    ),
+  ];
   const invalid = parsed.filter((line) => !isValid(line));
 
   const commit = () => {

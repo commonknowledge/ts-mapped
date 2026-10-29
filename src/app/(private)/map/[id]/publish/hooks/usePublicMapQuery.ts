@@ -49,7 +49,7 @@ export function extractDraft(
     clusteringEnabled: publicMap.clusteringEnabled,
     accessMode: publicMap.accessMode,
     moderatorEmails: publicMap.moderatorEmails,
-    embedUrls: publicMap.embedUrls,
+    embedOrigins: publicMap.embedOrigins,
   };
 }
 
@@ -136,7 +136,7 @@ export function usePublicMapQuery() {
             listed: false,
             accessMode: PublicMapAccessMode.Open,
             moderatorEmails: [],
-            embedUrls: [],
+            embedOrigins: [],
             accessGranted: true,
           };
         }

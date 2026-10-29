@@ -94,7 +94,7 @@ const makeDraft = ({
     accessMode === PublicMapAccessMode.Moderated
       ? ["moderator@example.org"]
       : [],
-  embedUrls: [],
+  embedOrigins: [],
   dataSourceConfigs: dataSourceIds.map((id) => ({
     allowUserEdit: false,
     allowUserSubmit: false,

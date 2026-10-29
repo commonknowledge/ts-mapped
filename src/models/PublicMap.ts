@@ -74,10 +74,10 @@ export const publicMapDraftSchema = z.object({
   // Emailed about new access requests on a moderated map. Never sent to
   // visitors (stripped by publicMap.get).
   moderatorEmails: z.array(z.email()),
-  // The pages the map is embedded on. Magic links only ever point at one of
-  // these (the one the request came from, else the first), or at the map's
-  // own subdomain when empty.
-  embedUrls: z.array(z.url()),
+  // The sites (origins, e.g. "https://example.org") a moderated map may be
+  // embedded on. Requests from embeds on other sites are refused; magic
+  // links go back to the page on the listed site the request came from.
+  embedOrigins: z.array(z.url()),
 });
 
 export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;

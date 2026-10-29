@@ -38,9 +38,9 @@ import type { PublicMapDraft } from "@/models/PublicMap";
 
 const mockSendEmail = vi.mocked(sendEmail);
 
-const EMBED_URLS = [
-  "https://partner.example.org/map",
-  "https://second.example.net/map",
+const EMBED_ORIGINS = [
+  "https://partner.example.org",
+  "https://second.example.net",
 ];
 const MODERATORS = ["mod1@example.org", "mod2@example.org"];
 
@@ -66,8 +66,11 @@ const moderationToken = (reviewUrl: string) =>
 const magicToken = (link: string) =>
   new URL(link).searchParams.get("mapped_access") ?? "";
 
+// Unique, so the test doesn't collide with real maps' subdomains
+const moderatedHost = `flow-${uuidv4()}.localhost:3001`;
+
 const makeDraft = (accessMode: PublicMapAccessMode): PublicMapDraft => ({
-  host: "",
+  host: accessMode === PublicMapAccessMode.Moderated ? moderatedHost : "",
   name: "Flow Test Map",
   description: "",
   descriptionLong: "",
@@ -79,7 +82,7 @@ const makeDraft = (accessMode: PublicMapAccessMode): PublicMapDraft => ({
   accessMode,
   moderatorEmails:
     accessMode === PublicMapAccessMode.Moderated ? MODERATORS : [],
-  embedUrls: EMBED_URLS,
+  embedOrigins: EMBED_ORIGINS,
   dataSourceConfigs: [],
 });
 
@@ -173,13 +176,25 @@ describe("moderated public map access flow", () => {
     await caller.request({
       publicMapId: moderatedPublicMapId,
       email: "VISITOR@example.org",
+      pageUrl: "https://second.example.net/resources/map?ref=newsletter#top",
     });
+    expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+
+  test("a request from an embed on an unlisted website is refused", async () => {
+    await expect(
+      caller.request({
+        publicMapId: moderatedPublicMapId,
+        email: "someone-else@example.org",
+        pageUrl: "https://not-listed.example.com/map",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
     expect(mockSendEmail).not.toHaveBeenCalled();
   });
 
   let firstLinkToken: string;
 
-  test("approving emails the visitor a link to the page they asked from", async () => {
+  test("approving emails the visitor a link to the page they last asked from", async () => {
     const result = await caller.decide({
       token: reviewToken,
       status: PublicMapAccessStatus.Approved,
@@ -188,12 +203,10 @@ describe("moderated public map access flow", () => {
     expect(result.allowedDecisions).toEqual([PublicMapAccessStatus.Revoked]);
 
     const [linkEmail] = emailsTo("visitor@example.org");
-    const link = new URL(linkEmail.link);
-    // The *configured* URL, without the visitor's ?ref=newsletter
-    expect(`${link.origin}${link.pathname}`).toBe(
-      "https://second.example.net/map",
+    // Any page on a listed website, kept exactly (minus the fragment)
+    expect(linkEmail.link).toMatch(
+      /^https:\/\/second\.example\.net\/resources\/map\?ref=newsletter&mapped_access=/,
     );
-    expect(link.searchParams.get("ref")).toBeNull();
 
     firstLinkToken = magicToken(linkEmail.link);
     const claimable = await findClaimablePublicMapAccess(firstLinkToken);
@@ -230,16 +243,13 @@ describe("moderated public map access flow", () => {
     ).not.toBeNull();
   });
 
-  test("a request from an unlisted page keeps the last listed page", async () => {
+  test("a request from the map's own address gets a link to its own address", async () => {
     await caller.request({
       publicMapId: moderatedPublicMapId,
       email: "visitor@example.org",
-      pageUrl: "https://not-configured.example.com/map",
     });
     const [linkEmail] = emailsTo("visitor@example.org");
-    expect(linkEmail.link.startsWith("https://partner.example.org/map?")).toBe(
-      true,
-    );
+    expect(new URL(linkEmail.link).host).toBe(moderatedHost);
   });
 
   test("a link stops working after a week", async () => {

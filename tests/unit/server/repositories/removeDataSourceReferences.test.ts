@@ -63,7 +63,7 @@ const makeDraft = (dataSourceIds: string[]) => ({
   clusteringEnabled: true,
   accessMode: PublicMapAccessMode.Open,
   moderatorEmails: [],
-  embedUrls: [],
+  embedOrigins: [],
   dataSourceConfigs: dataSourceIds.map((id) => ({
     allowUserEdit: false,
     allowUserSubmit: false,
