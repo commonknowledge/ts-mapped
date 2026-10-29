@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
+import { getSubdomain } from "../utils";
 import {
   useHasInvalidFields,
   useHostAvailable,
@@ -16,11 +17,6 @@ import {
 import { extractDraft } from "./usePublicMapQuery";
 
 const INVALID_FIELDS_MESSAGE = "Fix the highlighted fields before publishing.";
-
-function getSubdomain(host: string | undefined) {
-  if (!host) return "";
-  return host.split(".")[0];
-}
 
 /**
  * Shared hook that owns the publish / discard mutations and exposes

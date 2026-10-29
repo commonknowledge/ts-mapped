@@ -83,7 +83,7 @@ describe("getEmbedContext", () => {
 });
 
 describe("buildPublicMapAccessLink", () => {
-  test("links back to the page the request came from", () => {
+  test("links back to the page the request came from, naming the map", () => {
     const link = buildPublicMapAccessLink({
       host: "praxis.localhost:3001",
       embedOrigins: EMBED_ORIGINS,
@@ -91,8 +91,21 @@ describe("buildPublicMapAccessLink", () => {
       token: "abc",
     });
     expect(link).toBe(
-      "https://other.example.net/resources/map?page_id=12&mapped_access=abc",
+      "https://other.example.net/resources/map?page_id=12&mapped_access=abc&mapped_map=praxis.localhost%3A3001",
     );
+  });
+
+  test("a page from an older link doesn't keep its map parameter", () => {
+    const link = buildPublicMapAccessLink({
+      host: "praxis.localhost:3001",
+      embedOrigins: EMBED_ORIGINS,
+      requestedFromUrl:
+        "https://other.example.net/map?mapped_access=old&mapped_map=other.localhost%3A3001",
+      token: "abc",
+    });
+    expect(new URL(link ?? "").searchParams.getAll("mapped_map")).toEqual([
+      "praxis.localhost:3001",
+    ]);
   });
 
   test("a request from the map's own address links back there", () => {
@@ -116,7 +129,7 @@ describe("buildPublicMapAccessLink", () => {
     expect(new URL(link ?? "").host).toBe("praxis.localhost:3001");
   });
 
-  test("no link when the website is gone and the map has no address", () => {
+  test("no link when the map has no address", () => {
     expect(
       buildPublicMapAccessLink({
         host: null,

@@ -67,6 +67,11 @@ export const PUBLIC_MAP_ACCESS_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
 // map's own subdomain
 export const PUBLIC_MAP_ACCESS_TOKEN_PARAM = "mapped_access";
 
+// Query parameter naming which map a magic link's token is for (the map's
+// host), so embed.js only forwards the token into that map's iframe when a
+// page embeds several
+export const PUBLIC_MAP_ACCESS_MAP_PARAM = "mapped_map";
+
 // Query parameter embed.js adds to the iframe URL, telling the map which
 // page it is embedded on (iframes cannot read their parent's URL)
 export const PUBLIC_MAP_EMBED_PAGE_PARAM = "mapped_page";
@@ -86,3 +91,8 @@ export const ORGANISATION_COOKIE_NAME = "MappedOrgId";
 export const SORT_BY_LOCATION = "__location";
 
 export const TRIAL_EXPIRED_MESSAGE = "Your trial has expired.";
+
+// Public maps reload to show the access gate when access is lost, at most
+// once per interval (see errorLink in services/trpc/react.tsx)
+export const ACCESS_GATE_RELOAD_KEY = "mapped_access_gate_reload";
+export const ACCESS_GATE_RELOAD_INTERVAL_MS = 60_000;

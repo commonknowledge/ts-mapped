@@ -89,12 +89,11 @@ export async function canViewAnyPublicMap({
   publicMaps: Pick<PublicMap, "id" | "published" | "accessMode">[];
   grants: VisitorGrants | undefined;
 }): Promise<boolean> {
-  for (const publicMap of publicMaps) {
-    if (await canViewPublicMap({ publicMap, grants })) {
-      return true;
-    }
-  }
-  return false;
+  // Check in parallel: moderated maps each look up their access row
+  const results = await Promise.all(
+    publicMaps.map((publicMap) => canViewPublicMap({ publicMap, grants })),
+  );
+  return results.some(Boolean);
 }
 
 /**

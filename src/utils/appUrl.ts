@@ -6,6 +6,9 @@ export const getAbsoluteUrl = (path = "/") => {
   return `${trimTrailingSlashes(base)}/${trimLeadingSlashes(path)}`;
 };
 
+/** The app's own host. Any other host serving the app is a public map. */
+export const getAppHost = () => new URL(getAbsoluteUrl()).host;
+
 /**
  * The base URL public map subdomains hang off: a map's host is
  * `<subdomain>.<this URL's host>`. Differs from the app URL only in dev.

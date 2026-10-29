@@ -5,6 +5,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { getAbsoluteUrl, getPublicMapUrl } from "@/utils/appUrl";
 import { usePublicMapValue } from "../../hooks/usePublicMap";
+import { getSubdomain } from "../../utils";
 
 /**
  * The snippet for embedding the public map on another site. It uses
@@ -15,10 +16,8 @@ import { usePublicMapValue } from "../../hooks/usePublicMap";
 export default function EditorEmbedCode() {
   const publicMap = usePublicMapValue();
 
-  // Hosts are "<subdomain>.<base host>": nothing to embed until the
-  // subdomain is filled in
-  const subdomain = publicMap?.host?.split(".")[0];
-  if (!publicMap?.host || !subdomain) {
+  // Nothing to embed until the subdomain is filled in
+  if (!publicMap?.host || !getSubdomain(publicMap.host)) {
     return null;
   }
 

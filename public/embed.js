@@ -11,25 +11,33 @@
  * - tells the map which page it is on (an iframe cannot read its parent's
  *   URL), so access links can bring visitors back to this page
  * - forwards the access token from an emailed link (?mapped_access=...)
- *   into the iframe, and removes it from this page's address bar so it is
- *   not shared by copying the URL
+ *   into the iframe of the map it is for (?mapped_map=<map host>), and
+ *   removes both from this page's address bar so the token is not shared by
+ *   copying the URL
  *
  * Plain script, no dependencies: it runs on other organisations' sites.
  */
 (function () {
   var TOKEN_PARAM = "mapped_access";
+  var MAP_PARAM = "mapped_map";
   var PAGE_PARAM = "mapped_page";
   var DEFAULT_HEIGHT = "600px";
 
-  // Read the token once and remove it from the address bar
+  // Read the token, and the host of the map it is for, once and remove them
+  // from the address bar
   function takeToken() {
     var url = new URL(window.location.href);
     var token = url.searchParams.get(TOKEN_PARAM);
-    if (token) {
+    var mapHost = url.searchParams.get(MAP_PARAM);
+    if (token || mapHost) {
       url.searchParams.delete(TOKEN_PARAM);
+      url.searchParams.delete(MAP_PARAM);
       window.history.replaceState(window.history.state, "", url.toString());
     }
-    return token;
+    if (!token || !mapHost) {
+      return null;
+    }
+    return { value: token, mapHost: mapHost };
   }
 
   function currentPageUrl() {
@@ -48,8 +56,9 @@
       return;
     }
     src.searchParams.set(PAGE_PARAM, currentPageUrl());
-    if (token) {
-      src.searchParams.set(TOKEN_PARAM, token);
+    // A token is for one map: only that map's iframe gets it
+    if (token && src.host === token.mapHost) {
+      src.searchParams.set(TOKEN_PARAM, token.value);
     }
 
     var iframe = document.createElement("iframe");

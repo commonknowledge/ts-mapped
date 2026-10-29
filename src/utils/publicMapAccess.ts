@@ -1,4 +1,7 @@
-import { PUBLIC_MAP_ACCESS_TOKEN_PARAM } from "@/constants";
+import {
+  PUBLIC_MAP_ACCESS_MAP_PARAM,
+  PUBLIC_MAP_ACCESS_TOKEN_PARAM,
+} from "@/constants";
 import { getPublicMapUrl } from "./appUrl";
 
 const parseHttpUrl = (value: string | null | undefined) => {
@@ -50,14 +53,16 @@ export function getEmbedContext({
   }
   page.hash = "";
   page.searchParams.delete(PUBLIC_MAP_ACCESS_TOKEN_PARAM);
+  page.searchParams.delete(PUBLIC_MAP_ACCESS_MAP_PARAM);
   return { kind: "embedded", pageUrl: page.toString() };
 }
 
 /**
  * Where a magic link points: back to the page the request came from, if its
  * site is still listed, else the map's own address. The token is added as a
- * query parameter. Null if there is nowhere to point: the site is no longer
- * listed and the map has no address of its own.
+ * query parameter, and on an embedding page so is the map's host, so
+ * embed.js knows which of the page's maps the token is for. Null if the map
+ * has no address of its own (it then can't be embedded either).
  */
 export function buildPublicMapAccessLink({
   host,
@@ -70,16 +75,15 @@ export function buildPublicMapAccessLink({
   requestedFromUrl: string | null;
   token: string;
 }): string | null {
-  const context = getEmbedContext({ embedOrigins, pageUrl: requestedFromUrl });
-  let base: string;
-  if (context.kind === "embedded") {
-    base = context.pageUrl;
-  } else if (host) {
-    base = getPublicMapUrl(host);
-  } else {
+  if (!host) {
     return null;
   }
-  const url = new URL(base);
+  const context = getEmbedContext({ embedOrigins, pageUrl: requestedFromUrl });
+  const isEmbedded = context.kind === "embedded";
+  const url = new URL(isEmbedded ? context.pageUrl : getPublicMapUrl(host));
   url.searchParams.set(PUBLIC_MAP_ACCESS_TOKEN_PARAM, token);
+  if (isEmbedded) {
+    url.searchParams.set(PUBLIC_MAP_ACCESS_MAP_PARAM, host);
+  }
   return url.toString();
 }

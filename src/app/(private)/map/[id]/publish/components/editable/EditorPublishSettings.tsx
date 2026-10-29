@@ -12,6 +12,7 @@ import {
   useSetHostAvailable,
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
+import { getSubdomain } from "../../utils";
 import EditorEmbedCode from "./EditorEmbedCode";
 
 export default function EditorPublishSettings() {
@@ -152,11 +153,4 @@ export default function EditorPublishSettings() {
       </div>
     </div>
   );
-}
-
-function getSubdomain(host: string | undefined) {
-  if (!host) {
-    return "";
-  }
-  return host.split(".")[0];
 }

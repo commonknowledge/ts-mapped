@@ -11,7 +11,12 @@ import { observable } from "@trpc/server/observable";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
-import { DEFAULT_AUTH_REDIRECT } from "@/constants";
+import {
+  ACCESS_GATE_RELOAD_INTERVAL_MS,
+  ACCESS_GATE_RELOAD_KEY,
+  DEFAULT_AUTH_REDIRECT,
+} from "@/constants";
+import { getAppHost } from "@/utils/appUrl";
 import {
   clientDataSourceSerializer,
   hasPasswordHashSerializer,
@@ -52,6 +57,26 @@ function getUrl() {
 superjson.registerCustom(clientDataSourceSerializer, "DataSource");
 superjson.registerCustom(hasPasswordHashSerializer, "HasPasswordHash");
 
+// Reloads the page, unless it was already reloaded for this recently: if
+// the server still renders the map, an error that persists must not cause
+// a reload loop
+function reloadForAccessGate() {
+  try {
+    const lastReload = Number(
+      window.sessionStorage.getItem(ACCESS_GATE_RELOAD_KEY),
+    );
+    if (Date.now() - lastReload < ACCESS_GATE_RELOAD_INTERVAL_MS) {
+      return false;
+    }
+    window.sessionStorage.setItem(ACCESS_GATE_RELOAD_KEY, String(Date.now()));
+  } catch {
+    // Storage blocked (e.g. third-party iframe): can't guard, so don't risk it
+    return false;
+  }
+  window.location.reload();
+  return true;
+}
+
 const errorLink: TRPCLink<AppRouter> = () => {
   return ({ next, op }) => {
     return observable((observer) => {
@@ -61,6 +86,20 @@ const errorLink: TRPCLink<AppRouter> = () => {
         },
         error(err) {
           if (err instanceof TRPCClientError && typeof window !== "undefined") {
+            const isAuthError =
+              err.data?.code === "UNAUTHORIZED" ||
+              err.data?.code === "FORBIDDEN";
+            // On a public map's own host (possibly embedded on another
+            // site), access was lost (e.g. a moderated map's grant expired
+            // or was revoked). Reload so the server renders the access gate:
+            // the login page can't be embedded, and visitors have no account
+            if (isAuthError && window.location.host !== getAppHost()) {
+              if (reloadForAccessGate()) {
+                return;
+              }
+              observer.error(err);
+              return;
+            }
             if (err.data?.code === "UNAUTHORIZED") {
               const redirectTo = encodeURIComponent(
                 window.location.pathname + window.location.search,
