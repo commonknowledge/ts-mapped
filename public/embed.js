@@ -52,7 +52,7 @@
     try {
       src = new URL(mapUrl);
     } catch (e) {
-      console.error("Mapped embed: invalid data-mapped-map URL", mapUrl);
+      console.error("Mapped embed: invalid data-mapped-map URL", mapUrl, e);
       return;
     }
     src.searchParams.set(PAGE_PARAM, currentPageUrl());
@@ -82,9 +82,9 @@
     var containers = document.querySelectorAll(
       "[data-mapped-map]:not([data-mapped-embedded])",
     );
-    for (var i = 0; i < containers.length; i++) {
-      embed(containers[i], token);
-    }
+    Array.prototype.forEach.call(containers, function (container) {
+      embed(container, token);
+    });
   }
 
   if (document.readyState === "loading") {
