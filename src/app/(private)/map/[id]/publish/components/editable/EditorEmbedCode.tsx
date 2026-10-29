@@ -22,8 +22,8 @@ export default function EditorEmbedCode() {
     return null;
   }
 
-  // A by-request map only works on listed websites, so the code is only
-  // handed out once there is one to paste it into
+  // A by-request map works at its own address, but can only be embedded on
+  // listed websites, so the code is only handed out once there is one
   const needsWebsite =
     publicMap.accessMode === PublicMapAccessMode.Moderated &&
     publicMap.embedOrigins.length === 0;
@@ -31,9 +31,16 @@ export default function EditorEmbedCode() {
     return (
       <FormFieldWrapper label="Embed code" id="Embed code">
         <p className="text-sm text-muted-foreground">
-          This map is by request, so it can only be embedded on websites you
-          list. Add the website under &ldquo;Websites this map is embedded
-          on&rdquo; below to get the embed code.
+          Visitors can request access at the map&apos;s own address:{" "}
+          <a
+            href={getPublicMapUrl(publicMap.host)}
+            target="_blank"
+            className="underline"
+          >
+            {getPublicMapUrl(publicMap.host)}
+          </a>
+          . To embed it on a website too, add the website under &ldquo;Websites
+          this map is embedded on&rdquo; below.
         </p>
       </FormFieldWrapper>
     );

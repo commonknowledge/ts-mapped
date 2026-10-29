@@ -76,16 +76,15 @@ export default function EditorAccessSettings() {
             label="Websites this map is embedded on"
             hint={
               <>
-                One website per line, e.g. https://example.org. The map can then
-                be embedded on any page of that website, and access links take
-                visitors back to the page they asked from. Anything after the
-                website&apos;s address is ignored.
+                Optional. Leave empty if visitors will only use the map&apos;s
+                own address. To embed the map, list each website it will appear
+                on, one per line, e.g. https://example.org. It can then go on
+                any page of those websites, and access links bring visitors back
+                to the page they asked from.
                 <br />
                 <br />
-                If the map is embedded on a website that isn&apos;t listed, it
-                shows &ldquo;This map hasn&apos;t been set up to be embedded on
-                this site&rdquo; instead of the request form. The map&apos;s own
-                address always works, listed or not.
+                On websites not listed here, the map shows &ldquo;This map
+                hasn&apos;t been set up to be embedded on this site&rdquo;.
               </>
             }
             placeholder="https://example.org"
