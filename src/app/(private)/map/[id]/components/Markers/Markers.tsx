@@ -6,7 +6,7 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
-import { useMapRef } from "../../hooks/useMapCore";
+import { useMapMode, useMapRef } from "../../hooks/useMapCore";
 import { useTimelineFilter } from "../../hooks/useTimelineFilter";
 import { DataSourceMarkers } from "./DataSourceMarkers";
 import { isMarkerIconImageId, registerMarkerIcons } from "./markerIcons";
@@ -20,14 +20,21 @@ export default function Markers() {
   const mapRef = useMapRef();
   const { activeRange } = useTimelineFilter();
   const areaStats = useAreaStats().data;
+  const mapMode = useMapMode();
 
-  // A choropleth fill is painted only when it is switched on, boundaries are
-  // selected and there are stats to colour them with (Choropleth.tsx)
+  // A choropleth fill is painted only when all of these hold (Choropleth.tsx)
+  // Map.tsx only renders Choropleth in private mode, not on public maps or
+  // in the publish editor
+  const choroplethRendered = mapMode === "private";
+  const choroplethSwitchedOn = Boolean(viewConfig.showChoropleth);
+  const boundariesSelected = Boolean(viewConfig.areaSetGroupCode);
   const hasAreaStats = Boolean(areaStats?.stats.length);
-  const onChoropleth =
-    Boolean(viewConfig.showChoropleth) &&
-    Boolean(viewConfig.areaSetGroupCode) &&
-    hasAreaStats;
+  const onChoropleth = [
+    choroplethRendered,
+    choroplethSwitchedOn,
+    boundariesSelected,
+    hasAreaStats,
+  ].every(Boolean);
 
   // The timeline filter only applies to sources with a date column,
   // matching the markers API
