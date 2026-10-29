@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { isPublicMapRouteAtom } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useDataSources } from "@/hooks/useDataSources";
@@ -8,6 +8,7 @@ import {
   activeDataSourceIdAtom,
   activePublishTabAtom,
   hostAvailableAtom,
+  invalidFieldsAtom,
   searchLocationAtom,
 } from "../atoms/publicMapAtoms";
 import { usePublicMapQuery } from "./usePublicMapQuery";
@@ -130,4 +131,21 @@ export function useHostAvailable() {
 
 export function useSetHostAvailable() {
   return useSetAtom(hostAvailableAtom);
+}
+
+export function useHasInvalidFields() {
+  return useAtomValue(invalidFieldsAtom).length > 0;
+}
+
+/** Mark an editor field as holding text that can't be saved yet. */
+export function useSetFieldInvalid() {
+  const setInvalidFields = useSetAtom(invalidFieldsAtom);
+  return useCallback(
+    (field: string, invalid: boolean) =>
+      setInvalidFields((fields) => {
+        const others = fields.filter((other) => other !== field);
+        return invalid ? [...others, field] : others;
+      }),
+    [setInvalidFields],
+  );
 }

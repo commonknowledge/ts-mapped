@@ -11,6 +11,7 @@ import { oauthRouter } from "./routers/oauth";
 import { organisationRouter } from "./routers/organisation";
 import { placedMarkerRouter } from "./routers/placedMarker";
 import { publicMapRouter } from "./routers/publicMap";
+import { publicMapAccessRouter } from "./routers/publicMapAccess";
 import { turfRouter } from "./routers/turf";
 import { userRouter } from "./routers/user";
 import { router } from "./index";
@@ -29,6 +30,7 @@ export const appRouter = router({
   mapView: mapViewRouter,
   organisation: organisationRouter,
   publicMap: publicMapRouter,
+  publicMapAccess: publicMapAccessRouter,
   user: userRouter,
   oauth: oauthRouter,
 });

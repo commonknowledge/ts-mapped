@@ -13,6 +13,12 @@ import type { PublicMapDataSourceConfig } from "@/models/PublicMap";
 // importing from "../utils" keep working.
 export { buildPublicMapName };
 
+// Public map hosts are "<subdomain>.<base host>"
+export const getSubdomain = (host: string | null | undefined) => {
+  if (!host) return "";
+  return host.split(".")[0];
+};
+
 // Sort records for a public map listing according to the data source config's
 // `sortBy` / `sortDirection`. Done client-side because:
 // - the name sort must use the public map config's name columns (via

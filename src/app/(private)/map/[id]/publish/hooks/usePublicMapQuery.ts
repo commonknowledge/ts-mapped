@@ -13,6 +13,7 @@ import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useViewId } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useDataSources } from "@/hooks/useDataSources";
+import { PublicMapAccessMode } from "@/models/PublicMap";
 import { useTRPC } from "@/services/trpc/react";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { activeDataSourceIdAtom } from "../atoms/publicMapAtoms";
@@ -46,6 +47,9 @@ export function extractDraft(
     dataSourceConfigs: publicMap.dataSourceConfigs,
     colorScheme: publicMap.colorScheme,
     clusteringEnabled: publicMap.clusteringEnabled,
+    accessMode: publicMap.accessMode,
+    moderatorEmails: publicMap.moderatorEmails,
+    embedOrigins: publicMap.embedOrigins,
   };
 }
 
@@ -130,6 +134,10 @@ export function usePublicMapQuery() {
             createdAt: new Date(),
             draft: null,
             listed: false,
+            accessMode: PublicMapAccessMode.Open,
+            moderatorEmails: [],
+            embedOrigins: [],
+            accessGranted: true,
           };
         }
       : undefined,

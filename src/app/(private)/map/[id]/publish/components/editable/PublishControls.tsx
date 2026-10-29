@@ -3,8 +3,10 @@
 import { Loader2, Redo2, Upload } from "lucide-react";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
+import { getPublicMapBaseUrl } from "@/utils/appUrl";
 import {
   useHasDraftChanges,
+  useHasInvalidFields,
   useHostAvailable,
   usePublicMapValue,
 } from "../../hooks/usePublicMap";
@@ -14,6 +16,7 @@ export default function PublishControls() {
   const publicMap = usePublicMapValue();
   const hasDraftChanges = useHasDraftChanges();
   const hostAvailable = useHostAvailable();
+  const hasInvalidFields = useHasInvalidFields();
 
   const {
     loading,
@@ -28,9 +31,6 @@ export default function PublishControls() {
   if (!publicMap) return null;
 
   const switchChecked = publicMap.published;
-
-  const getBaseUrl = () =>
-    new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001");
 
   return (
     <div className="flex flex-col items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-3 shadow-md">
@@ -55,7 +55,7 @@ export default function PublishControls() {
             <>
               Published at{" "}
               <a
-                href={`${getBaseUrl().protocol}//${publishedHost}`}
+                href={`${getPublicMapBaseUrl().protocol}//${publishedHost}`}
                 target="_blank"
                 className="underline hover:text-neutral-800"
               >
@@ -93,7 +93,7 @@ export default function PublishControls() {
               size="sm"
               className="h-6 px-1.5 text-xs"
               onClick={handleApplyDraft}
-              disabled={loading || hostAvailable === false}
+              disabled={loading || hostAvailable === false || hasInvalidFields}
             >
               <Upload className="w-3 h-3 mr-1" />
               Publish

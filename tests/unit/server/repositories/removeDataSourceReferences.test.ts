@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { afterAll, describe, expect, test } from "vitest";
 import { FilterType, MapStyleName } from "@/models/MapView";
+import { PublicMapAccessMode } from "@/models/PublicMap";
 import { CalculationType } from "@/models/shared";
 import {
   createMap,
@@ -60,6 +61,9 @@ const makeDraft = (dataSourceIds: string[]) => ({
   published: true,
   colorScheme: "red",
   clusteringEnabled: true,
+  accessMode: PublicMapAccessMode.Open,
+  moderatorEmails: [],
+  embedOrigins: [],
   dataSourceConfigs: dataSourceIds.map((id) => ({
     allowUserEdit: false,
     allowUserSubmit: false,

@@ -21,9 +21,11 @@ export async function proxy(request: NextRequest) {
 
     if (host && host !== mainHost.host) {
       // Public map served via subdomain rewrite — allow embedding on any site
-      const response = NextResponse.rewrite(
-        new URL(`/public/${host}`, request.url),
-      );
+      // Clone so the query string survives (the public map page reads
+      // embed.js's parameters from it)
+      const url = request.nextUrl.clone();
+      url.pathname = `/public/${host}`;
+      const response = NextResponse.rewrite(url);
       response.headers.set(
         "Content-Security-Policy",
         buildCsp({ frameAncestors: "*", isProd, minioDomain }),

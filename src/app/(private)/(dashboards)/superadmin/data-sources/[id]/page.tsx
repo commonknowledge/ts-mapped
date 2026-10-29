@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import EditColumnMetadataModal from "@/app/(private)/components/EditColumnMetadataModal/EditColumnMetadataModal";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
@@ -42,7 +42,9 @@ export default function DataSourceConfigPage() {
   // so debounced save handlers stay identity-stable (avoiding child re-renders)
   // but still read post-optimistic-update data when the timeout fires.
   const getDataSourceByIdRef = useRef(getDataSourceById);
-  getDataSourceByIdRef.current = getDataSourceById;
+  useEffect(() => {
+    getDataSourceByIdRef.current = getDataSourceById;
+  }, [getDataSourceById]);
 
   const { mutateAsync: saveInspectorConfig } = useMutation(
     trpc.dataSource.updateDefaultInspectorConfig.mutationOptions({

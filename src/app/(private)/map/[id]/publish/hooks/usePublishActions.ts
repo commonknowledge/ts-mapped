@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
+import { getSubdomain } from "../utils";
 import {
+  useHasInvalidFields,
   useHostAvailable,
   usePublicMapValue,
   usePublishedPublicMapValue,
@@ -14,10 +16,7 @@ import {
 } from "./usePublicMap";
 import { extractDraft } from "./usePublicMapQuery";
 
-function getSubdomain(host: string | undefined) {
-  if (!host) return "";
-  return host.split(".")[0];
-}
+const INVALID_FIELDS_MESSAGE = "Fix the highlighted fields before publishing.";
 
 /**
  * Shared hook that owns the publish / discard mutations and exposes
@@ -29,6 +28,7 @@ export function usePublishActions() {
   const updatePublicMap = useUpdatePublicMap();
   const setPublicMap = useSetPublicMap();
   const hostAvailable = useHostAvailable();
+  const hasInvalidFields = useHasInvalidFields();
   const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -80,6 +80,10 @@ export function usePublishActions() {
     if (!publicMap || !mapId) return;
 
     if (checked) {
+      if (hasInvalidFields) {
+        toast.error(INVALID_FIELDS_MESSAGE);
+        return;
+      }
       if (hostAvailable === false) {
         toast.error("Subdomain is taken — choose another before publishing.");
         return;
@@ -110,6 +114,10 @@ export function usePublishActions() {
 
   const handleApplyDraft = () => {
     if (!publicMap || !mapId) return;
+    if (hasInvalidFields) {
+      toast.error(INVALID_FIELDS_MESSAGE);
+      return;
+    }
     if (hostAvailable === false) {
       toast.error("Subdomain is taken — choose another before publishing.");
       return;

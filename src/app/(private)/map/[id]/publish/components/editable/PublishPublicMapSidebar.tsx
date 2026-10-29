@@ -21,6 +21,7 @@ import {
   useSetActivePublishTab,
 } from "../../hooks/usePublicMap";
 import { buildPublicMapName } from "../../utils";
+import EditorAccessSettings from "./EditorAccessSettings";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
@@ -123,6 +124,8 @@ export default function PublishPublicMapSidebar() {
 
             <VerticalTabsContent value="settings">
               <EditorPublishSettings />
+              <Separator className="my-4" />
+              <EditorAccessSettings />
               <Separator className="my-4" />
               <EditorInfoSettings />
             </VerticalTabsContent>

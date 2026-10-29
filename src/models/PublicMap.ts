@@ -10,6 +10,13 @@ export enum PublicMapColumnType {
 
 export const publicMapColumnTypes = Object.values(PublicMapColumnType);
 
+// Who can see a published public map: anyone, or only visitors a
+// moderator has approved (see PublicMapAccess)
+export enum PublicMapAccessMode {
+  Open = "Open",
+  Moderated = "Moderated",
+}
+
 export const publicMapColumnSchema = z.object({
   label: z.string(),
   sourceColumns: z.array(z.string()),
@@ -63,6 +70,14 @@ export const publicMapDraftSchema = z.object({
   colorScheme: z.string(),
   // Whether markers cluster at low zoom on the published map
   clusteringEnabled: z.boolean(),
+  accessMode: z.enum(PublicMapAccessMode),
+  // Emailed about new access requests on a moderated map. Never sent to
+  // visitors (stripped by publicMap.get).
+  moderatorEmails: z.array(z.email()),
+  // The sites (origins, e.g. "https://example.org") a moderated map may be
+  // embedded on. Requests from embeds on other sites are refused; magic
+  // links go back to the page on the listed site the request came from.
+  embedOrigins: z.array(z.url()),
 });
 
 export type PublicMapDraft = z.infer<typeof publicMapDraftSchema>;

@@ -294,11 +294,47 @@ export interface PublicMap {
   colorScheme: string | null; // text, NULL (renamed from colour_scheme -> color_scheme)
   clusteringEnabled: boolean; // boolean, NOT NULL, DEFAULT true
   imageUrl: string | null; // text, NULL
+  accessMode: string; // text, NOT NULL, DEFAULT 'Open' ('Open' | 'Moderated')
+  moderatorEmails: string[]; // jsonb, NOT NULL, DEFAULT []
+  embedOrigins: string[]; // jsonb, NOT NULL, DEFAULT []
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 
   // FOREIGN KEYS:
   // - mapId -> map.id (CASCADE DELETE, CASCADE UPDATE)
   // - viewId -> mapView.id (CASCADE DELETE, CASCADE UPDATE)
+}
+
+/**
+ * publicMapAccess Table
+ * Access requests for moderated public maps, one per (publicMap, email)
+ */
+export interface PublicMapAccess {
+  id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+  publicMapId: string; // uuid, NOT NULL
+  email: string; // text, NOT NULL, UNIQUE (publicMapId, email)
+  status: string; // text, NOT NULL ('Pending' | 'Approved' | 'Rejected' | 'Revoked')
+  requestedFromUrl: string | null; // text, NULL - embedding page of the latest request; NULL = the map's own address
+  moderatorsNotifiedAt: Date | null; // timestamp, NULL - NULL until a moderator has been emailed about the request
+  decidedAt: Date | null; // timestamp, NULL - grants minted before this are invalid
+  createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
+
+  // FOREIGN KEYS:
+  // - publicMapId -> publicMap.id (CASCADE DELETE, CASCADE UPDATE)
+}
+
+/**
+ * publicMapAccessToken Table
+ * Magic links issued to approved visitors. Each stays valid until it
+ * expires, however many newer ones are issued.
+ */
+export interface PublicMapAccessToken {
+  id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+  publicMapAccessId: string; // uuid, NOT NULL, INDEXED
+  tokenHash: string; // text, NOT NULL, UNIQUE - hash of the magic link token
+  issuedAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
+
+  // FOREIGN KEYS:
+  // - publicMapAccessId -> publicMapAccess.id (CASCADE DELETE, CASCADE UPDATE)
 }
 
 // ============================================================================
@@ -452,6 +488,7 @@ export interface Database {
   mapView: MapView;
   inspectorDataSourceConfig: InspectorDataSourceConfig;
   publicMap: PublicMap;
+  publicMapAccess: PublicMapAccess;
 
   // Map Annotations
   folder: Folder;

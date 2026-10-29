@@ -22,11 +22,15 @@ const transporter = nodemailer.createTransport(
       },
 );
 
+/**
+ * Send an email. Never throws: failures are logged, and reported by
+ * returning false.
+ */
 export async function sendEmail(
   to: string,
   subject: string,
   template: React.ReactNode,
-) {
+): Promise<boolean> {
   try {
     const html = await render(template);
     await transporter.sendMail({
@@ -36,7 +40,9 @@ export async function sendEmail(
       html,
     });
     logger.info(`Sent ${subject} email to ${to}`);
+    return true;
   } catch (error) {
     logger.error(`Failed to send ${subject} email to ${to}`, { error });
+    return false;
   }
 }

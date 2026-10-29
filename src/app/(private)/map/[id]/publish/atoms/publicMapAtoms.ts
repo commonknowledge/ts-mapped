@@ -11,3 +11,8 @@ export const activePublishTabAtom = atom<string>("settings");
 
 // Host availability state: null = not checked, true = available, false = taken
 export const hostAvailableAtom = atom<boolean | null>(null);
+
+// Labels of editor fields whose text can't be saved to the draft yet
+// (e.g. a list with an invalid line). Publishing is blocked while any are
+// listed, as it would silently use the last valid value.
+export const invalidFieldsAtom = atom<string[]>([]);

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
-import { getShareGrants } from "@/auth/shareGrants";
+import { getVisitorGrants } from "@/auth/visitorGrants";
 import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -42,11 +42,11 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const shareGrants = await getShareGrants();
+  const grants = await getVisitorGrants();
   const canRead = await checkAccess({
     dataSource,
     userId: currentUser?.id,
-    shareGrants,
+    grants,
   });
   if (!canRead) {
     return new NextResponse("Not found", { status: 404 });
@@ -91,7 +91,7 @@ export async function GET(
   // full record JSON via tRPC, so this grants them nothing new.
   const sharedMapIds = currentUser?.id
     ? []
-    : await getValidShareGrantMapIds(shareGrants);
+    : await getValidShareGrantMapIds(grants.share);
   const grantCoversDataSource =
     sharedMapIds.length > 0 &&
     Boolean(

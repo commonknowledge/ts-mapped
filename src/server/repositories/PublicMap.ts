@@ -1,5 +1,6 @@
 import { type SqlBool, type TraversedJSONPathBuilder, sql } from "kysely";
 
+import { PublicMapAccessMode } from "@/models/PublicMap";
 import { db } from "@/server/services/database";
 import type { MapConfig } from "@/models/Map";
 import type { MapViewConfig } from "@/models/MapView";
@@ -15,13 +16,26 @@ export function findPublicMapByHost(host: string) {
     .executeTakeFirst();
 }
 
-export function findPublishedPublicMapByMapId(mapId: string) {
+export function findPublicMapById(id: string) {
+  return db
+    .selectFrom("publicMap")
+    .where("id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
+
+/**
+ * All published public maps of this map (one per view at most). Returns
+ * every match, not just the first, because whether a visitor may see each
+ * one depends on its access mode.
+ */
+export function findPublishedPublicMapsByMapId(mapId: string) {
   return db
     .selectFrom("publicMap")
     .where("mapId", "=", mapId)
     .where("published", "=", true)
     .selectAll()
-    .executeTakeFirst();
+    .execute();
 }
 
 export function findPublicMapByViewId(viewId: string) {
@@ -49,11 +63,13 @@ export function findPublicMapByViewIdAndUserId(viewId: string, userId: string) {
 }
 
 /**
- * Find a published public map whose dataSourceConfigs reference this
+ * Find all published public maps whose dataSourceConfigs reference this
  * dataSourceId, verifying that the dataSourceId is also present in one of
  * map->membersDataSourceId, map->markerDataSourceIds, or view->areaDataSourceId.
+ * Returns every match: a data source can be on both an open and a
+ * moderated public map.
  */
-export async function findPublishedPublicMapByDataSourceId(
+export async function findPublishedPublicMapsByDataSourceId(
   dataSourceId: string,
 ) {
   return db
@@ -88,7 +104,7 @@ export async function findPublishedPublicMapByDataSourceId(
       ]),
     )
     .selectAll("publicMap")
-    .executeTakeFirst();
+    .execute();
 }
 
 export function findPublicMapsByOrganisationId(organisationId: string) {
@@ -124,6 +140,9 @@ export function saveDraft(input: {
       dataSourceConfigs: [],
       colorScheme: "red",
       clusteringEnabled: true,
+      accessMode: PublicMapAccessMode.Open,
+      moderatorEmails: [],
+      embedOrigins: [],
       draft: input.draft,
     })
     .onConflict((oc) =>
