@@ -11,6 +11,7 @@ import {
   useSetHostAvailable,
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
+import EditorEmbedCode from "./EditorEmbedCode";
 
 export default function EditorPublishSettings() {
   const publicMap = usePublicMapValue();
@@ -148,6 +149,9 @@ export default function EditorPublishSettings() {
           ) : null}
         </div>
       )}
+      <div className="mt-4">
+        <EditorEmbedCode />
+      </div>
     </div>
   );
 }
