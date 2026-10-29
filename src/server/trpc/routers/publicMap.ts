@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { DataSourceRecordType } from "@/models/DataSource";
-import { publicMapDraftSchema } from "@/models/PublicMap";
+import { PublicMapAccessMode, publicMapDraftSchema } from "@/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { createMap, updateMap } from "@/server/repositories/Map";
 import {
@@ -16,7 +16,7 @@ import {
   saveDraft,
   unpublishPublicMap,
 } from "@/server/repositories/PublicMap";
-import { canReadDataSource } from "@/server/utils/auth";
+import { canReadDataSource, canViewPublicMap } from "@/server/utils/auth";
 import {
   mapWriteProcedure,
   organisationProcedure,
@@ -100,14 +100,31 @@ export const publicMapRouter = router({
         ? await findPublicMapByViewIdAndUserId(publicMap.viewId, userId)
         : null;
 
-      // Published maps are visible to everyone
-      if (publicMap.published) {
-        // Remove the draft if the user does not own the map
-        return ownedMap ? publicMap : { ...publicMap, draft: null };
+      // Owners always see everything, including the draft
+      if (ownedMap) {
+        return { ...ownedMap, accessGranted: true };
       }
 
       // Unpublished maps are only visible to authenticated owners
-      return ownedMap;
+      if (!publicMap.published) {
+        return null;
+      }
+
+      // Visitors never see the draft or who moderates the map
+      const visitorMap = { ...publicMap, draft: null, moderatorEmails: [] };
+
+      const accessGranted = await canViewPublicMap({
+        publicMap,
+        grants: ctx.grants,
+      });
+      if (accessGranted) {
+        return { ...visitorMap, accessGranted };
+      }
+
+      // A moderated map the visitor has no access to yet: return only what
+      // the access request form shows (name, description, styling), not
+      // which data sources and columns the map exposes
+      return { ...visitorMap, dataSourceConfigs: [], accessGranted };
     }),
   saveDraft: mapWriteProcedure
     .input(
@@ -150,12 +167,25 @@ export const publicMapRouter = router({
         }
       }
 
-      return applyDraft({
+      const moderatedWithoutModerators =
+        input.draft.published &&
+        input.draft.accessMode === PublicMapAccessMode.Moderated &&
+        input.draft.moderatorEmails.length === 0;
+      if (moderatedWithoutModerators) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Add at least one moderator email before publishing.",
+        });
+      }
+
+      const publicMap = await applyDraft({
         id: input.publicMapId,
         mapId: ctx.map.id,
         viewId: input.viewId,
         draft: input.draft,
       });
+      // Same shape as publicMap.get, so the editor can put it in the cache
+      return { ...publicMap, accessGranted: true };
     }),
   discardDraft: mapWriteProcedure
     .input(z.object({ viewId: z.string() }))
@@ -167,7 +197,7 @@ export const publicMapRouter = router({
           message: "No public map found to discard draft from.",
         });
       }
-      return result;
+      return { ...result, accessGranted: true };
     }),
   checkHostAvailability: protectedProcedure
     .input(

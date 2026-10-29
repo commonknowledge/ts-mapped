@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import MapJotaiProvider from "@/app/(private)/map/[id]/providers/MapJotaiProvider";
 import PublicMapOverlay from "@/app/(private)/map/[id]/publish/components/PublicMapOverlay";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
+import PublicMapAccessGate from "./components/PublicMapAccessGate";
 import type { Metadata } from "next";
 
 interface Props {
@@ -38,6 +39,17 @@ export default async function PublicMapPage({ params }: Props) {
 
   if (!publicMap) {
     notFound();
+  }
+
+  // A moderated map the visitor has no access to: the server withholds the
+  // map's data, so show the gate instead of loading the map
+  if (!publicMap.accessGranted) {
+    return (
+      <PublicMapAccessGate
+        name={publicMap.name}
+        description={publicMap.description}
+      />
+    );
   }
 
   // Seed the React Query cache so client-side `usePublicMapQuery` picks it

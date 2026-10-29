@@ -80,7 +80,7 @@ export function setMapSharePassword({
  * data source — via the map's membersDataSourceId or markerDataSourceIds,
  * or any of the map's views' areaDataSourceId. Used to decide whether a
  * share-grant holder may read the data source's records; mirrors
- * `findPublishedPublicMapByDataSourceId`, but across all views of the map.
+ * `findPublishedPublicMapsByDataSourceId`, but across all views of the map.
  */
 export function findMapShareVisualisingDataSource({
   dataSourceId,

@@ -22,6 +22,7 @@ import type { OrganisationTable } from "@/server/models/Organisation";
 import type { OrganisationUserTable } from "@/server/models/OrganisationUser";
 import type { PlacedMarkerTable } from "@/server/models/PlacedMarker";
 import type { PublicMapTable } from "@/server/models/PublicMap";
+import type { PublicMapAccessTable } from "@/server/models/PublicMapAccess";
 import type { ReverseGeocodeCacheTable } from "@/server/models/ReverseGeocodeCache";
 import type { TurfTable } from "@/server/models/Turf";
 import type { UserTable } from "@/server/models/User";
@@ -76,6 +77,7 @@ export interface Database {
   organisationUser: OrganisationUserTable;
   placedMarker: PlacedMarkerTable;
   publicMap: PublicMapTable;
+  publicMapAccess: PublicMapAccessTable;
   reverseGeocodeCache: ReverseGeocodeCacheTable;
   turf: TurfTable;
   user: UserTable;

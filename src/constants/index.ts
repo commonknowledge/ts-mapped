@@ -54,6 +54,10 @@ export const JWT_LIFETIME_SECONDS = 24 * 60 * 60;
 // Lifetime of a read-only map share grant (see ShareGrant in authTypes.ts)
 export const SHARE_GRANT_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
 
+// Lifetime of both a moderated public map's magic link and the access
+// grant it mints (see PublicMapAccessGrant in authTypes.ts)
+export const PUBLIC_MAP_ACCESS_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
+
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 

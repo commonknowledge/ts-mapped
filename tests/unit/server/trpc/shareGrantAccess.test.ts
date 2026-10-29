@@ -53,11 +53,19 @@ function grantFor(share: MapShare, iatOffsetSeconds = 0): ShareGrant {
 }
 
 function makeMapCaller(shareGrants: ShareGrant[]) {
-  return mapRouter.createCaller({ user: null, ip: "127.0.0.1", shareGrants });
+  return mapRouter.createCaller({
+    user: null,
+    ip: "127.0.0.1",
+    grants: { share: shareGrants, publicMapAccess: [] },
+  });
 }
 
 function makeAreaCaller(shareGrants: ShareGrant[]) {
-  return areaRouter.createCaller({ user: null, ip: "127.0.0.1", shareGrants });
+  return areaRouter.createCaller({
+    user: null,
+    ip: "127.0.0.1",
+    grants: { share: shareGrants, publicMapAccess: [] },
+  });
 }
 
 describe("share grant access control", () => {
@@ -238,7 +246,7 @@ describe("share grant access control", () => {
         organisationId: orgId,
       },
       userId: null,
-      shareGrants: [grantFor(shareA)],
+      grants: { share: [grantFor(shareA)], publicMapAccess: [] },
     });
     expect(canRead).toBe(true);
   });
@@ -247,7 +255,7 @@ describe("share grant access control", () => {
     const canRead = await canReadDataSource({
       dataSource: { id: DS_AREA, public: false, organisationId: orgId },
       userId: null,
-      shareGrants: [grantFor(shareA)],
+      grants: { share: [grantFor(shareA)], publicMapAccess: [] },
     });
     expect(canRead).toBe(true);
   });
@@ -260,7 +268,7 @@ describe("share grant access control", () => {
         organisationId: orgId,
       },
       userId: null,
-      shareGrants: [grantFor(shareA)],
+      grants: { share: [grantFor(shareA)], publicMapAccess: [] },
     });
     expect(canRead).toBe(false);
   });
@@ -273,7 +281,7 @@ describe("share grant access control", () => {
         organisationId: orgId,
       },
       userId: null,
-      shareGrants: [],
+      grants: { share: [], publicMapAccess: [] },
     });
     expect(canRead).toBe(false);
   });

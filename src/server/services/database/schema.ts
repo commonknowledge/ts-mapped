@@ -294,11 +294,32 @@ export interface PublicMap {
   colorScheme: string | null; // text, NULL (renamed from colour_scheme -> color_scheme)
   clusteringEnabled: boolean; // boolean, NOT NULL, DEFAULT true
   imageUrl: string | null; // text, NULL
+  accessMode: string; // text, NOT NULL, DEFAULT 'Open' ('Open' | 'Moderated')
+  moderatorEmails: string[]; // jsonb, NOT NULL, DEFAULT []
+  embedUrl: string; // text, NOT NULL, DEFAULT ''
   createdAt: string; // text, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 
   // FOREIGN KEYS:
   // - mapId -> map.id (CASCADE DELETE, CASCADE UPDATE)
   // - viewId -> mapView.id (CASCADE DELETE, CASCADE UPDATE)
+}
+
+/**
+ * publicMapAccess Table
+ * Access requests for moderated public maps, one per (publicMap, email)
+ */
+export interface PublicMapAccess {
+  id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+  publicMapId: string; // uuid, NOT NULL
+  email: string; // text, NOT NULL, UNIQUE (publicMapId, email)
+  status: string; // text, NOT NULL ('Pending' | 'Approved' | 'Rejected' | 'Revoked')
+  tokenHash: string | null; // text, UNIQUE, NULL - hash of the current magic link token
+  tokenIssuedAt: Date | null; // timestamp, NULL
+  decidedAt: Date | null; // timestamp, NULL - grants minted before this are invalid
+  createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
+
+  // FOREIGN KEYS:
+  // - publicMapId -> publicMap.id (CASCADE DELETE, CASCADE UPDATE)
 }
 
 // ============================================================================
@@ -452,6 +473,7 @@ export interface Database {
   mapView: MapView;
   inspectorDataSourceConfig: InspectorDataSourceConfig;
   publicMap: PublicMap;
+  publicMapAccess: PublicMapAccess;
 
   // Map Annotations
   folder: Folder;

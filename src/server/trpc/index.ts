@@ -2,12 +2,13 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
-import { getShareGrants } from "@/auth/shareGrants";
+import { getVisitorGrants } from "@/auth/visitorGrants";
 import { TRIAL_EXPIRED_MESSAGE } from "@/constants";
 import { UserRole } from "@/models/User";
 import { getClientIp } from "@/server/services/ratelimit";
 import {
   canReadDataSource,
+  canViewAnyPublicMap,
   findValidShareGrantForMap,
   hasValidShareGrant,
 } from "@/server/utils/auth";
@@ -18,9 +19,9 @@ import {
 import { findDataSourceById } from "../repositories/DataSource";
 import { findMapById } from "../repositories/Map";
 import { findOrganisationForUser } from "../repositories/Organisation";
-import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
+import { findPublishedPublicMapsByMapId } from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
-import type { ShareGrant } from "@/authTypes";
+import type { VisitorGrants } from "@/authTypes";
 
 export async function createContext(opts?: { req?: Request }) {
   const session = await getServerSession();
@@ -29,16 +30,16 @@ export async function createContext(opts?: { req?: Request }) {
     user = await findUserById(session.currentUser.id);
   }
   const ip = opts?.req ? getClientIp(opts.req) : "unknown";
-  const shareGrants = await getShareGrants();
-  return { user, ip, shareGrants };
+  const grants = await getVisitorGrants();
+  return { user, ip, grants };
 }
 
-// `shareGrants` is optional so server-side callers and tests that construct
+// `grants` is optional so server-side callers and tests that construct
 // a context by hand can omit it (absent = no grants).
 export type Context = Omit<
   Awaited<ReturnType<typeof createContext>>,
-  "shareGrants"
-> & { shareGrants?: ShareGrant[] };
+  "grants"
+> & { grants?: VisitorGrants };
 
 // Prevent sensitive fields being sent to the client
 superjson.registerCustom(serverDataSourceSerializer, "DataSource");
@@ -122,7 +123,7 @@ const enforceUserOrShareGrant = t.middleware(async ({ ctx, next }) => {
     }
     return next({ ctx: { user: ctx.user } });
   }
-  const hasGrant = await hasValidShareGrant(ctx.shareGrants);
+  const hasGrant = await hasValidShareGrant(ctx.grants?.share);
   if (!hasGrant) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -189,7 +190,7 @@ export const dataSourceReadProcedure = publicProcedure
     const hasAccess = await canReadDataSource({
       dataSource,
       userId: ctx.user?.id,
-      shareGrants: ctx.shareGrants,
+      grants: ctx.grants,
     });
     if (!hasAccess) {
       throw new TRPCError({
@@ -264,12 +265,15 @@ export const mapReadProcedure = publicProcedure
       });
     }
 
-    const publicMap = await findPublishedPublicMapByMapId(map.id);
-    if (publicMap) {
+    const publicMaps = await findPublishedPublicMapsByMapId(map.id);
+    if (await canViewAnyPublicMap({ publicMaps, grants: ctx.grants })) {
       return next({ ctx: { map } });
     }
 
-    const shareGrant = await findValidShareGrantForMap(ctx.shareGrants, map.id);
+    const shareGrant = await findValidShareGrantForMap(
+      ctx.grants?.share,
+      map.id,
+    );
     if (shareGrant) {
       return next({ ctx: { map } });
     }
