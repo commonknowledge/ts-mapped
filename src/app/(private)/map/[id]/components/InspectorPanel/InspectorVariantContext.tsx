@@ -26,5 +26,12 @@ export const useInspectorVariant = () => useContext(InspectorVariantContext);
  * same row (Markers, Notes), in place of a separate row of top-level tabs
  */
 export const InspectorExtraTabsContext = createContext<
-  { id: string; label: string; count?: number; content: ReactNode }[]
+  {
+    id: string;
+    label: string;
+    /** Shown in place of the label, which becomes its tooltip */
+    icon?: ReactNode;
+    count?: number;
+    content: ReactNode;
+  }[]
 >([]);

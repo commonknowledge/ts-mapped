@@ -341,6 +341,7 @@ export default function InspectorPanel() {
                   {
                     id: "markers",
                     label: "Markers",
+                    icon: <MapPinIcon className="size-3.5" />,
                     count: markerCount,
                     content: <InspectorMarkersTab type={type} />,
                   },

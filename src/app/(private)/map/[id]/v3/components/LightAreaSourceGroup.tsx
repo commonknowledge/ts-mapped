@@ -54,7 +54,15 @@ export default function LightAreaSourceGroup({
     : "Choosing data…";
 
   return (
-    <li className="group/sourcegroup">
+    // The source colouring the map is one card around its header and
+    // columns, marked as live
+    <li
+      className={cn(
+        "group/sourcegroup rounded-lg transition-colors",
+        hasActive &&
+          "border border-neutral-300 bg-white p-0.5 pb-1 shadow-[0_1px_3px_rgba(21,33,59,0.08),0_0_0_3px_rgba(21,33,59,0.04)]",
+      )}
+    >
       <div className="group/source flex items-center gap-1 rounded-lg pr-1">
         <div className="flex min-w-0 flex-1 items-center gap-2 px-1.5 py-1">
           <span
@@ -85,6 +93,15 @@ export default function LightAreaSourceGroup({
           >
             {name}
           </span>
+          {hasActive && (
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[10px] leading-none font-medium text-white">
+              <span className="relative flex size-1.5">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+              </span>
+              On map
+            </span>
+          )}
         </div>
         {dataSourceId && (
           <>

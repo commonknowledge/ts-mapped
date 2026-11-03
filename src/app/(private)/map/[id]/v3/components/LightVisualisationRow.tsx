@@ -63,12 +63,10 @@ export default function LightVisualisationRow({
 
   return (
     <li
+      // Inside its source's card: the active column is a tinted block
       className={cn(
-        "rounded-lg transition-colors",
-        isActive &&
-          (boundariesPanelOpen
-            ? "border border-neutral-300 bg-neutral-100"
-            : "border border-neutral-200 bg-neutral-50"),
+        "rounded-md transition-colors",
+        isActive && (boundariesPanelOpen ? "bg-neutral-100" : "bg-neutral-50"),
       )}
     >
       <div
@@ -136,7 +134,7 @@ export default function LightVisualisationRow({
         </DropdownMenu>
       </div>
       {isActive && (
-        <div className="flex flex-col gap-2 border-t border-neutral-200/70 px-2 pt-2 pb-2.5 [&_[data-slot=select-trigger]]:bg-white">
+        <div className="flex flex-col gap-2 px-2 pt-1 pb-2.5 [&_[data-slot=select-trigger]]:bg-white">
           {!viewConfig.boundariesLocked && (
             <LightBoundaryPicker
               label="by"

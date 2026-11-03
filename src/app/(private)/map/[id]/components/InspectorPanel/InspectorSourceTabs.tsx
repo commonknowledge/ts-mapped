@@ -136,6 +136,11 @@ export default function InspectorSourceTabs({
                   isVisualised={config.dataSourceId === visualisedId}
                   isDraggable={editable && configs.length > 1}
                   onSelect={() => setActiveId(config.dataSourceId)}
+                  onConfigure={
+                    editable && onConfigureSource
+                      ? () => onConfigureSource(config.dataSourceId)
+                      : undefined
+                  }
                 />
               ))}
             </SortableContext>
@@ -169,7 +174,7 @@ export default function InspectorSourceTabs({
         {canAdd && renderAddSource?.({ withLabel: configs.length === 0 })}
         {extraTabs.length > 0 && (configs.length > 0 || canAdd) && (
           <span
-            className="mx-1 mb-2 h-3.5 w-px shrink-0 self-end bg-neutral-200"
+            className="mx-0.5 mb-2 h-3.5 w-px shrink-0 self-end bg-neutral-200"
             aria-hidden
           />
         )}
@@ -181,35 +186,31 @@ export default function InspectorSourceTabs({
               type="button"
               role="tab"
               aria-selected={isSelected}
+              aria-label={
+                tab.icon
+                  ? `${tab.label}${typeof tab.count === "number" ? ` ${tab.count}` : ""}`
+                  : undefined
+              }
+              title={tab.icon ? tab.label : undefined}
               onClick={() => setActiveId(tab.id)}
               className={cn(
-                "-mb-px flex shrink-0 cursor-pointer items-center rounded-t border-b-2 px-2 py-1.5 text-xs whitespace-nowrap outline-none focus-visible:bg-neutral-100",
+                "-mb-px flex shrink-0 cursor-pointer items-center gap-1 rounded-t border-b-2 py-1.5 text-xs whitespace-nowrap outline-none focus-visible:bg-neutral-100",
+                tab.icon ? "px-1.5" : "px-2",
                 isSelected
                   ? "border-neutral-900 font-medium text-neutral-900"
                   : "border-transparent text-neutral-500 hover:text-neutral-900",
               )}
             >
-              {tab.label}
+              {tab.icon ?? tab.label}
               {/* Styled like the counts on folder rows */}
               {typeof tab.count === "number" && (
-                <span className="ml-1.5 font-normal text-neutral-400 tabular-nums">
+                <span className="font-normal text-neutral-400 tabular-nums">
                   {tab.count}
                 </span>
               )}
             </button>
           );
         })}
-        {editable && onConfigureSource && selectedConfig && (
-          <button
-            type="button"
-            onClick={() => selectedId && onConfigureSource(selectedId)}
-            aria-label="Choose what this source shows"
-            title="Choose what this source shows"
-            className="mb-1 shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
-          >
-            <Settings2Icon className="size-3.5" />
-          </button>
-        )}
       </div>
       {selectedExtra
         ? selectedExtra.content
@@ -233,6 +234,7 @@ function SourceTab({
   isVisualised,
   isDraggable,
   onSelect,
+  onConfigure,
 }: {
   dataSourceId: string;
   label: string;
@@ -240,6 +242,8 @@ function SourceTab({
   isVisualised: boolean;
   isDraggable: boolean;
   onSelect: () => void;
+  /** Opens this source's settings; shown on the selected tab */
+  onConfigure?: () => void;
 }) {
   const {
     attributes,
@@ -251,17 +255,24 @@ function SourceTab({
   } = useSortable({ id: dataSourceId, disabled: !isDraggable });
 
   return (
-    <button
+    // A div, so the source's settings button can sit inside its own tab
+    <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       // After the sortable attributes, which would make these plain buttons
-      type="button"
       role="tab"
+      tabIndex={0}
       aria-selected={isSelected}
       data-tab-id={dataSourceId}
       aria-roledescription={isDraggable ? "draggable tab" : undefined}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       title={isDraggable ? `${label} (drag to reorder)` : label}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
@@ -278,6 +289,23 @@ function SourceTab({
         </span>
       )}
       <span className="truncate">{label}</span>
-    </button>
+      {isSelected && onConfigure && (
+        <button
+          type="button"
+          // Not a drag, and not a second select
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onConfigure();
+          }}
+          aria-label={`Choose what ${label} shows`}
+          title="Choose what this source shows"
+          className="-mr-1 shrink-0 cursor-pointer rounded p-0.5 font-normal text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+        >
+          <Settings2Icon className="size-3" />
+        </button>
+      )}
+    </div>
   );
 }
