@@ -5,9 +5,10 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import { buildDefaultInspectorConfig } from "../components/InspectorPanel/utils";
+import { useAreaSettings } from "./useAreaSettings";
 import { useMapConfig } from "./useMapConfig";
 import { useMapId } from "./useMapCore";
-import { useMapViews, useViewId } from "./useMapViews";
+import { useViewId } from "./useMapViews";
 import { useSavedVisualisations } from "./useSavedVisualisations";
 import { useUpdateInspectorConfig } from "./useUpdateInspectorConfig";
 import type { InspectorConfig } from "./useUpdateInspectorConfig";
@@ -37,7 +38,9 @@ export function useInspectorLayers({ sync = false }: { sync?: boolean } = {}) {
     ),
   );
   const configs = useMemo(() => configsQuery.data ?? [], [configsQuery.data]);
-  const { viewConfig, updateViewConfig } = useMapViews();
+  // Possibly the map's, shared by its views (see useAreaSettings)
+  const { areaSettings: viewConfig, updateConfig: updateViewConfig } =
+    useAreaSettings();
   const { mapConfig } = useMapConfig();
   const { items } = useSavedVisualisations();
   const { data: dataSources, getDataSourceById } = useDataSources();

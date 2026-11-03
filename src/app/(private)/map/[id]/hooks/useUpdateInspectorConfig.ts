@@ -1,9 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/services/trpc/react";
+import { areasSharedAcrossViewsAtom } from "../atoms/mapStateAtoms";
 import { useDebouncedCallback } from "./useDebouncedCallback";
 import { useMapId } from "./useMapCore";
 import { useSetDirtyViewIds, useViewId } from "./useMapViews";
@@ -18,6 +20,8 @@ export function useUpdateInspectorConfig() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const setDirtyViewIds = useSetDirtyViewIds();
+  // The light editor shares inspector settings across the map's views
+  const allViews = useAtomValue(areasSharedAcrossViewsAtom);
 
   const queryKey = trpc.mapView.inspectorConfigs.queryKey({
     mapId: mapId || "",
@@ -41,6 +45,13 @@ export function useUpdateInspectorConfig() {
         if (viewId) {
           setDirtyViewIds((ids) => ids.filter((id) => id !== viewId));
         }
+        // Other views' copies changed too; this view's cache is current
+        if (allViews) {
+          queryClient.invalidateQueries({
+            ...trpc.mapView.inspectorConfigs.queryFilter(),
+            refetchType: "inactive",
+          });
+        }
       },
     }),
   );
@@ -50,7 +61,7 @@ export function useUpdateInspectorConfig() {
     const configs = queryClient.getQueryData(queryKey) as
       InspectorConfig[] | undefined;
     if (!configs) return;
-    mutateRaw({ mapId, viewId, configs });
+    mutateRaw({ mapId, viewId, configs, allViews });
   }, 600);
 
   return useCallback(

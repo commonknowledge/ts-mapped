@@ -44,6 +44,8 @@ const summarise = (result: AutoScanResult) => {
     hidden && `Hid ${hidden}.`,
     bars > 0 && `${bars} shown as percentage bars.`,
     parties > 0 && `${parties} in party colours.`,
+    result.chartedColumns > 0 &&
+      `Grouped ${result.chartedColumns} into a vote share chart.`,
     pinned > 0 && `Pinned ${pinned} on the map.`,
   ]
     .filter(Boolean)
@@ -103,7 +105,11 @@ export default function InspectorAutoScan({
       result.metadataPatches.forEach(({ column, semanticType }) =>
         onPatchColumnMetadata(column, { semanticType }),
       );
-      onUpdate({ ...config, items: result.items, layout: result.layout });
+      onUpdate({
+        ...config,
+        items: result.layoutItems,
+        layout: result.layout,
+      });
       setLastScan({ previous: config, summary: summarise(result) });
     } catch {
       setError("Couldn't read this data source's records.");

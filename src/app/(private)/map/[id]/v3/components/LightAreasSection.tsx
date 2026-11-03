@@ -8,6 +8,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { useAreaSettings } from "../../hooks/useAreaSettings";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useInspectorLayers } from "../../hooks/useInspectorLayers";
 import { useMapViews } from "../../hooks/useMapViews";
@@ -17,7 +18,10 @@ import { useOpenInspectorSectionEditor } from "../hooks/useInspectorCustomise";
 import LightAreaSourceGroup from "./LightAreaSourceGroup";
 import LightBoundaryPicker from "./LightBoundaryPicker";
 import LightSection from "./LightSection";
-import LightVisualisationRow from "./LightVisualisationRow";
+import LightVisualisationRow, {
+  ActiveDetails,
+  getColumnLabel,
+} from "./LightVisualisationRow";
 
 // What the areas are coloured by: a list of visualisations, each carrying the
 // boundaries it's shown on. The active one colours the map and shows its
@@ -26,6 +30,7 @@ import LightVisualisationRow from "./LightVisualisationRow";
 export default function LightAreasSection() {
   const { setBoundariesPanelOpen } = useChoropleth();
   const { viewConfig } = useMapViews();
+  const { areaSettings } = useAreaSettings();
   const { setHidden: setInspectorHidden } = useInspectorLayers();
   const openInspectorSection = useOpenInspectorSectionEditor();
   const { getDataSourceById } = useDataSources();
@@ -65,7 +70,7 @@ export default function LightAreasSection() {
     }));
   }, [items]);
   const isHiddenFromInspector = (dataSourceId: string) =>
-    Boolean(viewConfig.inspectorHiddenDataSourceIds?.includes(dataSourceId));
+    Boolean(areaSettings.inspectorHiddenDataSourceIds?.includes(dataSourceId));
 
   // Start an empty visualisation and let the flyout pick its data
   const addData = useAddAreaData();
@@ -139,42 +144,81 @@ export default function LightAreasSection() {
       </div>
       {items.length > 0 ? (
         <ul className="-mx-1.5 flex flex-col gap-2">
-          {groups.map((group) => (
-            <LightAreaSourceGroup
-              key={group.dataSourceId || "new"}
-              dataSourceId={group.dataSourceId}
-              hasActive={group.items.some((item) => item.id === activeId)}
-              isInInspector={!isHiddenFromInspector(group.dataSourceId)}
-              onToggleInspector={() =>
-                setInspectorHidden(
-                  group.dataSourceId,
-                  !isHiddenFromInspector(group.dataSourceId),
-                )
-              }
-              onEditInspector={() => openInspectorSection(group.dataSourceId)}
-              onAddColumn={() => addData(group.dataSourceId)}
-              onRemove={() => removeSource(group.dataSourceId)}
-            >
-              {group.items.map((item) => (
-                <LightVisualisationRow
-                  key={item.id}
-                  item={item}
-                  isActive={item.id === activeId}
-                  onSelect={() => select(item.id)}
-                  onDeactivate={() => {
-                    deactivate();
-                    setBoundariesPanelOpen(false);
-                  }}
-                  onEdit={() => {
-                    select(item.id);
-                    setBoundariesPanelOpen(true);
-                  }}
-                  onRemove={() => remove(item.id)}
-                  lockedNote={getLockedNote(item.areaDataSourceId)}
-                />
-              ))}
-            </LightAreaSourceGroup>
-          ))}
+          {groups.map((group) => {
+            // A source with one column is a single row: its header shows
+            // and edits that column
+            const single = group.items.length === 1 ? group.items[0] : null;
+            // Library data comes with its column (e.g. 2024 GE Results' Result)
+            const dataSource = getDataSourceById(group.dataSourceId);
+            const libraryDefault = dataSource?.public
+              ? dataSource.defaultChoroplethConfig
+              : null;
+            const active = group.items.find((item) => item.id === activeId);
+            const edit = (id: string) => {
+              select(id);
+              setBoundariesPanelOpen(true);
+            };
+            const turnOff = () => {
+              deactivate();
+              setBoundariesPanelOpen(false);
+            };
+            return (
+              <LightAreaSourceGroup
+                key={group.dataSourceId || "new"}
+                dataSourceId={group.dataSourceId}
+                hasActive={Boolean(active)}
+                subtitle={
+                  single
+                    ? single.areaDataColumn
+                      ? getColumnLabel(single)
+                      : (libraryDefault?.column ?? "Choose a column")
+                    : undefined
+                }
+                onToggle={() => {
+                  if (active) return turnOff();
+                  if (single && !single.areaDataColumn) {
+                    return libraryDefault
+                      ? select(single.id, {
+                          areaDataColumn: libraryDefault.column,
+                          calculationType: libraryDefault.calculationType,
+                        })
+                      : edit(single.id);
+                  }
+                  select(group.items[0].id);
+                }}
+                onEdit={single ? () => edit(single.id) : undefined}
+                isInInspector={!isHiddenFromInspector(group.dataSourceId)}
+                onToggleInspector={() =>
+                  setInspectorHidden(
+                    group.dataSourceId,
+                    !isHiddenFromInspector(group.dataSourceId),
+                  )
+                }
+                onEditInspector={() => openInspectorSection(group.dataSourceId)}
+                onAddColumn={() => addData(group.dataSourceId)}
+                onRemove={() => removeSource(group.dataSourceId)}
+              >
+                {single ? (
+                  active && <ActiveDetails dataSourceId={group.dataSourceId} />
+                ) : (
+                  <ul className="flex flex-col gap-0.5">
+                    {group.items.map((item) => (
+                      <LightVisualisationRow
+                        key={item.id}
+                        item={item}
+                        isActive={item.id === activeId}
+                        onSelect={() => select(item.id)}
+                        onDeactivate={turnOff}
+                        onEdit={() => edit(item.id)}
+                        onRemove={() => remove(item.id)}
+                        lockedNote={getLockedNote(item.areaDataSourceId)}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </LightAreaSourceGroup>
+            );
+          })}
         </ul>
       ) : (
         <div className="rounded-lg border border-dashed border-neutral-200 p-3 text-center">

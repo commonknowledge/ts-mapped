@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { inspectorDataSourceConfigSchema } from "@/models/InspectorDataSourceConfig";
 import {
@@ -7,6 +8,7 @@ import {
 import {
   assertViewBelongsToMap,
   deleteMapView,
+  findMapViewsByMapId,
 } from "@/server/repositories/MapView";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -37,6 +39,9 @@ export const mapViewRouter = router({
             position: true,
           }),
         ),
+        // Copy them to every other view of the map too (the light editor
+        // shares inspector settings across views)
+        allViews: z.boolean().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -50,6 +55,20 @@ export const mapViewRouter = router({
         position: index,
       }));
       await replaceAllForMapView({ mapViewId: input.viewId, configs });
+      if (input.allViews) {
+        const views = await findMapViewsByMapId(input.mapId);
+        for (const view of views) {
+          if (view.id === input.viewId) continue;
+          await replaceAllForMapView({
+            mapViewId: view.id,
+            configs: configs.map((config) => ({
+              ...config,
+              id: uuidv4(),
+              mapViewId: view.id,
+            })),
+          });
+        }
+      }
       return true;
     }),
 

@@ -1,6 +1,6 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="69" height="57.5" viewBox="0 0 69 57.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="67" height="55.5" viewBox="0 0 67 55.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Group 39">
-<circle id="Ellipse 49" cx="7" cy="7" r="7" fill="#15213B"/>
-<path id="Vector 18" d="M7 13V47C7 52.5228 11.4772 57 17 57H69" stroke="#15213B"/>
+<circle id="Ellipse 49" cx="5.5" cy="5.5" r="5.5" fill="white"/>
+<path id="Vector 18" d="M5 11V45C5 50.5228 9.47715 55 15 55H67" stroke="white"/>
 </g>
 </svg>

@@ -25,7 +25,7 @@ import { useMapViews } from "../../hooks/useMapViews";
 import LightBoundaryPicker from "./LightBoundaryPicker";
 import type { SavedVisualisation } from "@/models/MapView";
 
-const getColumnLabel = (item: SavedVisualisation) => {
+export const getColumnLabel = (item: SavedVisualisation) => {
   const column = item.areaDataColumn;
   if (!column) return "Choose a column";
   if (column === DUMMY_COUNT_COLUMN) return "Record count";
@@ -58,17 +58,26 @@ export default function LightVisualisationRow({
   lockedNote?: string | null;
 }) {
   const { boundariesPanelOpen } = useChoropleth();
-  const { viewConfig } = useMapViews();
   const label = getColumnLabel(item);
 
   return (
     <li
       // Inside its source's card: the active column is a tinted block
       className={cn(
-        "rounded-md transition-colors",
+        "group/row relative rounded-md transition-colors",
         isActive && (boundariesPanelOpen ? "bg-neutral-100" : "bg-neutral-50"),
       )}
     >
+      {/* Tree guide from the source's icon: an elbow into this column's dot,
+          and a line on down to the next column */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-1.5 left-3 h-[1.125rem] w-3 rounded-bl-md border-b border-l border-neutral-300"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-0 -bottom-0.5 left-3 border-l border-neutral-300 group-last/row:hidden"
+      />
       <div
         className={cn(
           "group/column flex items-center gap-1 rounded-lg pr-1 transition-colors",
@@ -134,17 +143,25 @@ export default function LightVisualisationRow({
         </DropdownMenu>
       </div>
       {isActive && (
-        <div className="flex flex-col gap-2 px-2 pt-1 pb-2.5 [&_[data-slot=select-trigger]]:bg-white">
-          {!viewConfig.boundariesLocked && (
-            <LightBoundaryPicker
-              label="by"
-              dataSourceId={item.areaDataSourceId}
-            />
-          )}
-          <ActiveLegend />
+        <div className="pl-5">
+          <ActiveDetails dataSourceId={item.areaDataSourceId} />
         </div>
       )}
     </li>
+  );
+}
+
+// What's on the map now: its boundaries (unless locked for all data) and
+// its colour key
+export function ActiveDetails({ dataSourceId }: { dataSourceId: string }) {
+  const { viewConfig } = useMapViews();
+  return (
+    <div className="flex flex-col gap-2 px-2 pt-1 pb-2.5 [&_[data-slot=select-trigger]]:bg-white">
+      {!viewConfig.boundariesLocked && (
+        <LightBoundaryPicker label="by" dataSourceId={dataSourceId} />
+      )}
+      <ActiveLegend />
+    </div>
   );
 }
 

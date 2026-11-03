@@ -4,8 +4,10 @@ import { useEffect, useRef } from "react";
 import { type SelectedArea } from "@/app/(private)/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { useInspectorActiveSource } from "./useInspectorActiveSource";
 import { usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
+import { useClusterClick } from "./useMarkerAppearance";
 import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
 import { useSelectedAreas } from "./useSelectedAreas";
 import { useSelectedSecondaryArea } from "./useSelectedSecondaryArea";
@@ -19,6 +21,28 @@ import type {
   Polygon,
 } from "geojson";
 import type { MapMouseEvent } from "mapbox-gl";
+
+/** The records in a cluster feature, from its clusterProperties' asJson: a
+ *  ","-joined list of JSON objects (the trailing comma stripped, then wrapped
+ *  in "[]" to parse as one array) */
+function parseClusterRecords(feature: mapboxgl.GeoJSONFeature) {
+  if (feature.geometry.type !== "Point") return [];
+  const [lng, lat] = feature.geometry.coordinates;
+  const asJson: string = feature.properties?.asJson ?? "";
+  const parsed = asJson
+    ? (JSON.parse("[" + asJson.slice(0, -1) + "]") as {
+        id: string;
+        dataSourceId: string;
+        name: string;
+      }[])
+    : [];
+  return parsed.map(({ id, dataSourceId, name }) => ({
+    id,
+    dataSourceId,
+    name,
+    geocodePoint: { lng, lat },
+  }));
+}
 
 export function useMapClickEffect({
   draw,
@@ -58,11 +82,15 @@ export function useMapClickEffect({
   // Use refs to avoid recreating click handler when modes change
   const pinDropModeRef = useRef(pinDropMode);
   const currentModeRef = useRef(currentMode);
+  const clusterClick = useClusterClick();
+  const [, setActiveSourceId] = useInspectorActiveSource();
+  const clusterClickRef = useRef(clusterClick);
 
   useEffect(() => {
     pinDropModeRef.current = pinDropMode;
     currentModeRef.current = currentMode;
-  }, [pinDropMode, currentMode]);
+    clusterClickRef.current = clusterClick;
+  }, [pinDropMode, currentMode, clusterClick]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -194,30 +222,33 @@ export function useMapClickEffect({
         return false;
       }
 
+      // The light editor: a cluster of several markers zooms in to split,
+      // and the click goes on to the area underneath, so the inspector shows
+      // that boundary. A cluster of one is drawn as a marker, so it opens
+      // like one (below).
+      const pointCount = Number(topFeature.properties?.point_count ?? 0);
+      if (clusterClickRef.current === "zoom" && pointCount > 1) {
+        // Land on the area's data, not a remembered Markers tab
+        setActiveSourceId(null);
+        map.flyTo({
+          center: topFeature.geometry.coordinates as [number, number],
+          zoom: map.getZoom() + 2,
+        });
+        return false;
+      }
+      if (
+        clusterClickRef.current === "zoom" &&
+        topFeature.properties?.cluster
+      ) {
+        const single = parseClusterRecords(topFeature)[0];
+        if (!single) return false;
+        resetInspector();
+        setSelectedRecords([single]);
+        return true;
+      }
+
       if (topFeature.properties?.cluster) {
-        // asJson is a ","-joined list of JSON objects built by clusterProperties.
-        // slice(0, -1) strips the trailing comma, then wrapping in "[]" gives a
-        // valid JSON array that can be parsed directly.
-        const asJson: string = topFeature.properties?.asJson ?? "";
-        const parsedRecords = asJson
-          ? (JSON.parse("[" + asJson.slice(0, -1) + "]") as {
-              id: string;
-              dataSourceId: string;
-              name: string;
-            }[])
-          : [];
-        const records = [];
-        for (const { id, dataSourceId, name } of parsedRecords) {
-          records.push({
-            id,
-            dataSourceId,
-            name,
-            geocodePoint: {
-              lng: topFeature.geometry.coordinates[0],
-              lat: topFeature.geometry.coordinates[1],
-            },
-          });
-        }
+        const records = parseClusterRecords(topFeature);
 
         resetInspector();
         setSelectedRecords(records);
@@ -443,6 +474,7 @@ export function useMapClickEffect({
     draw,
     setSelectedTurf,
     ready,
+    setActiveSourceId,
     setSelectedRecords,
     setSelectedAreas,
     interactionSourceId,

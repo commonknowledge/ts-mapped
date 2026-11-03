@@ -11,6 +11,8 @@ import type { InspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 
 export interface InspectorBlock {
   group?: string;
+  /** "barChart": the group's columns as one sorted bar chart */
+  display?: "list" | "barChart" | "chartEnd";
   columns: string[];
 }
 
@@ -99,8 +101,11 @@ export function buildInspectorBlocks(
 ): InspectorBlock[] {
   const blocks: InspectorBlock[] = [];
   for (const item of items || []) {
-    if (item.type === "divider") {
-      blocks.push({ group: item.label, columns: [] });
+    if (item.type === "divider" && item.display === "chartEnd") {
+      // Ends a chart without a heading of its own
+      blocks.push({ columns: [] });
+    } else if (item.type === "divider") {
+      blocks.push({ group: item.label, display: item.display, columns: [] });
     } else {
       const last = blocks[blocks.length - 1];
       if (last) {

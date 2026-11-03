@@ -5,15 +5,8 @@ import { useCallback } from "react";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useInspectorActiveSource } from "../../hooks/useInspectorActiveSource";
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
-import {
-  inspectorCustomisingAtom,
-  inspectorEditingDataSourceIdAtom,
-} from "../atoms";
+import { inspectorEditingDataSourceIdAtom } from "../atoms";
 import { useAddMarkersPanel } from "./useAddMarkersPanel";
-
-export function useInspectorCustomising() {
-  return useAtom(inspectorCustomisingAtom);
-}
 
 export function useInspectorEditingDataSourceId() {
   return useAtom(inspectorEditingDataSourceIdAtom);

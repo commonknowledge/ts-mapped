@@ -40,3 +40,8 @@ export const infoPopupOpenAtom = atom<boolean>(false);
 export const infoPopupEditingAtom = atom<boolean>(false);
 export const mapBottomPaddingAtom = atom<number>(0);
 export const lastLoadedSourceIdAtom = atom<string | undefined>(undefined);
+
+// When set (the light editor), the Areas list and inspector settings live
+// on the map and are shared by all its views; each view keeps only which
+// visualisation is on and its boundaries
+export const areasSharedAcrossViewsAtom = atom<boolean>(false);

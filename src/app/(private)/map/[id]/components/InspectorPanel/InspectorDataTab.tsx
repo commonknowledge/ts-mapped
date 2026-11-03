@@ -21,6 +21,7 @@ import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { BIVARIATE_COLORS } from "../../colors";
 import { useAreaStats } from "../../data";
+import { useAreaSettings } from "../../hooks/useAreaSettings";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
@@ -30,7 +31,6 @@ import ContainingAreas from "./ContainingAreas";
 import DataRecordColumns from "./DataRecordColumns";
 import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataConfig from "./InspectorDataConfig";
-import { useInspectorFooterOverride } from "./InspectorFooterContext";
 import { InspectorPanelIcon } from "./inspectorPanelOptions";
 import InspectorSourceTabs from "./InspectorSourceTabs";
 import {
@@ -100,11 +100,11 @@ export default function InspectorDataTab() {
   const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
     useOpenInspectorConfig(dataSource?.id);
   const editable = useMapEditable();
-  const footerOverride = useInspectorFooterOverride();
   const { variant } = useInspectorVariant();
   const isLight = variant === "light";
   const extraTabs = useContext(InspectorExtraTabsContext);
   const { items: savedVisualisations } = useSavedVisualisations();
+  const { areaSettings } = useAreaSettings();
   const [, setActiveSourceId] = useInspectorActiveSource();
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
@@ -169,7 +169,9 @@ export default function InspectorDataTab() {
     // Hidden sections keep their config so they can come back as they were
     .filter(
       (config) =>
-        !viewConfig.inspectorHiddenDataSourceIds?.includes(config.dataSourceId),
+        !areaSettings.inspectorHiddenDataSourceIds?.includes(
+          config.dataSourceId,
+        ),
     )
     // The light editor's tabs are the Areas list: a source removed there
     // goes from here too (its config is kept for the classic editor)
@@ -427,18 +429,18 @@ export default function InspectorDataTab() {
           />
         ))
       )}
-      {editable &&
-        (footerOverride ?? (
-          <Button
-            variant="outline"
-            className="w-full"
-            size="sm"
-            onClick={() => setConfigDialogOpen(true)}
-          >
-            <Settings2Icon />
-            Manage inspector data
-          </Button>
-        ))}
+      {/* The light editor manages sources in the Areas list and the tabs */}
+      {editable && !isLight && (
+        <Button
+          variant="outline"
+          className="w-full"
+          size="sm"
+          onClick={() => setConfigDialogOpen(true)}
+        >
+          <Settings2Icon />
+          Manage inspector data
+        </Button>
+      )}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>

@@ -182,6 +182,12 @@ export const mapRouter = router({
         placedMarkerColors: mapConfig.placedMarkerColors,
         folderColors: mapConfig.folderColors,
         turfColor: mapConfig.turfColor,
+        savedVisualisations: mapConfig.savedVisualisations,
+        inspectorHiddenDataSourceIds: mapConfig.inspectorHiddenDataSourceIds,
+        inspectorExtraDataSourceIds: mapConfig.inspectorExtraDataSourceIds,
+        inspectorAutoDataSourceIds: mapConfig.inspectorAutoDataSourceIds,
+        inspectorOrderCustomised: mapConfig.inspectorOrderCustomised,
+        inspectorRecordNameColumns: mapConfig.inspectorRecordNameColumns,
       } as z.infer<typeof mapConfigSchema>;
 
       return updateMap(mapId, { config });

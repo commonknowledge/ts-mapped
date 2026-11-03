@@ -178,9 +178,9 @@ export default function LightNavbar() {
         )}
         {mapId && (
           <Link
-            href={`/map/${mapId}${viewQuery}`}
+            href={`/map/${mapId}/classic${viewQuery}`}
             className="rounded px-2 py-1 font-mono text-[10px] tracking-widest text-neutral-400 uppercase hover:bg-neutral-100 hover:text-neutral-700"
-            title="Open this map in the current editor"
+            title="Open this map in the classic editor"
           >
             Classic editor
           </Link>

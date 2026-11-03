@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { PARTY_COLORS } from "@/constants/colors";
 import { ColumnSemanticType, ColumnType } from "@/models/DataSource";
 import { ColumnDisplayFormat } from "@/models/shared";
@@ -28,7 +29,12 @@ const BOOLEAN_VALUES = new Set(["true", "false", "yes", "no", "y", "n"]);
 const LARGE_TEXT_LENGTH = 80;
 
 export interface AutoScanResult {
+  /** The columns kept, in order */
   items: ColumnItem[];
+  /** What to save: the columns, with party shares grouped under a bar chart */
+  layoutItems: InspectorItem[];
+  /** Party columns grouped into the bar chart, if any */
+  chartedColumns: number;
   layout: "single" | "twoColumn";
   /** Semantic types worth recording so percentages display as such */
   metadataPatches: { column: string; semanticType: ColumnSemanticType }[];
@@ -215,13 +221,45 @@ export const scanInspectorColumns = ({
     kept[kept.length - 1].rank += index / 1e6;
   });
 
-  const items = kept.sort((a, b) => a.rank - b.rank).map((k) => k.item);
+  const sorted = kept.sort((a, b) => a.rank - b.rank).map((k) => k.item);
+
+  // Three or more party shares read best as one ranking: they go last, under
+  // a bar chart divider, and aren't pinned (the chart shows them all)
+  const isPartyShare = (item: ColumnItem) =>
+    item.barColor === SMART_MATCH_BAR_COLOR_VALUE &&
+    item.displayFormat === ColumnDisplayFormat.Percentage;
+  const parties = sorted.filter(isPartyShare);
+  const charted = parties.length >= 3;
+  const items = charted
+    ? [
+        ...sorted.filter((item) => !isPartyShare(item)),
+        ...parties.map((item) => ({ ...item, pinned: undefined })),
+      ]
+    : sorted;
+  const layoutItems: InspectorItem[] = charted
+    ? [
+        ...items.slice(0, items.length - parties.length),
+        {
+          type: "divider",
+          id: uuidv4(),
+          label: "Vote share",
+          display: "barChart",
+        },
+        ...items.slice(items.length - parties.length),
+        // Closes the chart, so columns added later show as rows
+        { type: "divider", id: uuidv4(), label: "", display: "chartEnd" },
+      ]
+    : items;
   const shortItems = items.filter(
-    (i) => i.displayFormat !== ColumnDisplayFormat.LargeText,
+    (i) =>
+      i.displayFormat !== ColumnDisplayFormat.LargeText &&
+      !(charted && isPartyShare(i)),
   );
 
   return {
     items,
+    layoutItems,
+    chartedColumns: charted ? parties.length : 0,
     layout: shortItems.length > 4 ? "twoColumn" : "single",
     metadataPatches,
     hidden,

@@ -1,12 +1,13 @@
 "use client";
 
-import { BookOpen, SearchIcon, Settings2 } from "lucide-react";
+import { BookOpen, SearchIcon, Settings2, Settings2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
 import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
+import { useMapEditable } from "../../hooks/useMapEditable";
 import { useRecordName } from "../../hooks/useRecordName";
 import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
 import {
@@ -80,7 +81,20 @@ export default function DataRecordsPanel({
   ) : undefined;
 
   const colorClass = getInspectorColorClass(inspectorConfig?.color);
-  const { variant } = useInspectorVariant();
+  const { variant, onConfigureSource } = useInspectorVariant();
+  const editable = useMapEditable();
+  // The source's settings, at the end of its toolbar (search · count · this)
+  const configureButton = editable && onConfigureSource && (
+    <button
+      type="button"
+      onClick={() => onConfigureSource(dataSourceId)}
+      aria-label="Choose what this source shows"
+      title="Choose what this source shows"
+      className="shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+    >
+      <Settings2Icon className="size-3.5" />
+    </button>
+  );
 
   const publishedBy = dataSource?.organisationName && (
     <div className="flex items-center gap-1 pt-2 border-t border-neutral-200/70 text-muted-foreground">
@@ -92,8 +106,9 @@ export default function DataRecordsPanel({
     </div>
   );
 
-  // The light editor's tabs name the source and hold its settings, so the
-  // record goes straight in, led by its key figures
+  // The light editor's tabs name the source, so the record goes straight
+  // in, led by its key figures; the source's settings sit at the end of its
+  // toolbar, or in the corner when there's no toolbar
   if (variant === "light") {
     return (
       <div className="flex flex-col gap-3">
@@ -101,12 +116,22 @@ export default function DataRecordsPanel({
         {isLoading ? (
           <p className="text-xs text-muted-foreground">Loading…</p>
         ) : records.length === 0 ? (
-          !hint && <p className="text-xs text-muted-foreground">No data</p>
+          <div className="flex items-center justify-between gap-2">
+            {!hint && <p className="text-xs text-muted-foreground">No data</p>}
+            {configureButton}
+          </div>
         ) : records.length === 1 ? (
-          <RecordKeyFigures
-            json={records[0].json}
-            dataSourceId={dataSourceId}
-          />
+          <div className="relative">
+            {configureButton && (
+              <div className="absolute -top-1 right-0 z-10 rounded bg-white">
+                {configureButton}
+              </div>
+            )}
+            <RecordKeyFigures
+              json={records[0].json}
+              dataSourceId={dataSourceId}
+            />
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -127,6 +152,7 @@ export default function DataRecordsPanel({
                   ? `${filteredRecords.length} of ${records.length}`
                   : `${records.length} records`}
               </span>
+              {configureButton}
             </div>
             {filteredRecords.length === 0 && (
               <p className="text-xs text-muted-foreground">No records match.</p>

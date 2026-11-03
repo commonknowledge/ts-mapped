@@ -17,7 +17,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronDownIcon, Settings2Icon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useContext, useEffect, useRef } from "react";
 import { useDataSources } from "@/hooks/useDataSources";
 import {
@@ -59,8 +59,7 @@ export default function InspectorSourceTabs({
   const [activeId, setActiveId] = useInspectorActiveSource();
   const { viewConfig } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { onConfigureSource, renderAddSource, onReorderSource } =
-    useInspectorVariant();
+  const { renderAddSource, onReorderSource } = useInspectorVariant();
   const editable = useMapEditable();
   const extraTabs = useContext(InspectorExtraTabsContext);
   const { moveTo } = useInspectorLayers();
@@ -136,11 +135,6 @@ export default function InspectorSourceTabs({
                   isVisualised={config.dataSourceId === visualisedId}
                   isDraggable={editable && configs.length > 1}
                   onSelect={() => setActiveId(config.dataSourceId)}
-                  onConfigure={
-                    editable && onConfigureSource
-                      ? () => onConfigureSource(config.dataSourceId)
-                      : undefined
-                  }
                 />
               ))}
             </SortableContext>
@@ -234,7 +228,6 @@ function SourceTab({
   isVisualised,
   isDraggable,
   onSelect,
-  onConfigure,
 }: {
   dataSourceId: string;
   label: string;
@@ -242,8 +235,6 @@ function SourceTab({
   isVisualised: boolean;
   isDraggable: boolean;
   onSelect: () => void;
-  /** Opens this source's settings; shown on the selected tab */
-  onConfigure?: () => void;
 }) {
   const {
     attributes,
@@ -255,7 +246,6 @@ function SourceTab({
   } = useSortable({ id: dataSourceId, disabled: !isDraggable });
 
   return (
-    // A div, so the source's settings button can sit inside its own tab
     <div
       ref={setNodeRef}
       {...attributes}
@@ -289,23 +279,6 @@ function SourceTab({
         </span>
       )}
       <span className="truncate">{label}</span>
-      {isSelected && onConfigure && (
-        <button
-          type="button"
-          // Not a drag, and not a second select
-          onPointerDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            onConfigure();
-          }}
-          aria-label={`Choose what ${label} shows`}
-          title="Choose what this source shows"
-          className="-mr-1 shrink-0 cursor-pointer rounded p-0.5 font-normal text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
-        >
-          <Settings2Icon className="size-3" />
-        </button>
-      )}
     </div>
   );
 }

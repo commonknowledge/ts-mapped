@@ -11,6 +11,10 @@ export const dropPinClickHandlerAtom = atom<
 // "ring" draws marker circles as an ink dot ringed in the marker colour,
 // legible on any choropleth fill (used by the light editor prototype)
 export const markerAppearanceAtom = atom<"classic" | "ring">("classic");
+// What clicking a cluster does: "inspect" lists its records in the
+// inspector; "zoom" zooms in and lets the click open the area underneath
+// (the light editor, where the inspector is about areas)
+export const clusterClickAtom = atom<"inspect" | "zoom">("inspect");
 // Data source whose marker settings panel is open (null = closed)
 export const markerSettingsDataSourceIdAtom = atom<string | null>(null);
 

@@ -26,7 +26,7 @@ export const HOTSPOTS: Hotspot[] = [
       "Save the layers, filters and styling you need for each job as a view, then switch between them in one click. Try it: switch between the views above the map.",
     tooltipSide: "right",
     tooltipAlign: "center",
-    position: { type: "fixed", left: 38.281, top: 16.504 },
+    position: { type: "fixed", left: 39.879, top: 13.844 },
   },
   {
     id: "markers",
@@ -66,14 +66,14 @@ export const HOTSPOTS: Hotspot[] = [
       "Click an area to see everything you know about it — vote share, members, local data — then add it to your target areas. Click anywhere on the map.",
     tooltipSide: "left",
     tooltipAlign: "center",
-    position: { type: "fixed", left: 90, top: 58.035 },
+    position: { type: "fixed", left: 91.598, top: 55.375 },
   },
 ];
 
-// Anchored connectors, in px of the 1440px-wide hero frame (scaled at runtime)
+// Anchored connectors, in px of the 1440px-wide demo frame (scaled at runtime)
 export const ANCHORED_CONNECTOR = {
   // Dots alternate between two columns so the lines never cross
-  dotX: { above: 145, below: 95 },
+  dotX: { above: 168, below: 118 },
   // Short enough that facing neighbours (below, then above) don't meet
   rise: 34,
   cornerRadius: 10,
@@ -156,4 +156,14 @@ export const SHOWCASE_TARGETS: [number, number][] = [
   [350, 320],
   [420, 560],
   [230, 650],
+];
+
+// The hero's numbered headlines (Figma node 5986:89275); hovering one plays
+// its scene on the hero map, with the feature's label and description from
+// the poster bands above
+export const HERO_FEATURES: { id: ShowcaseFeatureId; title: string }[] = [
+  { id: "members", title: "Map your Members" },
+  { id: "data", title: "Overlay Data" },
+  { id: "strategise", title: "Strategise" },
+  { id: "win", title: "Win" },
 ];

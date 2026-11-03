@@ -3,14 +3,15 @@
 import { useCallback } from "react";
 import { useDataSources } from "@/hooks/useDataSources";
 import { buildName } from "@/utils/dataRecord";
-import { useMapViews } from "./useMapViews";
+import { useAreaSettings } from "./useAreaSettings";
 
 /**
  * How the inspector names a data source's records: by the column chosen for
  * this view, falling back to the source's own name columns
  */
 export function useRecordName(dataSourceId: string) {
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { areaSettings: viewConfig, updateConfig: updateViewConfig } =
+    useAreaSettings();
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(dataSourceId);
   const nameColumns = viewConfig.inspectorRecordNameColumns;

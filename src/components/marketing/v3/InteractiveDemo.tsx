@@ -51,7 +51,26 @@ const buildConnector = ({
   };
 };
 
-export default function InteractiveDemo() {
+// The demo's lines and dots: ink on a light section, white on a dark one
+const TONE_COLORS = {
+  light: {
+    line: "#15213b",
+    dot: "bg-[#15213b]",
+    outline: "focus-visible:outline-[#15213b]",
+  },
+  dark: {
+    line: "#ffffff",
+    dot: "bg-white",
+    outline: "focus-visible:outline-white",
+  },
+};
+
+export default function InteractiveDemo({
+  tone = "light",
+}: {
+  tone?: "light" | "dark";
+}) {
+  const colors = TONE_COLORS[tone];
   const [activeId, setActiveId] = useState<string | null>(null);
   const [connectors, setConnectors] = useState<Record<string, Connector>>({});
   const rootRef = useRef<HTMLDivElement>(null);
@@ -139,7 +158,7 @@ export default function InteractiveDemo() {
             key={id}
             d={connector.path}
             fill="none"
-            stroke="#15213b"
+            stroke={colors.line}
             strokeWidth={1}
           />
         ))}
@@ -147,7 +166,8 @@ export default function InteractiveDemo() {
 
       <div
         ref={boxRef}
-        className="pointer-events-auto absolute top-[20.304%] left-[13.819%] h-[70.033%] w-[72.431%] overflow-hidden rounded-[0.422cqw] bg-white shadow-[0px_2.682px_32.772px_2.261px_rgba(0,0,0,0.15)]"
+        // The app's own UI font, not the marketing page's
+        className="pointer-events-auto absolute top-[17.644%] left-[15.417%] h-[70.033%] w-[72.431%] overflow-hidden font-sans rounded-[0.422cqw] bg-white shadow-[0px_2.682px_32.772px_2.261px_rgba(0,0,0,0.15)]"
       >
         <LiteMap />
       </div>
@@ -166,17 +186,17 @@ export default function InteractiveDemo() {
             <button
               type="button"
               aria-label={hotspot.title}
-              className="group pointer-events-auto absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-[#15213b]"
+              className={`group pointer-events-auto absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 ${colors.outline}`}
               style={getDotStyle(hotspot)}
             >
               <span
                 aria-hidden
-                className="absolute size-[0.972cqw] rounded-full bg-[#15213b] group-hover:opacity-0 motion-safe:animate-ping"
+                className={`absolute size-[0.972cqw] rounded-full ${colors.dot} group-hover:opacity-0 motion-safe:animate-ping`}
                 style={{ animationDelay: `${index * 400}ms` }}
               />
               <span
                 aria-hidden
-                className="relative size-[0.972cqw] rounded-full bg-[#15213b] transition-transform duration-200 group-hover:scale-150 group-focus-visible:scale-150"
+                className={`relative size-[0.972cqw] rounded-full ${colors.dot} transition-transform duration-200 group-hover:scale-150 group-focus-visible:scale-150`}
               />
             </button>
           </TooltipTrigger>

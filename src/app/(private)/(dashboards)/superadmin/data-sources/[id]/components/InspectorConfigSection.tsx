@@ -10,6 +10,7 @@ import {
 import { SortableContext, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+  ChartBarBigIcon,
   GripVertical,
   LayoutGrid,
   LayoutList,
@@ -20,7 +21,7 @@ import {
   SlidersHorizontalIcon,
   XIcon,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
 import {
@@ -54,6 +55,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
+import ColumnFormatPicker from "./ColumnFormatPicker";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
 import type {
   ColumnDef,
@@ -67,8 +69,44 @@ type InspectorLayout = "single" | "twoColumn";
 
 function isDivider(
   item: InspectorItem,
-): item is { type: "divider"; id: string; label: string } {
+): item is Extract<InspectorItem, { type: "divider" }> {
   return item.type === "divider";
+}
+
+type ChartRole = "start" | "member" | "end";
+
+const makeChartEnd = (): InspectorItem => ({
+  type: "divider",
+  id: uuidv4(),
+  label: "",
+  display: "chartEnd",
+});
+
+const isChartEnd = (item: InspectorItem | undefined) =>
+  item?.type === "divider" && item.display === "chartEnd";
+
+/** The index of the next divider after `index`, or -1 */
+const nextDividerIndex = (items: InspectorItem[], index: number) =>
+  items.findIndex((item, i) => i > index && item.type === "divider");
+
+/** Closes the chart started by divider `id` where its group ends, unless an
+ *  end marker already closes it */
+function withChartEnd(items: InspectorItem[], id: string) {
+  const start = items.findIndex((i) => isDivider(i) && i.id === id);
+  if (start === -1) return items;
+  const next = nextDividerIndex(items, start);
+  if (next !== -1 && isChartEnd(items[next])) return items;
+  const at = next === -1 ? items.length : next;
+  return [...items.slice(0, at), makeChartEnd(), ...items.slice(at)];
+}
+
+/** Removes the end marker closing the chart started by divider `id` */
+function withoutChartEnd(items: InspectorItem[], id: string) {
+  const start = items.findIndex((i) => isDivider(i) && i.id === id);
+  const next = start === -1 ? -1 : nextDividerIndex(items, start);
+  return next !== -1 && isChartEnd(items[next])
+    ? items.filter((_, i) => i !== next)
+    : items;
 }
 
 function getSortableId(item: InspectorItem): string {
@@ -191,6 +229,30 @@ export function InspectorConfigSection({
     });
   }, [items, onChange]);
 
+  // A divider whose columns show as one sorted bar chart; drag columns
+  // under it to add them
+  // Charts made before end markers existed get one where their group stops
+  useEffect(() => {
+    const ended = items.reduce(
+      (list, item) =>
+        isDivider(item) && item.display === "barChart"
+          ? withChartEnd(list, item.id)
+          : list,
+      items,
+    );
+    if (ended !== items) onChange({ items: ended });
+  }, [items, onChange]);
+
+  const handleAddBarChart = useCallback(() => {
+    onChange({
+      items: [
+        ...items,
+        { type: "divider", id: uuidv4(), label: "Chart", display: "barChart" },
+        makeChartEnd(),
+      ],
+    });
+  }, [items, onChange]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
@@ -227,22 +289,58 @@ export function InspectorConfigSection({
   );
 
   const handleUpdateDivider = useCallback(
-    (id: string, label: string) => {
-      onChange({
-        items: items.map((i) =>
-          isDivider(i) && i.id === id ? { ...i, label } : i,
-        ),
-      });
+    (
+      id: string,
+      patch: { label?: string; display?: "list" | "barChart" | "chartEnd" },
+    ) => {
+      const updated = items.map((i) =>
+        isDivider(i) && i.id === id ? { ...i, ...patch } : i,
+      );
+      // A divider becoming a chart gets an end marker; one stopping drops it
+      if (patch.display === "barChart") {
+        onChange({ items: withChartEnd(updated, id) });
+      } else if (patch.display === "list") {
+        onChange({ items: withoutChartEnd(updated, id) });
+      } else {
+        onChange({ items: updated });
+      }
     },
     [items, onChange],
   );
 
   const handleRemoveDivider = useCallback(
     (id: string) => {
-      onChange({ items: items.filter((i) => !(isDivider(i) && i.id === id)) });
+      // A chart goes with its end marker
+      onChange({
+        items: withoutChartEnd(items, id).filter(
+          (i) => !(isDivider(i) && i.id === id),
+        ),
+      });
     },
     [items, onChange],
   );
+
+  // Where each row sits in a chart: its divider, its columns and its end
+  // marker, all tinted together
+  const chartRoles = useMemo(() => {
+    const roles = new Map<string, { role: ChartRole; label: string }>();
+    let chart: string | null = null;
+    for (const item of items) {
+      const key = getSortableId(item);
+      if (isDivider(item) && item.display === "barChart") {
+        chart = item.label;
+        roles.set(key, { role: "start", label: item.label });
+      } else if (isDivider(item) && item.display === "chartEnd") {
+        if (chart !== null) roles.set(key, { role: "end", label: chart });
+        chart = null;
+      } else if (isDivider(item)) {
+        chart = null;
+      } else if (chart !== null) {
+        roles.set(key, { role: "member", label: chart });
+      }
+    }
+    return roles;
+  }, [items]);
 
   return (
     <div
@@ -357,6 +455,9 @@ export function InspectorConfigSection({
                   <DropdownMenuItem onClick={handleAddDivider}>
                     Add divider
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleAddBarChart}>
+                    Add bar chart
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={availableColumns.length === 0}
                     onClick={handleAddAll}
@@ -392,6 +493,8 @@ export function InspectorConfigSection({
                         item={item}
                         dataSourceId={dataSourceId}
                         compact
+                        chartRole={chartRoles.get(getSortableId(item))?.role}
+                        chartLabel={chartRoles.get(getSortableId(item))?.label}
                         onUpdateColumn={handleUpdateColumnItem}
                         onRemoveColumn={handleRemoveColumn}
                         onUpdateDivider={handleUpdateDivider}
@@ -514,9 +617,7 @@ export function InspectorConfigSection({
                               onRemoveColumn={(name) =>
                                 handleRemoveColumn(name)
                               }
-                              onUpdateDivider={(id, label) =>
-                                handleUpdateDivider(id, label)
-                              }
+                              onUpdateDivider={handleUpdateDivider}
                               onRemoveDivider={(id) => handleRemoveDivider(id)}
                               onPatchColumnMetadata={(col, patch) =>
                                 onPatchColumnMetadata(col, patch)
@@ -559,17 +660,26 @@ function SortableSelectedRow({
   onRemoveDivider,
   onPatchColumnMetadata,
   compact = false,
+  chartRole,
+  chartLabel,
 }: {
   id: string;
   item: InspectorItem;
   dataSourceId: string;
   compact?: boolean;
+  /** Its place in a bar chart group, which tints it */
+  chartRole?: ChartRole;
+  /** The chart's name, for its end marker */
+  chartLabel?: string;
   onUpdateColumn: (
     name: string,
     patch: Partial<Extract<InspectorItem, { type: "column" }>>,
   ) => void;
   onRemoveColumn: (name: string) => void;
-  onUpdateDivider: (id: string, label: string) => void;
+  onUpdateDivider: (
+    id: string,
+    patch: { label?: string; display?: "list" | "barChart" | "chartEnd" },
+  ) => void;
   onRemoveDivider: (id: string) => void;
   onPatchColumnMetadata: (
     column: string,
@@ -596,6 +706,7 @@ function SortableSelectedRow({
       className={cn(
         "flex items-center gap-2 px-2 border-b border-neutral-100 last:border-0",
         compact ? "py-1.5" : "py-1",
+        chartRole && "bg-sky-50/70",
         isDragging && "bg-neutral-50",
       )}
     >
@@ -612,15 +723,55 @@ function SortableSelectedRow({
         <GripVertical className="h-4 w-4" />
       </button>
 
-      {isDivider(item) ? (
+      {isDivider(item) && item.display === "chartEnd" ? (
+        // Drag it to take in more columns, or fewer; it goes with its chart
+        <span className="flex min-w-0 flex-1 items-center gap-2 text-[11px] text-sky-700">
+          <span className="shrink-0">
+            {chartLabel === undefined
+              ? "End of chart"
+              : /chart$/i.test(chartLabel.trim())
+                ? `End of ${chartLabel.trim()}`
+                : `End of ${chartLabel.trim() || "the"} chart`}
+          </span>
+          <span
+            aria-hidden
+            className="h-px flex-1 border-t border-dashed border-sky-300"
+          />
+        </span>
+      ) : isDivider(item) ? (
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <span className="text-xs text-muted-foreground shrink-0">——</span>
           <input
             className="flex-1 min-w-0 text-xs border border-input rounded px-1.5 py-0.5"
             value={item.label}
             placeholder="Divider label"
-            onChange={(e) => onUpdateDivider(item.id, e.target.value)}
+            onChange={(e) =>
+              onUpdateDivider(item.id, { label: e.target.value })
+            }
           />
+          <button
+            type="button"
+            onClick={() =>
+              onUpdateDivider(item.id, {
+                display: item.display === "barChart" ? "list" : "barChart",
+              })
+            }
+            aria-pressed={item.display === "barChart"}
+            aria-label="Show the columns below as a bar chart"
+            title={
+              item.display === "barChart"
+                ? "Columns below show as a bar chart, largest first. Click for rows"
+                : "Show the columns below as a bar chart, largest first"
+            }
+            className={cn(
+              "shrink-0 cursor-pointer rounded p-1 hover:bg-neutral-100",
+              item.display === "barChart"
+                ? "bg-neutral-100 text-neutral-900"
+                : "text-neutral-400 hover:text-neutral-900",
+            )}
+          >
+            <ChartBarBigIcon className="size-3.5" />
+          </button>
           <button
             type="button"
             onClick={() => onRemoveDivider(item.id)}
@@ -644,6 +795,14 @@ function SortableSelectedRow({
     </div>
   );
 }
+
+// Formats with their own settings (value range, bar colour, scale maximum,
+// comparison stat), opened as soon as one is chosen
+const FORMATS_WITH_OPTIONS: (ColumnDisplayFormat | undefined)[] = [
+  ColumnDisplayFormat.Percentage,
+  ColumnDisplayFormat.Scale,
+  ColumnDisplayFormat.NumberWithComparison,
+];
 
 const numericOnlyFormats: ColumnDisplayFormat[] = [
   ColumnDisplayFormat.Number,
@@ -680,10 +839,7 @@ function ColumnItemRow({
 
   const formatSelect = (
     <select
-      className={cn(
-        "h-6 rounded border border-input bg-background px-1.5 text-xs",
-        compact && "w-[8.5rem] shrink-0",
-      )}
+      className="h-6 rounded border border-input bg-background px-1.5 text-xs"
       aria-label="Display format"
       value={inspectorColumn?.displayFormat ?? ""}
       onChange={(e) =>
@@ -835,7 +991,15 @@ function ColumnItemRow({
           >
             <PinIcon className={cn("size-3.5", isPinned && "fill-current")} />
           </button>
-          {formatSelect}
+          <ColumnFormatPicker
+            value={format}
+            formats={availableFormats}
+            onChange={(next) => {
+              onUpdate({ displayFormat: next });
+              // A format with settings opens them straight away
+              setOptionsOpen(FORMATS_WITH_OPTIONS.includes(next));
+            }}
+          />
           <button
             type="button"
             onClick={() => setOptionsOpen(!optionsOpen)}

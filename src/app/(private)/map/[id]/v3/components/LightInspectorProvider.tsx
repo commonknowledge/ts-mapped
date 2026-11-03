@@ -1,11 +1,9 @@
 "use client";
 
-import { InspectorFooterContext } from "../../components/InspectorPanel/InspectorFooterContext";
 import { InspectorVariantContext } from "../../components/InspectorPanel/InspectorVariantContext";
 import { useOpenInspectorSectionEditor } from "../hooks/useInspectorCustomise";
 import { useReorderInspectorSource } from "../hooks/useReorderInspectorSource";
 import LightInspectorAddSource from "./LightInspectorAddSource";
-import LightInspectorFooter from "./LightInspectorFooter";
 import LightInspectorSync from "./LightInspectorSync";
 import type { ReactNode } from "react";
 
@@ -13,9 +11,9 @@ const renderAddSource = ({ withLabel }: { withLabel: boolean }) => (
   <LightInspectorAddSource withLabel={withLabel} />
 );
 
-// Swaps the inspector's "Manage inspector data" dialog for the in-place
-// Customise controls, shows one data source at a time in tabs, and keeps
-// its sections following the Areas list
+// Shows one data source at a time in tabs that follow the Areas list: they
+// add, reorder and open settings for its sources, so the inspector needs no
+// "Manage inspector data" controls of its own
 export default function LightInspectorProvider({
   children,
 }: {
@@ -32,10 +30,8 @@ export default function LightInspectorProvider({
         onReorderSource: reorderSource,
       }}
     >
-      <InspectorFooterContext.Provider value={<LightInspectorFooter />}>
-        <LightInspectorSync />
-        {children}
-      </InspectorFooterContext.Provider>
+      <LightInspectorSync />
+      {children}
     </InspectorVariantContext.Provider>
   );
 }

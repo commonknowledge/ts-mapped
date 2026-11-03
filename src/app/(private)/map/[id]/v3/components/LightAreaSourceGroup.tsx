@@ -6,6 +6,7 @@ import {
   EyeOffIcon,
   PanelRightIcon,
   PlusIcon,
+  SlidersHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -23,11 +24,15 @@ import RingSwatch from "../../components/RingSwatch";
 import { useMarkerLayerColor } from "../../hooks/useMarkerLayerColor";
 import type { ReactNode } from "react";
 
-// A data source in the Areas list, with the columns saved from it underneath.
-// One group is one inspector tab, in the same order.
+// A data source in the Areas list. Its header turns it on or off the map;
+// with several columns they sit underneath, with one the header stands for
+// it. One group is one inspector tab, in the same order.
 export default function LightAreaSourceGroup({
   dataSourceId,
   hasActive,
+  subtitle,
+  onToggle,
+  onEdit,
   isInInspector,
   onToggleInspector,
   onEditInspector,
@@ -38,12 +43,18 @@ export default function LightAreaSourceGroup({
   dataSourceId: string;
   /** One of its columns is colouring the map */
   hasActive: boolean;
+  /** The column, when the source has only one */
+  subtitle?: string;
+  /** Shows the source on the map, or turns it off */
+  onToggle: () => void;
+  /** Edits the visualisation, when the source has only one */
+  onEdit?: () => void;
   isInInspector: boolean;
   onToggleInspector: () => void;
   onEditInspector: () => void;
   onAddColumn: () => void;
   onRemove: () => void;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(dataSourceId);
@@ -63,8 +74,19 @@ export default function LightAreaSourceGroup({
           "border border-neutral-300 bg-white p-0.5 pb-1 shadow-[0_1px_3px_rgba(21,33,59,0.08),0_0_0_3px_rgba(21,33,59,0.04)]",
       )}
     >
-      <div className="group/source flex items-center gap-1 rounded-lg pr-1">
-        <div className="flex min-w-0 flex-1 items-center gap-2 px-1.5 py-1">
+      <div
+        className={cn(
+          "flex items-center gap-1 rounded-lg pr-1 transition-colors",
+          !hasActive && "hover:bg-neutral-50",
+        )}
+      >
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-pressed={hasActive}
+          title={hasActive ? "Turn off" : "Show on the map"}
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 px-1.5 py-1 text-left"
+        >
           <span
             className={cn(
               "flex size-3.5 shrink-0 items-center justify-center [&_svg]:size-3.5",
@@ -84,14 +106,21 @@ export default function LightAreaSourceGroup({
               <DataSourceIcon type={dataSource?.config?.type ?? "unknown"} />
             )}
           </span>
-          <span
-            className={cn(
-              "min-w-0 truncate",
-              hasActive ? "font-medium text-neutral-900" : "text-neutral-700",
+          <span className="min-w-0">
+            <span
+              className={cn(
+                "block truncate",
+                hasActive ? "font-medium text-neutral-900" : "text-neutral-700",
+              )}
+              title={name}
+            >
+              {name}
+            </span>
+            {subtitle && (
+              <span className="block truncate text-xs text-neutral-500">
+                {subtitle}
+              </span>
             )}
-            title={name}
-          >
-            {name}
           </span>
           {hasActive && (
             <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[10px] leading-none font-medium text-white">
@@ -102,63 +131,61 @@ export default function LightAreaSourceGroup({
               On map
             </span>
           )}
-        </div>
+        </button>
+        {!isInInspector && (
+          <span
+            title="Hidden from the inspector"
+            className="shrink-0 p-1 text-neutral-400"
+          >
+            <EyeOffIcon className="size-3.5" />
+          </span>
+        )}
         {dataSourceId && (
-          <>
-            <button
-              type="button"
-              onClick={onToggleInspector}
-              aria-pressed={isInInspector}
-              aria-label={
-                isInInspector ? "Hide from inspector" : "Show in inspector"
-              }
-              title={
-                isInInspector
-                  ? "Shown as an inspector tab. Click to hide"
-                  : "Hidden from the inspector. Click to show"
-              }
-              className={cn(
-                "cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 focus-visible:opacity-100",
-                isInInspector && "opacity-0 group-hover/source:opacity-100",
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={`${name} options`}
+                className="cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                <EllipsisIcon className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onEdit && (
+                <DropdownMenuItem onClick={onEdit}>
+                  <SlidersHorizontalIcon className="size-3.5" />
+                  Edit visualisation
+                </DropdownMenuItem>
               )}
-            >
-              {isInInspector ? (
-                <EyeIcon className="size-3.5" />
-              ) : (
-                <EyeOffIcon className="size-3.5" />
-              )}
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={`${name} options`}
-                  className="cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <EllipsisIcon className="size-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onAddColumn}>
-                  <PlusIcon className="size-3.5" />
-                  Add a column
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onEditInspector}>
-                  <PanelRightIcon className="size-3.5" />
-                  Inspector columns…
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={onRemove}>
-                  <TrashIcon className="size-3.5" />
-                  Remove data source
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
+              <DropdownMenuItem onClick={onAddColumn}>
+                <PlusIcon className="size-3.5" />
+                Add a column
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onToggleInspector}>
+                {isInInspector ? (
+                  <EyeOffIcon className="size-3.5" />
+                ) : (
+                  <EyeIcon className="size-3.5" />
+                )}
+                {isInInspector ? "Hide from inspector" : "Show in inspector"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onEditInspector}>
+                <PanelRightIcon className="size-3.5" />
+                Inspector columns…
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={onRemove}>
+                <TrashIcon className="size-3.5" />
+                Remove data source
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
-      <ul className="flex flex-col gap-0.5">{children}</ul>
-      {dataSourceId && (
+      {children}
+      {dataSourceId && !subtitle && (
         <button
           type="button"
           onClick={onAddColumn}

@@ -11,6 +11,7 @@ import {
   getValidAreaSetGroupCodes,
 } from "../components/Choropleth/areas";
 import { getDefaultAreaSetGroupCode } from "../components/Choropleth/configs";
+import { useAreaSettings } from "./useAreaSettings";
 import { useMapViews } from "./useMapViews";
 import type { MapViewConfig, SavedVisualisation } from "@/models/MapView";
 
@@ -59,16 +60,20 @@ const toLiveConfig = (
 });
 
 /**
- * A view's list of visualisations (data source + column) to switch between.
+ * The list of visualisations (data source + column) to switch between: the
+ * view's own, or in the light editor the map's, shared by its views.
  * The active one is the view's live choropleth config; switching saves its
  * current settings back to the list and loads the chosen one.
  */
 export function useSavedVisualisations() {
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { viewConfig } = useMapViews();
+  // The list may be the map's (shared by its views); which one is on is
+  // always this view's. updateConfig sends each field to the right place.
+  const { areaSettings, updateConfig: updateViewConfig } = useAreaSettings();
   const { getDataSourceById } = useDataSources();
   const saved = useMemo(
-    () => viewConfig.savedVisualisations ?? [],
-    [viewConfig.savedVisualisations],
+    () => areaSettings.savedVisualisations ?? [],
+    [areaSettings.savedVisualisations],
   );
 
   const boundariesLocked = Boolean(viewConfig.boundariesLocked);
