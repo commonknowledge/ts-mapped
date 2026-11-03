@@ -146,6 +146,10 @@ export const publicMapColorSchemes: Record<string, PublicMapColorScheme> = {
     primary: "#4DAB37",
     primaryMuted: "#F4FAF2",
   },
+  purple: {
+    primary: "#A074B3",
+    primaryMuted: "#F9F7FA",
+  },
   ["trans-pride"]: {
     primary: "#92C7DC",
     primaryMuted: "#F6FDFF",
