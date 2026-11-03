@@ -15,6 +15,7 @@ import {
   groupPlacedMarkersByFolder,
   mapTurfToGeoFeature,
 } from "./helpers";
+import { useInspectorVariant } from "./InspectorVariantContext";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
 import type { MarkerFeature } from "@/types";
 
@@ -101,6 +102,8 @@ export default function TurfMarkersList() {
     return groupPlacedMarkersByFolder(activePlacedMarkers, folders);
   }, [folders, placedMarkers, turfFeature]);
 
+  const isLight = useInspectorVariant().variant === "light";
+
   if (isFetching) {
     return <p>Loading...</p>;
   }
@@ -116,9 +119,11 @@ export default function TurfMarkersList() {
       )}
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-xs font-mono uppercase text-muted-foreground">
-          Markers in this area
-        </h2>
+        {!isLight && (
+          <h2 className="text-xs font-mono uppercase text-muted-foreground">
+            Markers in this area
+          </h2>
+        )}
 
         {placedMarkersInArea.length === 0 &&
           markers.every((m) => m.markers.length === 0) && (

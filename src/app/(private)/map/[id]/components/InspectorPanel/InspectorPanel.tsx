@@ -31,6 +31,10 @@ import { LayerType } from "@/types";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
+import {
+  InspectorExtraTabsContext,
+  useInspectorVariant,
+} from "./InspectorVariantContext";
 import SimplePropertiesList from "./SimplePropertiesList";
 import {
   UnderlineTabs,
@@ -57,6 +61,7 @@ export default function InspectorPanel() {
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
   const organisationId = useOrganisationId();
   const editable = useMapEditable();
+  const { variant } = useInspectorVariant();
 
   // Selecting something new re-opens a minimised inspector
   const contentKey = `${type ?? ""}:${String(inspectorContent?.name ?? "")}`;
@@ -76,6 +81,7 @@ export default function InspectorPanel() {
     areaGeoJson,
     geography,
     markerCount: boundaryMarkerCount,
+    members: boundaryMembers,
   } = useBoundaryMarkers(type === LayerType.Boundary ? selectedBoundary : null);
 
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
@@ -165,9 +171,11 @@ export default function InspectorPanel() {
 
   // Boundaries count the markers inside them; clusters count the selected
   // records the cluster click put in the inspector
+  // The light editor lists members as just another layer, so counts them
   const markerCount =
     type === LayerType.Boundary
-      ? boundaryMarkerCount
+      ? boundaryMarkerCount +
+        (variant === "light" ? (boundaryMembers?.markers.length ?? 0) : 0)
       : selectedRecords?.length || 0;
 
   const onCloseDetailsView = () => {
@@ -324,47 +332,82 @@ export default function InspectorPanel() {
         </div>
       )}
 
-      <UnderlineTabs
-        defaultValue="data"
-        value={safeActiveTab}
-        onValueChange={setActiveTab}
-        className="flex flex-col min-h-0"
-      >
-        <UnderlineTabsList
-          value={safeActiveTab}
-          className="w-full flex gap-6 border-t px-3"
+      {variant === "light" ? (
+        // One row of tabs: the data sources, then Markers and Notes
+        <InspectorExtraTabsContext.Provider
+          value={[
+            ...(hasMarkers && type
+              ? [
+                  {
+                    id: "markers",
+                    label: "Markers",
+                    count: markerCount,
+                    content: <InspectorMarkersTab type={type} />,
+                  },
+                ]
+              : []),
+            ...(hasNotes
+              ? [
+                  {
+                    id: "notes",
+                    label: "Notes",
+                    content: <InspectorNotesTab />,
+                  },
+                ]
+              : []),
+          ]}
         >
+          <div className="min-h-0 overflow-auto border-t p-3">
+            {hasData ? (
+              <InspectorDataTab />
+            ) : (
+              type && <InspectorMarkersTab type={type} />
+            )}
+          </div>
+        </InspectorExtraTabsContext.Provider>
+      ) : (
+        <UnderlineTabs
+          defaultValue="data"
+          value={safeActiveTab}
+          onValueChange={setActiveTab}
+          className="flex flex-col min-h-0"
+        >
+          <UnderlineTabsList
+            value={safeActiveTab}
+            className="w-full flex gap-6 border-t px-3"
+          >
+            {hasData && (
+              <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
+            )}
+            {hasMarkers && (
+              <UnderlineTabsTrigger value="markers">
+                Markers {markerCount > 0 ? markerCount : ""}
+              </UnderlineTabsTrigger>
+            )}
+            {hasNotes && (
+              <UnderlineTabsTrigger value="notes">Notes</UnderlineTabsTrigger>
+            )}
+          </UnderlineTabsList>
+
           {hasData && (
-            <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
+            <UnderlineTabsContent value="data" className="overflow-auto p-3">
+              <InspectorDataTab />
+            </UnderlineTabsContent>
           )}
+
           {hasMarkers && (
-            <UnderlineTabsTrigger value="markers">
-              Markers {markerCount > 0 ? markerCount : ""}
-            </UnderlineTabsTrigger>
+            <UnderlineTabsContent value="markers" className="overflow-auto p-3">
+              {type && <InspectorMarkersTab type={type} />}
+            </UnderlineTabsContent>
           )}
+
           {hasNotes && (
-            <UnderlineTabsTrigger value="notes">Notes</UnderlineTabsTrigger>
+            <UnderlineTabsContent value="notes" className="overflow-auto p-3">
+              <InspectorNotesTab />
+            </UnderlineTabsContent>
           )}
-        </UnderlineTabsList>
-
-        {hasData && (
-          <UnderlineTabsContent value="data" className="overflow-auto p-3">
-            <InspectorDataTab />
-          </UnderlineTabsContent>
-        )}
-
-        {hasMarkers && (
-          <UnderlineTabsContent value="markers" className="overflow-auto p-3">
-            {type && <InspectorMarkersTab type={type} />}
-          </UnderlineTabsContent>
-        )}
-
-        {hasNotes && (
-          <UnderlineTabsContent value="notes" className="overflow-auto p-3">
-            <InspectorNotesTab />
-          </UnderlineTabsContent>
-        )}
-      </UnderlineTabs>
+        </UnderlineTabs>
+      )}
       {type === LayerType.Boundary && (
         <div className="border-t p-3 flex flex-col gap-2">
           {editable && (

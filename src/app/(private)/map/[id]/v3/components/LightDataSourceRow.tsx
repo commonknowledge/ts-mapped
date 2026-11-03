@@ -2,13 +2,15 @@
 
 import {
   FilterIcon,
+  PaletteIcon,
   PencilIcon,
-  Settings2Icon,
   SlidersHorizontalIcon,
+  TableIcon,
   TrashIcon,
 } from "lucide-react";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { DUMMY_COUNT_COLUMN } from "@/constants";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +28,10 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
+import RingSwatch from "../../components/RingSwatch";
+import { useChoropleth } from "../../hooks/useChoropleth";
 import { useDataSourceItem } from "../../hooks/useDataSourceItem";
-import RingSwatch from "./RingSwatch";
+import { useSavedVisualisations } from "../../hooks/useSavedVisualisations";
 import type { DataSourceRowProps } from "../../components/controls/DataSourceItem";
 
 // A marker collection in the light Layers panel. The ring icon is the
@@ -59,6 +63,20 @@ export default function LightDataSourceRow({
     setShowRemoveDialog,
     handleRemoveFromMap,
   } = useDataSourceItem({ dataSource, layerType });
+  const { showOrCreate } = useSavedVisualisations();
+  const { setBoundariesPanelOpen } = useChoropleth();
+
+  // Colour areas by how many of this layer's records fall in each, shaded in
+  // the layer's own colour, as a new entry in the Data visualisation list;
+  // the flyout opens to pick a different column
+  const createVisualisation = () => {
+    showOrCreate({
+      dataSourceId: dataSource.id,
+      column: DUMMY_COUNT_COLUMN,
+      customColor: currentColor,
+    });
+    setBoundariesPanelOpen(true);
+  };
 
   const total = dataSource.recordCount ?? 0;
   const isFiltered = !matchedCountLoading && matchedRecordCount !== total;
@@ -70,7 +88,7 @@ export default function LightDataSourceRow({
           <div
             className={cn(
               "group/row flex items-start gap-2 rounded-md px-1.5 py-1.5 transition-colors",
-              isSelected ? "bg-neutral-100" : "hover:bg-neutral-50",
+              isSettingsOpen ? "bg-neutral-100" : "hover:bg-neutral-50",
             )}
           >
             <button
@@ -89,10 +107,9 @@ export default function LightDataSourceRow({
 
             <button
               type="button"
-              onClick={() =>
-                !isRenaming && handleDataSourceSelect(dataSource.id)
-              }
-              title="Open in table"
+              onClick={() => !isRenaming && toggleSettings()}
+              aria-expanded={isSettingsOpen}
+              title="Marker settings"
               className={cn(
                 "min-w-0 flex-1 cursor-pointer text-left transition-opacity",
                 !isVisible && "opacity-50",
@@ -134,17 +151,18 @@ export default function LightDataSourceRow({
 
             <button
               type="button"
-              onClick={toggleSettings}
-              aria-label={`${dataSource.name} marker settings`}
-              title="Marker settings"
+              onClick={() => handleDataSourceSelect(dataSource.id)}
+              aria-pressed={isSelected}
+              aria-label={`Open ${dataSource.name} in the data table`}
+              title="Open data table"
               className={cn(
                 "mt-0.5 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900",
-                isSettingsOpen
+                isSelected
                   ? "bg-neutral-200 text-neutral-900"
-                  : "opacity-0 group-hover/row:opacity-100",
+                  : "opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100",
               )}
             >
-              <Settings2Icon className="size-3.5" />
+              <TableIcon className="size-3.5" />
             </button>
           </div>
         </ContextMenuTrigger>
@@ -155,6 +173,10 @@ export default function LightDataSourceRow({
           <ContextMenuItem onClick={() => setIsRenaming(true)}>
             <PencilIcon size={12} />
             Rename
+          </ContextMenuItem>
+          <ContextMenuItem onClick={createVisualisation}>
+            <PaletteIcon size={12} />
+            Create data visualisation
           </ContextMenuItem>
           <ContextMenuItem onClick={openSettings}>
             <SlidersHorizontalIcon size={12} />

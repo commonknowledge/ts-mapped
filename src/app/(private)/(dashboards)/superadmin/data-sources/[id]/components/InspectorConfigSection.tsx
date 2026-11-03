@@ -9,14 +9,25 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, LayoutGrid, LayoutList } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import {
+  GripVertical,
+  LayoutGrid,
+  LayoutList,
+  MoreHorizontalIcon,
+  PinIcon,
+  PlusIcon,
+  SearchIcon,
+  SlidersHorizontalIcon,
+  XIcon,
+} from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
 import {
   DEFAULT_BAR_COLOR_VALUE,
   INSPECTOR_BAR_COLOR_OPTIONS,
   INSPECTOR_COLOR_OPTIONS,
+  SMART_MATCH_BAR_COLOR_VALUE,
 } from "@/app/(private)/map/[id]/components/InspectorPanel/inspectorPanelOptions";
 import { useDataSourceColumn } from "@/app/(private)/map/[id]/hooks/useDataSourceColumn";
 import { useInspectorColumn } from "@/app/(private)/map/[id]/hooks/useInspectorColumn";
@@ -28,6 +39,12 @@ import {
   InspectorComparisonStat,
   columnDisplayFormats,
 } from "@/models/shared";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shadcn/ui/dropdown-menu";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -44,6 +61,7 @@ import type {
   DefaultInspectorConfig,
 } from "@/models/DataSource";
 import type { InspectorItem } from "@/models/shared";
+import type { ReactNode } from "react";
 
 type InspectorLayout = "single" | "twoColumn";
 
@@ -86,6 +104,11 @@ interface InspectorConfigSectionProps {
     column: string,
     patch: Partial<Omit<ColumnMetadata, "name">>,
   ) => void;
+  /** Stacked for narrow panels, without the preview: the light editor's
+   *  flyout sits beside the real inspector */
+  compact?: boolean;
+  /** Shown under the Columns heading in the compact layout, e.g. auto-scan */
+  columnsHeader?: ReactNode;
 }
 
 export function InspectorConfigSection({
@@ -94,6 +117,8 @@ export function InspectorConfigSection({
   config,
   onChange,
   onPatchColumnMetadata,
+  compact = false,
+  columnsHeader,
 }: InspectorConfigSectionProps) {
   const items = useMemo(() => config.items ?? [], [config.items]);
   const layout: InspectorLayout = config.layout ?? "single";
@@ -220,9 +245,26 @@ export function InspectorConfigSection({
   );
 
   return (
-    <div className="flex gap-6 w-full min-w-0 h-[80vh] min-h-0">
-      <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 p-6 flex flex-col gap-6 min-h-0">
-        <div className="grid grid-cols-2 gap-4">
+    <div
+      className={cn(
+        "flex w-full min-w-0 min-h-0",
+        compact ? "flex-col" : "gap-6 h-[80vh]",
+      )}
+    >
+      <div
+        className={cn(
+          "flex-1 min-w-0 flex flex-col min-h-0",
+          compact ? "gap-3" : "rounded-lg border border-neutral-200 p-6 gap-6",
+        )}
+      >
+        <div
+          className={cn(
+            "grid grid-cols-2",
+            compact
+              ? "gap-2 [&_label]:text-[11px] [&_label]:font-normal [&>div]:space-y-1"
+              : "gap-4",
+          )}
+        >
           <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Colour</Label>
             <Select
@@ -233,7 +275,12 @@ export function InspectorConfigSection({
                 })
               }
             >
-              <SelectTrigger className="h-9 w-full min-w-0 truncate">
+              <SelectTrigger
+                className={cn(
+                  "w-full min-w-0 truncate",
+                  compact ? "h-8 text-xs" : "h-9",
+                )}
+              >
                 <SelectValue placeholder="Default" className="truncate" />
               </SelectTrigger>
               <SelectContent>
@@ -264,7 +311,12 @@ export function InspectorConfigSection({
                 onChange({ layout: value })
               }
             >
-              <SelectTrigger className="h-9 w-full min-w-0 truncate">
+              <SelectTrigger
+                className={cn(
+                  "w-full min-w-0 truncate",
+                  compact ? "h-8 text-xs" : "h-9",
+                )}
+              >
                 <SelectValue placeholder="Layout" className="truncate" />
               </SelectTrigger>
               <SelectContent>
@@ -285,118 +337,214 @@ export function InspectorConfigSection({
           </div>
         </div>
 
-        {/* Column management */}
-        <div className="flex flex-col gap-3 min-h-0 flex-1">
-          <div className="flex items-center justify-between">
-            <Label className="text-muted-foreground">Columns</Label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleAddAll}
-                disabled={availableColumns.length === 0}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-              >
-                Add all
-              </button>
-              <button
-                type="button"
-                onClick={handleRemoveAll}
-                disabled={selectedColumnNames.length === 0}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-              >
-                Remove all
-              </button>
-              <button
-                type="button"
-                onClick={handleAddDivider}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
-              >
-                Add divider
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 min-h-0 flex-1">
-            {/* Available columns */}
-            <div className="space-y-1 min-h-0">
-              <p className="text-xs font-medium text-muted-foreground">
-                Available ({availableColumns.length})
-              </p>
-              <div className="border border-neutral-200 rounded-md overflow-y-auto min-h-0 h-full">
-                {availableColumns.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-3">
-                    All columns selected
-                  </p>
-                ) : (
-                  availableColumns.map((col) => (
-                    <button
-                      key={col}
-                      type="button"
-                      onClick={() => handleAddColumn(col)}
-                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-50 border-b border-neutral-100 last:border-0 truncate"
-                      title={col}
-                    >
-                      + {col}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Selected items */}
-            <div className="space-y-1 min-h-0">
-              <p className="text-xs font-medium text-muted-foreground">
-                Selected ({selectedColumnNames.length})
-              </p>
-              <div className="border border-neutral-200 rounded-md overflow-y-auto min-h-0 h-full">
-                {items.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-3">
-                    No columns selected
-                  </p>
-                ) : (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
+        {compact ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-muted-foreground">
+                Columns
+                <span className="font-normal text-neutral-400">
+                  {selectedColumnNames.length}
+                </span>
+              </Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Column actions"
+                  className="cursor-pointer rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  <MoreHorizontalIcon className="size-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleAddDivider}>
+                    Add divider
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={availableColumns.length === 0}
+                    onClick={handleAddAll}
                   >
-                    <SortableContext items={sortableIds}>
-                      {items.map((item) => (
-                        <SortableSelectedRow
-                          key={getItemKey(item)}
-                          id={getSortableId(item)}
-                          item={item}
-                          dataSourceId={dataSourceId}
-                          onUpdateColumn={(name, patch) =>
-                            handleUpdateColumnItem(name, patch)
-                          }
-                          onRemoveColumn={(name) => handleRemoveColumn(name)}
-                          onUpdateDivider={(id, label) =>
-                            handleUpdateDivider(id, label)
-                          }
-                          onRemoveDivider={(id) => handleRemoveDivider(id)}
-                          onPatchColumnMetadata={(col, patch) =>
-                            onPatchColumnMetadata(col, patch)
-                          }
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
+                    Add all columns
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={selectedColumnNames.length === 0}
+                    onClick={handleRemoveAll}
+                  >
+                    Remove all columns
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {columnsHeader}
+            <div className="rounded-md border border-neutral-200 bg-white">
+              {items.length === 0 ? (
+                <p className="p-3 text-xs text-muted-foreground">
+                  No columns selected
+                </p>
+              ) : (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext items={sortableIds}>
+                    {items.map((item) => (
+                      <SortableSelectedRow
+                        key={getItemKey(item)}
+                        id={getSortableId(item)}
+                        item={item}
+                        dataSourceId={dataSourceId}
+                        compact
+                        onUpdateColumn={handleUpdateColumnItem}
+                        onRemoveColumn={handleRemoveColumn}
+                        onUpdateDivider={handleUpdateDivider}
+                        onRemoveDivider={handleRemoveDivider}
+                        onPatchColumnMetadata={onPatchColumnMetadata}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              )}
+            </div>
+            <AddColumnPicker
+              columns={availableColumns}
+              onAdd={handleAddColumn}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Column management */}
+            <div className="flex flex-col gap-3 min-h-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label className="text-muted-foreground">Columns</Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddAll}
+                    disabled={availableColumns.length === 0}
+                    className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    Add all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemoveAll}
+                    disabled={selectedColumnNames.length === 0}
+                    className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    Remove all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddDivider}
+                    className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Add divider
+                  </button>
+                </div>
+              </div>
+
+              <div
+                className={cn(
+                  "gap-4 min-h-0 flex-1",
+                  compact ? "flex flex-col" : "grid grid-cols-2",
                 )}
+              >
+                {/* Available columns */}
+                <div
+                  className={cn("space-y-1 min-h-0", compact && "order-last")}
+                >
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Available ({availableColumns.length})
+                  </p>
+                  <div
+                    className={cn(
+                      "border border-neutral-200 rounded-md overflow-y-auto min-h-0",
+                      compact ? "max-h-72 bg-white" : "h-full",
+                    )}
+                  >
+                    {availableColumns.length === 0 ? (
+                      <p className="text-xs text-muted-foreground p-3">
+                        All columns selected
+                      </p>
+                    ) : (
+                      availableColumns.map((col) => (
+                        <button
+                          key={col}
+                          type="button"
+                          onClick={() => handleAddColumn(col)}
+                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-50 border-b border-neutral-100 last:border-0 truncate"
+                          title={col}
+                        >
+                          + {col}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Selected items */}
+                <div className="space-y-1 min-h-0">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Selected ({selectedColumnNames.length})
+                  </p>
+                  <div
+                    className={cn(
+                      "border border-neutral-200 rounded-md overflow-y-auto min-h-0",
+                      compact ? "max-h-72 bg-white" : "h-full",
+                    )}
+                  >
+                    {items.length === 0 ? (
+                      <p className="text-xs text-muted-foreground p-3">
+                        No columns selected
+                      </p>
+                    ) : (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext items={sortableIds}>
+                          {items.map((item) => (
+                            <SortableSelectedRow
+                              key={getItemKey(item)}
+                              id={getSortableId(item)}
+                              item={item}
+                              dataSourceId={dataSourceId}
+                              onUpdateColumn={(name, patch) =>
+                                handleUpdateColumnItem(name, patch)
+                              }
+                              onRemoveColumn={(name) =>
+                                handleRemoveColumn(name)
+                              }
+                              onUpdateDivider={(id, label) =>
+                                handleUpdateDivider(id, label)
+                              }
+                              onRemoveDivider={(id) => handleRemoveDivider(id)}
+                              onPatchColumnMetadata={(col, patch) =>
+                                onPatchColumnMetadata(col, patch)
+                              }
+                            />
+                          ))}
+                        </SortableContext>
+                      </DndContext>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
-      <div
-        className="shrink-0 flex flex-col overflow-hidden"
-        style={{ width: "320px", minWidth: "280px" }}
-      >
-        <DefaultInspectorPreview
-          dataSourceId={dataSourceId}
-          className="h-full min-h-[200px]"
-        />
-      </div>
+      {!compact && (
+        <div
+          className="shrink-0 flex flex-col overflow-hidden"
+          style={{ width: "320px", minWidth: "280px" }}
+        >
+          <DefaultInspectorPreview
+            dataSourceId={dataSourceId}
+            className="h-full min-h-[200px]"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -410,10 +558,12 @@ function SortableSelectedRow({
   onUpdateDivider,
   onRemoveDivider,
   onPatchColumnMetadata,
+  compact = false,
 }: {
   id: string;
   item: InspectorItem;
   dataSourceId: string;
+  compact?: boolean;
   onUpdateColumn: (
     name: string,
     patch: Partial<Extract<InspectorItem, { type: "column" }>>,
@@ -444,7 +594,8 @@ function SortableSelectedRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 px-2 py-1 border-b border-neutral-100 last:border-0",
+        "flex items-center gap-2 px-2 border-b border-neutral-100 last:border-0",
+        compact ? "py-1.5" : "py-1",
         isDragging && "bg-neutral-50",
       )}
     >
@@ -482,6 +633,7 @@ function SortableSelectedRow({
         <ColumnItemRow
           dataSourceId={dataSourceId}
           name={item.name}
+          compact={compact}
           onUpdate={(patch) => onUpdateColumn(item.name, patch)}
           onRemove={() => onRemoveColumn(item.name)}
           onPatchColumnMetadata={(patch) =>
@@ -506,9 +658,11 @@ function ColumnItemRow({
   onUpdate,
   onRemove,
   onPatchColumnMetadata,
+  compact = false,
 }: {
   dataSourceId: string;
   name: string;
+  compact?: boolean;
   onUpdate: (
     patch: Partial<Extract<InspectorItem, { type: "column" }>>,
   ) => void;
@@ -523,6 +677,202 @@ function ColumnItemRow({
   const availableFormats = isNumeric
     ? columnDisplayFormats
     : columnDisplayFormats.filter((f) => !numericOnlyFormats.includes(f));
+
+  const formatSelect = (
+    <select
+      className={cn(
+        "h-6 rounded border border-input bg-background px-1.5 text-xs",
+        compact && "w-[8.5rem] shrink-0",
+      )}
+      aria-label="Display format"
+      value={inspectorColumn?.displayFormat ?? ""}
+      onChange={(e) =>
+        onUpdate({
+          displayFormat: e.target.value
+            ? (e.target.value as ColumnDisplayFormat)
+            : undefined,
+        })
+      }
+    >
+      <option value="">Default format</option>
+      {availableFormats.map((f) => (
+        <option key={f} value={f}>
+          {ColumnDisplayFormatLabels[f]}
+        </option>
+      ))}
+    </select>
+  );
+
+  const format = inspectorColumn?.displayFormat;
+  const hasBar =
+    format === ColumnDisplayFormat.Percentage ||
+    format === ColumnDisplayFormat.Scale;
+  const isPinned = Boolean(inspectorColumn?.pinned);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const controlClassName =
+    "h-6 rounded border border-input bg-background px-1.5 text-xs";
+
+  const rangeSelect = format === ColumnDisplayFormat.Percentage &&
+    onPatchColumnMetadata && (
+      <select
+        className={controlClassName}
+        title="How the values are stored"
+        aria-label="How the values are stored"
+        value={columnMetadata?.semanticType ?? ""}
+        onChange={(e) =>
+          onPatchColumnMetadata({
+            semanticType: e.target.value
+              ? (e.target.value as ColumnSemanticType)
+              : undefined,
+          })
+        }
+      >
+        <option value="">
+          {compact ? "Work it out" : "Infer from values"}
+        </option>
+        {[
+          ColumnSemanticType.Percentage01,
+          ColumnSemanticType.Percentage0100,
+        ].map((s) => (
+          <option key={s} value={s}>
+            {ColumnSemanticTypeLabels[s]}
+          </option>
+        ))}
+      </select>
+    );
+
+  const colourSelect = inspectorColumn && hasBar && (
+    <select
+      className={controlClassName}
+      title="Bar colour"
+      aria-label="Bar colour"
+      value={inspectorColumn.barColor ?? DEFAULT_BAR_COLOR_VALUE}
+      onChange={(e) => onUpdate({ barColor: e.target.value })}
+    >
+      {INSPECTOR_BAR_COLOR_OPTIONS.map((o) => (
+        <option key={o.value} value={o.value}>
+          {compact && o.value === SMART_MATCH_BAR_COLOR_VALUE
+            ? "Party colours"
+            : o.label}
+        </option>
+      ))}
+    </select>
+  );
+
+  const scaleInput = format === ColumnDisplayFormat.Scale && (
+    <input
+      type="number"
+      min={2}
+      max={10}
+      className={cn(controlClassName, "w-16")}
+      placeholder="Max"
+      aria-label="Scale maximum"
+      value={inspectorColumn?.scaleMax ?? ""}
+      onChange={(e) =>
+        onUpdate({
+          scaleMax: e.target.value ? Number(e.target.value) : undefined,
+        })
+      }
+    />
+  );
+
+  const comparisonSelect = format ===
+    ColumnDisplayFormat.NumberWithComparison && (
+    <select
+      className={controlClassName}
+      aria-label="Compare with"
+      value={inspectorColumn?.comparisonStat ?? ""}
+      onChange={(e) =>
+        onUpdate({
+          comparisonStat: e.target.value
+            ? (e.target.value as InspectorComparisonStat)
+            : undefined,
+        })
+      }
+    >
+      <option value="">Comparison stat</option>
+      {Object.values(InspectorComparisonStat).map((s) => (
+        <option key={s} value={s}>
+          {s}
+        </option>
+      ))}
+    </select>
+  );
+
+  const options = [
+    { label: "Values", control: rangeSelect },
+    { label: "Colour", control: colourSelect },
+    { label: "Out of", control: scaleInput },
+    { label: "Compare with", control: comparisonSelect },
+  ].filter((o) => o.control);
+
+  if (compact) {
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1 min-w-0">
+          <span
+            className="flex-1 min-w-0 truncate text-xs font-medium"
+            title={name}
+          >
+            {name}
+          </span>
+          <button
+            type="button"
+            onClick={() => onUpdate({ pinned: !isPinned })}
+            aria-pressed={isPinned}
+            aria-label={isPinned ? "Unpin from the top" : "Pin to the top"}
+            title={
+              isPinned
+                ? "Pinned as a key figure. Click to unpin"
+                : "Pin as a key figure at the top"
+            }
+            className={cn(
+              "shrink-0 cursor-pointer rounded p-1 hover:bg-neutral-100",
+              isPinned
+                ? "text-neutral-900"
+                : "text-neutral-300 hover:text-neutral-700",
+            )}
+          >
+            <PinIcon className={cn("size-3.5", isPinned && "fill-current")} />
+          </button>
+          {formatSelect}
+          <button
+            type="button"
+            onClick={() => setOptionsOpen(!optionsOpen)}
+            disabled={options.length === 0}
+            aria-expanded={optionsOpen}
+            aria-label="Format options"
+            title="Format options"
+            className={cn(
+              "shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 disabled:invisible",
+              optionsOpen && "bg-neutral-100 text-neutral-900",
+            )}
+          >
+            <SlidersHorizontalIcon className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`Remove ${name}`}
+            title="Remove"
+            className="shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            <XIcon className="size-3.5" />
+          </button>
+        </div>
+        {optionsOpen && options.length > 0 && (
+          <div className="mt-1.5 mb-0.5 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 rounded-md bg-neutral-50 px-2 py-1.5">
+            {options.map(({ label, control }) => (
+              <label key={label} className="contents">
+                <span className="text-[11px] text-neutral-500">{label}</span>
+                <span className="min-w-0 [&>*]:max-w-full">{control}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 min-w-0 space-y-1">
@@ -544,106 +894,92 @@ function ColumnItemRow({
         </button>
       </div>
       <div className="flex flex-wrap gap-2">
-        <select
-          className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-          value={inspectorColumn?.displayFormat ?? ""}
-          onChange={(e) =>
-            onUpdate({
-              displayFormat: e.target.value
-                ? (e.target.value as ColumnDisplayFormat)
-                : undefined,
-            })
-          }
+        {formatSelect}
+        {rangeSelect}
+        {colourSelect}
+        {scaleInput}
+        {comparisonSelect}
+      </div>
+    </div>
+  );
+}
+
+// The compact layout's column list: a searchable picker instead of a
+// second always-open list
+function AddColumnPicker({
+  columns,
+  onAdd,
+}: {
+  columns: string[];
+  onAdd: (column: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLowerCase();
+  const matching = columns.filter((c) => c.toLowerCase().includes(query));
+
+  if (columns.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground">Every column is shown.</p>
+    );
+  }
+
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="-ml-1 flex w-fit cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+      >
+        <PlusIcon className="size-3.5" />
+        Add a column
+        <span className="text-neutral-400">({columns.length})</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col rounded-md border border-neutral-200 bg-white">
+      <div className="flex items-center gap-2 border-b border-neutral-100 px-2">
+        <SearchIcon className="size-3.5 shrink-0 text-neutral-400" />
+        <input
+          autoFocus
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search columns"
+          aria-label="Search columns"
+          className="h-8 min-w-0 flex-1 bg-transparent text-xs outline-none"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(false);
+            setSearch("");
+          }}
+          aria-label="Close column picker"
+          className="cursor-pointer rounded p-0.5 text-neutral-400 hover:text-neutral-900"
         >
-          <option value="">Default format</option>
-          {availableFormats.map((f) => (
-            <option key={f} value={f}>
-              {ColumnDisplayFormatLabels[f]}
-            </option>
-          ))}
-        </select>
-
-        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Percentage &&
-          onPatchColumnMetadata && (
-            <select
-              className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-              value={columnMetadata?.semanticType ?? ""}
-              onChange={(e) =>
-                onPatchColumnMetadata({
-                  semanticType: e.target.value
-                    ? (e.target.value as ColumnSemanticType)
-                    : undefined,
-                })
-              }
+          <XIcon className="size-3.5" />
+        </button>
+      </div>
+      <div className="max-h-56 overflow-y-auto py-1">
+        {matching.length === 0 ? (
+          <p className="px-2 py-1.5 text-xs text-muted-foreground">
+            No columns match.
+          </p>
+        ) : (
+          matching.map((column) => (
+            <button
+              key={column}
+              type="button"
+              onClick={() => onAdd(column)}
+              title={column}
+              className="flex w-full cursor-pointer items-center gap-1.5 truncate px-2 py-1 text-left text-xs hover:bg-neutral-50"
             >
-              <option value="">Infer from values</option>
-              {[
-                ColumnSemanticType.Percentage01,
-                ColumnSemanticType.Percentage0100,
-              ].map((s) => (
-                <option key={s} value={s}>
-                  {ColumnSemanticTypeLabels[s]}
-                </option>
-              ))}
-            </select>
-          )}
-
-        {inspectorColumn &&
-          (inspectorColumn.displayFormat === ColumnDisplayFormat.Percentage ||
-            inspectorColumn.displayFormat === ColumnDisplayFormat.Scale) && (
-            <select
-              className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-              value={inspectorColumn?.barColor ?? DEFAULT_BAR_COLOR_VALUE}
-              onChange={(e) =>
-                onUpdate({
-                  barColor: e.target.value,
-                })
-              }
-            >
-              {INSPECTOR_BAR_COLOR_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          )}
-
-        {inspectorColumn?.displayFormat === ColumnDisplayFormat.Scale && (
-          <input
-            type="number"
-            min={2}
-            max={10}
-            className="h-6 w-16 rounded border border-input bg-background px-1.5 text-xs"
-            placeholder="Max"
-            value={inspectorColumn?.scaleMax ?? ""}
-            onChange={(e) =>
-              onUpdate({
-                scaleMax: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-          />
-        )}
-
-        {inspectorColumn?.displayFormat ===
-          ColumnDisplayFormat.NumberWithComparison && (
-          <select
-            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-            value={inspectorColumn?.comparisonStat ?? ""}
-            onChange={(e) =>
-              onUpdate({
-                comparisonStat: e.target.value
-                  ? (e.target.value as InspectorComparisonStat)
-                  : undefined,
-              })
-            }
-          >
-            <option value="">Comparison stat</option>
-            {Object.values(InspectorComparisonStat).map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+              <PlusIcon className="size-3 shrink-0 text-neutral-400" />
+              {column}
+            </button>
+          ))
         )}
       </div>
     </div>

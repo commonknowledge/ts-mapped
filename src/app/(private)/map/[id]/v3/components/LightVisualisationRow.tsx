@@ -1,13 +1,11 @@
 "use client";
 
 import {
-  ColumnsIcon,
   EllipsisIcon,
   LoaderPinwheelIcon,
   SlidersHorizontalIcon,
   TrashIcon,
 } from "lucide-react";
-import DataSourceIcon from "@/components/DataSourceIcon";
 import { DUMMY_COUNT_COLUMN, MAX_COLUMN_KEY } from "@/constants";
 import { useDataSources } from "@/hooks/useDataSources";
 import {
@@ -24,6 +22,7 @@ import { LegendBars } from "../../components/Legend/LegendBars";
 import { useAreaStats } from "../../data";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useMapViews } from "../../hooks/useMapViews";
+import LightBoundaryPicker from "./LightBoundaryPicker";
 import type { SavedVisualisation } from "@/models/MapView";
 
 const getColumnLabel = (item: SavedVisualisation) => {
@@ -36,72 +35,89 @@ const getColumnLabel = (item: SavedVisualisation) => {
     : column;
 };
 
+// One column of a data source's Areas group: click to colour the map by it,
+// click again to turn it off. The active one opens into a card with its
+// boundaries and legend.
 export default function LightVisualisationRow({
   item,
   isActive,
   onSelect,
+  onDeactivate,
   onEdit,
-  onAddColumn,
   onRemove,
+  lockedNote,
 }: {
   item: SavedVisualisation;
   isActive: boolean;
   onSelect: () => void;
+  onDeactivate: () => void;
   onEdit: () => void;
-  onAddColumn: () => void;
   onRemove: () => void;
+  /** Set while locked boundaries don't fit this data, e.g. "Not available
+   *  by Councils · shown by UK Region" */
+  lockedNote?: string | null;
 }) {
-  const { getDataSourceById } = useDataSources();
   const { boundariesPanelOpen } = useChoropleth();
-  const dataSource = getDataSourceById(item.areaDataSourceId);
+  const { viewConfig } = useMapViews();
+  const label = getColumnLabel(item);
 
   return (
-    <li>
+    <li
+      className={cn(
+        "rounded-lg transition-colors",
+        isActive &&
+          (boundariesPanelOpen
+            ? "border border-neutral-300 bg-neutral-100"
+            : "border border-neutral-200 bg-neutral-50"),
+      )}
+    >
       <div
         className={cn(
-          "flex items-center gap-1 rounded-md pr-1 transition-colors",
-          isActive
-            ? boundariesPanelOpen
-              ? "bg-neutral-100"
-              : "bg-neutral-50"
-            : "hover:bg-neutral-50",
+          "group/column flex items-center gap-1 rounded-lg pr-1 transition-colors",
+          !isActive && "hover:bg-neutral-50",
+          // Greyed while the locked boundaries don't fit; still selectable
+          !isActive && lockedNote && "opacity-60",
         )}
       >
         <button
           type="button"
-          onClick={isActive ? onEdit : onSelect}
+          onClick={isActive ? onDeactivate : onSelect}
           aria-pressed={isActive}
-          title={isActive ? "Edit visualisation" : "Show on map"}
-          className="flex min-w-0 flex-1 cursor-pointer items-start gap-2 px-1.5 py-1.5 text-left"
+          title={isActive ? "Turn off" : "Colour the map by this"}
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1 pr-1.5 pl-[1.625rem] text-left"
         >
           <span
+            aria-hidden
             className={cn(
-              "mt-0.5 flex size-3.5 shrink-0 items-center justify-center [&_svg]:size-3.5",
-              !isActive && "opacity-50",
+              "size-1.5 shrink-0 rounded-full",
+              isActive ? "bg-neutral-900" : "bg-neutral-300",
             )}
-          >
-            <DataSourceIcon type={dataSource?.config?.type ?? "unknown"} />
-          </span>
+          />
           <span className="min-w-0">
             <span
               className={cn(
-                "block truncate",
-                isActive ? "font-medium" : "text-neutral-600",
+                "block truncate text-xs",
+                isActive ? "font-medium text-neutral-900" : "text-neutral-600",
               )}
             >
-              {dataSource?.name ?? "Data source"}
+              {label}
             </span>
-            <span className="block truncate text-xs text-neutral-500">
-              {getColumnLabel(item)}
-            </span>
+            {lockedNote && (
+              <span className="block truncate text-[11px] text-neutral-400">
+                {lockedNote}
+              </span>
+            )}
           </span>
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`${dataSource?.name ?? "Visualisation"} options`}
-              className="cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900"
+              aria-label={`${label} options`}
+              className={cn(
+                "cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900 focus-visible:opacity-100 data-[state=open]:opacity-100",
+                !isActive && "opacity-0 group-hover/column:opacity-100",
+              )}
             >
               <EllipsisIcon className="size-3.5" />
             </button>
@@ -111,20 +127,22 @@ export default function LightVisualisationRow({
               <SlidersHorizontalIcon className="size-3.5" />
               Edit visualisation
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onAddColumn}>
-              <ColumnsIcon className="size-3.5" />
-              Add another column
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={onRemove}>
               <TrashIcon className="size-3.5" />
-              Remove
+              Remove column
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       {isActive && (
-        <div className="px-1.5 pt-1.5 pb-2">
+        <div className="flex flex-col gap-2 border-t border-neutral-200/70 px-2 pt-2 pb-2.5 [&_[data-slot=select-trigger]]:bg-white">
+          {!viewConfig.boundariesLocked && (
+            <LightBoundaryPicker
+              label="by"
+              dataSourceId={item.areaDataSourceId}
+            />
+          )}
           <ActiveLegend />
         </div>
       )}

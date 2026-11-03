@@ -1,4 +1,4 @@
-import { INK_COLOR } from "../../styles";
+import { INK_COLOR } from "../styles";
 
 // Preview of a ring marker: white edge, colour ring, ink centre
 export default function RingSwatch({

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { LayersIcon, Settings2Icon } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useInspectorContent } from "@/app/(private)/map/[id]/hooks/useInspector";
+import { useInspectorActiveSource } from "@/app/(private)/map/[id]/hooks/useInspectorActiveSource";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
 import { useMapEditable } from "@/app/(private)/map/[id]/hooks/useMapEditable";
 import { useOpenInspectorConfig } from "@/app/(private)/map/[id]/hooks/useOpenInspectorConfig";
@@ -23,14 +24,22 @@ import { useAreaStats } from "../../data";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
+import { useSavedVisualisations } from "../../hooks/useSavedVisualisations";
 import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
 import ContainingAreas from "./ContainingAreas";
 import DataRecordColumns from "./DataRecordColumns";
 import { InspectorConfigModal } from "./InspectorConfigModal";
 import InspectorDataConfig from "./InspectorDataConfig";
+import { useInspectorFooterOverride } from "./InspectorFooterContext";
 import { InspectorPanelIcon } from "./inspectorPanelOptions";
+import InspectorSourceTabs from "./InspectorSourceTabs";
+import {
+  InspectorExtraTabsContext,
+  useInspectorVariant,
+} from "./InspectorVariantContext";
 import { LocationDataPanel } from "./LocationDataPanel";
 import SimplePropertiesList from "./SimplePropertiesList";
+import VisualisationSourceIcon from "./VisualisationSourceIcon";
 import type { RawAreaStat } from "../../hooks/useRawAreaStats";
 
 function getBivariateBucket({
@@ -91,6 +100,12 @@ export default function InspectorDataTab() {
   const { config, isModalOpen, setIsModalOpen, openConfig, onUpdateConfig } =
     useOpenInspectorConfig(dataSource?.id);
   const editable = useMapEditable();
+  const footerOverride = useInspectorFooterOverride();
+  const { variant } = useInspectorVariant();
+  const isLight = variant === "light";
+  const extraTabs = useContext(InspectorExtraTabsContext);
+  const { items: savedVisualisations } = useSavedVisualisations();
+  const [, setActiveSourceId] = useInspectorActiveSource();
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -140,9 +155,100 @@ export default function InspectorDataTab() {
       }
     : null;
 
+  const locationConfigs = inspectorConfigs
+    // A config row for the shown record's own data source exists to
+    // customise the record display above, not to self-lookup location data
+    .filter((config) => config.dataSourceId !== dataSource?.id)
+    // Marker layers belong to the Markers tab (list, count, chart);
+    // their config rows exist to customise the record detail display
+    .filter(
+      (config) =>
+        !mapConfig.markerDataSourceIds.includes(config.dataSourceId) &&
+        config.dataSourceId !== mapConfig.membersDataSourceId,
+    )
+    // Hidden sections keep their config so they can come back as they were
+    .filter(
+      (config) =>
+        !viewConfig.inspectorHiddenDataSourceIds?.includes(config.dataSourceId),
+    )
+    // The light editor's tabs are the Areas list: a source removed there
+    // goes from here too (its config is kept for the classic editor)
+    .filter(
+      (config) =>
+        !isLight ||
+        savedVisualisations.some(
+          (item) => item.areaDataSourceId === config.dataSourceId,
+        ),
+    );
+
+  // The light tabs lead with the visualised column, so its summary card
+  // would only repeat it
+  const showVisualisationCard =
+    isBoundary &&
+    hasChoroplethVisualisation &&
+    !(
+      isLight &&
+      locationConfigs.some((c) => c.dataSourceId === choroplethDataSource?.id)
+    );
+
+  // The summary line opens the tab holding that data: a marker layer's
+  // markers are under the Markers tab
+  const isMarkerLayerVisualised = Boolean(
+    choroplethDataSource &&
+    (mapConfig.markerDataSourceIds.includes(choroplethDataSource.id) ||
+      mapConfig.membersDataSourceId === choroplethDataSource.id),
+  );
+  const summaryTabId =
+    isMarkerLayerVisualised && extraTabs.some((t) => t.id === "markers")
+      ? "markers"
+      : null;
+  const openSummaryTab = () => {
+    if (summaryTabId) setActiveSourceId(summaryTabId);
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      {isBoundary && hasChoroplethVisualisation ? (
+      {showVisualisationCard && isLight ? (
+        // One line: the tabs below carry everything else
+        <div
+          className={cn(
+            "-mx-1.5 flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-xs text-neutral-500",
+            summaryTabId &&
+              "cursor-pointer outline-none hover:bg-neutral-100 focus-visible:bg-neutral-100",
+          )}
+          title={
+            summaryTabId
+              ? `Show the ${choroplethDataSource?.name ?? ""} markers here`
+              : `Coloured on the map by ${choroplethDataSource?.name ?? "this data"}`
+          }
+          {...(summaryTabId && {
+            role: "button",
+            tabIndex: 0,
+            onClick: openSummaryTab,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openSummaryTab();
+              }
+            },
+          })}
+        >
+          {choroplethDataSource && (
+            <VisualisationSourceIcon dataSourceId={choroplethDataSource.id} />
+          )}
+          <dl className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1 [&>div]:flex [&>div]:items-baseline [&>div]:gap-1.5 [&_dt]:mb-0 [&_dt]:normal-case [&_dt]:font-sans [&_dt]:text-xs [&_dd]:text-neutral-900">
+            <DataRecordColumns
+              json={getAreaStatJson(areaStat)}
+              dataSourceId={choroplethDataSource?.id}
+            />
+          </dl>
+          {choroplethDataSource && (
+            <span className="ml-auto min-w-0 truncate text-[11px] text-neutral-400">
+              {choroplethDataSource.name}
+            </span>
+          )}
+        </div>
+      ) : showVisualisationCard ? (
         <div className="rounded border border-neutral-200 bg-neutral-50 px-2.5 py-2 flex flex-col gap-3">
           <div className="min-w-0 flex items-center justify-between gap-2">
             <h3 className="text-[11px] uppercase font-mono tracking-wide text-muted-foreground inline-flex items-center gap-1">
@@ -280,7 +386,10 @@ export default function InspectorDataTab() {
 
             return (
               <>
-                <SimplePropertiesList properties={properties} />
+                {/* The header's info icon already lists a boundary's code */}
+                {!(isLight && isBoundary) && (
+                  <SimplePropertiesList properties={properties} />
+                )}
                 {recordData?.json &&
                   (dataSource?.id ? (
                     // Config-aware: applies the inspector config's column
@@ -301,18 +410,14 @@ export default function InspectorDataTab() {
         </>
       )}
 
-      {inspectorConfigs
-        // A config row for the shown record's own data source exists to
-        // customise the record display above, not to self-lookup location data
-        .filter((config) => config.dataSourceId !== dataSource?.id)
-        // Marker layers belong to the Markers tab (list, count, chart);
-        // their config rows exist to customise the record detail display
-        .filter(
-          (config) =>
-            !mapConfig.markerDataSourceIds.includes(config.dataSourceId) &&
-            config.dataSourceId !== mapConfig.membersDataSourceId,
-        )
-        .map((config, index) => (
+      {isLight ? (
+        <InspectorSourceTabs
+          configs={locationConfigs}
+          selectedBoundary={selectedBoundary}
+          markerPoint={focusedRecord?.geocodePoint}
+        />
+      ) : (
+        locationConfigs.map((config, index) => (
           <LocationDataPanel
             key={config.id}
             dataSourceId={config.dataSourceId}
@@ -320,18 +425,20 @@ export default function InspectorDataTab() {
             markerPoint={focusedRecord?.geocodePoint}
             defaultExpanded={index === 0}
           />
-        ))}
-      {editable && (
-        <Button
-          variant="outline"
-          className="w-full"
-          size="sm"
-          onClick={() => setConfigDialogOpen(true)}
-        >
-          <Settings2Icon />
-          Manage inspector data
-        </Button>
+        ))
       )}
+      {editable &&
+        (footerOverride ?? (
+          <Button
+            variant="outline"
+            className="w-full"
+            size="sm"
+            onClick={() => setConfigDialogOpen(true)}
+          >
+            <Settings2Icon />
+            Manage inspector data
+          </Button>
+        ))}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>

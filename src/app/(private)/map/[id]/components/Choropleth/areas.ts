@@ -78,3 +78,36 @@ export const dataRecordsWillAggregate = (
       .length > 0
   );
 };
+
+// How fine a boundary set is, from its most detailed layer (1 = postcode)
+const getGroupSize = (code: AreaSetGroupCode) =>
+  Math.min(
+    ...CHOROPLETH_LAYER_CONFIGS[code].map(
+      (config) => AreaSetSizes[config.areaSetCode],
+    ),
+  );
+
+/**
+ * The boundary set closest to `target` that data with this geocoding can be
+ * grouped into: `target` itself when it fits, otherwise the nearest in size,
+ * preferring coarser sets (data can always be grouped up).
+ */
+export const getClosestAreaSetGroupCode = ({
+  target,
+  geocodingConfig,
+}: {
+  target: AreaSetGroupCode;
+  geocodingConfig: GeocodingConfig | null | undefined;
+}): AreaSetGroupCode => {
+  const valid = getValidAreaSetGroupCodes(geocodingConfig);
+  if (valid.includes(target) || valid.length === 0) return target;
+  const targetSize = getGroupSize(target);
+  return [...valid].sort((a, b) => {
+    const distance = (code: AreaSetGroupCode) => {
+      const diff = getGroupSize(code) - targetSize;
+      // Coarser sets win ties
+      return diff >= 0 ? diff : -diff + 0.5;
+    };
+    return distance(a) - distance(b);
+  })[0];
+};

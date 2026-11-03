@@ -2,6 +2,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { useMapViews } from "../hooks/useMapViews";
 import { useSecondaryAreaSetConfig } from "../hooks/useSecondaryAreaSet";
 import { DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR } from "../styles";
+import { getSecondaryAreaSetConfig } from "./Choropleth/configs";
 import type { ChoroplethLayerConfig } from "./Choropleth/configs";
 
 const SECONDARY_TOP_LAYER_ID = "secondary-top";
@@ -29,6 +30,52 @@ export default function SecondaryBoundaries() {
         />
       </Source>
       {config && <Boundaries config={config} />}
+      <ExtraOverlays />
+    </>
+  );
+}
+
+// Overlays after the first visible one (which is drawn above, from
+// secondaryAreaSetCode, as hover and the inspector rely on its layer ids)
+function ExtraOverlays() {
+  const { viewConfig } = useMapViews();
+  const extras = (viewConfig.overlayBoundaries ?? [])
+    .filter((overlay) => overlay.visible)
+    .slice(1);
+
+  return (
+    <>
+      {extras.map((overlay) => {
+        const config = getSecondaryAreaSetConfig({
+          areaSetCode: overlay.areaSetCode,
+          mapType: viewConfig.mapType,
+        });
+        if (!config) return null;
+        const { sourceId, layerId } = config.mapbox;
+        const overlaySourceId = `${sourceId}-overlay-${overlay.id}`;
+        return (
+          <Source
+            id={overlaySourceId}
+            key={overlaySourceId}
+            type="vector"
+            url={`mapbox://${sourceId}`}
+          >
+            <Layer
+              id={`${overlaySourceId}-line`}
+              beforeId={`${SECONDARY_TOP_LAYER_ID}-line`}
+              source={overlaySourceId}
+              source-layer={layerId}
+              type="line"
+              paint={{
+                "line-color":
+                  overlay.color || DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR,
+                "line-width": 1.5,
+              }}
+              layout={{ "line-cap": "round", "line-join": "round" }}
+            />
+          </Source>
+        );
+      })}
     </>
   );
 }

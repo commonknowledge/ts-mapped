@@ -13,3 +13,6 @@ export const selectedBoundaryAtom = atom<SelectedBoundary | null>(null);
 export const inspectorContentAtom = atom<InspectorContent | null>(null);
 // Collapsed to a compact title bar; selection state is kept while minimized
 export const inspectorMinimizedAtom = atom<boolean>(false);
+// The data source tab shown in the light editor's inspector; kept as you
+// click between areas so you can compare them on the same data
+export const inspectorActiveSourceIdAtom = atom<string | null>(null);

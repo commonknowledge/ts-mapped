@@ -167,6 +167,16 @@ export const markerVisualisationSchema = z.object({
 
 export type MarkerVisualisation = z.infer<typeof markerVisualisationSchema>;
 
+// An outline-only boundary set drawn over the map
+export const overlayBoundarySchema = z.object({
+  id: z.string(),
+  areaSetCode: areaSetCode,
+  color: z.string().optional(),
+  visible: z.boolean(),
+});
+
+export type OverlayBoundary = z.infer<typeof overlayBoundarySchema>;
+
 // A data source + column the user has added to a view's visualisation list,
 // with the styling it had when last active
 export const savedVisualisationSchema = z.object({
@@ -174,6 +184,8 @@ export const savedVisualisationSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
   areaDataSecondaryColumn: z.string().optional(),
+  // Boundaries this visualisation is shown on; absent on older entries
+  areaSetGroupCode: areaSetGroupCode.nullish(),
   calculationType: z.enum(CalculationType).optional(),
   colorScheme: z.enum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
@@ -225,6 +237,28 @@ export const mapViewConfigSchema = z.object({
   // settings are the area* / colour fields above
   savedVisualisations: z.array(savedVisualisationSchema).optional(),
   activeVisualisationId: z.string().optional(),
+  // Outline boundaries drawn over the map. The first visible one is mirrored
+  // into secondaryAreaSetCode, which hover and the inspector read.
+  overlayBoundaries: z.array(overlayBoundarySchema).optional(),
+  // The inspector follows the Areas list; these record the user's changes.
+  // Sources hidden from the inspector (their config is kept)
+  inspectorHiddenDataSourceIds: z.array(z.string()).optional(),
+  // Sources added to the inspector that aren't in the Areas list
+  inspectorExtraDataSourceIds: z.array(z.string()).optional(),
+  // Sources the sync added from the Areas list, so it only ever removes
+  // configs it created itself
+  inspectorAutoDataSourceIds: z.array(z.string()).optional(),
+  // Set once the user reorders sections; the order then stops following Areas
+  inspectorOrderCustomised: z.boolean().optional(),
+  // Column naming each record in the inspector, per data source, in place
+  // of the source's own name columns
+  inspectorRecordNameColumns: z.record(z.string(), z.string()).optional(),
+  // Use the view's boundaries for every visualisation, instead of each
+  // saved visualisation's own
+  boundariesLocked: z.boolean().optional(),
+  // The boundaries chosen while locked. The live areaSetGroupCode uses them
+  // when the active data fits, otherwise the closest level that does.
+  lockedAreaSetGroupCode: areaSetGroupCode.nullish(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

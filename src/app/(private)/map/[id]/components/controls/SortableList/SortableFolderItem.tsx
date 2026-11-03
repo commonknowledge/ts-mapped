@@ -38,6 +38,7 @@ import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import { useLayerRowVariant } from "../LayerRowVariantContext";
 import SortableMarkerItem from "../MarkersControl/SortableMarkerItem";
 import SortableTurfItem from "../TurfsControl/SortableTurfItem";
 import type { Folder } from "@/models/Folder";
@@ -94,6 +95,7 @@ export default function SortableFolderItem({
   const { mapConfig, updateMapConfig } = useMapConfig();
 
   const isTurfFolder = folder.type === "turf";
+  const isLight = useLayerRowVariant() === "light";
 
   // Get current folder color (defaults based on folder type)
   const defaultFolderColor = isTurfFolder
@@ -182,13 +184,22 @@ export default function SortableFolderItem({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      // Drag handles take focus on click; only show it for keyboard focus
+      className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-neutral-300"
+    >
       <ControlWrapper
         name={folder.name}
         layerType={isTurfFolder ? LayerType.Turf : LayerType.Marker}
         isVisible={isFolderVisible}
         onVisibilityToggle={() => onVisibilityToggle()}
         color={currentFolderColor}
+        onColorChange={handleFolderColorChange}
+        showTypeIcon={false}
       >
         {isEditing ? (
           <ControlEditForm
@@ -203,7 +214,9 @@ export default function SortableFolderItem({
                 ref={isDraggingMarker ? setHeaderNodeRef : null}
                 onClick={() => onClickFolder()}
                 className={cn(
-                  "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
+                  isLight
+                    ? "flex w-full cursor-pointer items-center gap-1.5 rounded text-left"
+                    : "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
                   isHeaderOver ? "bg-blue-50" : "",
                 )}
                 onContextMenu={(e) => {
@@ -213,15 +226,33 @@ export default function SortableFolderItem({
                   }
                 }}
               >
-                {isExpanded ? (
-                  <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
+                {isLight ? (
+                  <>
+                    {isExpanded ? (
+                      <FolderOpen className="size-3.5 shrink-0 text-neutral-400" />
+                    ) : (
+                      <FolderClosed className="size-3.5 shrink-0 text-neutral-400" />
+                    )}
+                    <span className="min-w-0 flex-1 truncate">
+                      {folder.name}
+                    </span>
+                    <span className="shrink-0 text-xs text-neutral-400 tabular-nums">
+                      {sortedItems.length}
+                    </span>
+                  </>
                 ) : (
-                  <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <>
+                    {isExpanded ? (
+                      <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
+                    )}
+                    <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
+                      {sortedItems.length}
+                    </span>
+                    {folder.name}
+                  </>
                 )}
-                <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
-                  {sortedItems.length}
-                </span>
-                {folder.name}
               </button>
             </ContextMenuTrigger>
             <ContextMenuContent>

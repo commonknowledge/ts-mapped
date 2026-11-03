@@ -239,49 +239,52 @@ export const useHandleDropPin = () => {
   const dropPinClickHandler = useAtomValue(dropPinClickHandlerAtom);
   const setDropPinClickHandler = useSetAtom(dropPinClickHandlerAtom);
 
-  const handleDropPin = useCallback(() => {
-    const map = mapRef?.current;
-    if (!map || !mapId) return;
+  const handleDropPin = useCallback(
+    ({ folderId = null }: { folderId?: string | null } = {}) => {
+      const map = mapRef?.current;
+      if (!map || !mapId) return;
 
-    // Clear any existing handler first
-    if (dropPinClickHandler) {
-      map.off("click", dropPinClickHandler);
-    }
+      // Clear any existing handler first
+      if (dropPinClickHandler) {
+        map.off("click", dropPinClickHandler);
+      }
 
-    setPinDropMode(true);
-    map.getCanvas().style.cursor = "crosshair";
+      setPinDropMode(true);
+      map.getCanvas().style.cursor = "crosshair";
 
-    const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-      insertPlacedMarker({
-        id: uuidv4(),
-        label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
-        notes: "",
-        point: e.lngLat,
-        folderId: null,
-      });
+      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+        insertPlacedMarker({
+          id: uuidv4(),
+          label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+          notes: "",
+          point: e.lngLat,
+          folderId,
+        });
 
-      map.off("click", clickHandler);
-      setDropPinClickHandler(() => null);
-      // Set pinDropMode to false; hover effect will reset cursor
-      setPinDropMode(false);
+        map.off("click", clickHandler);
+        setDropPinClickHandler(() => null);
+        // Set pinDropMode to false; hover effect will reset cursor
+        setPinDropMode(false);
 
-      // Fly to the new marker
-      map.flyTo({
-        center: e.lngLat,
-        zoom: 14,
-      });
-    };
+        // Fly to the new marker
+        map.flyTo({
+          center: e.lngLat,
+          zoom: 14,
+        });
+      };
 
-    setDropPinClickHandler(() => clickHandler);
-    map.once("click", clickHandler);
-  }, [
-    mapRef,
-    mapId,
-    setPinDropMode,
-    insertPlacedMarker,
-    dropPinClickHandler,
-    setDropPinClickHandler,
-  ]);
+      setDropPinClickHandler(() => clickHandler);
+      map.once("click", clickHandler);
+    },
+    [
+      mapRef,
+      mapId,
+      setPinDropMode,
+      insertPlacedMarker,
+      dropPinClickHandler,
+      setDropPinClickHandler,
+    ],
+  );
 
   return { handleDropPin };
 };

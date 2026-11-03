@@ -21,20 +21,30 @@ import type { InspectorItem } from "@/models/shared";
 export default function ConfiguredDataRecordDisplay({
   json,
   dataSourceId,
+  excludeColumns,
 }: {
   json: Record<string, unknown>;
   dataSourceId: string;
+  /** Columns already shown elsewhere, e.g. as key figures */
+  excludeColumns?: string[];
 }) {
   const inspectorConfig = useInspectorDataSourceConfig(dataSourceId);
+  const items = useMemo(
+    () =>
+      inspectorConfig?.items?.filter(
+        (i) => i.type !== "column" || !excludeColumns?.includes(i.name),
+      ),
+    [excludeColumns, inspectorConfig?.items],
+  );
   const { getMarkerVisualisation } = useMarkerSettings();
 
   const inspectorColumns = useMemo(
     () =>
-      inspectorConfig?.items?.filter(
+      items?.filter(
         (i): i is Extract<InspectorItem, { type: "column" }> =>
           i.type === "column",
       ) || [],
-    [inspectorConfig],
+    [items],
   );
 
   // Columns driving the marker visualisation always show — the record
@@ -54,9 +64,11 @@ export default function ConfiguredDataRecordDisplay({
         : undefined,
     ].filter((c): c is string => Boolean(c));
     return [...new Set(encodingColumns)].filter(
-      (c) => !inspectorColumns.some((i) => i.name === c),
+      (c) =>
+        !inspectorColumns.some((i) => i.name === c) &&
+        !excludeColumns?.includes(c),
     );
-  }, [visualisation, inspectorColumns]);
+  }, [visualisation, inspectorColumns, excludeColumns]);
 
   const hasValues = [
     ...inspectorColumns.map((item) => item.name),
@@ -66,13 +78,23 @@ export default function ConfiguredDataRecordDisplay({
     return raw !== undefined && raw !== null && String(raw) !== "";
   });
 
-  const blocks = useMemo(
-    () => buildInspectorBlocks(inspectorConfig?.items),
-    [inspectorConfig?.items],
-  );
+  const blocks = useMemo(() => buildInspectorBlocks(items), [items]);
 
   if (inspectorColumns.length === 0) {
-    return <DataRecordColumns json={json} dataSourceId={dataSourceId} />;
+    // Nothing configured (or everything shown elsewhere): every other column
+    const columns = Object.keys(json).filter(
+      (c) => !excludeColumns?.includes(c),
+    );
+    if (excludeColumns?.length && inspectorConfig?.items?.length) {
+      return <></>;
+    }
+    return (
+      <DataRecordColumns
+        columns={columns}
+        json={json}
+        dataSourceId={dataSourceId}
+      />
+    );
   }
 
   if (!hasValues) {

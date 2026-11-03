@@ -11,6 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import InspectorAutoScan from "./InspectorAutoScan";
+import RecordNameColumnSelect from "./RecordNameColumnSelect";
 import type { InspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 
 export function InspectorConfigModal({
@@ -23,6 +25,30 @@ export function InspectorConfigModal({
   onOpenChange: (open: boolean) => void;
   config: InspectorConfig;
   onUpdate: (config: InspectorConfig) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-5xl w-full overflow-y-auto max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>Inspector configuration</DialogTitle>
+        </DialogHeader>
+        <InspectorConfigEditor config={config} onUpdate={onUpdate} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** The title, icon and column settings for one inspector section; used by
+ *  the modal and the light editor's inspector edit panel */
+export function InspectorConfigEditor({
+  config,
+  onUpdate,
+  compact = false,
+}: {
+  config: InspectorConfig;
+  onUpdate: (config: InspectorConfig) => void;
+  /** Stacked, for the light editor's narrow flyout */
+  compact?: boolean;
 }) {
   const { getDataSourceById } = useDataSources();
   const organisationId = useOrganisationId();
@@ -53,28 +79,42 @@ export function InspectorConfigModal({
     }
   };
 
+  const autoScan = (
+    <InspectorAutoScan
+      config={config}
+      onUpdate={onUpdate}
+      onPatchColumnMetadata={handlePatchColumnMetadata}
+      compact={compact}
+    />
+  );
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl w-full overflow-y-auto max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Inspector configuration</DialogTitle>
-        </DialogHeader>
-        <GeneralSection
-          dataSourceName={dataSource.name}
-          name={config.name ?? ""}
-          icon={config.icon ?? ""}
-          showDescription={false}
-          headerDescription="Configure the title and icon shown."
-          onChange={(patch) => onUpdate({ ...config, ...patch })}
-        />
-        <InspectorConfigSection
+    <>
+      <GeneralSection
+        dataSourceName={dataSource.name}
+        name={config.name ?? ""}
+        icon={config.icon ?? ""}
+        showDescription={false}
+        headerDescription="Configure the title and icon shown."
+        compact={compact}
+        onChange={(patch) => onUpdate({ ...config, ...patch })}
+      />
+      <div className={compact ? "" : "mb-6"}>
+        <RecordNameColumnSelect
           dataSourceId={config.dataSourceId}
-          columnDefs={dataSource.columnDefs}
-          config={config}
-          onChange={(patch) => onUpdate({ ...config, ...patch })}
-          onPatchColumnMetadata={handlePatchColumnMetadata}
+          compact={compact}
         />
-      </DialogContent>
-    </Dialog>
+      </div>
+      {!compact && autoScan}
+      <InspectorConfigSection
+        dataSourceId={config.dataSourceId}
+        columnDefs={dataSource.columnDefs}
+        config={config}
+        onChange={(patch) => onUpdate({ ...config, ...patch })}
+        onPatchColumnMetadata={handlePatchColumnMetadata}
+        compact={compact}
+        columnsHeader={autoScan}
+      />
+    </>
   );
 }

@@ -11,6 +11,7 @@ import {
 } from "@/shadcn/ui/select";
 import { useBoundaryMarkers } from "../../hooks/useBoundaryMarkers";
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
+import { useInspectorVariant } from "./InspectorVariantContext";
 import MarkerCountsChart from "./MarkerCountsChart";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
 import type { DataSource } from "@/models/DataSource";
@@ -28,8 +29,43 @@ export default function BoundaryMarkersList() {
     placedMarkersByFolder,
   } = useBoundaryMarkers(selectedBoundary);
 
+  const isLight = useInspectorVariant().variant === "light";
+
   if (areaDataLoading) {
     return <LoaderPinwheel className="animate-spin" size={16} />;
+  }
+
+  // The light editor has no members/markers split: every layer is a
+  // marker layer, each listed under its own name and ring
+  if (isLight) {
+    const groups = [...(members ? [members] : []), ...markers].filter(
+      (group) => group.markers.length > 0,
+    );
+    if (groups.length === 0 && placedMarkersInBoundary.length === 0) {
+      return (
+        <p className="text-xs text-muted-foreground">
+          No markers in this boundary
+        </p>
+      );
+    }
+    return (
+      <div className="flex flex-col gap-5">
+        {groups.map((group) => (
+          <BoundaryMarkersGroup
+            key={`markers-${group.dataSource?.id || "no-datasource"}`}
+            dataSource={group.dataSource}
+            markers={group.markers}
+          />
+        ))}
+        {placedMarkersByFolder.map((markersGroup) => (
+          <PlacedMarkersList
+            key={`placed-markers-${markersGroup.folder?.id || "no-folder"}`}
+            folder={markersGroup.folder}
+            placedMarkers={markersGroup.placedMarkers}
+          />
+        ))}
+      </div>
+    );
   }
 
   return (

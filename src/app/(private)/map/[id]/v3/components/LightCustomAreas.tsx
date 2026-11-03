@@ -13,17 +13,16 @@ import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { MapType } from "@/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { LayerRowVariantContext } from "../../components/controls/LayerRowVariantContext";
 import TurfsList from "../../components/controls/TurfsControl/TurfsList";
 import { useFolderMutations, useFoldersQuery } from "../../hooks/useFolders";
 import { useLayers } from "../../hooks/useLayers";
-import { useMapConfig } from "../../hooks/useMapConfig";
 import {
   useEditAreaMode,
   useSetEditAreaMode,
 } from "../../hooks/useMapControls";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useTurfState } from "../../hooks/useTurfState";
-import { mapColors } from "../../styles";
 
 export default function LightCustomAreas() {
   const { handleAddArea } = useTurfState();
@@ -32,8 +31,6 @@ export default function LightCustomAreas() {
   const setEditAreaMode = useSetEditAreaMode();
   const { data: folders = [] } = useFoldersQuery();
   const { insertFolder, isMutating } = useFolderMutations();
-  const { mapConfig, updateMapConfig } = useMapConfig();
-  const areaColor = mapConfig.turfColor ?? mapColors.areas.color;
 
   const turfFolders = useMemo(
     () => folders.filter((f) => f.type === "turf"),
@@ -69,13 +66,13 @@ export default function LightCustomAreas() {
   return (
     <div className="mt-3">
       <div className="group/areas flex items-center gap-1">
-        <p className="text-[11px] text-neutral-500">Custom areas</p>
+        <p className="text-[11px] text-neutral-500">Drawn areas</p>
         <button
           type="button"
           onClick={() =>
             isVisible ? hideLayer(LayerType.Turf) : showLayer(LayerType.Turf)
           }
-          aria-label={`${isVisible ? "Hide" : "Show"} custom areas`}
+          aria-label={`${isVisible ? "Hide" : "Show"} drawn areas`}
           title={isVisible ? "Hide all" : "Show all"}
           className={cn(
             "cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700",
@@ -92,19 +89,6 @@ export default function LightCustomAreas() {
           {isMutating && (
             <LoaderPinwheelIcon className="size-3.5 animate-spin text-neutral-400" />
           )}
-          <label
-            title="Area colour"
-            className="relative size-4 cursor-pointer rounded-full border border-white shadow-[0_0_0_1px_#d4d4d4]"
-            style={{ backgroundColor: areaColor }}
-          >
-            <input
-              type="color"
-              value={areaColor}
-              onChange={(e) => updateMapConfig({ turfColor: e.target.value })}
-              aria-label="Area colour"
-              className="absolute inset-0 cursor-pointer opacity-0"
-            />
-          </label>
           {editAreaMode ? (
             <span className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase">
               Drawing…
@@ -113,8 +97,8 @@ export default function LightCustomAreas() {
             <IconButtonWithTooltip
               align="start"
               side="right"
-              tooltip="Add custom areas"
-              dropdownLabel="Add custom areas"
+              tooltip="Add drawn areas"
+              dropdownLabel="Add drawn areas"
               dropdownItems={[
                 { type: "item", label: "Draw area", onClick: onAddArea },
                 { type: "separator" },
@@ -133,8 +117,12 @@ export default function LightCustomAreas() {
           )}
         </div>
       </div>
-      <div className={cn("-mx-1 -mb-3", !isVisible && "opacity-50")}>
-        <TurfsList onAddArea={onAddArea} />
+      {/* Light rows put each area's colour on the row, in line with the
+          boundary swatches above */}
+      <div className={cn("-mb-3", !isVisible && "opacity-50")}>
+        <LayerRowVariantContext.Provider value="light">
+          <TurfsList onAddArea={onAddArea} />
+        </LayerRowVariantContext.Provider>
       </div>
     </div>
   );

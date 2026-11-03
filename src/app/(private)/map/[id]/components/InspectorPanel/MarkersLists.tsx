@@ -6,6 +6,7 @@ import { ColumnType } from "@/models/DataSource";
 import { MarkerColorMode, MarkerIconMode } from "@/models/MapView";
 import { LayerType } from "@/types";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
+import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import { mapColors } from "../../styles";
@@ -14,12 +15,32 @@ import {
   getDistinctFeatureValues,
 } from "../Markers/markerStyle";
 import MarkerShapeIcon from "../MarkerShapeIcon";
+import RingSwatch from "../RingSwatch";
+import { useInspectorVariant } from "./InspectorVariantContext";
 import MarkerButton from "./MarkerButton";
 import type { DataSource } from "@/models/DataSource";
 import type { Folder } from "@/models/Folder";
 import type { PlacedMarker } from "@/models/PlacedMarker";
 import type { MarkerFeature } from "@/types";
 import type { ReactNode } from "react";
+
+// The light inspector's group heading: the layer's ring, as in the Layers
+// panel, then its name and count
+const LightGroupHeading = ({
+  color,
+  name,
+  total,
+}: {
+  color: string;
+  name: string;
+  total: number;
+}) => (
+  <h3 className="flex items-center gap-2 text-xs font-medium text-neutral-900">
+    <RingSwatch color={color} size={12} />
+    <span className="min-w-0 truncate">{name}</span>
+    <span className="font-normal text-neutral-400 tabular-nums">{total}</span>
+  </h3>
+);
 
 export const MembersList = ({
   markers,
@@ -31,6 +52,7 @@ export const MembersList = ({
   areaType: "area" | "boundary" | "cluster";
 }) => {
   const { setSelectedRecords } = useInspectorState();
+  const isLight = useInspectorVariant().variant === "light";
 
   const total = markers.length;
 
@@ -47,6 +69,11 @@ export const MembersList = ({
       },
     ]);
   };
+
+  // No members/markers split in the light editor: just another layer
+  if (isLight) {
+    return <MarkersList dataSource={dataSource} markers={markers} />;
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -202,18 +229,28 @@ export const MarkersList = ({
     ]);
   };
 
+  const isLight = useInspectorVariant().variant === "light";
+
   if (markers.length === 0) {
     return <></>;
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="flex items-center gap-2 font-semibold">
-        <div className="shrink-0">
-          <DataSourceIcon type={dataSource?.config.type}></DataSourceIcon>
-        </div>
-        {dataSource?.name} {total > 0 && <>({total})</>}
-      </h3>
+      {isLight ? (
+        <LightGroupHeading
+          color={fallbackColor}
+          name={dataSource?.name ?? "Markers"}
+          total={total}
+        />
+      ) : (
+        <h3 className="flex items-center gap-2 font-semibold">
+          <div className="shrink-0">
+            <DataSourceIcon type={dataSource?.config.type}></DataSourceIcon>
+          </div>
+          {dataSource?.name} {total > 0 && <>({total})</>}
+        </h3>
+      )}
 
       {children}
 
@@ -232,6 +269,8 @@ export const MarkersList = ({
                       color={getMarkerColor(marker)}
                       size={10}
                     />
+                  ) : isLight ? (
+                    <RingSwatch color={getMarkerColor(marker)} size={10} />
                   ) : undefined
                 }
                 onClick={() => onRecordClick(marker)}
@@ -252,8 +291,15 @@ export const PlacedMarkersList = ({
   placedMarkers: PlacedMarker[];
 }) => {
   const { setSelectedRecords } = useInspectorState();
+  const { mapConfig } = useMapConfig();
+  const isLight = useInspectorVariant().variant === "light";
   const total = placedMarkers.length;
   const name = folder?.name || "No folder";
+  // Same colour resolution as PlacedMarkers on the map
+  const getColor = (marker: PlacedMarker) =>
+    (marker.folderId && mapConfig.folderColors?.[marker.folderId]) ??
+    mapConfig.placedMarkerColors?.[marker.id] ??
+    mapColors.markers.color;
 
   const onRecordClick = (marker: PlacedMarker) => {
     setSelectedRecords([
@@ -271,9 +317,20 @@ export const PlacedMarkersList = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="font-semibold">
-        {name} ({total})
-      </h3>
+      {isLight ? (
+        <LightGroupHeading
+          color={
+            (folder && mapConfig.folderColors?.[folder.id]) ??
+            mapColors.markers.color
+          }
+          name={name}
+          total={total}
+        />
+      ) : (
+        <h3 className="font-semibold">
+          {name} ({total})
+        </h3>
+      )}
 
       <ul>
         {placedMarkers.map((marker) => {
@@ -282,6 +339,11 @@ export const PlacedMarkersList = ({
               <MarkerButton
                 label={marker.label}
                 type={LayerType.Marker}
+                icon={
+                  isLight ? (
+                    <RingSwatch color={getColor(marker)} size={10} />
+                  ) : undefined
+                }
                 onClick={() => onRecordClick(marker)}
               />
             </li>

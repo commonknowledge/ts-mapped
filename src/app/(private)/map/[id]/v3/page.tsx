@@ -4,6 +4,7 @@ import PrivateMapOverlay from "../components/PrivateMapOverlay";
 import SharedMap from "../components/SharedMap";
 import MapJotaiProvider from "../providers/MapJotaiProvider";
 import LightEditorSetup from "./components/LightEditorSetup";
+import LightInspectorProvider from "./components/LightInspectorProvider";
 import LightNavbar from "./components/LightNavbar";
 import LightSidebar from "./components/LightSidebar";
 import LightVisualisationData from "./components/LightVisualisationData";
@@ -37,8 +38,10 @@ export default async function LightMapPage({
   return (
     <MapJotaiProvider mapId={id} viewId={viewId}>
       <LightEditorSetup />
-      {/* Lighter frame for the shared inspector panel */}
-      <div className="relative h-screen w-full [&_#inspector-panel]:rounded-xl [&_#inspector-panel]:border [&_#inspector-panel]:border-neutral-200 [&_#inspector-panel]:shadow-[0_8px_30px_rgba(21,33,59,0.08)]">
+      {/* Lighter frame for the shared inspector panel, at a fixed width so it
+          doesn't resize with each area's content (overrides its inline
+          min/max widths) */}
+      <div className="relative h-screen w-full [&_#inspector-panel]:rounded-xl [&_#inspector-panel]:border [&_#inspector-panel]:border-neutral-200 [&_#inspector-panel]:shadow-[0_8px_30px_rgba(21,33,59,0.08)] [&_#inspector-panel]:w-[360px]! [&_#inspector-panel]:min-w-[360px]! [&_#inspector-panel]:max-w-[360px]!">
         <SharedMap />
         <div className="absolute inset-0 z-10 pointer-events-none flex flex-col">
           <LightNavbar />
@@ -50,13 +53,15 @@ export default async function LightMapPage({
               </p>
             </div>
             <div className="hidden lg:contents">
-              <PrivateMapOverlay
-                controlPanel={<LightSidebar />}
-                visualisationPanelOptions={{
-                  title: "Data visualisation",
-                  header: <LightVisualisationData />,
-                }}
-              />
+              <LightInspectorProvider>
+                <PrivateMapOverlay
+                  controlPanel={<LightSidebar />}
+                  visualisationPanelOptions={{
+                    title: "Data visualisation",
+                    header: <LightVisualisationData />,
+                  }}
+                />
+              </LightInspectorProvider>
             </div>
           </div>
         </div>

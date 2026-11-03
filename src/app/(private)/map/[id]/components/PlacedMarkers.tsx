@@ -8,11 +8,13 @@ import {
   usePlacedMarkerState,
   usePlacedMarkersQuery,
 } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
-import { mapColors } from "../styles";
+import { useMarkerAppearance } from "../hooks/useMarkerAppearance";
+import { INK_COLOR, mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
+  const isRing = useMarkerAppearance() === "ring";
   const { mapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
@@ -67,10 +69,13 @@ export default function PlacedMarkers() {
           source="search-history"
           paint={{
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
-            "circle-color": ["get", "color"],
-            "circle-opacity": 0.8,
-            "circle-stroke-width": 1,
-            "circle-stroke-color": "#ffffff",
+            // Ring: drawn like the light editor's collection markers
+            "circle-color": isRing ? INK_COLOR : ["get", "color"],
+            "circle-opacity": isRing ? 1 : 0.8,
+            "circle-stroke-width": isRing
+              ? ["interpolate", ["linear"], ["zoom"], 8, 1.5, 16, 3]
+              : 1,
+            "circle-stroke-color": isRing ? ["get", "color"] : "#ffffff",
           }}
         />
 

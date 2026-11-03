@@ -133,7 +133,7 @@ export default function SortableTurfItem({
         style={style}
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing w-full"
+        className="cursor-grab active:cursor-grabbing w-full rounded-md outline-none focus-visible:ring-2 focus-visible:ring-neutral-300"
       >
         <ControlWrapper
           name={turf.label}
@@ -141,6 +141,7 @@ export default function SortableTurfItem({
           isVisible={isVisible}
           onVisibilityToggle={() => setTurfVisibility(turf.id, !isVisible)}
           color={currentColor}
+          onColorChange={handleColorChange}
         >
           {isEditing ? (
             <ControlEditForm

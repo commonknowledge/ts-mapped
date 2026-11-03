@@ -27,6 +27,7 @@ import {
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import { useLayerRowVariant } from "../LayerRowVariantContext";
 import type { PlacedMarker } from "@/models/PlacedMarker";
 
 export default function SortableMarkerItem({
@@ -62,6 +63,7 @@ export default function SortableMarkerItem({
   // Get current color (defaults to marker color)
   const currentColor =
     mapConfig.placedMarkerColors?.[marker.id] ?? mapColors.markers.color;
+  const isLight = useLayerRowVariant() === "light";
 
   const handleColorChange = (color: string) => {
     updateMapConfig({
@@ -132,7 +134,7 @@ export default function SortableMarkerItem({
         style={style}
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing w-full"
+        className="cursor-grab active:cursor-grabbing w-full rounded-md outline-none focus-visible:ring-2 focus-visible:ring-neutral-300"
       >
         <ControlWrapper
           name={marker?.label}
@@ -142,6 +144,7 @@ export default function SortableMarkerItem({
             setPlacedMarkerVisibility(marker.id, !isVisible)
           }
           color={currentColor}
+          onColorChange={handleColorChange}
         >
           {isEditing ? (
             <ControlEditForm
@@ -153,7 +156,11 @@ export default function SortableMarkerItem({
             <ContextMenu>
               <ContextMenuTrigger asChild>
                 <button
-                  className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                  className={
+                    isLight
+                      ? "w-full cursor-pointer truncate rounded text-left"
+                      : "flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                  }
                   onClick={() => flyToMarker()}
                   onContextMenu={(e) => {
                     // Prevent context menu during drag

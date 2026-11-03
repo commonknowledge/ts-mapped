@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDataSourceListCache } from "@/app/(private)/hooks/useDataSourceListCache";
-import { useDataSources } from "@/hooks/useDataSources";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
 import { mapColors } from "../styles";
@@ -12,6 +11,7 @@ import { useDataRecords } from "./useDataRecords";
 import { useLayers } from "./useLayers";
 import { useMapConfig } from "./useMapConfig";
 import { useMapViews } from "./useMapViews";
+import { useMarkerLayerColor } from "./useMarkerLayerColor";
 import { useMarkerSettings } from "./useMarkerSettings";
 import type { DataSourceType } from "@/models/DataSource";
 
@@ -37,14 +37,11 @@ export function useDataSourceItem({
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const { view, viewConfig } = useMapViews();
+  const { view } = useMapViews();
   const trpc = useTRPC();
   const { invalidateAll: invalidateDataSources } = useDataSourceListCache();
-  const { getDataSourceById } = useDataSources();
   const { markerSettingsDataSourceId, setMarkerSettingsDataSourceId } =
     useMarkerSettings();
-
-  const fullDataSource = getDataSourceById(dataSource.id);
 
   const dataSourceView = useMemo(
     () =>
@@ -71,11 +68,9 @@ export function useDataSourceItem({
 
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
-  // Get current color: view override, then data source default, then layer color
-  const currentColor =
-    viewConfig.markerColors?.[dataSource.id] ??
-    fullDataSource?.defaultMarkerColor ??
-    layerColor;
+  // Rows only render for layers on the map, so this falls back only while
+  // the map config is still loading
+  const currentColor = useMarkerLayerColor(dataSource.id) ?? layerColor;
 
   // Focus management for rename input
   useEffect(() => {

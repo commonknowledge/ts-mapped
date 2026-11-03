@@ -36,6 +36,8 @@ export const inspectorColumnSchema = z.object({
   scaleMax: z.number().int().min(2).max(10).optional(),
   barColor: z.string().optional(),
   comparisonStat: z.enum(InspectorComparisonStat).optional(),
+  // Shown as a key figure tile above the section's other columns
+  pinned: z.boolean().optional(),
 });
 export type InspectorColumn = z.infer<typeof inspectorColumnSchema>;
 

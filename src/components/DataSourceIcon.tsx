@@ -1,4 +1,3 @@
-import { File } from "lucide-react";
 import { DataSourceType } from "@/models/DataSource";
 
 const AirtableIconSVG = () => {
@@ -331,11 +330,19 @@ const ZetkinIconSVG = () => (
   </svg>
 );
 
+// The file extension in compact Plex Sans, in a faint square so it sits
+// with the other sources' logos
+const CSVIcon = () => (
+  <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-[3px] bg-neutral-50 font-sans text-[6.5px] leading-none font-semibold tracking-[-0.04em] whitespace-nowrap text-neutral-700 ring-1 ring-neutral-200 ring-inset">
+    .csv
+  </span>
+);
+
 const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: <ActionNetworkSVG />,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
   [DataSourceType.Baserow]: <BaserowIconSVG />,
-  [DataSourceType.CSV]: <File size={16} />,
+  [DataSourceType.CSV]: <CSVIcon />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,
   [DataSourceType.Zetkin]: <ZetkinIconSVG />,
