@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useDataSources } from "@/hooks/useDataSources";
 import { AreaSetGroupCode } from "@/models/AreaSet";
@@ -11,7 +11,14 @@ import {
   getValidAreaSetGroupCodes,
 } from "../components/Choropleth/areas";
 import { getDefaultAreaSetGroupCode } from "../components/Choropleth/configs";
+import {
+  getVisualisationKey,
+  isSameVisualisation,
+  snapshotVisualisation,
+} from "../utils/mapView";
 import { useAreaSettings } from "./useAreaSettings";
+import { useMapId } from "./useMapCore";
+import { useMapQuery } from "./useMapQuery";
 import { useMapViews } from "./useMapViews";
 import type { MapViewConfig, SavedVisualisation } from "@/models/MapView";
 
@@ -25,20 +32,6 @@ interface NewVisualisation {
 
 // Views from before the list existed have a live visualisation but no id
 const UNSAVED_ID = "unsaved";
-
-const snapshot = (config: MapViewConfig, id: string): SavedVisualisation => ({
-  id,
-  areaDataSourceId: config.areaDataSourceId,
-  areaDataColumn: config.areaDataColumn,
-  areaDataSecondaryColumn: config.areaDataSecondaryColumn,
-  areaSetGroupCode: config.areaSetGroupCode,
-  calculationType: config.calculationType,
-  colorScheme: config.colorScheme,
-  reverseColorScheme: config.reverseColorScheme,
-  colorScaleType: config.colorScaleType,
-  customColor: config.customColor,
-  includeColumnsString: config.includeColumnsString,
-});
 
 // The live view-config fields a saved visualisation restores. Its boundaries
 // are skipped when the view's boundaries are locked, and for entries saved
@@ -82,15 +75,23 @@ export function useSavedVisualisations() {
   const lockedBoundary =
     viewConfig.lockedAreaSetGroupCode ?? viewConfig.areaSetGroupCode ?? null;
   const hasLive = Boolean(viewConfig.areaDataSourceId);
+  // The view's entry: by id, else (views from before the list was shared)
+  // the map's entry showing the same source and columns
+  const liveKey = getVisualisationKey(viewConfig);
   const activeId = hasLive
-    ? (viewConfig.activeVisualisationId ?? UNSAVED_ID)
+    ? viewConfig.activeVisualisationId &&
+      saved.some((item) => item.id === viewConfig.activeVisualisationId)
+      ? viewConfig.activeVisualisationId
+      : (saved.find((item) => getVisualisationKey(item) === liveKey)?.id ??
+        viewConfig.activeVisualisationId ??
+        UNSAVED_ID)
     : null;
 
   // The active entry's live settings. While boundaries are locked the live
   // boundaries are the view's, so the entry keeps its own for unlocking.
   const getLive = useCallback(
     (id: string): SavedVisualisation => {
-      const live = snapshot(viewConfig, id);
+      const live = snapshotVisualisation(viewConfig, id);
       if (!boundariesLocked) return live;
       const previous = saved.find((item) => item.id === id);
       return { ...live, areaSetGroupCode: previous?.areaSetGroupCode };
@@ -423,5 +424,74 @@ export function useSavedVisualisations() {
     setLockedBoundary,
     fitsLockedBoundary,
     getBoundariesFor,
+    saved,
+    getLive,
+    saveLive,
   };
+}
+
+/**
+ * Keeps the map's shared list in step with the visualisation that's on, so
+ * every view sees it (with its latest settings) as soon as it's made or
+ * changed, not only once another is chosen. Opening a view loads the
+ * list's settings for the one it has on; one deleted from the list in
+ * another view is turned off. Mount once.
+ */
+export function useSyncActiveVisualisation() {
+  const { view } = useMapViews();
+  const mapId = useMapId();
+  const { data: map } = useMapQuery(mapId);
+  const { isShared, updateConfig } = useAreaSettings();
+  const { activeId, boundariesLocked, saved, getLive, saveLive } =
+    useSavedVisualisations();
+  const last = useRef<{
+    viewId: string;
+    live: SavedVisualisation | null;
+  } | null>(null);
+  // After the views' own lists have been gathered into the map's
+  const ready = isShared && Boolean(map?.config.visualisationsMergedFromViews);
+
+  useEffect(() => {
+    if (!ready || !view) return;
+    const live = activeId ? getLive(activeId) : null;
+    const previous = last.current;
+    last.current = { viewId: view.id, live };
+    if (!activeId || !live) return;
+
+    const entry = saved.find((item) => item.id === activeId);
+    if (previous?.viewId !== view.id) {
+      if (!entry) {
+        updateConfig({
+          activeVisualisationId: undefined,
+          ...toLiveConfig(null),
+        });
+      } else if (!isSameVisualisation(entry, live)) {
+        updateConfig({
+          activeVisualisationId: entry.id,
+          ...toLiveConfig(entry, boundariesLocked),
+        });
+      }
+      return;
+    }
+
+    // Changed here (or just made): write it back to the list
+    if (entry && isSameVisualisation(entry, live)) return;
+    if (entry && previous?.live && isSameVisualisation(previous.live, live)) {
+      return;
+    }
+    const { list, id } = saveLive();
+    updateConfig({
+      savedVisualisations: list,
+      ...(id ? { activeVisualisationId: id } : {}),
+    });
+  }, [
+    activeId,
+    boundariesLocked,
+    getLive,
+    ready,
+    saveLive,
+    saved,
+    updateConfig,
+    view,
+  ]);
 }

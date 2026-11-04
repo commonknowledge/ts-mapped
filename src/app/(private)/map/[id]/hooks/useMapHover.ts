@@ -6,6 +6,7 @@ import {
   hoverMarkerAtom,
   hoverSecondaryAreaAtom,
 } from "../atoms/hoverAtoms";
+import { queryListsOnlyArea } from "../components/Choropleth/listsOnly";
 import { getClickedPolygonFeature } from "./useMapClick";
 import { useEditAreaMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
@@ -58,7 +59,56 @@ export function useMapHoverEffect({
     let hoveredFeatureId: string | number | undefined;
     let hoveredSecondaryFeatureId: string | number | undefined;
 
+    let hoveredListArea: {
+      source: string;
+      sourceLayer: string;
+      id: string;
+    } | null = null;
+
+    const clearListAreaHover = () => {
+      if (!hoveredListArea) return;
+      if (map.getSource(hoveredListArea.source)) {
+        map.setFeatureState(hoveredListArea, { hover: false });
+      }
+      hoveredListArea = null;
+      setHoverArea(null);
+    };
+
+    // With lists only on the map, their areas hover like any boundary
+    const handleHoverListArea = (e: mapboxgl.MapMouseEvent): boolean => {
+      const area = queryListsOnlyArea({ map, point: e.point });
+      if (!area) {
+        if (hoveredListArea) map.getCanvas().style.cursor = prevPointer.cursor;
+        clearListAreaHover();
+        return false;
+      }
+      if (
+        hoveredListArea?.id !== area.code ||
+        hoveredListArea.source !== area.source
+      ) {
+        clearListAreaHover();
+        hoveredListArea = {
+          source: area.source,
+          sourceLayer: area.sourceLayer,
+          id: area.code,
+        };
+        map.setFeatureState(hoveredListArea, { hover: true });
+        setHoverArea({
+          coordinates: [e.lngLat.lng, e.lngLat.lat],
+          areaSetCode: area.areaSetCode,
+          code: area.code,
+          name: area.name,
+        });
+      }
+      if (map.getCanvas().style.cursor !== "pointer") {
+        prevPointer.cursor = map.getCanvas().style.cursor || "";
+      }
+      map.getCanvas().style.cursor = "pointer";
+      return true;
+    };
+
     const clearAreaHover = () => {
+      clearListAreaHover();
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
           {
@@ -93,6 +143,10 @@ export function useMapHoverEffect({
       }
 
       if (handleHoverArea(e)) {
+        return;
+      }
+
+      if (handleHoverListArea(e)) {
         return;
       }
 

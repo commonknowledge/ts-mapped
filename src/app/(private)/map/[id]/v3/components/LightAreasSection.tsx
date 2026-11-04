@@ -137,7 +137,9 @@ export default function LightAreasSection() {
       {/* Shown once there's data (or boundaries chosen without it), then
           always, so the list doesn't jump; greyed out while the active
           visualisation is setting the boundaries */}
-      {(items.length > 0 || viewConfig.areaSetGroupCode) && (
+      {(items.length > 0 ||
+        viewConfig.areaSetGroupCode ||
+        viewConfig.boundariesListsOnly) && (
         // Headed like Visualisations and Lists: label, its action, then it
         <div className="mb-3 flex flex-col gap-1" data-tour="boundaries">
           <div className="flex items-center gap-1">

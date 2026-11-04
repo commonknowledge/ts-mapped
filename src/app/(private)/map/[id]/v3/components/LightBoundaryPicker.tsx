@@ -20,6 +20,7 @@ import GroupedSelectOptions from "./GroupedSelectOptions";
 import type { AreaSetGroupCode } from "@/models/AreaSet";
 
 const NONE = "none";
+const LISTS_ONLY = "lists-only";
 
 const isAreaSetGroupCode = (value: string): value is AreaSetGroupCode =>
   value in AreaSetGroupCodeLabels;
@@ -65,10 +66,17 @@ export default function LightBoundaryPicker({
       })).filter((group) => group.options.length > 0),
     [validCodes],
   );
+  const showNone = allowNone ?? !dataSource;
+  // Only on the view's own boundaries, as it's a view setting
+  const offerListsOnly = showNone && !onChange;
+  const isListsOnly =
+    offerListsOnly && !current && Boolean(viewConfig.boundariesListsOnly);
   const currentName = current
     ? (BOUNDARY_GROUPS.flatMap((g) => g.options).find((o) => o.code === current)
         ?.name ?? AreaSetGroupCodeLabels[current])
-    : "No boundaries";
+    : isListsOnly
+      ? "Lists only"
+      : "No boundaries";
 
   const isFiltered =
     Boolean(dataSource) &&
@@ -92,13 +100,16 @@ export default function LightBoundaryPicker({
       )}
       <Select
         disabled={disabled}
-        value={current ?? NONE}
+        value={current ?? (isListsOnly ? LISTS_ONLY : NONE)}
         onValueChange={(selected) => {
           const code = isAreaSetGroupCode(selected) ? selected : null;
           if (onChange) {
             onChange(code);
           } else {
-            updateViewConfig({ areaSetGroupCode: code });
+            updateViewConfig({
+              areaSetGroupCode: code,
+              boundariesListsOnly: selected === LISTS_ONLY,
+            });
           }
         }}
       >
@@ -110,13 +121,18 @@ export default function LightBoundaryPicker({
           <SelectValue>{currentName}</SelectValue>
         </SelectTrigger>
         <SelectContent className="max-h-[min(28rem,var(--radix-select-content-available-height))] max-w-80">
-          {(allowNone ?? !dataSource) && (
+          {showNone && (
             <SelectItem value={NONE} className="text-xs">
               No boundaries
             </SelectItem>
           )}
+          {offerListsOnly && (
+            <SelectItem value={LISTS_ONLY} className="text-xs">
+              Lists only
+            </SelectItem>
+          )}
           <GroupedSelectOptions
-            separateFirst={allowNone ?? !dataSource}
+            separateFirst={showNone}
             groups={groups.map((group) => ({
               label: group.label,
               options: group.options.map((option) => ({

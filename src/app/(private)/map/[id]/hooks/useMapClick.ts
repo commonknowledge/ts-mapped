@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { type SelectedArea } from "@/app/(private)/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
+import { queryListsOnlyArea } from "../components/Choropleth/listsOnly";
 import { useInspectorActiveSource } from "./useInspectorActiveSource";
 import { usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
@@ -96,6 +97,11 @@ export function useMapClickEffect({
   useEffect(() => {
     selectedAreasRef.current = selectedAreas;
   }, [selectedAreas]);
+
+  const selectedCodeRef = useRef(selectedBoundary?.code);
+  useEffect(() => {
+    selectedCodeRef.current = selectedBoundary?.code;
+  }, [selectedBoundary?.code]);
 
   // Update feature states for selected areas
   useEffect(() => {
@@ -432,6 +438,24 @@ export function useMapClickEffect({
       return false;
     };
 
+    // With lists only on the map, their areas open like any boundary
+    const handleListsOnlyClick = (e: mapboxgl.MapMouseEvent): boolean => {
+      const area = queryListsOnlyArea({ map, point: e.point });
+      if (!area) return false;
+      resetInspector();
+      // Clicking the open area again closes it
+      if (selectedCodeRef.current === area.code) return true;
+      setSelectedBoundary({
+        id: area.code,
+        code: area.code,
+        areaSetCode: area.areaSetCode,
+        sourceLayerId: area.sourceLayer,
+        name: area.name,
+        properties: area.feature.properties || null,
+      });
+      return true;
+    };
+
     const onClick = (e: mapboxgl.MapMouseEvent) => {
       if (currentModeRef.current === "draw_polygon" || pinDropModeRef.current) {
         return;
@@ -444,6 +468,10 @@ export function useMapClickEffect({
       }
 
       if (handleAreaClick(e)) {
+        return;
+      }
+
+      if (handleListsOnlyClick(e)) {
         return;
       }
 

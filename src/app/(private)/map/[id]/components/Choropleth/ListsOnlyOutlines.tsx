@@ -1,0 +1,120 @@
+import { Layer, Source } from "react-map-gl/mapbox";
+import { MapType } from "@/models/MapView";
+import { useAreaListVisibility, useAreaLists } from "../../hooks/useAreaLists";
+import { useInspectorState } from "../../hooks/useInspectorState";
+import { useMapMode } from "../../hooks/useMapCore";
+import { useMapViews } from "../../hooks/useMapViews";
+import { getSecondaryAreaSetConfig } from "./configs";
+import { listsOnlyFillLayerId, listsOnlySourceId } from "./listsOnly";
+
+/**
+ * With "Lists only" boundaries, each shown list outlined in its colour on
+ * its own boundary set, with no other boundaries drawn. Its areas can be
+ * hovered and clicked open in the inspector.
+ */
+export default function ListsOnlyOutlines({ beforeId }: { beforeId: string }) {
+  const mapMode = useMapMode();
+  const { viewConfig } = useMapViews();
+  const { lists } = useAreaLists();
+  const { isVisible } = useAreaListVisibility();
+  const { selectedBoundary } = useInspectorState();
+  if (
+    mapMode !== "private" ||
+    viewConfig.areaSetGroupCode ||
+    !viewConfig.boundariesListsOnly ||
+    viewConfig.mapType === MapType.Hex
+  ) {
+    return null;
+  }
+
+  const shown = lists.filter(
+    (list) => isVisible(list.id) && list.areas.length > 0,
+  );
+  // One source per boundary set, shared by its lists
+  const sources = [...new Set(shown.map((list) => list.areaSetCode))].flatMap(
+    (areaSetCode) => {
+      const config = getSecondaryAreaSetConfig({
+        areaSetCode,
+        mapType: viewConfig.mapType,
+      });
+      return config
+        ? [
+            {
+              areaSetCode,
+              config,
+              lists: shown.filter((list) => list.areaSetCode === areaSetCode),
+            },
+          ]
+        : [];
+    },
+  );
+
+  return sources.map(({ areaSetCode, config: { mapbox }, lists: setLists }) => {
+    const sourceId = listsOnlySourceId(areaSetCode);
+    const codeProperty = mapbox.featureCodeProperty;
+    const selectedCode =
+      selectedBoundary?.areaSetCode === areaSetCode
+        ? selectedBoundary.code
+        : "";
+    return (
+      <Source
+        key={sourceId}
+        id={sourceId}
+        type="vector"
+        url={`mapbox://${mapbox.sourceId}`}
+        promoteId={codeProperty}
+      >
+        {/* Invisible except on hover, so the list's areas can be clicked */}
+        <Layer
+          id={listsOnlyFillLayerId(areaSetCode)}
+          beforeId={beforeId}
+          source={sourceId}
+          source-layer={mapbox.layerId}
+          type="fill"
+          filter={[
+            "in",
+            ["get", codeProperty],
+            [
+              "literal",
+              setLists.flatMap((list) => list.areas.map((a) => a.code)),
+            ],
+          ]}
+          paint={{
+            "fill-color": "#000000",
+            "fill-opacity": [
+              "case",
+              ["boolean", ["feature-state", "hover"], false],
+              0.15,
+              0,
+            ],
+          }}
+        />
+        {setLists.map((list) => (
+          <Layer
+            key={list.id}
+            id={`${sourceId}-${list.id}`}
+            beforeId={beforeId}
+            source={sourceId}
+            source-layer={mapbox.layerId}
+            type="line"
+            filter={[
+              "in",
+              ["get", codeProperty],
+              ["literal", list.areas.map((area) => area.code)],
+            ]}
+            paint={{
+              "line-color": list.color,
+              "line-width": [
+                "case",
+                ["==", ["get", codeProperty], selectedCode],
+                4,
+                2.5,
+              ],
+            }}
+            layout={{ "line-cap": "round", "line-join": "round" }}
+          />
+        ))}
+      </Source>
+    );
+  });
+}

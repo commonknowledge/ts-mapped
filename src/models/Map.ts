@@ -50,6 +50,9 @@ export const mapConfigSchema = z.object({
   // view of the map (each view keeps which visualisation is on). Same
   // shapes as the view config fields of the same names.
   savedVisualisations: z.array(savedVisualisationSchema).optional(),
+  // Set once every view's visualisations have been gathered into the
+  // map's list, so deleting one later doesn't bring it back
+  visualisationsMergedFromViews: z.boolean().optional(),
   // Overlay boundary sets; each view keeps which are visible
   overlayBoundaries: z.array(overlayBoundarySchema).optional(),
   inspectorHiddenDataSourceIds: z.array(z.string()).optional(),

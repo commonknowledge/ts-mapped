@@ -34,6 +34,7 @@ import {
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useGoToArea } from "../../hooks/useGoToArea";
 import { useInspectorState } from "../../hooks/useInspectorState";
+import { useMapViews } from "../../hooks/useMapViews";
 import type { AreaList } from "@/models/Map";
 
 /**
@@ -88,8 +89,10 @@ function AreaListRow({ list }: { list: AreaList }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const visible = isVisible(list.id);
+  const { viewConfig } = useMapViews();
   const isOnTheseBoundaries =
-    list.areaSetCode === choroplethLayerConfig.areaSetCode;
+    list.areaSetCode === choroplethLayerConfig.areaSetCode ||
+    (!viewConfig.areaSetGroupCode && Boolean(viewConfig.boundariesListsOnly));
 
   // Each area with the figure on the map, highest first, when the map is
   // on the list's boundaries

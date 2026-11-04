@@ -181,19 +181,11 @@ export const mapRouter = router({
     .mutation(async ({ input }) => {
       const { mapId, config: mapConfig } = input;
 
+      // Everything the schema allows (it strips anything else), so new
+      // map settings are saved without being listed here as well
       const config = {
+        ...mapConfig,
         markerDataSourceIds: mapConfig.markerDataSourceIds?.filter(Boolean),
-        membersDataSourceId: mapConfig.membersDataSourceId,
-        placedMarkerColors: mapConfig.placedMarkerColors,
-        folderColors: mapConfig.folderColors,
-        turfColor: mapConfig.turfColor,
-        savedVisualisations: mapConfig.savedVisualisations,
-        overlayBoundaries: mapConfig.overlayBoundaries,
-        inspectorHiddenDataSourceIds: mapConfig.inspectorHiddenDataSourceIds,
-        inspectorExtraDataSourceIds: mapConfig.inspectorExtraDataSourceIds,
-        inspectorAutoDataSourceIds: mapConfig.inspectorAutoDataSourceIds,
-        inspectorOrderCustomised: mapConfig.inspectorOrderCustomised,
-        inspectorRecordNameColumns: mapConfig.inspectorRecordNameColumns,
       } as z.infer<typeof mapConfigSchema>;
 
       return updateMap(mapId, { config });

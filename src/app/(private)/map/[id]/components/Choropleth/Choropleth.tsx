@@ -6,6 +6,7 @@ import { DEFAULT_FILL_COLOR } from "../../constants";
 import { mapColors } from "../../styles";
 import { getMapStyle } from "../../utils/map";
 import AreaListOutlines from "./AreaListOutlines";
+import ListsOnlyOutlines from "./ListsOnlyOutlines";
 import {
   useChoroplethFeatureStatesEffect,
   useChoroplethFillColor,
@@ -207,6 +208,7 @@ export default function Choropleth() {
           />
         </Source>
       )}
+      <ListsOnlyOutlines beforeId={`${choroplethTopLayerId}-line`} />
     </>
   );
 }

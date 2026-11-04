@@ -3,7 +3,9 @@
 import { useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useCallback, useEffect, useMemo } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { areasSharedAcrossViewsAtom } from "../atoms/mapStateAtoms";
+import { mergeViewVisualisations } from "../utils/mapView";
 import { useMapConfig } from "./useMapConfig";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
@@ -96,9 +98,11 @@ export function useAreaSettings() {
 }
 
 /**
- * The first time a map's views share their settings, the map takes them
- * from the view that's open, so every view shows the same list at once
- * rather than after the first change. Mount once.
+ * Makes the map's list the list of every view: the first time a map's
+ * views share their settings it takes them from the view that's open, and
+ * the visualisations from all its views (each's saved ones and the one it
+ * has on), so every view shows the same list at once. Maps that took only
+ * one view's are repaired the same way. Mount once.
  */
 export function useAdoptViewAreaSettings() {
   const isShared = useAtomValue(areasSharedAcrossViewsAtom);
@@ -107,22 +111,50 @@ export function useAdoptViewAreaSettings() {
   const { viewConfig, view } = useMapViews();
   const { updateMapConfig } = useMapConfig();
 
-  const needsAdopting =
-    isShared &&
-    Boolean(map) &&
-    Boolean(view) &&
-    map?.config.savedVisualisations === undefined;
+  const mapList = map?.config.savedVisualisations;
+  const views = map?.views;
+  const merged = useMemo(
+    () =>
+      views
+        ? mergeViewVisualisations({
+            mapList: mapList ?? [],
+            views: views.map((v) => v.config),
+            newId: uuidv4,
+          })
+        : null,
+    [mapList, views],
+  );
+  const isFirstTime = mapList === undefined;
+  // Once per map: after that, a visualisation deleted from the list stays
+  // gone even if a view still had it on
+  const needsMerging = !map?.config.visualisationsMergedFromViews;
 
   useEffect(() => {
-    if (!needsAdopting) return;
-    updateMapConfig({
-      savedVisualisations: viewConfig.savedVisualisations ?? [],
-      overlayBoundaries: viewConfig.overlayBoundaries,
-      inspectorHiddenDataSourceIds: viewConfig.inspectorHiddenDataSourceIds,
-      inspectorExtraDataSourceIds: viewConfig.inspectorExtraDataSourceIds,
-      inspectorAutoDataSourceIds: viewConfig.inspectorAutoDataSourceIds,
-      inspectorOrderCustomised: viewConfig.inspectorOrderCustomised,
-      inspectorRecordNameColumns: viewConfig.inspectorRecordNameColumns,
-    });
-  }, [needsAdopting, updateMapConfig, viewConfig]);
+    if (!isShared || !map || !view || !merged) return;
+    if (!needsMerging) return;
+    updateMapConfig(
+      isFirstTime
+        ? {
+            savedVisualisations: merged,
+            visualisationsMergedFromViews: true,
+            overlayBoundaries: viewConfig.overlayBoundaries,
+            inspectorHiddenDataSourceIds:
+              viewConfig.inspectorHiddenDataSourceIds,
+            inspectorExtraDataSourceIds: viewConfig.inspectorExtraDataSourceIds,
+            inspectorAutoDataSourceIds: viewConfig.inspectorAutoDataSourceIds,
+            inspectorOrderCustomised: viewConfig.inspectorOrderCustomised,
+            inspectorRecordNameColumns: viewConfig.inspectorRecordNameColumns,
+          }
+        : { savedVisualisations: merged, visualisationsMergedFromViews: true },
+    );
+  }, [
+    isFirstTime,
+    isShared,
+    map,
+    merged,
+    needsMerging,
+    updateMapConfig,
+    view,
+    viewConfig,
+  ]);
 }

@@ -270,6 +270,9 @@ export const mapViewConfigSchema = z.object({
   // The boundaries chosen while locked. The live areaSetGroupCode uses them
   // when the active data fits, otherwise the closest level that does.
   lockedAreaSetGroupCode: areaSetGroupCode.nullish(),
+  // With no boundaries, still outline the shown lists on their own
+  // boundaries
+  boundariesListsOnly: z.boolean().optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
