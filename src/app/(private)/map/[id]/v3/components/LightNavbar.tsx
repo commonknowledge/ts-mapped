@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { InfoIcon, PanelLeftIcon } from "lucide-react";
+import { CompassIcon, InfoIcon, PanelLeftIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -23,6 +23,7 @@ import { useMapQuery } from "../../hooks/useMapQuery";
 import { useViewId } from "../../hooks/useMapViews";
 import { useSyncMapModeToUrlEffect } from "../../hooks/useSyncMapModeToUrl";
 import { useSyncViewIdToUrlEffect } from "../../hooks/useSyncViewIdToUrl";
+import { useTour, useTutorialMap } from "../hooks/useTour";
 import LightViewTabs from "./LightViewTabs";
 
 const SearchBox = dynamic(
@@ -38,6 +39,8 @@ export default function LightNavbar() {
   const viewId = useViewId();
   const { data: map } = useMapQuery(mapId);
   const openInfoPopup = useOpenInfoPopup();
+  const { start: startTour } = useTour();
+  const { isTutorialMap } = useTutorialMap();
   const [showControls, setShowControls] = useShowControlsAtom();
   const { setBoundariesPanelOpen } = useChoropleth();
   const toggleLayers = () => {
@@ -159,6 +162,18 @@ export default function LightNavbar() {
         >
           <InfoIcon className="size-4" />
         </Button>
+        {isTutorialMap && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 text-neutral-500"
+            onClick={startTour}
+            title="Take the tour from the start"
+            aria-label="Take the tour"
+          >
+            <CompassIcon className="size-4" />
+          </Button>
+        )}
       </div>
 
       <div className="mx-2 h-5 w-px shrink-0 bg-neutral-200" />

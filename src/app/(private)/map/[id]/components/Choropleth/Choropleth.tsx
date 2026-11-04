@@ -2,12 +2,15 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { MapType } from "@/models/MapView";
+import { DEFAULT_FILL_COLOR } from "../../constants";
 import { mapColors } from "../../styles";
 import { getMapStyle } from "../../utils/map";
+import AreaListOutlines from "./AreaListOutlines";
 import {
   useChoroplethFeatureStatesEffect,
   useChoroplethFillColor,
 } from "./useChoroplethColors";
+import { useChoroplethCrossfade } from "./useChoroplethCrossfade";
 
 export default function Choropleth() {
   const { viewConfig } = useMapViews();
@@ -27,6 +30,12 @@ export default function Choropleth() {
   const interactionSourceKey = `${layerId}-interaction`;
 
   useChoroplethFeatureStatesEffect();
+  useChoroplethCrossfade({
+    fillColor,
+    mainLayerId: `${sourceId}-fill`,
+    previousLayerId: `${sourceId}-fill-previous`,
+    opacity: viewConfig.showChoropleth ? opacity : 0,
+  });
 
   return (
     <>
@@ -67,6 +76,17 @@ export default function Choropleth() {
               "fill-color": fillColor,
               "fill-opacity": viewConfig.showChoropleth ? opacity : 0,
             }}
+          />
+
+          {/* The previous view's colours, fading out over the new ones.
+              Painted by useChoroplethCrossfade; hidden otherwise */}
+          <Layer
+            id={`${sourceId}-fill-previous`}
+            beforeId={choroplethTopLayerId}
+            source={sourceId}
+            source-layer={layerId}
+            type="fill"
+            paint={{ "fill-color": DEFAULT_FILL_COLOR, "fill-opacity": 0 }}
           />
 
           {/* Symbol Layer (Labels) */}
@@ -178,6 +198,12 @@ export default function Choropleth() {
                 0,
               ],
             }}
+          />
+          {/* Lists of key areas, outlined over everything else */}
+          <AreaListOutlines
+            sourceId={interactionSourceId}
+            sourceLayer={layerId}
+            codeProperty={featureCodeProperty}
           />
         </Source>
       )}

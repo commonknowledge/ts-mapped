@@ -23,6 +23,26 @@ const COORDINATE =
 const ONS_CODE = /^[EWSNKL]\d{8}$/;
 const ID_VALUE = /^[A-Z0-9_-]*\d[A-Z0-9_-]*$/i;
 
+// Column names that are periods: "Jan 2019", "January 2019", "2019",
+// "2019-04", "Q1 2019", "2019 Q1"
+const PERIOD_NAME =
+  /^((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.? \d{4}|\d{4}(-\d{2})?|q[1-4] \d{4}|\d{4} q[1-4])$/i;
+/** Names of columns that identify or locate a record rather than describe
+ *  it (ids, codes, coordinates, unnamed spreadsheet columns) */
+export const isIdentifierColumnName = (name: string) => {
+  const trimmed = name.trim();
+  return (
+    ID_NAME.test(trimmed) ||
+    ONS_FIELD.test(trimmed) ||
+    UNNAMED.test(trimmed) ||
+    COORDINATE.test(trimmed)
+  );
+};
+
+/** Names of columns that are a period: "Jan 2019", "2019 Q1" */
+export const isPeriodColumnName = (name: string) =>
+  PERIOD_NAME.test(name.trim());
+
 const PERCENT_NAME = /(%|pct|percent|share|proportion|rate|ratio)/i;
 const SCALE_NAME = /(score|rating|level|rank|decile|quintile|quartile|band)/i;
 const BOOLEAN_VALUES = new Set(["true", "false", "yes", "no", "y", "n"]);
@@ -35,6 +55,8 @@ export interface AutoScanResult {
   layoutItems: InspectorItem[];
   /** Party columns grouped into the bar chart, if any */
   chartedColumns: number;
+  /** Period columns grouped into a line over time, if any */
+  timeSeriesColumns: number;
   layout: "single" | "twoColumn";
   /** Semantic types worth recording so percentages display as such */
   metadataPatches: { column: string; semanticType: ColumnSemanticType }[];
@@ -223,43 +245,74 @@ export const scanInspectorColumns = ({
 
   const sorted = kept.sort((a, b) => a.rank - b.rank).map((k) => k.item);
 
-  // Three or more party shares read best as one ranking: they go last, under
-  // a bar chart divider, and aren't pinned (the chart shows them all)
+  // Three or more party shares read best as one ranking (a bar chart), and
+  // four or more numeric periods ("Jan 2019", "2020", "2021-04") as one
+  // line over time. Each group goes last, under its chart divider, unpinned
+  // (the chart shows them all); periods stay in the source's column order.
   const isPartyShare = (item: ColumnItem) =>
     item.barColor === SMART_MATCH_BAR_COLOR_VALUE &&
     item.displayFormat === ColumnDisplayFormat.Percentage;
+  const isPeriod = (item: ColumnItem) =>
+    PERIOD_NAME.test(item.name.trim()) &&
+    item.displayFormat !== ColumnDisplayFormat.Text &&
+    item.displayFormat !== ColumnDisplayFormat.LargeText &&
+    item.displayFormat !== ColumnDisplayFormat.Boolean;
   const parties = sorted.filter(isPartyShare);
-  const charted = parties.length >= 3;
-  const items = charted
-    ? [
-        ...sorted.filter((item) => !isPartyShare(item)),
-        ...parties.map((item) => ({ ...item, pinned: undefined })),
-      ]
-    : sorted;
-  const layoutItems: InspectorItem[] = charted
-    ? [
-        ...items.slice(0, items.length - parties.length),
-        {
-          type: "divider",
-          id: uuidv4(),
-          label: "Vote share",
-          display: "barChart",
-        },
-        ...items.slice(items.length - parties.length),
-        // Closes the chart, so columns added later show as rows
-        { type: "divider", id: uuidv4(), label: "", display: "chartEnd" },
-      ]
-    : items;
+  const periodNames = columnDefs.map((col) => col.name);
+  const periods = sorted
+    .filter((item) => isPeriod(item) && !isPartyShare(item))
+    .sort((a, b) => periodNames.indexOf(a.name) - periodNames.indexOf(b.name));
+  const groups = [
+    {
+      label: "Vote share",
+      display: "barChart" as const,
+      items: parties,
+      min: 3,
+    },
+    {
+      label: "Over time",
+      display: "lineChart" as const,
+      items: periods,
+      min: 4,
+    },
+  ].filter((group) => group.items.length >= group.min);
+  const grouped = new Set(groups.flatMap((group) => group.items));
+  const unpin = (item: ColumnItem): ColumnItem => ({
+    ...item,
+    pinned: undefined,
+  });
+
+  const items = [
+    ...sorted.filter((item) => !grouped.has(item)),
+    ...groups.flatMap((group) => group.items.map(unpin)),
+  ];
+  const layoutItems: InspectorItem[] = [
+    ...sorted.filter((item) => !grouped.has(item)),
+    ...groups.flatMap((group): InspectorItem[] => [
+      {
+        type: "divider",
+        id: uuidv4(),
+        label: group.label,
+        display: group.display,
+      },
+      ...group.items.map(unpin),
+      // Closes the chart, so columns added later show as rows
+      { type: "divider", id: uuidv4(), label: "", display: "chartEnd" },
+    ]),
+  ];
   const shortItems = items.filter(
     (i) =>
       i.displayFormat !== ColumnDisplayFormat.LargeText &&
-      !(charted && isPartyShare(i)),
+      !grouped.has(sorted.find((s) => s.name === i.name) ?? i),
   );
+  const charted = groups.find((group) => group.display === "barChart");
+  const timeSeries = groups.find((group) => group.display === "lineChart");
 
   return {
     items,
     layoutItems,
-    chartedColumns: charted ? parties.length : 0,
+    chartedColumns: charted ? charted.items.length : 0,
+    timeSeriesColumns: timeSeries ? timeSeries.items.length : 0,
     layout: shortItems.length > 4 ? "twoColumn" : "single",
     metadataPatches,
     hidden,

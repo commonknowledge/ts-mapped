@@ -130,6 +130,12 @@ export default function SortableFolderItem({
   };
 
   const [isExpanded, setExpanded] = useState(false);
+  // Opens when something is added, so you see it land
+  const [itemCount, setItemCount] = useState(markers.length + turfs.length);
+  if (markers.length + turfs.length !== itemCount) {
+    if (markers.length + turfs.length > itemCount) setExpanded(true);
+    setItemCount(markers.length + turfs.length);
+  }
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(folder.name);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);

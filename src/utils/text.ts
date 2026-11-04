@@ -66,3 +66,11 @@ export const formatNumber = (v: number): string => {
 
   return sign + to3sf(av);
 };
+
+// 1st, 2nd, 3rd, 4th … 11th, 12th, 13th, 21st
+export const ordinal = (n: number) => {
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  const suffix = ["th", "st", "nd", "rd"][n % 10] ?? "th";
+  return `${n}${suffix}`;
+};

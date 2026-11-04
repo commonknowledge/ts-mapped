@@ -3,16 +3,16 @@
 import { useDataSources } from "@/hooks/useDataSources";
 import { mapColors } from "../styles";
 import { useMapConfig } from "./useMapConfig";
-import { useMapViews } from "./useMapViews";
+import { useMarkerColors } from "./useMarkerColors";
 
 /**
  * The colour a data source's markers are drawn in, or null when it isn't a
- * member or marker layer on this map: the view's override, then the data
+ * member or marker layer on this map: the map's colour, then the data
  * source default, then the member / marker layer colour.
  */
 export function useMarkerLayerColor(dataSourceId: string | null | undefined) {
   const { mapConfig } = useMapConfig();
-  const { viewConfig } = useMapViews();
+  const { markerColors } = useMarkerColors();
   const { getDataSourceById } = useDataSources();
 
   if (!dataSourceId) return null;
@@ -21,7 +21,7 @@ export function useMarkerLayerColor(dataSourceId: string | null | undefined) {
   if (!isMembers && !isMarkers) return null;
 
   return (
-    viewConfig.markerColors?.[dataSourceId] ??
+    markerColors[dataSourceId] ??
     getDataSourceById(dataSourceId)?.defaultMarkerColor ??
     (isMembers ? mapColors.member.color : mapColors.markers.color)
   );

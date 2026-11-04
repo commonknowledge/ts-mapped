@@ -26,7 +26,10 @@ import {
   getOrderedSizeFactors,
 } from "../Markers/markerStyle";
 import MarkerShapeIcon from "../MarkerShapeIcon";
+import OnMapBadge from "../OnMapBadge";
+import InspectorFieldMenu from "./InspectorFieldMenu";
 import { getBarColorForLabel } from "./inspectorPanelOptions";
+import { useInspectorVariant } from "./InspectorVariantContext";
 import { PropertyLabel } from "./PropertyLabel";
 import type { ColumnMetadata } from "@/models/DataSource";
 import type { InspectorColumn } from "@/models/shared";
@@ -543,16 +546,25 @@ function DataRecordColumnItem({
   column,
   json,
   dataSourceId,
+  interactive,
 }: {
   column: string;
   json: Record<string, unknown>;
   dataSourceId: string | undefined;
+  interactive: boolean;
 }) {
   const inspectorColumn = useInspectorColumn(dataSourceId, column);
+  const { variant } = useInspectorVariant();
+  const { viewConfig } = useMapViews();
   const isLargeText =
     inspectorColumn?.displayFormat === ColumnDisplayFormat.LargeText;
-  return (
-    <div className={cn("min-w-0", isLargeText && "col-span-2")}>
+  const isOnMap =
+    variant === "light" &&
+    viewConfig.areaDataSourceId === dataSourceId &&
+    viewConfig.areaDataColumn === column;
+
+  const content = (
+    <>
       <PropertyLabel column={column} dataSourceId={dataSourceId} />
       <dd className="min-w-0 whitespace-normal break-words">
         <DataRecordPropertyValue
@@ -561,7 +573,20 @@ function DataRecordColumnItem({
           dataSourceId={dataSourceId}
         />
       </dd>
-    </div>
+      {isOnMap && <OnMapBadge className="mt-1.5" />}
+    </>
+  );
+  const className = cn("min-w-0", isLargeText && "col-span-2");
+  if (!interactive) return <div className={className}>{content}</div>;
+  return (
+    <InspectorFieldMenu
+      dataSourceId={dataSourceId}
+      column={column}
+      // The hover highlight reaches past the text without moving it
+      className={cn(className, "-mx-1.5 -my-1 px-1.5 py-1")}
+    >
+      {content}
+    </InspectorFieldMenu>
   );
 }
 
@@ -569,10 +594,13 @@ export default function DataRecordColumns({
   columns,
   json,
   dataSourceId,
+  interactive = true,
 }: {
   columns?: string[];
   json: Record<string, unknown>;
   dataSourceId: string | undefined;
+  /** Off where the caller makes the whole field interactive itself */
+  interactive?: boolean;
 }) {
   const safeColumns = columns ?? Object.keys(json);
   return (
@@ -583,6 +611,7 @@ export default function DataRecordColumns({
           column={column}
           json={json}
           dataSourceId={dataSourceId}
+          interactive={interactive}
         />
       ))}
     </>

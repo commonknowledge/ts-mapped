@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { AreaSetCode } from "@/models/AreaSet";
 import { CHOROPLETH_AREA_SET_CODES } from "../components/Choropleth/configs";
+import { useAreaSettings } from "./useAreaSettings";
 import { useMapViews } from "./useMapViews";
 import type { OverlayBoundary } from "@/models/MapView";
 
@@ -11,16 +12,20 @@ import type { OverlayBoundary } from "@/models/MapView";
 const LEGACY_ID = "legacy";
 
 /**
- * The view's overlay boundaries: any number of outline-only boundary sets,
- * each with its own colour and visibility. The first visible one is kept in
- * secondaryAreaSetCode / secondaryBoundaryStrokeColor, so hover, the
- * inspector and the classic editor still see a single overlay.
+ * The overlay boundaries: any number of outline-only boundary sets, each
+ * with its own colour and visibility. In the light editor the list is the
+ * map's, shared by its views, and only visibility is per view. The first
+ * visible one is kept in secondaryAreaSetCode / secondaryBoundaryStrokeColor,
+ * so hover, the inspector and the classic editor still see a single overlay.
  */
 export function useOverlayBoundaries() {
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { viewConfig } = useMapViews();
+  const { areaSettings, updateConfig, isShared } = useAreaSettings();
+  const visibility = viewConfig.overlayBoundaryVisibility;
 
-  const items = useMemo((): OverlayBoundary[] => {
-    if (viewConfig.overlayBoundaries) return viewConfig.overlayBoundaries;
+  // The list as stored, without this view's visibility
+  const stored = useMemo((): OverlayBoundary[] => {
+    if (areaSettings.overlayBoundaries) return areaSettings.overlayBoundaries;
     if (!viewConfig.secondaryAreaSetCode) return [];
     return [
       {
@@ -31,22 +36,48 @@ export function useOverlayBoundaries() {
       },
     ];
   }, [
-    viewConfig.overlayBoundaries,
+    areaSettings.overlayBoundaries,
     viewConfig.secondaryAreaSetCode,
     viewConfig.secondaryBoundaryStrokeColor,
   ]);
 
-  // Saves the list and the mirrored single overlay in one update
+  const items = useMemo(
+    () =>
+      isShared
+        ? stored.map((item) => ({
+            ...item,
+            visible: visibility?.[item.id] ?? item.visible,
+          }))
+        : stored,
+    [isShared, stored, visibility],
+  );
+
+  // Saves the list, this view's visibility and the mirrored single overlay
+  // in one update (split between map and view when shared)
   const save = useCallback(
     (list: OverlayBoundary[]) => {
       const primary = list.find((item) => item.visible) ?? null;
-      updateViewConfig({
-        overlayBoundaries: list,
+      updateConfig({
+        overlayBoundaries: isShared
+          ? list.map((item) => ({
+              ...item,
+              // The shared default for views that haven't chosen
+              visible:
+                stored.find((s) => s.id === item.id)?.visible ?? item.visible,
+            }))
+          : list,
+        ...(isShared
+          ? {
+              overlayBoundaryVisibility: Object.fromEntries(
+                list.map((item) => [item.id, item.visible]),
+              ),
+            }
+          : {}),
         secondaryAreaSetCode: primary?.areaSetCode ?? null,
         secondaryBoundaryStrokeColor: primary?.color ?? null,
       });
     },
-    [updateViewConfig],
+    [isShared, stored, updateConfig],
   );
 
   const add = useCallback(() => {

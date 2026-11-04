@@ -1,7 +1,9 @@
 import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/models/MapView";
+import { useInspectedAreaList } from "../hooks/useAreaLists";
 import { useChoropleth } from "../hooks/useChoropleth";
+import { useInspectorState } from "../hooks/useInspectorState";
 import { useMapControls, useShowControls } from "../hooks/useMapControls";
 import { useDrawMode, useMapBottomPadding } from "../hooks/useMapCore";
 import { useMapViews } from "../hooks/useMapViews";
@@ -10,6 +12,7 @@ import {
   VISUALISATION_PANEL_WIDTH,
   mapColors,
 } from "../styles";
+import AreaListInspector from "./AreaList/AreaListInspector";
 import BoundaryHoverInfo from "./BoundaryHoverInfo/BoundaryHoverInfo";
 import InspectorPanel from "./InspectorPanel/InspectorPanel";
 import MapStyleSelector from "./MapStyleSelector";
@@ -26,6 +29,15 @@ export default function PrivateMapControls() {
     useMapControls();
 
   const currentMode = pinDropMode ? "pin_drop" : drawMode;
+
+  // An open list shows in the inspector's place until something on the
+  // map is selected, which shows over it with a link back
+  const { list: inspectedList } = useInspectedAreaList();
+  const { selectedBoundary, selectedTurf, selectedRecords } =
+    useInspectorState();
+  const hasSelection = Boolean(
+    selectedBoundary || selectedTurf || selectedRecords.length,
+  );
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
@@ -90,7 +102,11 @@ export default function PrivateMapControls() {
         }}
       >
         <BoundaryHoverInfo />
-        <InspectorPanel />
+        {inspectedList && !hasSelection ? (
+          <AreaListInspector list={inspectedList} />
+        ) : (
+          <InspectorPanel />
+        )}
       </div>
 
       <div
@@ -120,6 +136,7 @@ export default function PrivateMapControls() {
 
       {message && (
         <div
+          data-tour="map-message"
           className="absolute left-1/2 z-10 transition-transform duration-300"
           style={{
             ...absolutelyCenter,

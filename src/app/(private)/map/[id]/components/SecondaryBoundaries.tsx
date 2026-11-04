@@ -1,5 +1,6 @@
 import { Layer, Source } from "react-map-gl/mapbox";
 import { useMapViews } from "../hooks/useMapViews";
+import { useOverlayBoundaries } from "../hooks/useOverlayBoundaries";
 import { useSecondaryAreaSetConfig } from "../hooks/useSecondaryAreaSet";
 import { DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR } from "../styles";
 import { getSecondaryAreaSetConfig } from "./Choropleth/configs";
@@ -39,9 +40,9 @@ export default function SecondaryBoundaries() {
 // secondaryAreaSetCode, as hover and the inspector rely on its layer ids)
 function ExtraOverlays() {
   const { viewConfig } = useMapViews();
-  const extras = (viewConfig.overlayBoundaries ?? [])
-    .filter((overlay) => overlay.visible)
-    .slice(1);
+  // The overlays as this view sees them (shared list, its own visibility)
+  const { items } = useOverlayBoundaries();
+  const extras = items.filter((overlay) => overlay.visible).slice(1);
 
   return (
     <>

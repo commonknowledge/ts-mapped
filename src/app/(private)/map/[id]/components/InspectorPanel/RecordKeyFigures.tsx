@@ -6,6 +6,7 @@ import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSource
 import { useMapViews } from "../../hooks/useMapViews";
 import ConfiguredDataRecordDisplay from "./ConfiguredDataRecordDisplay";
 import DataRecordColumns from "./DataRecordColumns";
+import InspectorFieldMenu from "./InspectorFieldMenu";
 import type { InspectorItem } from "@/models/shared";
 
 const hasValue = (value: unknown) =>
@@ -48,21 +49,24 @@ export default function RecordKeyFigures({
           title="Pinned in the section editor"
         >
           {keyColumns.map((column) => (
-            <div
+            <InspectorFieldMenu
               key={column}
+              dataSourceId={dataSourceId}
+              column={column}
               className={cn(
                 "min-w-0 rounded-lg px-2.5 py-2",
                 column === activeColumn
-                  ? "bg-white shadow-[inset_0_0_0_1.5px_#15213b]"
-                  : "bg-neutral-50 shadow-[inset_0_0_0_1px_#ececec]",
+                  ? "bg-white shadow-[inset_0_0_0_1.5px_#15213b] hover:bg-white"
+                  : "bg-neutral-50 shadow-[inset_0_0_0_1px_#ececec] hover:bg-white hover:shadow-[inset_0_0_0_1px_#d4d4d4] data-[state=open]:bg-white",
               )}
             >
               <DataRecordColumns
                 columns={[column]}
                 json={json}
                 dataSourceId={dataSourceId}
+                interactive={false}
               />
-            </div>
+            </InspectorFieldMenu>
           ))}
         </dl>
       )}

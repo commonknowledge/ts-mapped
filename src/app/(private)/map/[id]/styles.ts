@@ -87,7 +87,7 @@ export const mapColors: Record<
     color: "#FF6B6B",
   },
   areas: {
-    name: "Areas",
+    name: "Custom areas",
     color: "#91E17E",
     textColor: "#4DAB37",
   },

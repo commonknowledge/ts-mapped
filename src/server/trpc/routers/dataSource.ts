@@ -102,6 +102,14 @@ export const dataSourceRouter = router({
       await updateDefaultInspectorConfig(input.dataSourceId, input.config);
       return true;
     }),
+  // A data source's owners can make a map's inspector section its default,
+  // used wherever the source is added to a map from then on
+  saveInspectorDefault: dataSourceOwnerProcedure
+    .input(z.object({ config: defaultInspectorConfigSchema }))
+    .mutation(async ({ ctx, input }) => {
+      await updateDefaultInspectorConfig(ctx.dataSource.id, input.config);
+      return true;
+    }),
   updateDefaultChoroplethConfig: superadminProcedure
     .input(
       z.object({

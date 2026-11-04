@@ -134,6 +134,9 @@ const copyMapsToOrganisation = async (
             view.config.markerVisualisations,
             dataSourceIdMap,
           ),
+          hiddenMarkerDataSourceIds: view.config.hiddenMarkerDataSourceIds
+            ?.map((id) => dataSourceIdMap.get(id))
+            .filter((id): id is string => Boolean(id)),
         },
         dataSourceViews: remappedDataSourceViews,
       });
@@ -159,6 +162,7 @@ function remapMapConfig(
     ...config,
     membersDataSourceId,
     markerDataSourceIds,
+    markerColors: remapRecord(config.markerColors, dataSourceIdMap),
     placedMarkerColors: undefined,
     folderColors: undefined,
   };

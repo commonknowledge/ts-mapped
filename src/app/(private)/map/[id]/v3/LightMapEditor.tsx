@@ -6,6 +6,7 @@ import LightEditorSetup from "./components/LightEditorSetup";
 import LightInspectorProvider from "./components/LightInspectorProvider";
 import LightNavbar from "./components/LightNavbar";
 import LightSidebar from "./components/LightSidebar";
+import LightTour from "./components/LightTour";
 import LightVisualisationData from "./components/LightVisualisationData";
 
 // The light editor: the classic editor's providers, map, hooks, flyouts and
@@ -23,7 +24,7 @@ export default function LightMapEditor({
       {/* Lighter frame for the shared inspector panel, at a fixed width so it
           doesn't resize with each area's content (overrides its inline
           min/max widths) */}
-      <div className="relative h-screen w-full [&_#inspector-panel]:rounded-xl [&_#inspector-panel]:border [&_#inspector-panel]:border-neutral-200 [&_#inspector-panel]:shadow-[0_8px_30px_rgba(21,33,59,0.08)] [&_#inspector-panel]:w-[360px]! [&_#inspector-panel]:min-w-[360px]! [&_#inspector-panel]:max-w-[360px]!">
+      <div className="relative h-screen w-full [&_#inspector-panel]:rounded-xl [&_#inspector-panel]:border [&_#inspector-panel]:border-neutral-200 [&_#inspector-panel]:shadow-[0_8px_30px_rgba(21,33,59,0.08)] [&_#inspector-panel:not([data-wide])]:w-[360px]! [&_#inspector-panel:not([data-wide])]:min-w-[360px]! [&_#inspector-panel:not([data-wide])]:max-w-[360px]!">
         <SharedMap />
         <div className="absolute inset-0 z-10 pointer-events-none flex flex-col">
           <LightNavbar />
@@ -41,12 +42,14 @@ export default function LightMapEditor({
                   visualisationPanelOptions={{
                     title: "Data visualisation",
                     header: <LightVisualisationData />,
+                    inlineColumnDetails: true,
                   }}
                 />
               </LightInspectorProvider>
             </div>
           </div>
         </div>
+        <LightTour />
       </div>
       <EditColumnMetadataModal />
     </MapJotaiProvider>

@@ -11,18 +11,21 @@ import { SortableContext, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   ChartBarBigIcon,
+  ChartLineIcon,
   GripVertical,
   LayoutGrid,
   LayoutList,
   MoreHorizontalIcon,
   PinIcon,
   PlusIcon,
+  Rows3Icon,
   SearchIcon,
   SlidersHorizontalIcon,
   XIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import ColumnDetailsEditor from "@/app/(private)/components/ColumnDetailsEditor";
 import ColumnMetadataIcons from "@/app/(private)/map/[id]/components/ColumnMetadataIcons";
 import {
   DEFAULT_BAR_COLOR_VALUE,
@@ -74,6 +77,28 @@ function isDivider(
 }
 
 type ChartRole = "start" | "member" | "end";
+type DividerDisplay = "list" | "barChart" | "lineChart" | "chartEnd";
+
+const isChartDisplay = (display: DividerDisplay | undefined) =>
+  display === "barChart" || display === "lineChart";
+
+const DIVIDER_DISPLAYS: {
+  value: "list" | "barChart" | "lineChart";
+  label: string;
+  description: string;
+}[] = [
+  { value: "list", label: "Rows", description: "Each column on its own" },
+  {
+    value: "barChart",
+    label: "Bar chart",
+    description: "Compare the columns, largest first",
+  },
+  {
+    value: "lineChart",
+    label: "Line over time",
+    description: "Columns are periods, in order (e.g. Jan 2019 … Sep 2026)",
+  },
+];
 
 const makeChartEnd = (): InspectorItem => ({
   type: "divider",
@@ -235,7 +260,7 @@ export function InspectorConfigSection({
   useEffect(() => {
     const ended = items.reduce(
       (list, item) =>
-        isDivider(item) && item.display === "barChart"
+        isDivider(item) && isChartDisplay(item.display)
           ? withChartEnd(list, item.id)
           : list,
       items,
@@ -243,15 +268,23 @@ export function InspectorConfigSection({
     if (ended !== items) onChange({ items: ended });
   }, [items, onChange]);
 
-  const handleAddBarChart = useCallback(() => {
-    onChange({
-      items: [
-        ...items,
-        { type: "divider", id: uuidv4(), label: "Chart", display: "barChart" },
-        makeChartEnd(),
-      ],
-    });
-  }, [items, onChange]);
+  const handleAddChart = useCallback(
+    (display: "barChart" | "lineChart") => {
+      onChange({
+        items: [
+          ...items,
+          {
+            type: "divider",
+            id: uuidv4(),
+            label: display === "lineChart" ? "Over time" : "Chart",
+            display,
+          },
+          makeChartEnd(),
+        ],
+      });
+    },
+    [items, onChange],
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -289,15 +322,12 @@ export function InspectorConfigSection({
   );
 
   const handleUpdateDivider = useCallback(
-    (
-      id: string,
-      patch: { label?: string; display?: "list" | "barChart" | "chartEnd" },
-    ) => {
+    (id: string, patch: { label?: string; display?: DividerDisplay }) => {
       const updated = items.map((i) =>
         isDivider(i) && i.id === id ? { ...i, ...patch } : i,
       );
       // A divider becoming a chart gets an end marker; one stopping drops it
-      if (patch.display === "barChart") {
+      if (isChartDisplay(patch.display)) {
         onChange({ items: withChartEnd(updated, id) });
       } else if (patch.display === "list") {
         onChange({ items: withoutChartEnd(updated, id) });
@@ -327,7 +357,7 @@ export function InspectorConfigSection({
     let chart: string | null = null;
     for (const item of items) {
       const key = getSortableId(item);
-      if (isDivider(item) && item.display === "barChart") {
+      if (isDivider(item) && isChartDisplay(item.display)) {
         chart = item.label;
         roles.set(key, { role: "start", label: item.label });
       } else if (isDivider(item) && item.display === "chartEnd") {
@@ -455,8 +485,11 @@ export function InspectorConfigSection({
                   <DropdownMenuItem onClick={handleAddDivider}>
                     Add divider
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleAddBarChart}>
+                  <DropdownMenuItem onClick={() => handleAddChart("barChart")}>
                     Add bar chart
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAddChart("lineChart")}>
+                    Add line chart
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={availableColumns.length === 0}
@@ -678,7 +711,7 @@ function SortableSelectedRow({
   onRemoveColumn: (name: string) => void;
   onUpdateDivider: (
     id: string,
-    patch: { label?: string; display?: "list" | "barChart" | "chartEnd" },
+    patch: { label?: string; display?: DividerDisplay },
   ) => void;
   onRemoveDivider: (id: string) => void;
   onPatchColumnMetadata: (
@@ -749,29 +782,50 @@ function SortableSelectedRow({
               onUpdateDivider(item.id, { label: e.target.value })
             }
           />
-          <button
-            type="button"
-            onClick={() =>
-              onUpdateDivider(item.id, {
-                display: item.display === "barChart" ? "list" : "barChart",
-              })
-            }
-            aria-pressed={item.display === "barChart"}
-            aria-label="Show the columns below as a bar chart"
-            title={
-              item.display === "barChart"
-                ? "Columns below show as a bar chart, largest first. Click for rows"
-                : "Show the columns below as a bar chart, largest first"
-            }
-            className={cn(
-              "shrink-0 cursor-pointer rounded p-1 hover:bg-neutral-100",
-              item.display === "barChart"
-                ? "bg-neutral-100 text-neutral-900"
-                : "text-neutral-400 hover:text-neutral-900",
-            )}
-          >
-            <ChartBarBigIcon className="size-3.5" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label="How the columns below show"
+              title="How the columns below show: rows, a bar chart or a line over time"
+              className={cn(
+                "shrink-0 cursor-pointer rounded p-1 hover:bg-neutral-100",
+                isChartDisplay(item.display)
+                  ? "bg-neutral-100 text-neutral-900"
+                  : "text-neutral-400 hover:text-neutral-900",
+              )}
+            >
+              {item.display === "lineChart" ? (
+                <ChartLineIcon className="size-3.5" />
+              ) : item.display === "barChart" ? (
+                <ChartBarBigIcon className="size-3.5" />
+              ) : (
+                <Rows3Icon className="size-3.5" />
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {DIVIDER_DISPLAYS.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() =>
+                    onUpdateDivider(item.id, { display: option.value })
+                  }
+                  className="flex-col items-start gap-0"
+                >
+                  <span
+                    className={cn(
+                      "text-xs",
+                      (item.display ?? "list") === option.value &&
+                        "font-medium",
+                    )}
+                  >
+                    {option.label}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {option.description}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             type="button"
             onClick={() => onRemoveDivider(item.id)}
@@ -1003,12 +1057,11 @@ function ColumnItemRow({
           <button
             type="button"
             onClick={() => setOptionsOpen(!optionsOpen)}
-            disabled={options.length === 0}
             aria-expanded={optionsOpen}
-            aria-label="Format options"
-            title="Format options"
+            aria-label="Column settings"
+            title="Format options, description and display labels"
             className={cn(
-              "shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 disabled:invisible",
+              "shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900",
               optionsOpen && "bg-neutral-100 text-neutral-900",
             )}
           >
@@ -1024,7 +1077,7 @@ function ColumnItemRow({
             <XIcon className="size-3.5" />
           </button>
         </div>
-        {optionsOpen && options.length > 0 && (
+        {optionsOpen && (
           <div className="mt-1.5 mb-0.5 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 rounded-md bg-neutral-50 px-2 py-1.5">
             {options.map(({ label, control }) => (
               <label key={label} className="contents">
@@ -1032,6 +1085,14 @@ function ColumnItemRow({
                 <span className="min-w-0 [&>*]:max-w-full">{control}</span>
               </label>
             ))}
+            {/* Was in a separate dialog; here it's next to the format */}
+            {onPatchColumnMetadata && (
+              <ColumnDetailsEditor
+                dataSourceId={dataSourceId}
+                column={name}
+                onPatch={onPatchColumnMetadata}
+              />
+            )}
           </div>
         )}
       </div>

@@ -86,6 +86,7 @@ export default function LightDataSourceRow({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
+            data-tour-layer={dataSource.id}
             className={cn(
               "group/row flex items-start gap-2 rounded-md px-1.5 py-1.5 transition-colors",
               isSettingsOpen ? "bg-neutral-100" : "hover:bg-neutral-50",
@@ -94,6 +95,7 @@ export default function LightDataSourceRow({
             <button
               type="button"
               onClick={toggleVisibility}
+              data-tour-ring={dataSource.id}
               aria-pressed={isVisible}
               aria-label={`${isVisible ? "Hide" : "Show"} ${dataSource.name}`}
               title={isVisible ? "Hide on map" : "Show on map"}
@@ -174,7 +176,10 @@ export default function LightDataSourceRow({
             <PencilIcon size={12} />
             Rename
           </ContextMenuItem>
-          <ContextMenuItem onClick={createVisualisation}>
+          <ContextMenuItem
+            onClick={createVisualisation}
+            data-tour-action="create-visualisation"
+          >
             <PaletteIcon size={12} />
             Create data visualisation
           </ContextMenuItem>

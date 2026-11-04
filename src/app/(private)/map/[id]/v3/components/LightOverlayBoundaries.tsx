@@ -5,7 +5,6 @@ import { AreaSetCodeLabels } from "@/labels";
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
@@ -13,13 +12,33 @@ import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_AREA_SET_CODES } from "../../components/Choropleth/configs";
 import { useOverlayBoundaries } from "../../hooks/useOverlayBoundaries";
 import { DEFAULT_SECONDARY_BOUNDARY_STROKE_COLOR } from "../../styles";
+import { OVERLAY_GROUPS } from "../constants";
+import GroupedSelectOptions from "./GroupedSelectOptions";
+import LightEmptyHint from "./LightEmptyHint";
 import type { AreaSetCode } from "@/models/AreaSet";
+
+// Only sets the map can draw, in their groups
+const overlayGroups = OVERLAY_GROUPS.map((group) => ({
+  label: group.label,
+  options: group.options
+    .filter((option) => CHOROPLETH_AREA_SET_CODES.includes(option.code))
+    .map((option) => ({
+      value: option.code,
+      name: option.name,
+      description: option.description,
+    })),
+})).filter((group) => group.options.length > 0);
+
+const overlayName = (code: AreaSetCode) =>
+  OVERLAY_GROUPS.flatMap((group) => group.options).find(
+    (option) => option.code === code,
+  )?.name ?? AreaSetCodeLabels[code];
 
 const isOverlayCode = (value: string): value is AreaSetCode =>
   value in AreaSetCodeLabels;
 
 // Outline-only boundary sets drawn over the map, each with its own colour
-// and visibility, like the drawn areas below
+// and visibility, like the custom areas below
 export default function LightOverlayBoundaries() {
   const { items, add, update, remove } = useOverlayBoundaries();
 
@@ -39,14 +58,11 @@ export default function LightOverlayBoundaries() {
       </div>
 
       {items.length === 0 ? (
-        <button
-          type="button"
-          onClick={add}
-          className="-ml-1 mt-0.5 flex cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-        >
-          <PlusIcon className="size-3.5" />
-          Outline other boundaries on top
-        </button>
+        <LightEmptyHint
+          text="Outline other boundaries, such as wards, over the data."
+          actionLabel="Add outlines"
+          onAction={add}
+        />
       ) : (
         <ul className="mt-1 flex flex-col gap-1">
           {items.map((overlay) => {
@@ -93,14 +109,12 @@ export default function LightOverlayBoundaries() {
                       className="h-7 min-w-0 flex-1 text-xs"
                       aria-label="Overlay boundaries"
                     >
-                      <SelectValue />
+                      <SelectValue>
+                        {overlayName(overlay.areaSetCode)}
+                      </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
-                      {CHOROPLETH_AREA_SET_CODES.map((code) => (
-                        <SelectItem key={code} value={code} className="text-xs">
-                          {AreaSetCodeLabels[code]}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[min(28rem,var(--radix-select-content-available-height))] max-w-80">
+                      <GroupedSelectOptions groups={overlayGroups} />
                     </SelectContent>
                   </Select>
                   <label

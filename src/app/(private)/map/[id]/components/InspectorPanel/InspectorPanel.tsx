@@ -23,11 +23,14 @@ import { useSelectedSecondaryArea } from "@/app/(private)/map/[id]/hooks/useSele
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfMutations } from "@/app/(private)/map/[id]/hooks/useTurfMutations";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
+import AnimatedHeight from "@/components/AnimatedHeight";
 import { AreaSetCodeLabels } from "@/labels";
 import { DataSourceType } from "@/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { LayerType } from "@/types";
+import AreaListBackLink from "../AreaList/AreaListBackLink";
+import AddToListPopover from "./AddToListPopover";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -251,7 +254,7 @@ export default function InspectorPanel() {
         position: 0,
       });
 
-      toast.success(`Added ${selectedBoundary.name} to your areas`);
+      toast.success(`Added ${selectedBoundary.name} to your custom areas`);
     } catch (error) {
       console.error("Error adding boundary to areas:", error);
       toast.error("Failed to add boundary to areas");
@@ -264,6 +267,7 @@ export default function InspectorPanel() {
       className="relative z-50 flex flex-col rounded shadow-lg bg-white text-sm font-sans min-h-0 max-h-full pointer-events-auto"
       style={{ maxWidth: "450px", minWidth: "250px" }}
     >
+      {variant === "light" && <AreaListBackLink />}
       <div className="flex justify-between items-center gap-4 p-3">
         <div className="flex flex-col gap-2">
           <h1 className="grow flex gap-2 items-center / text-sm font-semibold">
@@ -358,12 +362,16 @@ export default function InspectorPanel() {
               : []),
           ]}
         >
-          <div className="min-h-0 overflow-auto border-t p-3">
-            {hasData ? (
-              <InspectorDataTab />
-            ) : (
-              type && <InspectorMarkersTab type={type} />
-            )}
+          <div className="min-h-0 overflow-auto border-t">
+            <AnimatedHeight>
+              <div className="p-3">
+                {hasData ? (
+                  <InspectorDataTab />
+                ) : (
+                  type && <InspectorMarkersTab type={type} />
+                )}
+              </div>
+            </AnimatedHeight>
           </div>
         </InspectorExtraTabsContext.Provider>
       ) : (
@@ -411,16 +419,28 @@ export default function InspectorPanel() {
       )}
       {type === LayerType.Boundary && (
         <div className="border-t p-3 flex flex-col gap-2">
-          {editable && (
-            <Button
-              className="w-full"
-              onClick={handleAddToMyAreas}
-              disabled={savingTurf || !areaGeoJson}
-            >
-              <PlusIcon />
-              Add to areas
-            </Button>
-          )}
+          {editable &&
+            (variant === "light" && selectedBoundary ? (
+              // Lists of key areas; saving the shape is one of its options
+              <AddToListPopover
+                area={{
+                  code: selectedBoundary.code,
+                  name: selectedBoundary.name || selectedBoundary.code,
+                }}
+                areaSetCode={selectedBoundary.areaSetCode}
+                onSaveAsCustomArea={handleAddToMyAreas}
+                canSaveAsCustomArea={!savingTurf && Boolean(areaGeoJson)}
+              />
+            ) : (
+              <Button
+                className="w-full"
+                onClick={handleAddToMyAreas}
+                disabled={savingTurf || !areaGeoJson}
+              >
+                <PlusIcon />
+                Add to custom areas
+              </Button>
+            ))}
           <Button
             variant="secondary"
             className="w-full"

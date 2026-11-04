@@ -45,10 +45,11 @@ export const inspectorLabelDividerSchema = z.object({
   type: z.literal("divider"),
   id: z.string(),
   label: z.string(),
-  // How the columns under it show: as rows (the default), or together as
-  // one bar chart, largest first. "chartEnd" closes a chart: it draws
-  // nothing, and the columns after it show as rows again.
-  display: z.enum(["list", "barChart", "chartEnd"]).optional(),
+  // How the columns under it show: as rows (the default), together as one
+  // bar chart (largest first) or as one line over time (in column order).
+  // "chartEnd" closes a chart: it draws nothing, and the columns after it
+  // show as rows again.
+  display: z.enum(["list", "barChart", "lineChart", "chartEnd"]).optional(),
 });
 export type InspectorLabelDivider = z.infer<typeof inspectorLabelDividerSchema>;
 

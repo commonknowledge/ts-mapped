@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { cn } from "@/shadcn/utils";
+import OnMapBadge from "../../components/OnMapBadge";
 import RingSwatch from "../../components/RingSwatch";
 import { useMarkerLayerColor } from "../../hooks/useMarkerLayerColor";
 import type { ReactNode } from "react";
@@ -122,15 +123,7 @@ export default function LightAreaSourceGroup({
               </span>
             )}
           </span>
-          {hasActive && (
-            <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[10px] leading-none font-medium text-white">
-              <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
-              </span>
-              On map
-            </span>
-          )}
+          {hasActive && <OnMapBadge className="ml-auto" />}
         </button>
         {!isInInspector && (
           <span
@@ -185,16 +178,6 @@ export default function LightAreaSourceGroup({
         )}
       </div>
       {children}
-      {dataSourceId && !subtitle && (
-        <button
-          type="button"
-          onClick={onAddColumn}
-          className="mt-0.5 ml-[1.375rem] flex cursor-pointer items-center gap-1 rounded px-1 py-0.5 text-[11px] text-neutral-400 opacity-0 group-hover/sourcegroup:opacity-100 hover:bg-neutral-100 hover:text-neutral-900 focus-visible:opacity-100"
-        >
-          <PlusIcon className="size-3" />
-          Add column
-        </button>
-      )}
     </li>
   );
 }

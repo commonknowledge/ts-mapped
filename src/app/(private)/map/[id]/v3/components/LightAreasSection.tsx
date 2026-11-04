@@ -1,10 +1,10 @@
 "use client";
 
-import { LockIcon, LockOpenIcon, PaletteIcon, PlusIcon } from "lucide-react";
+import { LockIcon, LockOpenIcon, PlusIcon } from "lucide-react";
 import { useMemo } from "react";
+import Collapse from "@/components/Collapse";
 import { useDataSources } from "@/hooks/useDataSources";
 import { AreaSetGroupCodeLabels } from "@/labels";
-import { Button } from "@/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
@@ -15,8 +15,10 @@ import { useMapViews } from "../../hooks/useMapViews";
 import { useSavedVisualisations } from "../../hooks/useSavedVisualisations";
 import { useAddAreaData } from "../hooks/useAddAreaData";
 import { useOpenInspectorSectionEditor } from "../hooks/useInspectorCustomise";
+import LightAreaLists from "./LightAreaLists";
 import LightAreaSourceGroup from "./LightAreaSourceGroup";
 import LightBoundaryPicker from "./LightBoundaryPicker";
+import LightEmptyHint from "./LightEmptyHint";
 import LightSection from "./LightSection";
 import LightVisualisationRow, {
   ActiveDetails,
@@ -39,7 +41,6 @@ export default function LightAreasSection() {
     activeId,
     select,
     deactivate,
-    remove,
     removeSource,
     boundariesLocked,
     setBoundariesLocked,
@@ -75,167 +76,176 @@ export default function LightAreasSection() {
   // Start an empty visualisation and let the flyout pick its data
   const addData = useAddAreaData();
 
+  // Locks one set of boundaries for all data
+  const boundariesLock = (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          onClick={() => setBoundariesLocked(!boundariesLocked)}
+          data-tour="boundaries-lock"
+          aria-pressed={boundariesLocked}
+          aria-label={
+            boundariesLocked
+              ? "Let each visualisation use its own boundaries"
+              : "Use these boundaries for all data"
+          }
+          className={cn(
+            "shrink-0 cursor-pointer rounded p-1 hover:bg-neutral-100",
+            boundariesLocked
+              ? "bg-neutral-100 text-neutral-900"
+              : "text-neutral-400 hover:text-neutral-700",
+          )}
+        >
+          {boundariesLocked ? (
+            <LockIcon className="size-3.5" />
+          ) : (
+            <LockOpenIcon className="size-3.5" />
+          )}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right" className="max-w-60 text-left">
+        <p className="font-medium">
+          {boundariesLocked ? "Boundaries locked" : "Lock boundaries"}
+        </p>
+        <p className="mt-0.5 opacity-80">
+          {boundariesLocked
+            ? "Every visualisation uses these boundaries. Unlock to let each one go back to its own."
+            : "Each visualisation currently uses its own boundaries. Lock to use these for all of them instead."}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+
   return (
     <LightSection
       label="Areas"
       layerType={activeId ? LayerType.Boundary : undefined}
       actions={
-        items.length > 0 && (
-          <button
-            type="button"
-            onClick={() => addData()}
-            aria-label="Add data"
-            title="Add data"
-            className="cursor-pointer rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-          >
-            <PlusIcon className="size-4" />
-          </button>
-        )
+        <button
+          type="button"
+          onClick={() => addData()}
+          aria-label="Add data"
+          data-tour="add-area-button"
+          title="Add data"
+          className="cursor-pointer rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+        >
+          <PlusIcon className="size-4" />
+        </button>
       }
     >
-      {/* Always shown, so the list doesn't jump; greyed out while the
-          active visualisation is setting the boundaries */}
-      <div className="mb-2 flex items-center gap-1">
-        <LightBoundaryPicker
-          label="Boundaries"
-          allowNone={!activeId}
-          disabled={Boolean(activeId) && !boundariesLocked}
-          disabledReason={`Set by ${activeName ?? "the active visualisation"}. Lock to use one set of boundaries for all data.`}
-          {...(boundariesLocked
-            ? { value: lockedBoundary, onChange: setLockedBoundary }
-            : {})}
-        />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={() => setBoundariesLocked(!boundariesLocked)}
-              aria-pressed={boundariesLocked}
-              aria-label={
-                boundariesLocked
-                  ? "Let each visualisation use its own boundaries"
-                  : "Use these boundaries for all data"
-              }
-              className={cn(
-                "shrink-0 cursor-pointer rounded p-1.5 hover:bg-neutral-100",
-                boundariesLocked
-                  ? "bg-neutral-100 text-neutral-900"
-                  : "text-neutral-400 hover:text-neutral-700",
-              )}
-            >
-              {boundariesLocked ? (
-                <LockIcon className="size-3.5" />
-              ) : (
-                <LockOpenIcon className="size-3.5" />
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="max-w-60 text-left">
-            <p className="font-medium">
-              {boundariesLocked ? "Boundaries locked" : "Lock boundaries"}
-            </p>
-            <p className="mt-0.5 opacity-80">
-              {boundariesLocked
-                ? "Every visualisation uses these boundaries. Unlock to let each one go back to its own."
-                : "Each visualisation currently uses its own boundaries. Lock to use these for all of them instead."}
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-      {items.length > 0 ? (
-        <ul className="-mx-1.5 flex flex-col gap-2">
-          {groups.map((group) => {
-            // A source with one column is a single row: its header shows
-            // and edits that column
-            const single = group.items.length === 1 ? group.items[0] : null;
-            // Library data comes with its column (e.g. 2024 GE Results' Result)
-            const dataSource = getDataSourceById(group.dataSourceId);
-            const libraryDefault = dataSource?.public
-              ? dataSource.defaultChoroplethConfig
-              : null;
-            const active = group.items.find((item) => item.id === activeId);
-            const edit = (id: string) => {
-              select(id);
-              setBoundariesPanelOpen(true);
-            };
-            const turnOff = () => {
-              deactivate();
-              setBoundariesPanelOpen(false);
-            };
-            return (
-              <LightAreaSourceGroup
-                key={group.dataSourceId || "new"}
-                dataSourceId={group.dataSourceId}
-                hasActive={Boolean(active)}
-                subtitle={
-                  single
-                    ? single.areaDataColumn
-                      ? getColumnLabel(single)
-                      : (libraryDefault?.column ?? "Choose a column")
-                    : undefined
-                }
-                onToggle={() => {
-                  if (active) return turnOff();
-                  if (single && !single.areaDataColumn) {
-                    return libraryDefault
-                      ? select(single.id, {
-                          areaDataColumn: libraryDefault.column,
-                          calculationType: libraryDefault.calculationType,
-                        })
-                      : edit(single.id);
-                  }
-                  select(group.items[0].id);
-                }}
-                onEdit={single ? () => edit(single.id) : undefined}
-                isInInspector={!isHiddenFromInspector(group.dataSourceId)}
-                onToggleInspector={() =>
-                  setInspectorHidden(
-                    group.dataSourceId,
-                    !isHiddenFromInspector(group.dataSourceId),
-                  )
-                }
-                onEditInspector={() => openInspectorSection(group.dataSourceId)}
-                onAddColumn={() => addData(group.dataSourceId)}
-                onRemove={() => removeSource(group.dataSourceId)}
-              >
-                {single ? (
-                  active && <ActiveDetails dataSourceId={group.dataSourceId} />
-                ) : (
-                  <ul className="flex flex-col gap-0.5">
-                    {group.items.map((item) => (
-                      <LightVisualisationRow
-                        key={item.id}
-                        item={item}
-                        isActive={item.id === activeId}
-                        onSelect={() => select(item.id)}
-                        onDeactivate={turnOff}
-                        onEdit={() => edit(item.id)}
-                        onRemove={() => remove(item.id)}
-                        lockedNote={getLockedNote(item.areaDataSourceId)}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </LightAreaSourceGroup>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className="rounded-lg border border-dashed border-neutral-200 p-3 text-center">
-          <p className="text-xs text-neutral-500">
-            Colour areas by election results, census figures or your own data.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-2 h-7 text-xs"
-            onClick={() => addData()}
-          >
-            <PaletteIcon className="size-3.5" />
-            Choose data
-          </Button>
+      {/* Shown once there's data (or boundaries chosen without it), then
+          always, so the list doesn't jump; greyed out while the active
+          visualisation is setting the boundaries */}
+      {(items.length > 0 || viewConfig.areaSetGroupCode) && (
+        // Headed like Visualisations and Lists: label, its action, then it
+        <div className="mb-3 flex flex-col gap-1" data-tour="boundaries">
+          <div className="flex items-center gap-1">
+            <p className="text-[11px] text-neutral-500">Boundaries</p>
+            <span className="ml-auto">{boundariesLock}</span>
+          </div>
+          <LightBoundaryPicker
+            allowNone={!activeId}
+            disabled={Boolean(activeId) && !boundariesLocked}
+            disabledReason={`Set by ${activeName ?? "the active visualisation"}. Lock to use one set of boundaries for all data.`}
+            {...(boundariesLocked
+              ? { value: lockedBoundary, onChange: setLockedBoundary }
+              : {})}
+          />
         </div>
       )}
+      {items.length > 0 ? (
+        <>
+          <p className="mb-1 text-[11px] text-neutral-500">Visualisations</p>
+          <ul className="-mx-1.5 flex flex-col gap-2">
+            {groups.map((group) => {
+              // A source with one column is a single row: its header shows
+              // and edits that column
+              const single = group.items.length === 1 ? group.items[0] : null;
+              // Library data comes with its column (e.g. 2024 GE Results' Result)
+              const dataSource = getDataSourceById(group.dataSourceId);
+              const libraryDefault = dataSource?.public
+                ? dataSource.defaultChoroplethConfig
+                : null;
+              const active = group.items.find((item) => item.id === activeId);
+              const edit = (id: string) => {
+                select(id);
+                setBoundariesPanelOpen(true);
+              };
+              const turnOff = () => {
+                deactivate();
+                setBoundariesPanelOpen(false);
+              };
+              return (
+                <LightAreaSourceGroup
+                  key={group.dataSourceId || "new"}
+                  dataSourceId={group.dataSourceId}
+                  hasActive={Boolean(active)}
+                  subtitle={
+                    single
+                      ? single.areaDataColumn
+                        ? getColumnLabel(single)
+                        : (libraryDefault?.column ?? "Choose a column")
+                      : undefined
+                  }
+                  onToggle={() => {
+                    if (active) return turnOff();
+                    if (single && !single.areaDataColumn) {
+                      return libraryDefault
+                        ? select(single.id, {
+                            areaDataColumn: libraryDefault.column,
+                            calculationType: libraryDefault.calculationType,
+                          })
+                        : edit(single.id);
+                    }
+                    select(group.items[0].id);
+                  }}
+                  onEdit={single ? () => edit(single.id) : undefined}
+                  isInInspector={!isHiddenFromInspector(group.dataSourceId)}
+                  onToggleInspector={() =>
+                    setInspectorHidden(
+                      group.dataSourceId,
+                      !isHiddenFromInspector(group.dataSourceId),
+                    )
+                  }
+                  onEditInspector={() =>
+                    openInspectorSection(group.dataSourceId)
+                  }
+                  onAddColumn={() => addData(group.dataSourceId)}
+                  onRemove={() => removeSource(group.dataSourceId)}
+                >
+                  {single ? (
+                    <Collapse isOpen={Boolean(active)}>
+                      <ActiveDetails dataSourceId={group.dataSourceId} />
+                    </Collapse>
+                  ) : (
+                    <ul className="flex flex-col gap-0.5">
+                      {group.items.map((item) => (
+                        <LightVisualisationRow
+                          key={item.id}
+                          item={item}
+                          isActive={item.id === activeId}
+                          onSelect={() => select(item.id)}
+                          onDeactivate={turnOff}
+                          onEdit={() => edit(item.id)}
+                          lockedNote={getLockedNote(item.areaDataSourceId)}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                </LightAreaSourceGroup>
+              );
+            })}
+          </ul>
+        </>
+      ) : (
+        <LightEmptyHint
+          text="Colour areas by election results, census figures or your own data."
+          actionLabel="Choose data"
+          onAction={() => addData()}
+        />
+      )}
+      <LightAreaLists />
     </LightSection>
   );
 }

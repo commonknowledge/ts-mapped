@@ -14,6 +14,7 @@ export default function LightSection({
   layerType,
   actions,
   disabled = false,
+  defaultExpanded = true,
   children,
 }: {
   label: string;
@@ -21,14 +22,18 @@ export default function LightSection({
   layerType?: LayerType;
   actions?: ReactNode;
   disabled?: boolean;
+  /** Open when the editor loads */
+  defaultExpanded?: boolean;
   children: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const { getLayerVisibility, hideLayer, showLayer } = useLayers();
   const isVisible = layerType ? getLayerVisibility(layerType) : true;
 
   return (
     <section
+      // Pointed at by the guided tour
+      data-tour={label.toLowerCase()}
       className={cn(
         "border-b border-neutral-100 px-3 py-3",
         disabled && "pointer-events-none opacity-45",

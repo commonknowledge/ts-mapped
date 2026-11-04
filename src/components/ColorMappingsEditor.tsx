@@ -24,12 +24,14 @@ import {
 } from "@/shadcn/ui/select";
 import { Switch } from "@/shadcn/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { cn } from "@/shadcn/utils";
 import {
   CHOROPLETH_COLOR_SCHEMES,
   getCategoryColorScale,
   getColorSchemePreset,
 } from "@/utils/colors";
 import type { DragEndEvent } from "@dnd-kit/core";
+import type { ReactNode } from "react";
 
 // Written out in full (not derived) so Tailwind generates both directions
 const GRADIENT_CLASS = "bg-gradient-to-r";
@@ -66,6 +68,10 @@ interface ColorMappingsEditorProps {
   onBulkChange?: (mappings: Record<string, string>) => void;
   /** Order-only mode: hides the per-row colour pickers and colour actions */
   hideColors?: boolean;
+  /** Replaces each row's value text, e.g. with an editable display label */
+  renderValue?: (value: string) => ReactNode;
+  /** Smaller rows and swatches, for narrow panels */
+  compact?: boolean;
 }
 
 export default function ColorMappingsEditor({
@@ -81,6 +87,8 @@ export default function ColorMappingsEditor({
   reorderHint,
   onBulkChange,
   hideColors = false,
+  renderValue,
+  compact = false,
 }: ColorMappingsEditorProps) {
   // Local order so rows follow the drag immediately; re-synced when the
   // saved order arrives back through props
@@ -147,6 +155,8 @@ export default function ColorMappingsEditor({
         hideColor={hideColors}
         onChange={onChange}
         onReset={onReset}
+        renderValue={renderValue}
+        compact={compact}
       />
     );
   });
@@ -301,6 +311,8 @@ function ColorMappingRow({
   hideColor,
   onChange,
   onReset,
+  renderValue,
+  compact,
 }: {
   value: string;
   displayColor: string;
@@ -309,6 +321,8 @@ function ColorMappingRow({
   hideColor: boolean;
   onChange: (value: string, color: string) => void;
   onReset: (value: string) => void;
+  renderValue?: (value: string) => ReactNode;
+  compact: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: value, disabled: !sortable });
@@ -333,7 +347,10 @@ function ColorMappingRow({
       {!hideColor && (
         <label className="relative cursor-pointer shrink-0">
           <div
-            className="w-7 h-7 rounded border border-neutral-300"
+            className={cn(
+              "rounded border border-neutral-300",
+              compact ? "size-5" : "w-7 h-7",
+            )}
             style={{ backgroundColor: displayColor }}
           />
           <Input
@@ -344,9 +361,13 @@ function ColorMappingRow({
           />
         </label>
       )}
-      <span className="font-mono text-xs text-muted-foreground truncate flex-1">
-        {value || "(blank)"}
-      </span>
+      {renderValue ? (
+        <div className="min-w-0 flex-1">{renderValue(value)}</div>
+      ) : (
+        <span className="font-mono text-xs text-muted-foreground truncate flex-1">
+          {value || "(blank)"}
+        </span>
+      )}
       {hasExplicitColor && (
         <button
           type="button"

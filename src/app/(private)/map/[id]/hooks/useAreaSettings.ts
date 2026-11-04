@@ -14,6 +14,7 @@ import type { MapViewConfig } from "@/models/MapView";
 // each view; the names match on both
 const SHARED_KEYS = [
   "savedVisualisations",
+  "overlayBoundaries",
   "inspectorHiddenDataSourceIds",
   "inspectorExtraDataSourceIds",
   "inspectorAutoDataSourceIds",
@@ -48,6 +49,8 @@ export function useAreaSettings() {
     return {
       savedVisualisations:
         mapConfig.savedVisualisations ?? viewConfig.savedVisualisations,
+      overlayBoundaries:
+        mapConfig.overlayBoundaries ?? viewConfig.overlayBoundaries,
       inspectorHiddenDataSourceIds:
         mapConfig.inspectorHiddenDataSourceIds ??
         viewConfig.inspectorHiddenDataSourceIds,
@@ -114,6 +117,7 @@ export function useAdoptViewAreaSettings() {
     if (!needsAdopting) return;
     updateMapConfig({
       savedVisualisations: viewConfig.savedVisualisations ?? [],
+      overlayBoundaries: viewConfig.overlayBoundaries,
       inspectorHiddenDataSourceIds: viewConfig.inspectorHiddenDataSourceIds,
       inspectorExtraDataSourceIds: viewConfig.inspectorExtraDataSourceIds,
       inspectorAutoDataSourceIds: viewConfig.inspectorAutoDataSourceIds,

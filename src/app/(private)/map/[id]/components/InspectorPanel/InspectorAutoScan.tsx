@@ -46,6 +46,8 @@ const summarise = (result: AutoScanResult) => {
     parties > 0 && `${parties} in party colours.`,
     result.chartedColumns > 0 &&
       `Grouped ${result.chartedColumns} into a vote share chart.`,
+    result.timeSeriesColumns > 0 &&
+      `Drew ${result.timeSeriesColumns} periods as a line over time.`,
     pinned > 0 && `Pinned ${pinned} on the map.`,
   ]
     .filter(Boolean)

@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useAreaStats } from "@/app/(private)/map/[id]/data";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { useMarkerColors } from "@/app/(private)/map/[id]/hooks/useMarkerColors";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
@@ -14,6 +15,7 @@ import { isMarkerIconImageId, registerMarkerIcons } from "./markerIcons";
 export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
+  const { markerColors } = useMarkerColors();
   const markerQueries = useMarkerQueries();
   const { getDataSourceVisibility } = useLayers();
   const { getDataSourceById } = useDataSources();
@@ -81,7 +83,7 @@ export default function Markers() {
           key={memberMarkers.dataSourceId}
           dataSourceMarkers={memberMarkers}
           isMembers
-          markerColors={viewConfig.markerColors}
+          markerColors={markerColors}
           defaultMarkerColor={
             getDataSourceById(memberMarkers.dataSourceId)?.defaultMarkerColor
           }
@@ -107,7 +109,7 @@ export default function Markers() {
             key={markers.dataSourceId}
             dataSourceMarkers={markers}
             isMembers={false}
-            markerColors={viewConfig.markerColors}
+            markerColors={markerColors}
             defaultMarkerColor={
               getDataSourceById(markers.dataSourceId)?.defaultMarkerColor
             }

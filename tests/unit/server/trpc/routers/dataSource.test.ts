@@ -9,6 +9,7 @@ import {
 import {
   createDataSource,
   deleteDataSource,
+  findDataSourceById,
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
@@ -207,6 +208,57 @@ describe("dataSource router tests", () => {
 
       const ids = result.map((ds) => ds.id);
       expect(ids).not.toContain(otherPrivateDs.id);
+    });
+  });
+
+  describe("saveInspectorDefault", () => {
+    const config = {
+      items: [{ type: "column" as const, name: "Population" }],
+      layout: "twoColumn" as const,
+      name: "Census figures",
+    };
+
+    test("an owner can save the default inspector section", async () => {
+      const user = await createTestUser("test-save-inspector-default-owner");
+      const org = await upsertOrganisation({
+        name: "Test Save Inspector Default Owner Org",
+      });
+      await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
+      const ds = await createTestDataSource(org.id, false, "Owned DS");
+
+      await dataSourceRouter.saveInspectorDefault({
+        ctx: { user },
+        getRawInput: async () => ({ dataSourceId: ds.id, config }),
+        path: "",
+        type: "mutation",
+        signal: undefined,
+        batchIndex: 0,
+      });
+
+      const saved = await findDataSourceById(ds.id);
+      expect(saved?.defaultInspectorConfig).toMatchObject(config);
+    });
+
+    test("someone outside the owning organisation can't", async () => {
+      const user = await createTestUser("test-save-inspector-default-other");
+      const ownerOrg = await upsertOrganisation({
+        name: "Test Save Inspector Default Owning Org",
+      });
+      const ds = await createTestDataSource(ownerOrg.id, true, "Public DS");
+
+      await expect(
+        dataSourceRouter.saveInspectorDefault({
+          ctx: { user },
+          getRawInput: async () => ({ dataSourceId: ds.id, config }),
+          path: "",
+          type: "mutation",
+          signal: undefined,
+          batchIndex: 0,
+        }),
+      ).rejects.toThrow(TRPCError);
+
+      const unchanged = await findDataSourceById(ds.id);
+      expect(unchanged?.defaultInspectorConfig?.name).not.toBe(config.name);
     });
   });
 

@@ -12,6 +12,7 @@ import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSource
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import DataRecordColumns from "./DataRecordColumns";
 import InspectorBarChart from "./InspectorBarChart";
+import InspectorLineChart from "./InspectorLineChart";
 import { getInspectorColorClass } from "./inspectorPanelOptions";
 import { useInspectorVariant } from "./InspectorVariantContext";
 import { buildInspectorBlocks } from "./utils";
@@ -179,14 +180,22 @@ export default function ConfiguredDataRecordDisplay({
         return (
           <React.Fragment key={`properties-${blockIndex}`}>
             {divider}
-            {block.display === "barChart" ? (
+            {block.display === "barChart" || block.display === "lineChart" ? (
               <>
                 <div className={cn("min-w-0", isTwoColumn && "col-span-2")}>
-                  <InspectorBarChart
-                    columns={block.columns.filter(isChartable)}
-                    json={json}
-                    dataSourceId={dataSourceId}
-                  />
+                  {block.display === "lineChart" ? (
+                    <InspectorLineChart
+                      columns={block.columns.filter(isChartable)}
+                      json={json}
+                      dataSourceId={dataSourceId}
+                    />
+                  ) : (
+                    <InspectorBarChart
+                      columns={block.columns.filter(isChartable)}
+                      json={json}
+                      dataSourceId={dataSourceId}
+                    />
+                  )}
                 </div>
                 <DataRecordColumns
                   columns={block.columns.filter((c) => !isChartable(c))}

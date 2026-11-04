@@ -1,20 +1,9 @@
 "use client";
 
-import {
-  EllipsisIcon,
-  LoaderPinwheelIcon,
-  SlidersHorizontalIcon,
-  TrashIcon,
-} from "lucide-react";
+import { LoaderPinwheelIcon, PencilIcon } from "lucide-react";
+import Collapse from "@/components/Collapse";
 import { DUMMY_COUNT_COLUMN, MAX_COLUMN_KEY } from "@/constants";
 import { useDataSources } from "@/hooks/useDataSources";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shadcn/ui/dropdown-menu";
 import { cn } from "@/shadcn/utils";
 import { useColorScheme } from "../../colors";
 import BivariateLegend from "../../components/BivariateLagend";
@@ -44,15 +33,14 @@ export default function LightVisualisationRow({
   onSelect,
   onDeactivate,
   onEdit,
-  onRemove,
   lockedNote,
 }: {
   item: SavedVisualisation;
   isActive: boolean;
   onSelect: () => void;
   onDeactivate: () => void;
+  /** Opens the visualisation panel, where the column can also be removed */
   onEdit: () => void;
-  onRemove: () => void;
   /** Set while locked boundaries don't fit this data, e.g. "Not available
    *  by Councils · shown by UK Region" */
   lockedNote?: string | null;
@@ -116,37 +104,23 @@ export default function LightVisualisationRow({
             )}
           </span>
         </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label={`${label} options`}
-              className={cn(
-                "cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900 focus-visible:opacity-100 data-[state=open]:opacity-100",
-                !isActive && "opacity-0 group-hover/column:opacity-100",
-              )}
-            >
-              <EllipsisIcon className="size-3.5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>
-              <SlidersHorizontalIcon className="size-3.5" />
-              Edit visualisation
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={onRemove}>
-              <TrashIcon className="size-3.5" />
-              Remove column
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <button
+          type="button"
+          onClick={onEdit}
+          aria-label={`Edit ${label}`}
+          title="Edit visualisation"
+          className={cn(
+            "cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900 focus-visible:opacity-100",
+            !isActive && "opacity-0 group-hover/column:opacity-100",
+          )}
+        >
+          <PencilIcon className="size-3.5" />
+        </button>
       </div>
-      {isActive && (
-        <div className="pl-5">
-          <ActiveDetails dataSourceId={item.areaDataSourceId} />
-        </div>
-      )}
+      {/* Folds open as this becomes the map's data, e.g. on a view switch */}
+      <Collapse isOpen={isActive} className="pl-5">
+        <ActiveDetails dataSourceId={item.areaDataSourceId} />
+      </Collapse>
     </li>
   );
 }

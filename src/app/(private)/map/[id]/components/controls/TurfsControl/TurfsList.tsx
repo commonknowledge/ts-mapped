@@ -10,6 +10,7 @@ import { useFoldersQuery } from "@/app/(private)/map/[id]/hooks/useFolders";
 import { useTurfsQuery } from "@/app/(private)/map/[id]/hooks/useTurfsQuery";
 import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils/position";
 import EmptyLayer from "../LayerEmptyMessage";
+import { useLayerRowVariant } from "../LayerRowVariantContext";
 import useSortableList from "../SortableList/hooks/useSortableList";
 import SortableFolderItem from "../SortableList/SortableFolderItem";
 import UnassignedFolder from "../SortableList/UnassignedFolder";
@@ -42,6 +43,7 @@ export default function TurfsList({ onAddArea }: { onAddArea: () => void }) {
     return sortByPositionAndId(turfFolders);
   }, [turfFolders]);
 
+  const layerRowVariant = useLayerRowVariant();
   const hasTurfs = turfs.length || turfFolders.length;
 
   return (
@@ -56,7 +58,7 @@ export default function TurfsList({ onAddArea }: { onAddArea: () => void }) {
         modifiers={[restrictToVerticalAxis]}
       >
         <div className="flex flex-col gap-1">
-          {!hasTurfs && (
+          {!hasTurfs && layerRowVariant !== "light" && (
             <EmptyLayer
               message="Add an Area Layer"
               onClick={onAddArea}

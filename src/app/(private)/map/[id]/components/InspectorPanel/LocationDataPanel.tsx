@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDataSources } from "@/hooks/useDataSources";
 import { AreaSetCode } from "@/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
@@ -22,7 +22,12 @@ export function LocationDataPanel({
 }) {
   const trpc = useTRPC();
 
-  const { data: boundaryData, isLoading: isLoadingBoundary } = useQuery(
+  // The last area's records stay up, faded, while the next area's load
+  const {
+    data: boundaryData,
+    isLoading: isLoadingBoundary,
+    isPlaceholderData: isRefreshing,
+  } = useQuery(
     trpc.dataRecord.byAreaCode.queryOptions(
       {
         dataSourceId: dataSourceId,
@@ -31,6 +36,7 @@ export function LocationDataPanel({
       },
       {
         enabled: Boolean(selectedBoundary),
+        placeholderData: keepPreviousData,
       },
     ),
   );
@@ -76,6 +82,7 @@ export function LocationDataPanel({
       dataSourceId={dataSourceId}
       records={data?.records ?? []}
       isLoading={isLoading}
+      isRefreshing={isRefreshing}
       defaultExpanded={defaultExpanded}
       hint={hint}
     />

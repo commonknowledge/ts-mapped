@@ -177,6 +177,7 @@ export default function InspectorSourceTabs({
           return (
             <button
               key={tab.id}
+              data-tab-id={tab.id}
               type="button"
               role="tab"
               aria-selected={isSelected}

@@ -106,7 +106,7 @@ export default function SearchResultMarker() {
               });
 
               setMapSearchResult(null);
-              toast.success("Area added!");
+              toast.success("Custom area added");
             } else {
               // Add as marker
               addMarker();
@@ -123,7 +123,7 @@ export default function SearchResultMarker() {
                   isPolygon ? mapColors.areas.color : mapColors.markers.color
                 }
               />
-              {isPolygon ? "Areas" : "Markers"}
+              {isPolygon ? "Custom areas" : "Markers"}
             </span>
           </span>
         </button>

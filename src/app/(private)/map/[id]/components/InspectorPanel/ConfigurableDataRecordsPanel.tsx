@@ -10,12 +10,14 @@ export default function ConfigurableDataRecordsPanel({
   dataSourceId,
   records,
   isLoading,
+  isRefreshing = false,
   defaultExpanded,
   hint,
 }: {
   dataSourceId: string;
   records: DataRecord[];
   isLoading: boolean;
+  isRefreshing?: boolean;
   defaultExpanded: boolean;
   hint?: string;
 }) {
@@ -29,6 +31,7 @@ export default function ConfigurableDataRecordsPanel({
         dataSourceId={dataSourceId}
         records={records}
         isLoading={isLoading}
+        isRefreshing={isRefreshing}
         defaultExpanded={defaultExpanded}
         hint={hint}
         onClickConfigure={editable ? openConfig : undefined}

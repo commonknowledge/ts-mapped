@@ -21,6 +21,7 @@ import { useMarkerLayerColor } from "../../hooks/useMarkerLayerColor";
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import { CONTROL_PANEL_WIDTH, VISUALISATION_PANEL_WIDTH } from "../../styles";
 import { useAddMarkersPanel } from "../hooks/useAddMarkersPanel";
+import { useTourFocusedDataSourceId } from "../hooks/useTour";
 import LightDataSourceList from "./LightDataSourceList";
 import type { ListedDataSource } from "./LightDataSourceList";
 import type { ReactNode } from "react";
@@ -42,6 +43,7 @@ export default function LightAddMarkersPanel() {
   const { boundariesPanelOpen } = useChoropleth();
   const { markerSettingsDataSourceId } = useMarkerSettings();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const tourFocusedId = useTourFocusedDataSourceId("markers");
   const { data: folders = [] } = useFoldersQuery();
   const { insertFolder } = useFolderMutations();
   const dropCustomMarker = useDropCustomMarker();
@@ -83,6 +85,9 @@ export default function LightAddMarkersPanel() {
 
   return (
     <div
+      data-tour="add-markers"
+      // A flyout beside the Layers panel: the guided tour keeps clear of it
+      data-tour-flyout
       className="absolute top-0 z-100 flex h-full flex-col gap-4 overflow-y-auto border-r border-neutral-200 bg-neutral-50 p-3"
       style={{
         left: showControls ? CONTROL_PANEL_WIDTH : 0,
@@ -109,6 +114,7 @@ export default function LightAddMarkersPanel() {
         <PanelAction
           icon={<MapPinPlusIcon className="size-4" />}
           title="Drop a custom marker"
+          tourId="drop-marker"
           description="Click the map to place it. It's saved in Custom markers."
           onClick={() => {
             setIsOpen(false);
@@ -144,6 +150,7 @@ export default function LightAddMarkersPanel() {
         <LightDataSourceList
           onSelect={toggleCollection}
           isSelected={isOnMap}
+          focusedId={tourFocusedId}
           renderMarker={(ds) => <CollectionMarker dataSource={ds} />}
         />
       </div>
@@ -156,17 +163,21 @@ function PanelAction({
   title,
   description,
   onClick,
+  tourId,
 }: {
   icon: ReactNode;
   title: string;
   description: string;
   onClick: () => void;
+  /** Pointed at by the guided tour */
+  tourId?: string;
 }) {
   return (
     <li>
       <button
         type="button"
         onClick={onClick}
+        data-tour={tourId}
         className="flex w-full cursor-pointer items-start gap-2.5 rounded-md px-1.5 py-2 text-left hover:bg-neutral-100"
       >
         <span className="mt-0.5 shrink-0 text-neutral-500">{icon}</span>

@@ -34,11 +34,15 @@ export default function LightDataSourceList({
   onSelect,
   isSelected,
   renderMarker,
+  focusedId,
 }: {
   onSelect: (dataSource: ListedDataSource) => void;
   isSelected?: (dataSource: ListedDataSource) => boolean;
   /** Optional leading marker, e.g. the ring of a layer already on the map */
   renderMarker?: (dataSource: ListedDataSource) => ReactNode;
+  /** The only choice for now (e.g. in the guided tour): listed first, with
+   *  every other source greyed out */
+  focusedId?: string | null;
 }) {
   const { data: dataSources, isPending } = useDataSources();
   const [search, setSearch] = useState("");
@@ -51,13 +55,19 @@ export default function LightDataSourceList({
         ds.name.toLowerCase().includes(query) ||
         ds.columnDefs.some((col) => col.name.toLowerCase().includes(query)),
     );
-    return GROUPS.map((group) => ({
-      label: group.label,
-      items: matching
-        .filter(group.matches)
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    })).filter((group) => group.items.length > 0);
-  }, [dataSources, search]);
+    const byName = (a: ListedDataSource, b: ListedDataSource) =>
+      a.name.localeCompare(b.name);
+    const focused = matching.find((ds) => ds.id === focusedId);
+    return [
+      ...(focused ? [{ label: "Use this one", items: [focused] }] : []),
+      ...GROUPS.map((group) => ({
+        label: group.label,
+        items: matching
+          .filter((ds) => group.matches(ds) && ds.id !== focusedId)
+          .sort(byName),
+      })),
+    ].filter((group) => group.items.length > 0);
+  }, [dataSources, focusedId, search]);
 
   return (
     <div className="flex min-h-0 flex-col gap-3">
@@ -87,15 +97,22 @@ export default function LightDataSourceList({
             <ul className="-mx-1.5 flex flex-col">
               {group.items.map((ds) => {
                 const selected = isSelected?.(ds) ?? false;
+                const isFocused = ds.id === focusedId;
+                const isDisabled = Boolean(focusedId) && !isFocused;
                 return (
                   <li key={ds.id}>
                     <button
                       type="button"
                       onClick={() => onSelect(ds)}
+                      disabled={isDisabled}
+                      data-tour-focused={isFocused || undefined}
                       aria-pressed={isSelected ? selected : undefined}
                       className={cn(
-                        "flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-left hover:bg-neutral-100",
+                        "flex w-full cursor-pointer items-center gap-2 rounded-md px-1.5 py-1.5 text-left hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent",
                         selected && "bg-white shadow-[inset_0_0_0_1px_#e5e5e5]",
+                        isFocused &&
+                          !selected &&
+                          "bg-white shadow-[inset_0_0_0_1px_#15213b]",
                       )}
                     >
                       <span className="flex size-3.5 shrink-0 items-center justify-center [&_svg]:size-3.5">

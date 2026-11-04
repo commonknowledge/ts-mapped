@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
   getMarkersInsideBoundary,
@@ -34,13 +34,18 @@ export function useBoundaryMarkers(
   const markerQueries = useMarkerQueries();
 
   const trpc = useTRPC();
-  const { data: areaData, isPending: areaDataLoading } = useQuery(
+  // The last area's markers stay listed, faded, while the next area loads
+  const {
+    data: areaData,
+    isPending: areaDataLoading,
+    isPlaceholderData: areaDataRefreshing,
+  } = useQuery(
     trpc.area.byCode.queryOptions(
       {
         code: selectedBoundary?.code || "",
         areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
       },
-      { enabled: Boolean(selectedBoundary) },
+      { enabled: Boolean(selectedBoundary), placeholderData: keepPreviousData },
     ),
   );
 
@@ -99,9 +104,11 @@ export function useBoundaryMarkers(
 
   return {
     areaDataLoading,
-    // Raw geoJson string (as stored on turfs) alongside the parsed geography
-    areaGeoJson: areaData?.geoJson,
-    geography,
+    areaDataRefreshing,
+    // Raw geoJson string (as stored on turfs) alongside the parsed geography.
+    // Withheld while the last area shows, so nothing acts on the wrong shape
+    areaGeoJson: areaDataRefreshing ? undefined : areaData?.geoJson,
+    geography: areaDataRefreshing ? undefined : geography,
     members,
     markers,
     placedMarkersInBoundary,

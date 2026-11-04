@@ -482,27 +482,38 @@ export function useMapClickEffect({
     setSelectedSecondaryArea,
   ]);
 
-  // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
+  // Keep the highlighted area in step with selectedBoundary when it's set
+  // or cleared from outside the map (resetInspector, the area ranking)
   useEffect(() => {
-    if (
-      selectedBoundary === null &&
-      mapRef?.current &&
-      activeFeatureId.current !== undefined
-    ) {
-      const map = mapRef.current;
-      if (map.getSource(interactionSourceId)) {
-        map.setFeatureState(
-          {
-            source: interactionSourceId,
-            sourceLayer: layerId,
-            id: activeFeatureId.current,
-          },
-          { active: false },
-        );
-      }
-      activeFeatureId.current = undefined;
+    const map = mapRef?.current;
+    if (!map) return;
+    const nextId =
+      selectedBoundary?.areaSetCode === areaSetCode
+        ? selectedBoundary.code
+        : undefined;
+    if (nextId === activeFeatureId.current) return;
+    if (!map.getSource(interactionSourceId)) {
+      activeFeatureId.current = nextId;
+      return;
     }
-  }, [selectedBoundary, mapRef, layerId, interactionSourceId]);
+    if (activeFeatureId.current !== undefined) {
+      map.setFeatureState(
+        {
+          source: interactionSourceId,
+          sourceLayer: layerId,
+          id: activeFeatureId.current,
+        },
+        { active: false },
+      );
+    }
+    if (nextId !== undefined) {
+      map.setFeatureState(
+        { source: interactionSourceId, sourceLayer: layerId, id: nextId },
+        { active: true },
+      );
+    }
+    activeFeatureId.current = nextId;
+  }, [selectedBoundary, mapRef, layerId, interactionSourceId, areaSetCode]);
 }
 
 export const getClickedPolygonFeature = (

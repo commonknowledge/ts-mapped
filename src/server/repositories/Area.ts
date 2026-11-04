@@ -186,3 +186,21 @@ export async function searchAreas(query: string) {
 
   return queryBuilder.orderBy(sql`ST_Area(geom)`, "desc").execute();
 }
+
+/** Names for a list of codes in one area set, without geometry */
+export async function findAreaNamesByCodes({
+  codes,
+  areaSetCode,
+}: {
+  codes: string[];
+  areaSetCode: AreaSetCode;
+}): Promise<{ code: string; name: string }[]> {
+  if (!codes.length) return [];
+  return dbRead
+    .selectFrom("area")
+    .innerJoin("areaSet", "area.areaSetId", "areaSet.id")
+    .where("areaSet.code", "=", areaSetCode)
+    .where("area.code", "in", codes)
+    .select(["area.code", "area.name"])
+    .execute();
+}

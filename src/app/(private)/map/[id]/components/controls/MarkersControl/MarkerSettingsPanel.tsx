@@ -31,7 +31,7 @@ import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useMapRef } from "../../../hooks/useMapCore";
-import { useMapViews } from "../../../hooks/useMapViews";
+import { useMarkerColors } from "../../../hooks/useMarkerColors";
 import { useMarkerSettings } from "../../../hooks/useMarkerSettings";
 import { VISUALISATION_PANEL_WIDTH, mapColors } from "../../../styles";
 import MarkerMappingFlyout from "./MarkerMappingFlyout";
@@ -52,7 +52,7 @@ export default function MarkerSettingsPanel({
   } = useMarkerSettings();
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { markerColors, setMarkerColor } = useMarkerColors();
   const organisationId = useOrganisationId();
   const trpc = useTRPC();
   const {
@@ -157,28 +157,21 @@ export default function MarkerSettingsPanel({
     }
   };
 
-  // Default colour: view override, then data source default, then layer colour
+  // The map's colour, then the data source default, then the layer colour
   const layerColor =
     mapConfig.membersDataSourceId === dataSourceId
       ? mapColors.member.color
       : mapColors.markers.color;
   const currentColor =
-    viewConfig.markerColors?.[dataSourceId] ??
-    dataSource.defaultMarkerColor ??
-    layerColor;
+    markerColors[dataSourceId] ?? dataSource.defaultMarkerColor ?? layerColor;
 
   const isOwner = Boolean(
     organisationId && dataSource.organisationId === organisationId,
   );
 
   const handleColorChange = (color: string) => {
-    // Set the colour for this view; views with their own colour keep it
-    updateViewConfig({
-      markerColors: {
-        ...viewConfig.markerColors,
-        [dataSourceId]: color,
-      },
-    });
+    // Set the colour for the map, so every view shows it
+    setMarkerColor({ dataSourceId, color });
     if (isOwner) {
       // Owners also update the data source's default colour, used by any
       // view or map that has not set its own (including future ones)
@@ -297,6 +290,9 @@ export default function MarkerSettingsPanel({
       )}
       <div
         ref={panelRef}
+        // A flyout beside the Layers panel: the guided tour keeps clear of it
+        data-tour-flyout
+        data-tour="marker-settings"
         className={cn(
           "flex flex-col gap-4 p-3 bg-neutral-50 overflow-y-auto border-r border-neutral-200",
           "absolute top-0 h-full z-100",

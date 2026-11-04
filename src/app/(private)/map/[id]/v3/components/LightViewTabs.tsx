@@ -38,6 +38,7 @@ export default function LightViewTabs() {
     <div
       role="tablist"
       aria-label="Views"
+      data-tour="views"
       className="flex min-w-0 items-center gap-0.5 overflow-x-auto"
     >
       {sortedViews.map((view) => (
@@ -51,6 +52,7 @@ export default function LightViewTabs() {
       <button
         type="button"
         onClick={createView}
+        data-tour="add-view"
         aria-label="New view"
         title="New view"
         className="ml-0.5 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
@@ -123,6 +125,7 @@ function ViewTab({
           type="button"
           role="tab"
           aria-selected={isActive}
+          data-tour-view={view.id}
           onClick={() => setViewId(view.id)}
           onDoubleClick={() => setIsRenaming(true)}
           className={cn(

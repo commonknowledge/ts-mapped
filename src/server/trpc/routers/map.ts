@@ -5,6 +5,7 @@ import { DataSourceRecordType } from "@/models/DataSource";
 import { mapConfigSchema, mapSchema } from "@/models/Map";
 import { MapStyleName, mapViewSchema } from "@/models/MapView";
 import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
+import createTutorialMap from "@/server/commands/createTutorialMap";
 import {
   findDataSourceById,
   findDataSourcesByIds,
@@ -79,6 +80,10 @@ export const mapRouter = router({
     .mutation(({ ctx, input }) => {
       return createMap(ctx.organisation.id, input.name);
     }),
+  /** An empty map with sample data ready to add, for the guided tour */
+  createTutorial: organisationProcedure.mutation(({ ctx }) =>
+    createTutorialMap(ctx.organisation.id),
+  ),
   createFromDataSource: organisationProcedure
     .input(z.object({ dataSourceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -183,6 +188,7 @@ export const mapRouter = router({
         folderColors: mapConfig.folderColors,
         turfColor: mapConfig.turfColor,
         savedVisualisations: mapConfig.savedVisualisations,
+        overlayBoundaries: mapConfig.overlayBoundaries,
         inspectorHiddenDataSourceIds: mapConfig.inspectorHiddenDataSourceIds,
         inspectorExtraDataSourceIds: mapConfig.inspectorExtraDataSourceIds,
         inspectorAutoDataSourceIds: mapConfig.inspectorAutoDataSourceIds,

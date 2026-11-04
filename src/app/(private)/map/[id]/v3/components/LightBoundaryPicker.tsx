@@ -8,10 +8,7 @@ import { MapType } from "@/models/MapView";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
@@ -19,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { getValidAreaSetGroupCodes } from "../../components/Choropleth/areas";
 import { useMapViews } from "../../hooks/useMapViews";
 import { BOUNDARY_GROUPS } from "../constants";
+import GroupedSelectOptions from "./GroupedSelectOptions";
 import type { AreaSetGroupCode } from "@/models/AreaSet";
 
 const NONE = "none";
@@ -37,7 +35,7 @@ export default function LightBoundaryPicker({
   value,
   onChange,
 }: {
-  label: string;
+  label?: string;
   dataSourceId?: string;
   disabled?: boolean;
   /** Shown on hover while disabled */
@@ -89,7 +87,9 @@ export default function LightBoundaryPicker({
       className="flex min-w-0 flex-1 items-center gap-1.5"
       title={disabled ? disabledReason : undefined}
     >
-      <span className="shrink-0 text-xs text-neutral-500">{label}</span>
+      {label && (
+        <span className="shrink-0 text-[11px] text-neutral-500">{label}</span>
+      )}
       <Select
         disabled={disabled}
         value={current ?? NONE}
@@ -115,28 +115,17 @@ export default function LightBoundaryPicker({
               No boundaries
             </SelectItem>
           )}
-          {groups.map((group, index) => (
-            <SelectGroup key={group.label}>
-              {(index > 0 || (allowNone ?? !dataSource)) && <SelectSeparator />}
-              <SelectLabel className="font-mono text-[10px] tracking-widest text-neutral-400 uppercase">
-                {group.label}
-              </SelectLabel>
-              {group.options.map((option) => (
-                <SelectItem
-                  key={option.code}
-                  value={option.code}
-                  className="py-1"
-                >
-                  <span className="flex min-w-0 flex-col items-start gap-0">
-                    <span className="text-xs">{option.name}</span>
-                    <span className="text-[11px] text-neutral-500">
-                      {option.description}
-                    </span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          ))}
+          <GroupedSelectOptions
+            separateFirst={allowNone ?? !dataSource}
+            groups={groups.map((group) => ({
+              label: group.label,
+              options: group.options.map((option) => ({
+                value: option.code,
+                name: option.name,
+                description: option.description,
+              })),
+            }))}
+          />
         </SelectContent>
       </Select>
       {isFiltered && !disabled && (

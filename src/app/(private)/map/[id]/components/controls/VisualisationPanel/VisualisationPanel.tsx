@@ -1,7 +1,14 @@
-import { Palette, X } from "lucide-react";
+import { ChevronDownIcon, X } from "lucide-react";
+import { useState } from "react";
+import ColumnDetailsEditor from "@/app/(private)/components/ColumnDetailsEditor";
+import { usePatchColumnMetadata } from "@/app/(private)/hooks/usePatchColumnMetadata";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
-import { DEFAULT_CUSTOM_COLOR, DUMMY_COUNT_COLUMN } from "@/constants";
+import {
+  DEFAULT_CUSTOM_COLOR,
+  DUMMY_COUNT_COLUMN,
+  MAX_COLUMN_KEY,
+} from "@/constants";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { useEditColumnMetadata } from "@/hooks/useEditColumnMetadata";
 import { ColumnType } from "@/models/DataSource";
@@ -30,7 +37,7 @@ import SteppedColorEditor from "./SteppedColorEditor";
 import type { ReactNode } from "react";
 
 const SELECT_TO_BUTTON_CLASSES =
-  "bg-background hover:bg-accent hover:text-accent-foreground hover:border-border font-medium cursor-pointer";
+  "bg-background hover:bg-accent hover:text-accent-foreground hover:border-border cursor-pointer";
 
 function OpacityControl({
   value,
@@ -42,8 +49,8 @@ function OpacityControl({
   const clampValue = (v: number) =>
     isNaN(v) ? 80 : Math.max(0, Math.min(v, 100));
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 relative">
+    <div className="flex items-center gap-2">
+      <div className="flex-1 relative flex items-center">
         <input
           type="range"
           id="choropleth-opacity"
@@ -52,7 +59,7 @@ function OpacityControl({
           step="1"
           value={value}
           onChange={(e) => onChange(clampValue(Number(e.target.value)))}
-          className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
+          className="w-full h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
           style={{
             background: `linear-gradient(to right, #737373 0%, #737373 ${value}%, #e5e7eb ${value}%, #e5e7eb 100%)`,
           }}
@@ -64,7 +71,7 @@ function OpacityControl({
         max="100"
         value={value}
         onChange={(e) => onChange(clampValue(Number(e.target.value)))}
-        className="w-16"
+        className="h-8 w-14 bg-white text-xs"
       />
     </div>
   );
@@ -100,12 +107,16 @@ export interface VisualisationPanelOptions {
   title?: string;
   /** Rendered above the style settings, e.g. the light editor's data pickers */
   header?: ReactNode;
+  /** Edit the column's description, labels and colours in the panel, not in
+   *  the metadata dialog (the light editor) */
+  inlineColumnDetails?: boolean;
 }
 
 export default function VisualisationPanel({
   positionLeft,
   title = "Style settings",
   header,
+  inlineColumnDetails = false,
 }: {
   positionLeft: number;
 } & VisualisationPanelOptions) {
@@ -129,12 +140,23 @@ export default function VisualisationPanel({
   const canSelectColorScale = columnIsNumeric;
   const isCategorical = columnIsCategorical || userSetCategorical;
   const canSelectColorScheme = canSelectColorScale && !isCategorical;
-  const canSetCategoryColors = isCategorical;
+  const canSetCategoryColors = isCategorical && !inlineColumnDetails;
+  const detailsColumn =
+    inlineColumnDetails &&
+    dataSource &&
+    viewConfig.areaDataColumn &&
+    viewConfig.areaDataColumn !== DUMMY_COUNT_COLUMN &&
+    viewConfig.areaDataColumn !== MAX_COLUMN_KEY
+      ? viewConfig.areaDataColumn
+      : null;
 
   const hasDataSource = Boolean(viewConfig.areaDataSourceId);
 
   return (
     <div
+      // A flyout beside the Layers panel: the guided tour keeps clear of it
+      data-tour-flyout
+      data-tour="area-data"
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
         "absolute top-0 h-full z-100",
@@ -159,6 +181,14 @@ export default function VisualisationPanel({
       <Separator />
 
       {header}
+      {detailsColumn && dataSource && (
+        <ColumnDetailsSection
+          key={`${dataSource.id}:${detailsColumn}`}
+          dataSourceId={dataSource.id}
+          column={detailsColumn}
+          showColors={isCategorical}
+        />
+      )}
 
       {!hasDataSource ? (
         header ? null : (
@@ -169,9 +199,9 @@ export default function VisualisationPanel({
         )
       ) : (
         <>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <p className="text-sm font-medium">Layout</p>
-            <div className="flex gap-2">
+            <div className="flex rounded-md bg-neutral-200/60 p-0.5">
               {mapTypes.map((type) => {
                 const isDefault = !viewConfig.mapType && type === MapType.Geo;
                 const isChecked = viewConfig.mapType === type || isDefault;
@@ -179,10 +209,12 @@ export default function VisualisationPanel({
                   <button
                     key={type}
                     type="button"
+                    aria-pressed={isChecked}
                     className={cn(
-                      "flex-1 rounded-md border px-3 py-2 text-xs font-medium shadow-xs transition-colors",
-                      "hover:bg-accent hover:text-accent-foreground hover:border-border",
-                      isChecked && "border-blue-300",
+                      "flex-1 cursor-pointer rounded px-2 py-1 text-xs transition-colors",
+                      isChecked
+                        ? "bg-white font-medium text-neutral-900 shadow-xs"
+                        : "text-neutral-500 hover:text-neutral-900",
                     )}
                     onClick={() => updateViewConfig({ mapType: type })}
                   >
@@ -194,20 +226,17 @@ export default function VisualisationPanel({
           </div>
 
           {showStyle && (
-            <div className="space-y-2 mb-4">
-              <p className="flex gap-2 items-center text-sm font-medium">
-                <Palette className="w-4 h-4 text-muted-foreground" />
-                Style
-              </p>
+            <div className="flex flex-col gap-2 mb-4">
+              <p className="text-sm font-medium">Style</p>
 
-              <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
+              <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 [&_[data-slot=select-trigger]]:h-8 [&_[data-slot=select-trigger]]:w-full [&_[data-slot=select-trigger]]:bg-white [&_[data-slot=select-trigger]]:text-xs">
                 {canSelectColorScale && (
                   <>
                     <Label
                       htmlFor="color-scale-type-select"
-                      className="text-sm text-muted-foreground font-normal"
+                      className="text-xs text-neutral-500 font-normal"
                     >
-                      Color scale
+                      Colour scale
                     </Label>
 
                     <Select
@@ -297,7 +326,7 @@ export default function VisualisationPanel({
                       <>
                         <Label
                           htmlFor="choropleth-color-scheme-select"
-                          className="text-sm text-muted-foreground font-normal"
+                          className="text-xs text-neutral-500 font-normal"
                         >
                           Colour scheme
                         </Label>
@@ -356,13 +385,13 @@ export default function VisualisationPanel({
                           <>
                             <Label
                               htmlFor="custom-color-picker"
-                              className="text-sm text-muted-foreground font-normal"
+                              className="text-xs text-neutral-500 font-normal"
                             >
-                              Max color
+                              Max colour
                             </Label>
                             <div className="flex items-center gap-2">
                               <div
-                                className="w-10 h-10 rounded border border-neutral-300 shrink-0 relative"
+                                className="size-8 rounded border border-neutral-300 shrink-0 relative"
                                 style={{
                                   backgroundColor:
                                     viewConfig.customColor ||
@@ -395,7 +424,7 @@ export default function VisualisationPanel({
                                     customColor: e.target.value,
                                   })
                                 }
-                                className="flex-1"
+                                className="h-8 flex-1 bg-white text-xs"
                                 placeholder={DEFAULT_CUSTOM_COLOR}
                               />
                             </div>
@@ -404,7 +433,7 @@ export default function VisualisationPanel({
 
                         <Label
                           htmlFor="choropleth-color-scheme-switch"
-                          className="text-sm text-muted-foreground font-normal"
+                          className="text-xs text-neutral-500 font-normal"
                         >
                           Reverse
                         </Label>
@@ -420,8 +449,8 @@ export default function VisualisationPanel({
                         {viewConfig.colorScaleType ===
                           ColorScaleType.Stepped && (
                           <>
-                            <Label className="text-sm text-muted-foreground font-normal">
-                              Color steps
+                            <Label className="text-xs text-neutral-500 font-normal">
+                              Colour steps
                             </Label>
                             <div>
                               <SteppedColorEditor />
@@ -434,8 +463,8 @@ export default function VisualisationPanel({
                 )}
                 {canSetCategoryColors && (
                   <>
-                    <Label className="text-sm text-muted-foreground font-normal">
-                      Category colors
+                    <Label className="text-xs text-neutral-500 font-normal">
+                      Category colours
                     </Label>
                     <div>
                       <SetCategoryColorsButton />
@@ -444,9 +473,9 @@ export default function VisualisationPanel({
                 )}
                 <Label
                   htmlFor="choropleth-opacity"
-                  className="text-sm text-muted-foreground font-normal"
+                  className="text-xs text-neutral-500 font-normal"
                 >
-                  Opacity (%)
+                  Opacity
                 </Label>
                 <OpacityControl
                   value={viewConfig.choroplethOpacityPct ?? 80}
@@ -458,6 +487,48 @@ export default function VisualisationPanel({
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+// The coloured column's description, display labels and category colours,
+// open in the panel so they're found where the column is chosen
+function ColumnDetailsSection({
+  dataSourceId,
+  column,
+  showColors,
+}: {
+  dataSourceId: string;
+  column: string;
+  showColors: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+  const { patch } = usePatchColumnMetadata(dataSourceId);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        className="flex cursor-pointer items-center gap-1 text-left text-sm font-medium"
+      >
+        <ChevronDownIcon
+          className={cn(
+            "size-3.5 text-muted-foreground transition-transform",
+            !isOpen && "-rotate-90",
+          )}
+        />
+        About this column
+      </button>
+      {isOpen && (
+        <ColumnDetailsEditor
+          dataSourceId={dataSourceId}
+          column={column}
+          onPatch={(changes) => patch(column, changes)}
+          showColors={showColors}
+        />
       )}
     </div>
   );

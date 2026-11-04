@@ -1,8 +1,17 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ListFilter, Search, XIcon } from "lucide-react";
+import {
+  ListFilter,
+  ListIcon,
+  MapPinIcon,
+  Search,
+  SquareDashedIcon,
+  XIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAreaLists } from "@/app/(private)/map/[id]/hooks/useAreaLists";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { useMarkerColors } from "@/app/(private)/map/[id]/hooks/useMarkerColors";
 import { usePlacedMarkersQuery } from "@/app/(private)/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/(private)/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/(private)/map/[id]/hooks/useTurfsQuery";
@@ -15,7 +24,6 @@ import {
   columnFilterTypes,
 } from "@/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -24,21 +32,21 @@ import {
   CommandItem,
   CommandList,
 } from "@/shadcn/ui/command";
-import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { Switch } from "@/shadcn/ui/switch";
-import { Toggle } from "@/shadcn/ui/toggle";
+import { cn } from "@/shadcn/utils";
 import { buildName } from "@/utils/dataRecord";
 import { mapColors } from "../../styles";
 import { getTurfDisplayName } from "../../utils/turf";
 import type {
+  DropdownItem,
   DropdownMenuItemType,
   DropdownSubComponent,
   DropdownSubMenu,
 } from "@/components/MultiDropdownMenu";
 import type { DataRecord } from "@/models/DataRecord";
 import type { ColumnDef } from "@/models/DataSource";
-import type { MapConfig } from "@/models/Map";
+import type { AreaList } from "@/models/Map";
 import type { RecordFilterInput } from "@/models/MapView";
 import type { PlacedMarker } from "@/models/PlacedMarker";
 import type { Turf } from "@/models/Turf";
@@ -50,25 +58,18 @@ interface TableFilterProps {
   setSearch?: (search: string) => void;
 }
 
-export default function MapTableFilter({
-  filter,
-  setFilter,
-  search,
-  setSearch,
-}: TableFilterProps) {
-  return (
-    <div>
-      <MultiFilter
-        filter={filter}
-        setFilter={setFilter}
-        search={search}
-        setSearch={setSearch}
-      />
-    </div>
-  );
+/** A marker layer on the map, by its own name and colour */
+interface MarkerLayer {
+  dataSourceId: string;
+  name: string;
+  color: string;
 }
 
-function MultiFilter({
+const CHIP_CLASSES =
+  "flex h-7 items-center overflow-hidden rounded-md border border-neutral-200 bg-white text-xs";
+
+// The table header's search, filter menu and active filters
+export default function MapTableFilter({
   filter,
   setFilter: _setFilter,
   search,
@@ -78,6 +79,8 @@ function MultiFilter({
   const { viewConfig, updateViewConfig } = useMapViews();
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { lists } = useAreaLists();
+  const { markerColors } = useMarkerColors();
   const { getDataSourceById } = useDataSources();
   const { selectedDataSourceId: tableDataSourceId } = useTable();
 
@@ -87,6 +90,31 @@ function MultiFilter({
     [tableDataSource?.columnDefs],
   );
   const children = useMemo(() => filter.children || [], [filter.children]);
+
+  const markerLayers = useMemo<MarkerLayer[]>(() => {
+    const ids = [
+      ...(mapConfig.membersDataSourceId ? [mapConfig.membersDataSourceId] : []),
+      ...mapConfig.markerDataSourceIds,
+    ];
+    return ids.map((dataSourceId) => {
+      const dataSource = getDataSourceById(dataSourceId);
+      return {
+        dataSourceId,
+        name: dataSource?.name || "Unknown data source",
+        color:
+          markerColors[dataSourceId] ??
+          dataSource?.defaultMarkerColor ??
+          (dataSourceId === mapConfig.membersDataSourceId
+            ? mapColors.member.color
+            : mapColors.markers.color),
+      };
+    });
+  }, [
+    getDataSourceById,
+    mapConfig.markerDataSourceIds,
+    mapConfig.membersDataSourceId,
+    markerColors,
+  ]);
 
   // Delayed filter update for better UI response
   const setFilter = useCallback(
@@ -99,196 +127,189 @@ function MultiFilter({
   );
 
   const filterRef = useRef(filter);
-  const childrenRef = useRef(children);
-
-  // Update refs when values change
   useEffect(() => {
     filterRef.current = filter;
-    childrenRef.current = children;
-  }, [filter, children]);
+  }, [filter]);
 
   useEffect(() => {
-    // Clean up filters when referenced items are removed
-    const validChildren = children.filter((child) => {
-      if (child.type === FilterType.GEO) {
-        // Check if placed marker still exists
+    // Drop filters whose marker, area, layer or list has gone, and keep list
+    // filters in step with their list's areas
+    let changed = false;
+    const nextChildren = children.flatMap((child) => {
+      if (child.type !== FilterType.GEO) return [child];
+      if (
+        child.placedMarker &&
+        !placedMarkers.find((m) => m.id === child.placedMarker)
+      ) {
+        changed = true;
+        return [];
+      }
+      if (child.turf && !turfs.find((t) => t.id === child.turf)) {
+        changed = true;
+        return [];
+      }
+      if (
+        child.dataSourceId &&
+        !markerLayers.some((l) => l.dataSourceId === child.dataSourceId)
+      ) {
+        changed = true;
+        return [];
+      }
+      if (child.areaListId) {
+        const list = lists.find((l) => l.id === child.areaListId);
+        if (!list) {
+          changed = true;
+          return [];
+        }
+        const areaCodes = list.areas.map((a) => a.code);
         if (
-          child.placedMarker &&
-          !placedMarkers.find((m) => m.id === child.placedMarker)
+          child.label !== list.name ||
+          child.areaSetCode !== list.areaSetCode ||
+          areaCodes.join(",") !== (child.areaCodes ?? []).join(",")
         ) {
-          return false;
-        }
-
-        // Check if turf still exists
-        if (child.turf && !turfs?.find((t) => t.id === child.turf)) {
-          return false;
-        }
-
-        // Check if data source is still enabled in mapConfig (for member/marker collections)
-        if (child.dataSourceId) {
-          const isMemberSource =
-            child.dataSourceId === mapConfig?.membersDataSourceId;
-          const isMarkerSource = mapConfig?.markerDataSourceIds?.includes(
-            child.dataSourceId,
-          );
-
-          if (!isMemberSource && !isMarkerSource) return false;
+          changed = true;
+          return [toListFilter(list)];
         }
       }
-      return true;
+      return [child];
     });
-
-    // Only update if we actually removed some filters
-    if (validChildren.length !== children.length) {
-      const updatedFilter = { ...filterRef.current, children: validChildren };
-      setFilter(updatedFilter);
+    if (changed) {
+      setFilter({ ...filterRef.current, children: nextChildren });
     }
-  }, [children, placedMarkers, turfs, mapConfig, setFilter]);
+  }, [children, placedMarkers, turfs, markerLayers, lists, setFilter]);
 
   const setChildFilter = (index: number, childFilter: RecordFilterInput) => {
-    const updatedFilter = {
+    setFilter({
       ...filter,
       children: children.map((f, i) => (i === index ? childFilter : f)),
-    };
-    setFilter(updatedFilter);
+    });
   };
 
   const addFilter = useCallback(
     (childFilter: RecordFilterInput) => {
-      const newFilter = { ...filter, children: [...children, childFilter] };
-      setFilter(newFilter);
+      setFilter({ ...filter, children: [...children, childFilter] });
     },
     [children, filter, setFilter],
   );
 
   const removeFilter = (index: number) => {
-    const updatedFilter = {
+    setFilter({
       ...filter,
       children: children.filter((_, i) => i !== index),
-    };
-    setFilter(updatedFilter);
+    });
   };
 
-  const updateOperator = (useAnd: boolean) => {
-    const updatedFilter = {
-      ...filter,
-      operator: useAnd ? FilterOperator.AND : FilterOperator.OR,
-    };
-    setFilter(updatedFilter);
-  };
-
-  // Build dropdown items
   const dropdownItems = useMemo(
     () =>
       buildDropdownItems({
-        mapConfig,
-        getDataSourceById,
+        markerLayers,
         placedMarkers,
-        turfs: turfs || [],
+        placedMarkerColors: mapConfig.placedMarkerColors,
+        turfs,
+        lists,
         columns,
         addFilter,
       }),
-    [mapConfig, getDataSourceById, placedMarkers, turfs, columns, addFilter],
+    [
+      markerLayers,
+      placedMarkers,
+      mapConfig.placedMarkerColors,
+      turfs,
+      lists,
+      columns,
+      addFilter,
+    ],
   );
 
   return (
-    <div className="flex gap-2">
-      <div className="flex gap-2 items-center flex-wrap">
-        {/* Filter chips */}
-        <ul className="flex gap-2 items-center text-sm flex-wrap">
-          {setSearch && (
-            <li className="flex items-center border rounded-md pl-2">
-              <SearchChip search={search} setSearch={setSearch} />
-              {search && (
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="px-2 border-l rounded-none text-muted-foreground h-7"
-                >
-                  <XIcon className="w-2 h-2" />
-                </Button>
-              )}
-            </li>
-          )}
-          {children.map((child, i) => (
-            <li key={i} className="flex items-center border rounded-md pl-2 ">
-              <ChildFilter
-                filter={child}
-                setFilter={(child) => setChildFilter(i, child)}
-              />
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={() => removeFilter(i)}
-                className="px-2 border-l rounded-none text-muted-foreground h-7"
-              >
-                <XIcon className="w-2 h-2" />
-              </Button>
-            </li>
-          ))}
-          <div className="flex gap-2 items-center">
-            {/* Add filter button */}
-            <MultiDropdownMenu
-              align="start"
-              side="bottom"
-              dropdownLabel="Filters"
-              dropdownItems={dropdownItems}
-              variant="outline"
-              buttonSize="sm"
-              preventAutoFocus
-            >
-              {children.length ? (
-                <ListFilter className="w-4 h-4" />
-              ) : (
-                <div className="flex gap-2 items-center">
-                  <ListFilter className="w-4 h-4" /> Filter
-                </div>
-              )}
-            </MultiDropdownMenu>
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      {setSearch && <SearchInput search={search} setSearch={setSearch} />}
+      <MultiDropdownMenu
+        align="start"
+        side="bottom"
+        dropdownLabel="Filter by"
+        dropdownItems={dropdownItems}
+        variant="outline"
+        buttonSize="sm"
+        buttonClassName="h-7 gap-1.5 px-2 text-xs font-normal"
+        preventAutoFocus
+      >
+        <ListFilter className="size-3.5" />
+        Filter
+        {children.length > 0 && (
+          <span className="rounded bg-neutral-900 px-1 text-[10px] leading-4 font-medium text-white tabular-nums">
+            {children.length}
+          </span>
+        )}
+      </MultiDropdownMenu>
 
-            {/* Operator toggle */}
-            {children.length > 0 ? (
-              <OperatorToggle
-                operator={filter.operator || FilterOperator.OR}
-                onOperatorChange={updateOperator}
-              />
-            ) : null}
+      {children.map((child, i) => (
+        <div key={i} className={CHIP_CLASSES}>
+          <ChildFilter
+            filter={child}
+            setFilter={(child) => setChildFilter(i, child)}
+            markerLayers={markerLayers}
+            lists={lists}
+          />
+          <button
+            type="button"
+            aria-label="Remove filter"
+            onClick={() => removeFilter(i)}
+            className="flex h-full cursor-pointer items-center border-l border-neutral-200 px-1.5 text-neutral-400 hover:bg-neutral-50 hover:text-neutral-900"
+          >
+            <XIcon className="size-3" />
+          </button>
+        </div>
+      ))}
 
-            {/* Show filtered markers toggle */}
-            {children.length > 0 || search ? (
-              <div className="flex items-center gap-1.5">
-                <Switch
-                  id="hide-filtered-markers"
-                  checked={Boolean(viewConfig.hideFilteredMarkers)}
-                  onCheckedChange={(checked) =>
-                    updateViewConfig({ hideFilteredMarkers: checked })
-                  }
-                />
-                <Label
-                  htmlFor="hide-filtered-markers"
-                  className="text-xs text-muted-foreground whitespace-nowrap cursor-pointer"
-                >
-                  Remove filtered from map
-                </Label>
-              </div>
-            ) : null}
-          </div>
-        </ul>
-      </div>
+      {children.length > 1 && (
+        <OperatorToggle
+          operator={filter.operator || FilterOperator.OR}
+          onOperatorChange={(useAnd) =>
+            setFilter({
+              ...filter,
+              operator: useAnd ? FilterOperator.AND : FilterOperator.OR,
+            })
+          }
+        />
+      )}
+
+      {(children.length > 0 || search) && (
+        <div className="ml-1 flex items-center gap-1.5">
+          <Switch
+            id="hide-filtered-markers"
+            checked={Boolean(viewConfig.hideFilteredMarkers)}
+            onCheckedChange={(checked) =>
+              updateViewConfig({ hideFilteredMarkers: checked })
+            }
+          />
+          <Label
+            htmlFor="hide-filtered-markers"
+            className="cursor-pointer text-xs font-normal whitespace-nowrap text-neutral-500"
+          >
+            Hide the rest on the map
+          </Label>
+        </div>
+      )}
     </div>
   );
 }
 
-// Search chip that looks like the other filter chips
-function SearchChip({
+const toListFilter = (list: AreaList): RecordFilterInput => ({
+  type: FilterType.GEO,
+  areaListId: list.id,
+  areaSetCode: list.areaSetCode,
+  areaCodes: list.areas.map((a) => a.code),
+  label: list.name,
+});
+
+function SearchInput({
   search,
   setSearch,
 }: {
   search?: string;
   setSearch: (search: string) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [localSearch, setLocalSearch] = useState(search ?? "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -296,46 +317,47 @@ function SearchChip({
     setLocalSearch(search ?? "");
   }, [search]);
 
-  const onSearchChange = useCallback(
-    (value: string) => {
-      setLocalSearch(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        setSearch(value);
-      }, 300);
-    },
-    [setSearch],
-  );
-
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
 
-  useEffect(() => {
-    if (!search) {
-      inputRef.current?.focus();
-    }
-  }, [search]);
+  const onSearchChange = (value: string) => {
+    setLocalSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearch(value), 300);
+  };
 
   return (
-    <div className="flex items-center gap-1">
-      <Search className="w-3 h-3 text-muted-foreground" />
-      <Input
-        ref={inputRef}
+    <div className="flex h-7 w-44 items-center gap-1.5 rounded-md border border-neutral-200 bg-white pr-1 pl-2 focus-within:border-neutral-400">
+      <Search className="size-3.5 shrink-0 text-neutral-400" />
+      <input
         type="text"
         placeholder="Search"
+        aria-label="Search records"
         value={localSearch}
         onChange={(e) => onSearchChange(e.target.value)}
-        style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
-        className="min-w-20 h-7 p-2 text-sm border-0 rounded-none bg-transparent font-medium"
+        className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-neutral-400"
       />
+      {localSearch && (
+        <button
+          type="button"
+          aria-label="Clear search"
+          onClick={() => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            setLocalSearch("");
+            setSearch("");
+          }}
+          className="cursor-pointer rounded p-0.5 text-neutral-400 hover:text-neutral-900"
+        >
+          <XIcon className="size-3" />
+        </button>
+      )}
     </div>
   );
 }
 
-// Extracted operator toggle component
 function OperatorToggle({
   operator,
   onOperatorChange,
@@ -344,40 +366,55 @@ function OperatorToggle({
   onOperatorChange: (useAnd: boolean) => void;
 }) {
   return (
-    <Toggle
-      pressed={operator === FilterOperator.AND}
-      onPressedChange={onOperatorChange}
-    >
-      <span className="text-sm text-muted-foreground font-normal">
-        {operator === FilterOperator.AND ? (
-          <span>
-            Match <span className="text-muted-foreground">Any</span> |{" "}
-            <span className="font-medium text-primary">All</span>
-          </span>
-        ) : (
-          <span>
-            Match <span className="font-medium text-primary">Any</span> |{" "}
-            <span className="text-muted-foreground">All</span>
-          </span>
-        )}
-      </span>
-    </Toggle>
+    <div className="flex h-7 items-center rounded-md bg-neutral-100 p-0.5 text-xs">
+      {[
+        { useAnd: false, label: "Any" },
+        { useAnd: true, label: "All" },
+      ].map(({ useAnd, label }) => {
+        const isActive = (operator === FilterOperator.AND) === useAnd;
+        return (
+          <button
+            key={label}
+            type="button"
+            aria-pressed={isActive}
+            onClick={() => onOperatorChange(useAnd)}
+            className={cn(
+              "h-full cursor-pointer rounded px-2",
+              isActive
+                ? "bg-white font-medium text-neutral-900 shadow-xs"
+                : "text-neutral-500 hover:text-neutral-900",
+            )}
+          >
+            Match {label.toLowerCase()}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-// Extracted child filter component
-function ChildFilter({ filter, setFilter }: TableFilterProps) {
+function ChildFilter({
+  filter,
+  setFilter,
+  markerLayers,
+  lists,
+}: {
+  filter: RecordFilterInput;
+  setFilter: (f: RecordFilterInput) => void;
+  markerLayers: MarkerLayer[];
+  lists: AreaList[];
+}) {
   const { mapConfig } = useMapConfig();
-  const color = getFilterColor(filter, mapConfig);
   const hasDistance = filter.placedMarker || filter.dataRecordId;
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (!filter.search) {
         inputRef.current?.focus();
       }
     }, 100);
+    return () => clearTimeout(timeout);
   }, [filter.search]);
 
   const updateFilter = useCallback(
@@ -390,55 +427,79 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
   const [localSearch, setLocalSearch] = useState(filter.search || "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync local state when filter.search changes externally
   useEffect(() => {
     setLocalSearch(filter.search || "");
   }, [filter.search]);
 
-  const onSearchChange = useCallback(
-    (value: string) => {
-      setLocalSearch(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        updateFilter({ search: value });
-      }, 300);
-    },
-    [updateFilter],
-  );
-
-  // Clean up timeout on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
 
+  const onSearchChange = (value: string) => {
+    setLocalSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      updateFilter({ search: value });
+    }, 300);
+  };
+
   if (filter.type === FilterType.GEO) {
+    const list = filter.areaListId
+      ? lists.find((l) => l.id === filter.areaListId)
+      : undefined;
+    const color = list
+      ? list.color
+      : filter.turf
+        ? mapColors.areas.color
+        : filter.placedMarker
+          ? (mapConfig.placedMarkerColors?.[filter.placedMarker] ??
+            mapColors.markers.color)
+          : (markerLayers.find((l) => l.dataSourceId === filter.dataSourceId)
+              ?.color ?? mapColors.markers.color);
+
     return (
-      <div className="flex gap-1 items-center">
-        <span className="text-muted-foreground px-1">within</span>
-
+      <div className="flex h-full items-center gap-1.5 pl-2">
+        <span className="text-neutral-500">
+          {list ? "In" : hasDistance ? "Within" : "Inside"}
+        </span>
         {hasDistance && (
-          <DistanceInput
-            value={filter.distance || 0}
-            onChange={(distance) => updateFilter({ distance })}
-          />
+          <>
+            <input
+              type="number"
+              aria-label="Distance in km"
+              min={0}
+              value={filter.distance || 0}
+              onChange={(e) =>
+                updateFilter({ distance: parseInt(e.target.value, 10) || 0 })
+              }
+              className="always-show-spinner h-5 w-10 rounded bg-neutral-100 text-center font-medium tabular-nums outline-none"
+            />
+            <span className="text-neutral-500">km of</span>
+          </>
         )}
-
-        <div
-          className="w-2 h-2 rounded-full"
+        <span
+          aria-hidden
+          className={cn(
+            "size-2 shrink-0",
+            list ? "rounded-sm" : "rounded-full",
+          )}
           style={{ backgroundColor: color }}
         />
-        <span className="whitespace-nowrap max-w-[100px] truncate pr-2 font-medium">
+        <span className="max-w-[140px] truncate pr-2 font-medium">
           {filter.label || "Unnamed location"}
         </span>
       </div>
     );
   }
 
+  const needsSearch =
+    filter.type !== FilterType.EMPTY && filter.type !== FilterType.NOT_EMPTY;
+
   return (
-    <div className="flex">
-      <span className="text-muted-foreground whitespace-nowrap my-auto mr-1">
+    <div className="flex h-full items-center">
+      <span className="pr-1.5 pl-2 whitespace-nowrap text-neutral-500">
         {filter.column}
       </span>
       <select
@@ -446,14 +507,14 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
         value={filter.type}
         onChange={(e) => {
           const newType = e.target.value as FilterType;
-          const needsSearch =
+          const keepsSearch =
             newType !== FilterType.EMPTY && newType !== FilterType.NOT_EMPTY;
           updateFilter({
             type: newType,
-            search: needsSearch ? filter.search : undefined,
+            search: keepsSearch ? filter.search : undefined,
           });
         }}
-        className="bg-neutral-100 text-sm cursor-pointer border-0 border-l text-center font-medium"
+        className="h-full cursor-pointer border-l border-neutral-200 bg-neutral-50 px-1 font-medium outline-none"
       >
         {columnFilterTypes.map((type) => (
           <option key={type} value={type}>
@@ -461,49 +522,22 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
           </option>
         ))}
       </select>
-      {filter.type !== FilterType.EMPTY &&
-        filter.type !== FilterType.NOT_EMPTY && (
-          <Input
-            type="text"
-            placeholder="Search"
-            value={localSearch}
-            onChange={(e) => onSearchChange(e.target.value)}
-            style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
-            className="min-w-20 h-7 p-2 text-sm border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium text-center"
-            ref={inputRef}
-            required
-          />
-        )}
+      {needsSearch && (
+        <input
+          type="text"
+          placeholder="Value"
+          aria-label={`${filter.column} value`}
+          value={localSearch}
+          onChange={(e) => onSearchChange(e.target.value)}
+          style={{ width: `${Math.max(6, localSearch.length + 1)}ch` }}
+          className="h-full border-l border-neutral-200 px-2 font-medium outline-none placeholder:font-normal placeholder:text-neutral-400"
+          ref={inputRef}
+        />
+      )}
     </div>
   );
 }
 
-// Extracted distance input component
-function DistanceInput({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <>
-      <Input
-        type="number"
-        placeholder="Distance"
-        value={value}
-        onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-        required
-        className="w-16 h-7 p-2 text-sm text-center border-y-0 rounded-none bg-neutral-100 font-medium always-show-spinner"
-      />
-      <span className="whitespace-nowrap text-muted-foreground px-1">
-        km of
-      </span>
-    </>
-  );
-}
-
-// Extracted data record command component
 function DataRecordCommand({
   label,
   dataSourceId,
@@ -523,9 +557,7 @@ function DataRecordCommand({
     ),
   );
   const getItemLabel = useCallback(
-    (record: DataRecord) => {
-      return buildName(dataSource, record);
-    },
+    (record: DataRecord) => buildName(dataSource, record),
     [dataSource],
   );
 
@@ -545,22 +577,14 @@ function DataRecordCommand({
               : "Type to search..."}
         </CommandEmpty>
         {!search && dataSource?.count && dataSource.records.length > 5 && (
-          <div className="px-2 pt-1 text-[10px] text-muted-foreground text-center">
+          <div className="px-2 pt-1 text-center text-[10px] text-muted-foreground">
             Type to search all {dataSource.count.total} records
           </div>
         )}
 
-        {dataSource?.records && dataSource?.records.length > 0 && (
-          <CommandGroup
-            heading={
-              dataSource?.records && dataSource?.records.length > 0
-                ? search
-                  ? "Search Results"
-                  : "Recent Records"
-                : ""
-            }
-          >
-            {dataSource?.records.map((record) => (
+        {dataSource?.records && dataSource.records.length > 0 && (
+          <CommandGroup heading={search ? "Search results" : "Recent records"}>
+            {dataSource.records.map((record) => (
               <CommandItem
                 key={record.id}
                 className="cursor-pointer"
@@ -576,213 +600,137 @@ function DataRecordCommand({
   );
 }
 
-// Helper functions
-function getFilterColor(
-  filter: RecordFilterInput,
-  mapConfig: MapConfig,
-): string {
-  if (filter.placedMarker) return mapColors.markers.color;
-  if (filter.turf) return mapColors.areas.color;
-  if (filter.dataSourceId && filter.dataRecordId) {
-    // Check if this is a marker collection (not a member data source)
-    const isMarkerCollection =
-      filter.dataSourceId !== mapConfig?.membersDataSourceId;
-    return isMarkerCollection
-      ? mapColors.markers.color
-      : mapColors.member.color;
-  }
-  return mapColors.member.color;
-}
+const Swatch = ({
+  color,
+  square = false,
+}: {
+  color: string;
+  square?: boolean;
+}) => (
+  <span
+    aria-hidden
+    className={cn("size-2 shrink-0", square ? "rounded-sm" : "rounded-full")}
+    style={{ backgroundColor: color }}
+  />
+);
+
+const SwatchLabel = ({
+  color,
+  label,
+  square,
+}: {
+  color: string;
+  label: string;
+  square?: boolean;
+}) => (
+  <span className="flex min-w-0 items-center gap-2">
+    <Swatch color={color} square={square} />
+    <span className="truncate">{label}</span>
+  </span>
+);
 
 function buildDropdownItems({
-  mapConfig,
-  getDataSourceById,
+  markerLayers,
   placedMarkers,
+  placedMarkerColors,
   turfs,
+  lists,
   columns,
   addFilter,
 }: {
-  mapConfig: MapConfig;
-  getDataSourceById: (id: string) => { id: string; name: string } | null;
+  markerLayers: MarkerLayer[];
   placedMarkers: PlacedMarker[];
+  placedMarkerColors: Record<string, string> | undefined;
   turfs: Turf[];
+  lists: AreaList[];
   columns: ColumnDef[];
   addFilter: (filter: RecordFilterInput) => void;
 }): DropdownMenuItemType[] {
-  const memberCommand = mapConfig.membersDataSourceId ? (
-    <DataRecordCommand
-      label="Members"
-      dataSourceId={mapConfig.membersDataSourceId}
-      onSelectRecord={(id, label) => {
-        addFilter({
-          type: FilterType.GEO,
-          dataRecordId: id,
-          dataSourceId: mapConfig.membersDataSourceId,
-          label,
-          distance: 1,
-        });
-      }}
-    />
-  ) : null;
-
-  const markerCommands = mapConfig.markerDataSourceIds.map(
-    (dataSourceId: string) => {
-      const markerDataSource = getDataSourceById(dataSourceId);
-      return {
-        label: markerDataSource?.name || "Unknown data source",
-        component: (
-          <DataRecordCommand
-            key={dataSourceId}
-            label={markerDataSource?.name || "Unknown data source"}
-            dataSourceId={dataSourceId}
-            onSelectRecord={(id, label) => {
-              addFilter({
-                type: FilterType.GEO,
-                dataRecordId: id,
-                dataSourceId: dataSourceId,
-                label,
-                distance: 1,
-              });
-            }}
-          />
-        ),
-      };
-    },
-  );
-
-  const placedMarkerItems: DropdownMenuItemType[] = placedMarkers.map(
-    (marker) => ({
+  // Within a distance of a record from any marker layer, or a placed marker
+  const nearItems: DropdownMenuItemType[] = [
+    ...markerLayers.map((layer): DropdownSubComponent => ({
+      type: "subcomponent",
+      label: <SwatchLabel color={layer.color} label={layer.name} />,
+      component: (
+        <DataRecordCommand
+          label={layer.name}
+          dataSourceId={layer.dataSourceId}
+          onSelectRecord={(id, label) =>
+            addFilter({
+              type: FilterType.GEO,
+              dataRecordId: id,
+              dataSourceId: layer.dataSourceId,
+              label,
+              distance: 1,
+            })
+          }
+        />
+      ),
+    })),
+    ...(markerLayers.length && placedMarkers.length
+      ? [{ type: "separator" as const }]
+      : []),
+    ...placedMarkers.map((marker): DropdownItem => ({
       type: "item",
       label: marker.label,
-      onClick: () => {
+      icon: (
+        <Swatch
+          color={placedMarkerColors?.[marker.id] ?? mapColors.markers.color}
+        />
+      ),
+      onClick: () =>
         addFilter({
           type: FilterType.GEO,
           placedMarker: marker.id,
           label: marker.label,
           distance: 1,
-        });
-      },
-    }),
-  );
+        }),
+    })),
+  ];
 
-  const turfItems: DropdownMenuItemType[] = turfs.map((turf) => ({
+  const areaItems: DropdownItem[] = turfs.map((turf) => ({
     type: "item",
     label: getTurfDisplayName(turf),
-    onClick: () => {
-      addFilter({
-        type: FilterType.GEO,
-        turf: turf.id,
-        label: turf.label,
-      });
-    },
+    icon: <Swatch color={mapColors.areas.color} square />,
+    onClick: () =>
+      addFilter({ type: FilterType.GEO, turf: turf.id, label: turf.label }),
   }));
 
-  const columnItems: DropdownMenuItemType[] = columns.map((column) => ({
+  const listItems: DropdownItem[] = lists.map((list) => ({
+    type: "item",
+    label: `${list.name} (${list.areas.length})`,
+    icon: <Swatch color={list.color} square />,
+    onClick: () => addFilter(toListFilter(list)),
+  }));
+
+  const columnItems: DropdownItem[] = columns.map((column) => ({
     type: "item",
     label: column.name,
-    onClick: () => {
-      addFilter({
-        type: FilterType.TEXT,
-        column: column.name,
-      });
-    },
+    onClick: () => addFilter({ type: FilterType.TEXT, column: column.name }),
   }));
 
+  const submenu = (
+    label: string,
+    icon: React.ReactNode,
+    items: DropdownMenuItemType[],
+  ): DropdownSubMenu[] =>
+    items.length ? [{ type: "submenu", label, icon, items }] : [];
+
+  const spatialItems = [
+    ...submenu("Near", <MapPinIcon className="size-3.5" />, nearItems),
+    ...submenu(
+      "Inside a drawn area",
+      <SquareDashedIcon className="size-3.5" />,
+      areaItems,
+    ),
+    ...submenu("In a list", <ListIcon className="size-3.5" />, listItems),
+  ];
+
   return [
-    // Member Area
-    ...(memberCommand
-      ? [
-          {
-            type: "subcomponent",
-            label: (
-              <div className="flex gap-1 items-center">
-                <span className="text-muted-foreground whitespace-nowrap">
-                  Proximity to
-                </span>
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: mapColors.member.color }}
-                />
-                <span className="font-medium text-primary">Member</span>
-              </div>
-            ),
-            component: memberCommand,
-          } as DropdownSubComponent,
-        ]
+    ...spatialItems,
+    ...(spatialItems.length && columnItems.length
+      ? [{ type: "separator" as const }]
       : []),
-
-    // Marker Area
-    //If there is an placed markers or marker collection data, show the markers in a submenu
-    ...(markerCommands.length || placedMarkerItems.length > 0
-      ? [
-          {
-            type: "submenu",
-            label: (
-              <div className="flex gap-1 items-center">
-                <span className="text-muted-foreground whitespace-nowrap">
-                  Proximity to
-                </span>
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: mapColors.markers.color }}
-                />
-                <span className="font-medium text-primary">Marker</span>
-              </div>
-            ),
-            items: [
-              //if theres is placed markers, show the markers in a submenu
-              ...(placedMarkerItems.length > 0 ? [...placedMarkerItems] : []),
-
-              //if theres is placed markers and marker collection data, show a separator
-              ...(markerCommands.length > 0 && placedMarkerItems.length > 0
-                ? [{ type: "separator" }]
-                : []),
-
-              //if theres is marker collection data, show the markers in a submenu
-              ...(markerCommands.length > 0
-                ? markerCommands.map(
-                    ({
-                      label,
-                      component,
-                    }: {
-                      label: string;
-                      component: React.ReactNode;
-                    }) =>
-                      ({
-                        type: "subcomponent",
-                        label,
-                        component,
-                      }) as DropdownSubComponent,
-                  )
-                : []),
-            ],
-          } as DropdownSubMenu,
-        ]
-      : []),
-
-    // Area Data
-    ...(turfItems.length > 0
-      ? [
-          {
-            type: "submenu",
-            label: (
-              <div className="flex gap-1 items-center">
-                <span className="text-muted-foreground whitespace-nowrap">
-                  Within
-                </span>
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: mapColors.areas.color }}
-                />
-                <span className="font-medium text-primary">Area</span>
-              </div>
-            ),
-            items: turfItems,
-          } as DropdownSubMenu,
-        ]
-      : []),
-
-    { type: "separator" },
     ...columnItems,
   ];
 }

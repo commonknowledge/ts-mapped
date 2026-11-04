@@ -154,6 +154,16 @@ export function applyFilterAndSearch(
       if (filter.turf) {
         return sql<boolean>`ST_Intersects(geocode_point, (SELECT polygon FROM turf WHERE id = ${filter.turf}))`;
       }
+      if (filter.areaListId && filter.areaSetCode) {
+        if (!filter.areaCodes?.length) {
+          return sql<boolean>`false`;
+        }
+        return eb(
+          eb.ref("geocodeResult", "->>").key("areas").key(filter.areaSetCode),
+          "in",
+          filter.areaCodes,
+        );
+      }
       if (filter.dataRecordId) {
         const metres = (filter.distance || 0) * 1000;
         return sql<boolean>`
@@ -508,4 +518,43 @@ export async function getNumericColumnRange(
     max: result?.max ?? null,
     hasDecimals: result?.hasDecimals ?? false,
   };
+}
+
+/**
+ * A page of a data source's records geocoded to some areas of one boundary
+ * set (e.g. the members in a list of constituencies), with the total
+ */
+export async function findDataRecordsInAreas({
+  dataSourceId,
+  areaSetCode,
+  areaCodes,
+  limit,
+}: {
+  dataSourceId: string;
+  areaSetCode: string;
+  areaCodes: string[];
+  limit: number;
+}) {
+  const inAreas = db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where(sql<string>`geocode_result->'areas'->>${areaSetCode}`, "in", [
+      // An empty IN () is invalid SQL
+      ...(areaCodes.length ? areaCodes : [""]),
+    ]);
+  const [records, count] = await Promise.all([
+    inAreas
+      .select([
+        "id",
+        "externalId",
+        sql<string>`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
+      ])
+      .orderBy("externalId", "asc")
+      .limit(limit)
+      .execute(),
+    inAreas
+      .select(({ fn }) => fn.countAll<string>().as("total"))
+      .executeTakeFirst(),
+  ]);
+  return { records, total: Number(count?.total ?? 0) };
 }

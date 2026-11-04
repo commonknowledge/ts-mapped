@@ -12,6 +12,7 @@ import { useOpenInspectorConfig } from "../../hooks/useOpenInspectorConfig";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 import { useAddMarkersPanel } from "../hooks/useAddMarkersPanel";
 import { useInspectorEditingDataSourceId } from "../hooks/useInspectorCustomise";
+import LightInspectorDefaultBar from "./LightInspectorDefaultBar";
 
 // Wider than the other flyouts: the column editor has a lot to show
 const PANEL_WIDTH = 440;
@@ -56,6 +57,8 @@ export default function LightInspectorEditPanel() {
 
   return (
     <div
+      data-tour="inspector-editor"
+      data-tour-flyout
       className="absolute top-0 z-100 flex h-full flex-col gap-3 overflow-y-auto border-r border-neutral-200 bg-neutral-50 p-3"
       style={{
         left: showControls ? CONTROL_PANEL_WIDTH : 0,
@@ -83,6 +86,9 @@ export default function LightInspectorEditPanel() {
         </button>
       </div>
       <Separator />
+      {config && (
+        <LightInspectorDefaultBar config={config} onUpdate={onUpdateConfig} />
+      )}
       {config ? (
         <InspectorConfigEditor
           config={config}

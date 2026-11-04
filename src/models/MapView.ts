@@ -30,6 +30,11 @@ export const columnFilterTypes = [
 ] as const;
 
 const baseRecordFilterSchema = z.object({
+  // A GEO filter by an area list: records in any of these areas. The codes
+  // are copied from the list so the filter evaluates without the map config
+  areaCodes: z.array(z.string()).nullish(),
+  areaListId: z.string().nullish(),
+  areaSetCode: areaSetCode.nullish(),
   column: z.string().nullish(),
   dataRecordId: z.string().nullish(),
   dataSourceId: z.string().nullish(),
@@ -224,6 +229,9 @@ export const mapViewConfigSchema = z.object({
   hideFilteredMarkers: z.boolean().optional(),
   // Plain layer colour per marker data source id (migrated from map config)
   markerColors: z.record(z.string(), hexColorSchema).optional(),
+  // Marker data sources hidden in this view (colours are map-wide, but what's
+  // shown is per view)
+  hiddenMarkerDataSourceIds: z.array(z.string()).optional(),
   // Column-driven marker styling per marker data source id
   markerVisualisations: z
     .record(z.string(), markerVisualisationSchema)
@@ -240,6 +248,9 @@ export const mapViewConfigSchema = z.object({
   // Outline boundaries drawn over the map. The first visible one is mirrored
   // into secondaryAreaSetCode, which hover and the inspector read.
   overlayBoundaries: z.array(overlayBoundarySchema).optional(),
+  // When the overlay list is shared by the map's views: which are visible
+  // in this view, by overlay id (missing = the overlay's own default)
+  overlayBoundaryVisibility: z.record(z.string(), z.boolean()).optional(),
   // The inspector follows the Areas list; these record the user's changes.
   // Sources hidden from the inspector (their config is kept)
   inspectorHiddenDataSourceIds: z.array(z.string()).optional(),

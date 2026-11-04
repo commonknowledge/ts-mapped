@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, PlusIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/shadcn/utils";
 
 const COLOR_PALETTE_DATA = [
@@ -31,6 +32,10 @@ const getColorLabel = (color: string): string => {
     : `Select color ${color}`;
 };
 
+// Dragging in the native picker fires on every move; selection callbacks
+// can save, so they only get the colour once it settles
+const CUSTOM_COLOR_DEBOUNCE_MS = 200;
+
 export interface ColorPaletteProps {
   colors?: string[];
   selectedColor?: string;
@@ -44,6 +49,30 @@ export default function ColorPalette({
   onColorSelect,
   className,
 }: ColorPaletteProps) {
+  const debounceRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (debounceRef.current !== null) {
+        window.clearTimeout(debounceRef.current);
+      }
+    },
+    [],
+  );
+
+  const isCustom =
+    Boolean(selectedColor) &&
+    !colors.some((c) => c.toUpperCase() === selectedColor?.toUpperCase());
+
+  const selectCustom = (color: string) => {
+    if (debounceRef.current !== null) {
+      window.clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = window.setTimeout(
+      () => onColorSelect(color),
+      CUSTOM_COLOR_DEBOUNCE_MS,
+    );
+  };
+
   return (
     <div className={cn("grid grid-cols-4 gap-2 p-2", className)}>
       {colors.map((color) => (
@@ -67,6 +96,36 @@ export default function ColorPalette({
           )}
         </button>
       ))}
+      <label
+        title="Custom colour"
+        className={cn(
+          "relative flex w-8 h-8 cursor-pointer items-center justify-center rounded border-2 transition-all hover:scale-110",
+          "focus-within:ring-2 focus-within:ring-offset-1",
+          isCustom
+            ? "border-neutral-900 shadow-md"
+            : "border-neutral-300 hover:border-neutral-400",
+        )}
+        style={{
+          background:
+            isCustom && selectedColor
+              ? selectedColor
+              : "conic-gradient(#ff6b6b, #ffa500, #2ecc71, #3498db, #9b59b6, #ff6b6b)",
+        }}
+      >
+        {isCustom ? (
+          <CheckIcon className="w-4 h-4 text-white drop-shadow-md" />
+        ) : (
+          <PlusIcon className="w-4 h-4 text-white drop-shadow-md" />
+        )}
+        <input
+          type="color"
+          aria-label="Choose a custom colour"
+          // Uncontrolled, so the open picker isn't reset while debouncing
+          defaultValue={isCustom && selectedColor ? selectedColor : "#000000"}
+          onChange={(e) => selectCustom(e.target.value)}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        />
+      </label>
     </div>
   );
 }

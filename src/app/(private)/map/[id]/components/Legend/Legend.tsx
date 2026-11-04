@@ -58,6 +58,8 @@ export default function Legend({
   showBoundaryControls = true,
   showLegendBars = true,
   framed = true,
+  showColumnSettings = true,
+  showSourcePicker = true,
 }: {
   onClearRequest?: () => void;
   /** The light editor shows boundary pickers in its own Boundaries section */
@@ -67,6 +69,11 @@ export default function Legend({
   showLegendBars?: boolean;
   /** Draw the bordered card; off when embedded in another panel */
   framed?: boolean;
+  /** The column settings menu; off where metadata is edited inline */
+  showColumnSettings?: boolean;
+  /** The data source label and picker; off where the source has its own
+   *  header (the light editor's visualisation panel) */
+  showSourcePicker?: boolean;
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
@@ -219,45 +226,54 @@ export default function Legend({
     >
       {/* Data source + column */}
       <div className="flex flex-col gap-2 p-2">
-        <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
-          Data source
-        </p>
+        {showSourcePicker && (
+          <p className="text-xs text-muted-foreground font-mono font-medium uppercase mb-1">
+            Data source
+          </p>
+        )}
 
-        <button
-          type="button"
-          className={cn(
-            "flex w-full min-w-0 items-center gap-2 rounded-md border border-input bg-background px-3 h-8 text-xs font-normal shadow-xs outline-none transition-[color,box-shadow,border]",
-            "hover:bg-accent/60 hover:border-action-hover",
-            "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
-          )}
-          onClick={() => setIsDataSourceModalOpen(true)}
-        >
-          <span className="shrink-0 text-muted-foreground" aria-hidden>
-            {dataSource?.defaultInspectorConfig?.icon?.trim() ? (
-              <InspectorPanelIcon
-                iconName={dataSource.defaultInspectorConfig.icon.trim()}
-                className="h-4 w-4"
-              />
-            ) : (
-              <DataSourceIcon type={dataSource?.config?.type ?? "unknown"} />
+        {showSourcePicker && (
+          <button
+            type="button"
+            className={cn(
+              "flex w-full min-w-0 items-center gap-2 rounded-md border border-input bg-background px-3 h-8 text-xs font-normal shadow-xs outline-none transition-[color,box-shadow,border]",
+              "hover:bg-accent/60 hover:border-action-hover",
+              "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
             )}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-left font-medium">
-            {dataSource?.defaultInspectorConfig?.name?.trim()
-              ? dataSource.defaultInspectorConfig.name.trim()
-              : (dataSource?.name ?? "Select data source…")}
-          </span>
-          <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />
-        </button>
+            onClick={() => setIsDataSourceModalOpen(true)}
+          >
+            <span className="shrink-0 text-muted-foreground" aria-hidden>
+              {dataSource?.defaultInspectorConfig?.icon?.trim() ? (
+                <InspectorPanelIcon
+                  iconName={dataSource.defaultInspectorConfig.icon.trim()}
+                  className="h-4 w-4"
+                />
+              ) : (
+                <DataSourceIcon type={dataSource?.config?.type ?? "unknown"} />
+              )}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-left font-medium">
+              {dataSource?.defaultInspectorConfig?.name?.trim()
+                ? dataSource.defaultInspectorConfig.name.trim()
+                : (dataSource?.name ?? "Select data source…")}
+            </span>
+            <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />
+          </button>
+        )}
 
         {hasDataSource && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2" data-tour="column-picker">
+            {!showSourcePicker && (
+              <p className="text-[11px] font-medium text-neutral-500">Column</p>
+            )}
             <div className="flex items-center gap-2">
-              <CornerDownRight
-                className="size-4 shrink-0 text-muted-foreground"
-                strokeWidth={2}
-                aria-hidden
-              />
+              {showSourcePicker && (
+                <CornerDownRight
+                  className="size-4 shrink-0 text-muted-foreground"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+              )}
               <div className="min-w-0 flex-1">
                 <Combobox
                   size="sm"
@@ -320,48 +336,53 @@ export default function Legend({
                       }}
                       showSettings={false}
                     />
-                    <IconButtonWithTooltip
-                      tooltip="Column settings"
-                      dropdownLabel="Column settings"
-                      align="start"
-                      side="right"
-                      dropdownItems={[
-                        {
-                          type: "item",
-                          label: "Edit style",
-                          onClick: () =>
-                            setBoundariesPanelOpen(!boundariesPanelOpen),
-                        },
-                        {
-                          type: "item",
-                          label: "Edit metadata",
-                          onClick: () =>
-                            setEditColumnMetadata({
-                              dataSourceId: dataSource?.id ?? "",
-                              column: viewConfig.areaDataColumn,
-                              fields: {
-                                description: true,
-                                valueLabels: true,
-                                valueColors:
-                                  colorScheme?.colorSchemeType === "categoric",
-                              },
-                            }),
-                        },
-                      ]}
-                    >
-                      <Settings2Icon className="h-3.5 w-3.5 shrink-0" />
-                    </IconButtonWithTooltip>
+                    {showColumnSettings && (
+                      <IconButtonWithTooltip
+                        tooltip="Column settings"
+                        dropdownLabel="Column settings"
+                        align="start"
+                        side="right"
+                        dropdownItems={[
+                          {
+                            type: "item",
+                            label: "Edit style",
+                            onClick: () =>
+                              setBoundariesPanelOpen(!boundariesPanelOpen),
+                          },
+                          {
+                            type: "item",
+                            label: "Edit metadata",
+                            onClick: () =>
+                              setEditColumnMetadata({
+                                dataSourceId: dataSource?.id ?? "",
+                                column: viewConfig.areaDataColumn,
+                                fields: {
+                                  description: true,
+                                  valueLabels: true,
+                                  valueColors:
+                                    colorScheme?.colorSchemeType ===
+                                    "categoric",
+                                },
+                              }),
+                          },
+                        ]}
+                      >
+                        <Settings2Icon className="h-3.5 w-3.5 shrink-0" />
+                      </IconButtonWithTooltip>
+                    )}
                   </>
                 )}
             </div>
 
             {showSecondColumnRow && (
               <div className="flex items-center gap-2">
-                <CornerDownRight
-                  className="size-4 shrink-0 text-muted-foreground invisible"
-                  strokeWidth={2}
-                  aria-hidden
-                />
+                {showSourcePicker && (
+                  <CornerDownRight
+                    className="size-4 shrink-0 text-muted-foreground invisible"
+                    strokeWidth={2}
+                    aria-hidden
+                  />
+                )}
                 <div className="min-w-0 flex-1">
                   <Combobox
                     size="sm"
@@ -389,35 +410,38 @@ export default function Legend({
                       fields={{ description: true, valueLabels: true }}
                       showSettings={false}
                     />
-                    <IconButtonWithTooltip
-                      tooltip="Column settings"
-                      dropdownLabel="Column settings"
-                      align="start"
-                      side="right"
-                      dropdownItems={[
-                        {
-                          type: "item",
-                          label: "Edit style",
-                          onClick: () =>
-                            setBoundariesPanelOpen(!boundariesPanelOpen),
-                        },
-                        {
-                          type: "item",
-                          label: "Edit metadata",
-                          onClick: () =>
-                            setEditColumnMetadata({
-                              dataSourceId: dataSource?.id ?? "",
-                              column: viewConfig.areaDataSecondaryColumn ?? "",
-                              fields: {
-                                description: true,
-                                valueLabels: true,
-                              },
-                            }),
-                        },
-                      ]}
-                    >
-                      <Settings2Icon className="h-3.5 w-3.5 shrink-0" />
-                    </IconButtonWithTooltip>
+                    {showColumnSettings && (
+                      <IconButtonWithTooltip
+                        tooltip="Column settings"
+                        dropdownLabel="Column settings"
+                        align="start"
+                        side="right"
+                        dropdownItems={[
+                          {
+                            type: "item",
+                            label: "Edit style",
+                            onClick: () =>
+                              setBoundariesPanelOpen(!boundariesPanelOpen),
+                          },
+                          {
+                            type: "item",
+                            label: "Edit metadata",
+                            onClick: () =>
+                              setEditColumnMetadata({
+                                dataSourceId: dataSource?.id ?? "",
+                                column:
+                                  viewConfig.areaDataSecondaryColumn ?? "",
+                                fields: {
+                                  description: true,
+                                  valueLabels: true,
+                                },
+                              }),
+                          },
+                        ]}
+                      >
+                        <Settings2Icon className="h-3.5 w-3.5 shrink-0" />
+                      </IconButtonWithTooltip>
+                    )}
                   </>
                 )}
               </div>
@@ -466,9 +490,11 @@ export default function Legend({
                 className="text-xs text-muted-foreground underline cursor-pointer text-left hover:text-foreground transition-colors"
                 onClick={toggleBivariatePicker}
               >
+                {/* Pairs this column with another in a two-way (bivariate)
+                    key; "Add a column" elsewhere adds a separate one */}
                 {viewConfig.areaDataSecondaryColumn || bivariatePickerOpen
-                  ? "Remove second column"
-                  : "Add another column"}
+                  ? "Stop comparing"
+                  : "Compare with another column"}
               </button>
             )}
           </div>

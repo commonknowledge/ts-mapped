@@ -16,7 +16,7 @@ export default function LightOverlaysSection() {
   }
 
   return (
-    <LightSection label="Overlays">
+    <LightSection label="Overlays" defaultExpanded={false}>
       <LightOverlayBoundaries />
       <LightCustomAreas />
     </LightSection>

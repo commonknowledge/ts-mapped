@@ -1,4 +1,8 @@
-import { ADMIN_ORGANISATION_NAME, GE_DATA_SOURCE_NAME } from "@/constants";
+import {
+  ADMIN_ORGANISATION_NAME,
+  GE_DATA_SOURCE_NAME,
+  TUTORIAL_MEMBERS_NAME,
+} from "@/constants";
 import { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
 import {
   DataSourceRecordType,
@@ -105,12 +109,23 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
   return map;
 };
 
-const ensureMembersDataSource = async (orgId: string): Promise<DataSource> => {
-  const url = "file://resources/dataSets/sampleMembers.csv?orgId=" + orgId;
+// The sample members, as the Sample Map's members or, separately, the
+// tutorial map's (the same people, under their own name)
+export const ensureMembersDataSource = async (
+  orgId: string,
+  variant: "sample" | "tutorial" = "sample",
+): Promise<DataSource> => {
+  const url =
+    "file://resources/dataSets/sampleMembers.csv?orgId=" +
+    orgId +
+    (variant === "tutorial" ? "&tutorial=1" : "");
   let dataSource = await findCSVDataSourceByUrlAndOrg(url, orgId);
   if (!dataSource) {
     dataSource = await createDataSource({
-      name: MEMBERS_DATA_SOURCE_NAME,
+      name:
+        variant === "tutorial"
+          ? TUTORIAL_MEMBERS_NAME
+          : MEMBERS_DATA_SOURCE_NAME,
       organisationId: orgId,
       autoEnrich: false,
       autoImport: false,
@@ -131,37 +146,38 @@ const ensureMembersDataSource = async (orgId: string): Promise<DataSource> => {
   return dataSource;
 };
 
-const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
-  const commonKnowledgeOrg = await upsertOrganisation({
-    name: ADMIN_ORGANISATION_NAME,
-  });
-
-  const url = "file://resources/dataSets/ge2024.csv";
-  let dataSource = await findCSVDataSourceByUrlAndOrg(
-    url,
-    commonKnowledgeOrg.id,
-  );
-  if (!dataSource) {
-    dataSource = await createDataSource({
-      name: GE_DATA_SOURCE_NAME,
-      organisationId: commonKnowledgeOrg.id,
-      autoEnrich: false,
-      autoImport: false,
-      config: { type: DataSourceType.CSV, url },
-      columnRoles: { nameColumns: ["Constituency name"] },
-      enrichments: [],
-      geocodingConfig: {
-        type: GeocodingType.Code,
-        areaSetCode: AreaSetCode.WMC24,
-        column: "ONS ID",
-      },
-      columnDefs: [],
-      columnMetadata: [],
-      public: true,
-      recordType: DataSourceRecordType.Data,
+export const ensureElectionResultsDataSource =
+  async (): Promise<DataSource> => {
+    const commonKnowledgeOrg = await upsertOrganisation({
+      name: ADMIN_ORGANISATION_NAME,
     });
-  }
-  return dataSource;
-};
+
+    const url = "file://resources/dataSets/ge2024.csv";
+    let dataSource = await findCSVDataSourceByUrlAndOrg(
+      url,
+      commonKnowledgeOrg.id,
+    );
+    if (!dataSource) {
+      dataSource = await createDataSource({
+        name: GE_DATA_SOURCE_NAME,
+        organisationId: commonKnowledgeOrg.id,
+        autoEnrich: false,
+        autoImport: false,
+        config: { type: DataSourceType.CSV, url },
+        columnRoles: { nameColumns: ["Constituency name"] },
+        enrichments: [],
+        geocodingConfig: {
+          type: GeocodingType.Code,
+          areaSetCode: AreaSetCode.WMC24,
+          column: "ONS ID",
+        },
+        columnDefs: [],
+        columnMetadata: [],
+        public: true,
+        recordType: DataSourceRecordType.Data,
+      });
+    }
+    return dataSource;
+  };
 
 export default ensureOrganisationMap;

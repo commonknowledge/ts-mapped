@@ -9,6 +9,7 @@ import ColorMappingsEditor, {
 } from "@/components/ColorMappingsEditor";
 import { sortColumnValues } from "@/utils/sortColumnValues";
 import type { ColumnMetadata } from "@/models/DataSource";
+import type { ReactNode } from "react";
 
 interface ColorMappingsSectionProps {
   dataSourceId: string | undefined;
@@ -22,6 +23,10 @@ interface ColorMappingsSectionProps {
   hideColors?: boolean;
   /** Hide the section label when the container provides its own heading */
   hideLabel?: boolean;
+  /** Replaces each row's value text, e.g. with an editable display label */
+  renderValue?: (value: string) => ReactNode;
+  /** Smaller rows, for narrow panels */
+  compact?: boolean;
 }
 
 export default function ColorMappingsSection({
@@ -34,6 +39,8 @@ export default function ColorMappingsSection({
   organisationId,
   hideColors = false,
   hideLabel = false,
+  renderValue,
+  compact = false,
 }: ColorMappingsSectionProps) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { patchColumnMetadata, patchColumnMetadataOverride } =
@@ -262,6 +269,8 @@ export default function ColorMappingsSection({
           onBulkChange={handleBulkColorChange}
           onReorder={handleReorder}
           reorderHint={VALUE_ORDER_HINT}
+          renderValue={renderValue}
+          compact={compact}
         />
       </div>
     </div>

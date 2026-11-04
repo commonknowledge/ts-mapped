@@ -8,6 +8,8 @@ import { LayerType } from "@/types";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
+import { useMarkerColors } from "../../hooks/useMarkerColors";
+import { useMarkerLayerColor } from "../../hooks/useMarkerLayerColor";
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
 import { mapColors } from "../../styles";
 import {
@@ -159,6 +161,7 @@ export const MarkersList = ({
   // colour-by-category is on, else the layer colour — same resolution as
   // DataSourceMarkers (canonical values so defaults match the map/legend)
   const { viewConfig } = useMapViews();
+  const { markerColors } = useMarkerColors();
   const colorColumn =
     visualisation.colorMode === MarkerColorMode.Categories
       ? visualisation.colorColumn
@@ -173,8 +176,11 @@ export const MarkersList = ({
     enabled: Boolean(colorColumn),
   });
 
+  // The layer's ring colour, as in the Layers panel and on the map
+  // (members blue by default, other layers red)
   const fallbackColor =
-    viewConfig.markerColors?.[dataSourceId] ??
+    useMarkerLayerColor(dataSourceId) ??
+    markerColors[dataSourceId] ??
     dataSource?.defaultMarkerColor ??
     mapColors.dataSource.color;
 

@@ -18,6 +18,7 @@ import {
 import { LayerType } from "@/types";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
+import { useLayerRowVariant } from "../LayerRowVariantContext";
 import useSortableList from "../SortableList/hooks/useSortableList";
 import SortableFolderItem from "../SortableList/SortableFolderItem";
 import UnassignedFolder from "../SortableList/UnassignedFolder";
@@ -66,6 +67,7 @@ export default function MarkersList({
     return sortByPositionAndId(markerFolders);
   }, [markerFolders]);
 
+  const layerRowVariant = useLayerRowVariant();
   const hasMarkers =
     membersDataSource ||
     markerDataSources?.length ||
@@ -87,7 +89,7 @@ export default function MarkersList({
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           <div className="flex flex-col gap-1">
-            {!hasMarkers && (
+            {!hasMarkers && layerRowVariant !== "light" && (
               <EmptyLayer
                 message="Add a Marker Layer"
                 dropdownItems={dropdownItems}

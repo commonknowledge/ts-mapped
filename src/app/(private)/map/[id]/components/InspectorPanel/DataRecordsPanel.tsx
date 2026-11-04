@@ -6,6 +6,7 @@ import TogglePanel from "@/app/(private)/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { useDataSources } from "@/hooks/useDataSources";
+import { cn } from "@/shadcn/utils";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { useMapEditable } from "../../hooks/useMapEditable";
 import { useRecordName } from "../../hooks/useRecordName";
@@ -22,6 +23,7 @@ export default function DataRecordsPanel({
   dataSourceId,
   records,
   isLoading,
+  isRefreshing = false,
   defaultExpanded,
   hint,
   onClickConfigure,
@@ -29,6 +31,8 @@ export default function DataRecordsPanel({
   dataSourceId: string;
   records: DataRecord[];
   isLoading: boolean;
+  // Showing the last area's records while the next area's load
+  isRefreshing?: boolean;
   defaultExpanded: boolean;
   hint?: string;
   onClickConfigure?: () => void;
@@ -88,6 +92,7 @@ export default function DataRecordsPanel({
     <button
       type="button"
       onClick={() => onConfigureSource(dataSourceId)}
+      data-tour="inspector-settings"
       aria-label="Choose what this source shows"
       title="Choose what this source shows"
       className="shrink-0 cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
@@ -111,7 +116,13 @@ export default function DataRecordsPanel({
   // toolbar, or in the corner when there's no toolbar
   if (variant === "light") {
     return (
-      <div className="flex flex-col gap-3">
+      <div
+        aria-busy={isRefreshing}
+        className={cn(
+          "flex flex-col gap-3 transition-opacity duration-200",
+          isRefreshing && "opacity-40",
+        )}
+      >
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
         {isLoading ? (
           <p className="text-xs text-muted-foreground">Loading…</p>
@@ -147,12 +158,24 @@ export default function DataRecordsPanel({
                   />
                 </label>
               )}
-              <span className="ml-auto shrink-0 text-[11px] text-neutral-500 tabular-nums">
+              {/* Without a search box the count leads, like a heading */}
+              <span
+                className={cn(
+                  "shrink-0 font-mono text-[10px] tracking-widest text-neutral-400 uppercase tabular-nums",
+                  records.length > 5 && "ml-auto",
+                )}
+              >
                 {query
                   ? `${filteredRecords.length} of ${records.length}`
                   : `${records.length} records`}
               </span>
-              {configureButton}
+              {configureButton && (
+                <span
+                  className={cn("shrink-0", records.length <= 5 && "ml-auto")}
+                >
+                  {configureButton}
+                </span>
+              )}
             </div>
             {filteredRecords.length === 0 && (
               <p className="text-xs text-muted-foreground">No records match.</p>

@@ -85,7 +85,7 @@ export default function AreasControl() {
       className={isHex ? "opacity-45 pointer-events-none" : undefined}
     >
       <LayerHeader
-        label="Areas"
+        label="Custom areas"
         type={LayerType.Turf}
         expanded={expanded}
         setExpanded={setExpanded}

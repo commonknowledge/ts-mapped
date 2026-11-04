@@ -69,3 +69,20 @@ export const ORGANISATION_COOKIE_NAME = "MappedOrgId";
 export const SORT_BY_LOCATION = "__location";
 
 export const TRIAL_EXPIRED_MESSAGE = "Your trial has expired.";
+
+// Boundary sets with too many areas to list in full when comparing a
+// column across areas
+export const AREA_RANKING_EXCLUDED_SETS: string[] = [
+  "PC",
+  "OA21",
+  "LSOA21",
+  "SOA22",
+];
+
+// How long a section takes to fold open or closed
+export const COLLAPSE_DURATION_MS = 220;
+
+// The map made for the light editor's guided tour: empty, so the tour can
+// have you add the sample members and election results yourself
+export const TUTORIAL_MAP_NAME = "Tutorial map";
+export const TUTORIAL_MEMBERS_NAME = "Tutorial members";

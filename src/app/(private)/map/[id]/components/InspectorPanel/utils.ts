@@ -11,8 +11,9 @@ import type { InspectorConfig } from "../../hooks/useUpdateInspectorConfig";
 
 export interface InspectorBlock {
   group?: string;
-  /** "barChart": the group's columns as one sorted bar chart */
-  display?: "list" | "barChart" | "chartEnd";
+  /** "barChart": the group's columns as one sorted bar chart; "lineChart":
+   *  as one line, in column order */
+  display?: "list" | "barChart" | "lineChart" | "chartEnd";
   columns: string[];
 }
 

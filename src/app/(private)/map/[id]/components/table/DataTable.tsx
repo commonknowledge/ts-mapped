@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import { cn } from "@/shadcn/utils";
 import BooleanValueDisplay from "../BooleanValueDisplay";
 import MarkerShapeIcon from "../MarkerShapeIcon";
 import type { DataRecord } from "@/models/DataRecord";
@@ -132,13 +133,13 @@ export function DataTable({
     const state = sort.find((c) => c.name === columnName);
     if (!state) {
       return (
-        <ArrowUpDown className="opacity-0 group-hover:opacity-100 h-4 w-4" />
+        <ArrowUpDown className="size-3.5 opacity-0 group-hover:opacity-100" />
       );
     }
     if (state.desc) {
-      return <ArrowDown className="h-4 w-4" />;
+      return <ArrowDown className="size-3.5 text-neutral-900" />;
     }
-    return <ArrowUp className="h-4 w-4" />;
+    return <ArrowUp className="size-3.5 text-neutral-900" />;
   };
 
   const onClickSort = (columnName: string) => {
@@ -188,27 +189,36 @@ export function DataTable({
   }, [selectedRecordId, data, loading]);
 
   return (
-    <div className="flex flex-col h-full" ref={tableContainerRef}>
-      <div className="flex items-center justify-between px-3 py-2 border-b h-12">
-        <div className="flex items-center gap-4">
-          {title && (
-            <div className="flex flex-row gap-2">
-              <p className="font-bold whitespace-nowrap">{title}</p>
-              {recordCount && <span>{recordCount?.matched}</span>}
-              {recordCount && recordCount.total !== recordCount.matched && (
-                <span>{`(${recordCount.total})`}</span>
-              )}
-            </div>
-          )}
-        </div>
+    <div className="flex flex-col h-full bg-white" ref={tableContainerRef}>
+      <div className="flex min-h-11 items-center gap-3 border-b border-neutral-200 px-3 py-2">
+        {title && (
+          <div className="flex shrink-0 items-baseline gap-1.5">
+            <p className="max-w-[220px] truncate text-sm font-medium text-neutral-900">
+              {title}
+            </p>
+            {recordCount && (
+              <span className="text-xs text-neutral-500 tabular-nums">
+                {recordCount.total !== recordCount.matched
+                  ? `${recordCount.matched.toLocaleString()} of ${recordCount.total.toLocaleString()}`
+                  : recordCount.matched.toLocaleString()}
+              </span>
+            )}
+          </div>
+        )}
 
-        <div className="flex items-center gap-2 ml-auto">
+        {filter && <div className="min-w-0 flex-1">{filter}</div>}
+
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 [&_button]:h-7 [&_button]:text-xs">
           {buttons}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings2 className="text-muted-foreground" />
-                Display
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 px-2 font-normal"
+              >
+                <Settings2 className="size-3.5 text-neutral-500" />
+                Columns
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -234,47 +244,51 @@ export function DataTable({
             </DropdownMenuContent>
           </DropdownMenu>
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4 text-muted-foreground" />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Close table"
+              className="w-7 text-neutral-500"
+              onClick={onClose}
+            >
+              <X className="size-4" />
             </Button>
           )}
         </div>
       </div>
-      <div className="grow min-h-0 flex flex-col ">
-        <div className="flex items-center gap-2 px-3 py-2 border-b justify-between">
-          {filter}
-        </div>
+      <div className="grow min-h-0 flex flex-col">
         <div className="bg-white grow min-h-0">
-          <Table containerClassName="h-full overflow-y-auto">
+          <Table
+            containerClassName="h-full overflow-y-auto"
+            className="text-xs [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_tr]:border-neutral-100"
+          >
             {/* z-[1]: above cell content whose transforms (e.g. badge swatch
                 dots) create layer-0 stacking contexts that would paint over
                 the header, but below the map overlay panels (inspector etc.),
                 which sit at z-10 in the same stacking context */}
-            <TableHeader className="bg-neutral-100 sticky top-0 z-[1]">
-              <TableRow>
+            <TableHeader className="bg-neutral-50 sticky top-0 z-[1] shadow-[inset_0_-1px_0_#e5e5e5]">
+              <TableRow className="hover:bg-transparent">
                 {columns
                   .filter((c) => !hiddenColumns.includes(c.name))
                   .map((column) => {
                     return (
                       <TableHead
                         key={column.name}
-                        className={
-                          highlightedColumns?.has(column.name)
-                            ? "bg-blue-50"
-                            : undefined
-                        }
+                        className={cn(
+                          "h-8 font-medium text-neutral-500",
+                          highlightedColumns?.has(column.name) && "bg-blue-50",
+                        )}
                       >
-                        <div className="flex items-center">
-                          <div
-                            onClick={() => onClickSort(column.name)}
-                            className="flex cursor-pointer items-center h-8 p-0 hover:bg-transparent group"
-                          >
-                            {column.name}
-                            <span className="ml-2 h-4 w-4">
-                              {getSortIcon(column.name)}
-                            </span>
-                          </div>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onClickSort(column.name)}
+                          className="group flex cursor-pointer items-center gap-1 hover:text-neutral-900"
+                        >
+                          {column.name}
+                          <span className="size-3.5">
+                            {getSortIcon(column.name)}
+                          </span>
+                        </button>
                       </TableHead>
                     );
                   })}
@@ -282,8 +296,13 @@ export function DataTable({
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell>Loading...</TableCell>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-neutral-500"
+                  >
+                    Loading…
+                  </TableCell>
                 </TableRow>
               ) : data.length ? (
                 data.map((row) => (
@@ -291,8 +310,7 @@ export function DataTable({
                     key={row.id}
                     data-state={row.id === selectedRecordId && "selected"}
                     onClick={() => onRowClick?.(row)}
-                    //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
-                    className={`cursor-pointer hover:bg-neutral-50 data-[state=selected]:bg-blue-50`}
+                    className="cursor-pointer text-neutral-700 hover:bg-neutral-50 data-[state=selected]:bg-neutral-100 data-[state=selected]:text-neutral-900"
                   >
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))
@@ -393,58 +411,76 @@ export function DataTable({
                   </TableRow>
                 ))
               ) : (
-                <TableRow>
+                <TableRow className="hover:bg-transparent">
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className="h-24 text-center text-neutral-500"
                   >
-                    No results.
+                    No records match.
                   </TableCell>
                 </TableRow>
               )}
               {lastPageIndex > 0 && (
-                <TableRow>
+                <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={columns.length} className="p-0">
-                    <div className="flex items-center gap-2 p-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPageIndex(0)}
-                        disabled={pageIndex <= 0}
-                        className="text-muted-foreground font-normal"
-                      >
-                        <ChevronsLeft className="w-4 h-4" /> First Page
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPageIndex(pageIndex - 1)}
-                        disabled={pageIndex <= 0}
-                        className="text-muted-foreground font-normal"
-                      >
-                        <ChevronLeft className="w-4 h-4" /> Previous Page
-                      </Button>
-                      <span className="text-muted-foreground font-normal whitespace-nowrap">
+                    <div className="flex items-center gap-1 px-3 py-2 text-xs text-neutral-500">
+                      {[
+                        {
+                          label: "First page",
+                          icon: <ChevronsLeft className="size-3.5" />,
+                          page: 0,
+                          disabled: pageIndex <= 0,
+                        },
+                        {
+                          label: "Previous page",
+                          icon: <ChevronLeft className="size-3.5" />,
+                          page: pageIndex - 1,
+                          disabled: pageIndex <= 0,
+                        },
+                      ].map(({ label, icon, page, disabled }) => (
+                        <Button
+                          key={label}
+                          variant="ghost"
+                          size="icon"
+                          aria-label={label}
+                          title={label}
+                          onClick={() => setPageIndex(page)}
+                          disabled={disabled}
+                          className="size-7 text-neutral-500"
+                        >
+                          {icon}
+                        </Button>
+                      ))}
+                      <span className="px-1 whitespace-nowrap tabular-nums">
                         Page {pageIndex + 1} of {lastPageIndex + 1}
                       </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPageIndex(pageIndex + 1)}
-                        disabled={pageIndex >= lastPageIndex}
-                        className="text-muted-foreground font-normal"
-                      >
-                        <ChevronRight className="w-4 h-4" /> Next Page
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPageIndex(lastPageIndex)}
-                        disabled={pageIndex >= lastPageIndex}
-                        className="text-muted-foreground font-normal"
-                      >
-                        <ChevronsRight className="w-4 h-4" /> Last Page
-                      </Button>
+                      {[
+                        {
+                          label: "Next page",
+                          icon: <ChevronRight className="size-3.5" />,
+                          page: pageIndex + 1,
+                          disabled: pageIndex >= lastPageIndex,
+                        },
+                        {
+                          label: "Last page",
+                          icon: <ChevronsRight className="size-3.5" />,
+                          page: lastPageIndex,
+                          disabled: pageIndex >= lastPageIndex,
+                        },
+                      ].map(({ label, icon, page, disabled }) => (
+                        <Button
+                          key={label}
+                          variant="ghost"
+                          size="icon"
+                          aria-label={label}
+                          title={label}
+                          onClick={() => setPageIndex(page)}
+                          disabled={disabled}
+                          className="size-7 text-neutral-500"
+                        >
+                          {icon}
+                        </Button>
+                      ))}
                     </div>
                   </TableCell>
                 </TableRow>

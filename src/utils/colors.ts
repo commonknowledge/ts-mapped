@@ -2,7 +2,6 @@ import { scaleOrdinal } from "d3-scale";
 import {
   interpolateBlues,
   interpolateBrBG,
-  interpolateOrRd,
   interpolatePlasma,
   interpolateRdBu,
   interpolateRdYlGn,
@@ -84,14 +83,14 @@ export const getInterpolator = (
       return interpolatePlasma;
     case ColorScheme.Diverging:
       return interpolateBrBG;
-    case ColorScheme.Sequential:
-      return interpolateBlues;
     case ColorScheme.Custom:
       // Interpolate from white to custom color
       const targetColor = customColor || DEFAULT_CUSTOM_COLOR;
       return interpolateWhiteToColor(targetColor);
+    // Unset means Sequential, as the style settings show it
+    case ColorScheme.Sequential:
     default:
-      return interpolateOrRd;
+      return interpolateBlues;
   }
 };
 

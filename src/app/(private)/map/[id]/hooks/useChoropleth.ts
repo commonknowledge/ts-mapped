@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
 import { AreaSetGroupCode } from "@/models/AreaSet";
@@ -9,6 +9,7 @@ import {
   boundariesPanelOpenAtom,
   selectedBivariateBucketAtom,
 } from "../atoms/choroplethAtoms";
+import { markerSettingsDataSourceIdAtom } from "../atoms/markerAtoms";
 import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
 import { useZoom } from "./useMapCamera";
 import { useMapViews } from "./useMapViews";
@@ -20,6 +21,9 @@ export function useChoropleth() {
 
   const [boundariesPanelOpen, _setBoundariesPanelOpen] = useAtom(
     boundariesPanelOpenAtom,
+  );
+  const setMarkerSettingsDataSourceId = useSetAtom(
+    markerSettingsDataSourceIdAtom,
   );
   const [selectedBivariateBucket, setSelectedBivariateBucket] = useAtom(
     selectedBivariateBucketAtom,
@@ -49,9 +53,18 @@ export function useChoropleth() {
       if (open && viewConfig.areaSetGroupCode === undefined) {
         updateViewConfig({ areaSetGroupCode: AreaSetGroupCode.WMC24 });
       }
+      // The marker settings flyout takes the same place, so only one is open
+      if (open) {
+        setMarkerSettingsDataSourceId(null);
+      }
       _setBoundariesPanelOpen(open);
     },
-    [_setBoundariesPanelOpen, updateViewConfig, viewConfig.areaSetGroupCode],
+    [
+      _setBoundariesPanelOpen,
+      setMarkerSettingsDataSourceId,
+      updateViewConfig,
+      viewConfig.areaSetGroupCode,
+    ],
   );
 
   return {

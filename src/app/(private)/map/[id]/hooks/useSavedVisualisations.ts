@@ -18,6 +18,8 @@ import type { MapViewConfig, SavedVisualisation } from "@/models/MapView";
 interface NewVisualisation {
   dataSourceId?: string;
   column?: string;
+  /** A second column, for a bivariate map of the two */
+  secondaryColumn?: string;
   customColor?: string;
 }
 
@@ -241,7 +243,12 @@ export function useSavedVisualisations() {
   /** Saves the current visualisation and starts a new one, optionally on a
    *  given data source and column, for the user to finish in the flyout */
   const startNew = useCallback(
-    ({ dataSourceId, column, customColor }: NewVisualisation = {}) => {
+    ({
+      dataSourceId,
+      column,
+      secondaryColumn,
+      customColor,
+    }: NewVisualisation = {}) => {
       updateViewConfig({
         savedVisualisations: withLiveSaved(),
         activeVisualisationId: uuidv4(),
@@ -249,6 +256,7 @@ export function useSavedVisualisations() {
         areaSetGroupCode: getBoundariesFor(dataSourceId),
         areaDataSourceId: dataSourceId ?? "",
         areaDataColumn: column ?? "",
+        areaDataSecondaryColumn: secondaryColumn,
         // A single-colour scale, e.g. a marker layer's own colour
         ...(customColor
           ? { colorScheme: ColorScheme.Custom, customColor }
@@ -285,13 +293,14 @@ export function useSavedVisualisations() {
     ({
       dataSourceId,
       column,
+      secondaryColumn,
       customColor,
     }: NewVisualisation & { dataSourceId: string; column: string }) => {
       const existing = items.find(
         (item) =>
           item.areaDataSourceId === dataSourceId &&
           item.areaDataColumn === column &&
-          !item.areaDataSecondaryColumn,
+          (item.areaDataSecondaryColumn || undefined) === secondaryColumn,
       );
       if (existing) {
         // Give an uncoloured entry the requested colour on the way in
@@ -302,7 +311,7 @@ export function useSavedVisualisations() {
             : {},
         );
       } else {
-        startNew({ dataSourceId, column, customColor });
+        startNew({ dataSourceId, column, secondaryColumn, customColor });
       }
     },
     [items, select, startNew],

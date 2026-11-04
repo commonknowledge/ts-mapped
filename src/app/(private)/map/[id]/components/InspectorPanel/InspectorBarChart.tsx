@@ -6,6 +6,7 @@ import { ColumnDisplayFormat } from "@/models/shared";
 import { formatNumber } from "@/utils/text";
 import { useInspectorDataSourceConfig } from "../../hooks/useInspectorDataSourceConfig";
 import { parseColumnNumber } from "../../utils/stats";
+import InspectorFieldMenu from "./InspectorFieldMenu";
 import { getBarColorForLabel } from "./inspectorPanelOptions";
 
 // A divider group's columns as one horizontal bar chart, largest first, so
@@ -71,30 +72,34 @@ export default function InspectorBarChart({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         {shown.map((row) => (
-          <li
-            key={row.name}
-            className="grid grid-cols-[5.5rem_1fr_2.75rem] items-center gap-2 text-xs"
-            title={row.label}
-          >
-            <span className="truncate text-neutral-600">
-              {tidyLabel(row.label)}
-            </span>
-            <span className="h-2 overflow-hidden rounded-full bg-neutral-100">
-              <span
-                className="block h-full rounded-full"
-                style={{
-                  width: `${Math.min(100, (row.value / scale) * 100)}%`,
-                  backgroundColor: row.color,
-                }}
-              />
-            </span>
-            <span className="text-right font-medium tabular-nums">
-              {allPercentages
-                ? `${row.value < 10 ? row.value.toFixed(1) : Math.round(row.value)}%`
-                : formatNumber(row.value)}
-            </span>
+          <li key={row.name} title={row.label}>
+            <InspectorFieldMenu
+              dataSourceId={dataSourceId}
+              column={row.name}
+              label={tidyLabel(row.label)}
+              showButton={false}
+              className="-mx-1.5 grid grid-cols-[5.5rem_1fr_2.75rem] items-center gap-2 px-1.5 py-0.5 text-xs"
+            >
+              <span className="truncate text-neutral-600">
+                {tidyLabel(row.label)}
+              </span>
+              <span className="h-2 overflow-hidden rounded-full bg-neutral-100">
+                <span
+                  className="block h-full rounded-full"
+                  style={{
+                    width: `${Math.min(100, (row.value / scale) * 100)}%`,
+                    backgroundColor: row.color,
+                  }}
+                />
+              </span>
+              <span className="text-right font-medium tabular-nums">
+                {allPercentages
+                  ? `${row.value < 10 ? row.value.toFixed(1) : Math.round(row.value)}%`
+                  : formatNumber(row.value)}
+              </span>
+            </InspectorFieldMenu>
           </li>
         ))}
       </ul>
