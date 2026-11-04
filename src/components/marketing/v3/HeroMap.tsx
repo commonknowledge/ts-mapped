@@ -1,6 +1,7 @@
 "use client";
 
 import "mapbox-gl/dist/mapbox-gl.css";
+import { ChevronDownIcon } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import MapGL, { Layer, Source } from "react-map-gl/mapbox";
 import { cn } from "@/shadcn/utils";
@@ -15,6 +16,7 @@ import {
   AREAS,
   AREAS_BY_CODE,
   DEFAULT_SELECTED,
+  MARGINALS,
   MARKERS,
   MARKERS_GEOJSON,
   MARKER_COUNTS,
@@ -41,16 +43,12 @@ const FOCUS_CENTER: [number, number] = [
     Math.max(focusMembers.length, 1),
 ];
 
-// "Win": the constituencies with the most members, marked as targets
-const TARGET_CODES = AREAS.constituencies
-  .map((area) => area.code)
-  .sort(
-    (a, b) => (MARKER_COUNTS.members[b] ?? 0) - (MARKER_COUNTS.members[a] ?? 0),
-  )
-  .slice(0, 12);
+// "Win": a list of the closest seats, outlined on the map
+const LIST_COLOR = "#30a46c";
+const LIST_CODES = MARGINALS.map((area) => area.code);
 
 // What each headline shows, layered up like using the app: members, then
-// data under them, then one area in the inspector, then targets to share
+// data under them, then one area in the inspector, then a list of targets
 const SCENES: Record<
   ShowcaseFeatureId,
   { fill: number; markers: number; targets: boolean; focus: boolean }
@@ -150,10 +148,10 @@ export default function HeroMap({
             filter={[
               "in",
               ["get", layer.featureCodeProperty],
-              ["literal", TARGET_CODES],
+              ["literal", LIST_CODES],
             ]}
             paint={{
-              "line-color": "#30a46c",
+              "line-color": LIST_COLOR,
               "line-width": 2.5,
               "line-opacity": scene.targets ? 1 : 0,
               "line-opacity-transition": TRANSITION,
@@ -228,23 +226,49 @@ export default function HeroMap({
         />
       </div>
 
-      {/* Win: the map, shared */}
+      {/* Win: a list of the closest seats, as in the app's Lists */}
       <div
         aria-hidden={!scene.targets}
         className={cn(
-          "pointer-events-none absolute top-3 right-3 flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 shadow-lg transition-[translate,opacity] duration-500",
+          "pointer-events-none absolute top-3 right-3 w-[min(210px,60%)] rounded-md border border-neutral-200 bg-white p-2 shadow-lg transition-[translate,opacity] duration-500",
           scene.targets
             ? "translate-y-0 opacity-100"
             : "-translate-y-2 opacity-0",
         )}
       >
-        <span className="size-2 rounded-full bg-[#30a46c]" />
-        <span>
-          <span className="font-medium">
-            {TARGET_CODES.length} target seats
+        <p className="px-1 text-neutral-500">Lists</p>
+        <div className="mt-1 flex items-center gap-1.5 rounded bg-neutral-100 px-1.5 py-1">
+          <ChevronDownIcon className="size-3 text-neutral-400" />
+          <span
+            className="size-2.5 shrink-0 rounded-sm"
+            style={{ backgroundColor: LIST_COLOR }}
+          />
+          <span className="min-w-0 flex-1 truncate text-[12px] font-medium">
+            Nearest marginals
           </span>
-          <span className="text-neutral-500"> · shared with your team</span>
-        </span>
+          <span className="text-neutral-400 tabular-nums">
+            {MARGINALS.length}
+          </span>
+        </div>
+        <ul className="mt-1 ml-3 border-l border-neutral-100 pl-1.5">
+          {MARGINALS.map((area, index) => (
+            <li
+              key={area.code}
+              className={cn(
+                "flex items-center gap-2 px-1.5 py-0.5 text-neutral-700 transition-[translate,opacity] duration-300",
+                scene.targets
+                  ? "translate-x-0 opacity-100"
+                  : "translate-x-2 opacity-0",
+              )}
+              style={{ transitionDelay: `${index * 60}ms` }}
+            >
+              <span className="min-w-0 flex-1 truncate">{area.name}</span>
+              <span className="shrink-0 text-neutral-400 tabular-nums">
+                {area.majority.toLocaleString("en-GB")}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

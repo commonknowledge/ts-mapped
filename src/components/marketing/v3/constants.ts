@@ -116,9 +116,9 @@ export const SHOWCASE_FEATURES: {
   {
     id: "win",
     title: "Win.",
-    label: "Publish/share",
+    label: "Lists",
     description:
-      "Search, explore and share campaign maps with your team, so you can focus resources, coordinate canvassing and act on the local insights that matter most.",
+      "Build lists of the areas that matter, like your nearest marginals, ranked by any figure on the map. Each list is outlined on the map, so your team can focus resources and coordinate canvassing where it counts.",
     color: "#b6e6ab",
   },
 ];

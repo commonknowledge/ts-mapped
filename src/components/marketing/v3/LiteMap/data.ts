@@ -110,6 +110,12 @@ export const MARKER_COUNTS: Record<CollectionId, Record<string, number>> = {
   hubs: countByArea(MARKERS.hubs),
 };
 
+// The closest results, as a list would rank them: lowest majority first
+export const MARGINALS = constituenciesJson
+  .map((c) => ({ code: c.code, name: c.name, majority: c.majority }))
+  .sort((a, b) => a.majority - b.majority)
+  .slice(0, 8);
+
 // Open on the area with the most members
 const mostMembers = (areas: AreaResult[]) =>
   areas
