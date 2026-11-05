@@ -11,18 +11,19 @@ export const isTourStepDone = ({
   start,
   now,
   peakHidden,
+  peakSelectedRecords,
 }: {
   stepId: TourStepId;
   start: TourSnapshot;
   now: TourSnapshot;
   /** The most layers hidden at once during the step */
   peakHidden: number;
+  /** The most marker records open at once during the step */
+  peakSelectedRecords: number;
 }): boolean => {
   switch (stepId) {
     case "addMembers":
       return now.layerCount > start.layerCount;
-    case "customMarker":
-      return now.customMarkerCount > start.customMarkerCount;
     case "addAreaData":
       return (
         Boolean(now.areaDataSourceId) &&
@@ -41,15 +42,27 @@ export const isTourStepDone = ({
         now.hiddenLayerCount <= start.hiddenLayerCount
       );
     case "changeBoundaries":
+      // Unlocked, then changed this visualisation's own boundaries
       return (
-        now.areaSetGroupCode !== start.areaSetGroupCode ||
-        now.boundariesLocked !== start.boundariesLocked
+        !now.boundariesLocked && now.areaSetGroupCode !== start.areaSetGroupCode
       );
     case "clickArea":
       return Boolean(now.boundaryCode);
     case "markersTab":
-      return now.inspectorTab === "markers";
-    // A view added, then back to the first one
+      // Opened a member from the list, then came back to the area
+      return (
+        peakSelectedRecords > start.selectedRecordCount &&
+        now.selectedRecordCount === 0 &&
+        Boolean(now.boundaryCode)
+      );
+    case "dataSourceTab":
+      // Back on an Areas data tab (not Markers / Notes)
+      return Boolean(
+        now.inspectorTab &&
+          now.inspectorTab !== "markers" &&
+          now.inspectorTab !== "notes" &&
+          now.selectedRecordCount === 0,
+      );
     case "marginalSeats":
       return now.listAreaCount > start.listAreaCount;
     case "yourList":
@@ -60,8 +73,9 @@ export const isTourStepDone = ({
         now.areaDataSourceId !== start.areaDataSourceId &&
         now.areaDataKey.endsWith(`|${DUMMY_COUNT_COLUMN}`)
       );
+    // A second view added; stay on it for the next visualisation
     case "views":
-      return now.viewCount > start.viewCount && now.viewId === start.viewId;
+      return now.viewCount > start.viewCount;
     default:
       return false;
   }

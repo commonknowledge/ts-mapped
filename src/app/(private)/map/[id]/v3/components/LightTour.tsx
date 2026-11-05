@@ -75,6 +75,13 @@ function TourStep({
   // The most layers hidden so far, for "hide it, then show it again"
   const [peakHidden, setPeakHidden] = useState(now.hiddenLayerCount);
   if (now.hiddenLayerCount > peakHidden) setPeakHidden(now.hiddenLayerCount);
+  // The most marker records open so far, for "open one, then come back"
+  const [peakSelectedRecords, setPeakSelectedRecords] = useState(
+    now.selectedRecordCount,
+  );
+  if (now.selectedRecordCount > peakSelectedRecords) {
+    setPeakSelectedRecords(now.selectedRecordCount);
+  }
 
   // Once done it stays done, even if undone during the pause, and the
   // outline stays where it was rather than jumping to what's next
@@ -82,7 +89,13 @@ function TourStep({
   if (
     !isDone &&
     step.action &&
-    isTourStepDone({ stepId: step.id, start, now, peakHidden })
+    isTourStepDone({
+      stepId: step.id,
+      start,
+      now,
+      peakHidden,
+      peakSelectedRecords,
+    })
   ) {
     setIsDone(true);
   }

@@ -132,7 +132,9 @@ export function ActiveDetails({ dataSourceId }: { dataSourceId: string }) {
   return (
     <div className="flex flex-col gap-2 px-2 pt-1 pb-2.5 [&_[data-slot=select-trigger]]:bg-white">
       {!viewConfig.boundariesLocked && (
-        <LightBoundaryPicker label="by" dataSourceId={dataSourceId} />
+        <div data-tour="viz-boundaries">
+          <LightBoundaryPicker label="by" dataSourceId={dataSourceId} />
+        </div>
       )}
       <ActiveLegend />
     </div>

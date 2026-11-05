@@ -3,7 +3,6 @@
 import { useAtom, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useChoroplethDataSource } from "@/hooks/useDataSources";
-import { AreaSetGroupCode } from "@/models/AreaSet";
 import { GeocodingType } from "@/models/DataSource";
 import {
   boundariesPanelOpenAtom,
@@ -16,7 +15,7 @@ import { useMapViews } from "./useMapViews";
 
 export function useChoropleth() {
   const zoom = useZoom();
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
   const [boundariesPanelOpen, _setBoundariesPanelOpen] = useAtom(
@@ -50,21 +49,15 @@ export function useChoropleth() {
 
   const setBoundariesPanelOpen = useCallback(
     (open: boolean) => {
-      if (open && viewConfig.areaSetGroupCode === undefined) {
-        updateViewConfig({ areaSetGroupCode: AreaSetGroupCode.WMC24 });
-      }
-      // The marker settings flyout takes the same place, so only one is open
+      // The marker settings flyout takes the same place, so only one is open.
+      // Don't write areaSetGroupCode here: a same-click create-visualisation
+      // update would be overwritten by a stale boundaries-only patch.
       if (open) {
         setMarkerSettingsDataSourceId(null);
       }
       _setBoundariesPanelOpen(open);
     },
-    [
-      _setBoundariesPanelOpen,
-      setMarkerSettingsDataSourceId,
-      updateViewConfig,
-      viewConfig.areaSetGroupCode,
-    ],
+    [_setBoundariesPanelOpen, setMarkerSettingsDataSourceId],
   );
 
   return {

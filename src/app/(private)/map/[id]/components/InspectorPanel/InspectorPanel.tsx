@@ -52,8 +52,8 @@ export default function InspectorPanel() {
   const {
     selectedBoundary,
     selectedTurf,
-    setFocusedRecord,
     selectedRecords,
+    setSelectedRecords,
     focusedRecord,
     inspectorMinimized,
     setInspectorMinimized,
@@ -181,8 +181,9 @@ export default function InspectorPanel() {
         (variant === "light" ? (boundaryMembers?.markers.length ?? 0) : 0)
       : selectedRecords?.length || 0;
 
+  // Clears the open marker/member so the area (or turf) shows again
   const onCloseDetailsView = () => {
-    setFocusedRecord(null);
+    setSelectedRecords([]);
   };
 
   const handleFlyToMarker = () => {
@@ -318,6 +319,8 @@ export default function InspectorPanel() {
       {isDetailsView && (
         <div className="px-4 pb-2">
           <button
+            type="button"
+            data-tour="back-to-area"
             onClick={() => onCloseDetailsView()}
             className="flex gap-1 text-xs text-left opacity-70 hover:opacity-100 cursor-pointer"
           >

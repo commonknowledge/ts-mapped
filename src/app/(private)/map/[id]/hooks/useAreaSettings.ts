@@ -98,6 +98,27 @@ export function useAreaSettings() {
 }
 
 /**
+ * Locks the view's boundaries the first time the light editor opens it,
+ * so every visualisation shares one set (the simpler default). Mount once.
+ */
+export function useAdoptGlobalBoundaries() {
+  const { view, viewConfig, updateViewConfig } = useMapViews();
+
+  useEffect(() => {
+    if (!view || viewConfig.boundariesLocked !== undefined) return;
+    updateViewConfig({
+      boundariesLocked: true,
+      lockedAreaSetGroupCode: viewConfig.areaSetGroupCode ?? null,
+    });
+  }, [
+    updateViewConfig,
+    view,
+    viewConfig.areaSetGroupCode,
+    viewConfig.boundariesLocked,
+  ]);
+}
+
+/**
  * Makes the map's list the list of every view: the first time a map's
  * views share their settings it takes them from the view that's open, and
  * the visualisations from all its views (each's saved ones and the one it

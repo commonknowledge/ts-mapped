@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  ChevronDownIcon,
   ListPlusIcon,
   Loader2,
   SearchIcon,
@@ -22,9 +23,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shadcn/ui/dropdown-menu";
 import { cn } from "@/shadcn/utils";
 import { formatNumber, ordinal } from "@/utils/text";
-import { AREA_LIST_FROM_RANKING } from "../../constants";
 import { useAreaLists } from "../../hooks/useAreaLists";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
@@ -37,6 +44,10 @@ import { parseColumnNumber } from "../../utils/stats";
 import type { AreaSetCode } from "@/models/AreaSet";
 
 const INK = "#15213b";
+
+// How many areas "Add to list" can take from the ranking
+const LIST_COUNT_OPTIONS = [5, 10, 20] as const;
+const LIST_COUNT_MAX = 200;
 
 /**
  * A column's value in every area of the boundaries being inspected (or
@@ -92,7 +103,9 @@ function AreaRanking({
   const inspectorColumn = useInspectorColumn(dataSourceId, column);
   const [search, setSearch] = useState("");
   const [isAscending, setIsAscending] = useState(false);
+  const [customCount, setCustomCount] = useState("");
   const selectedRef = useRef<HTMLLIElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // The boundaries being inspected, or else the ones on the map
   const areaSetCode: AreaSetCode =
@@ -185,6 +198,24 @@ function AreaRanking({
   const label = columnMetadata?.displayName || column;
   const areaLabel = AreaSetCodeLabels[areaSetCode] ?? "area";
 
+  const makeList = (count: number) => {
+    const n = Math.min(Math.max(1, Math.floor(count)), LIST_COUNT_MAX);
+    const top = shown.slice(0, n);
+    if (top.length === 0) return;
+    const list = createList({
+      name: `${isAscending ? "Lowest" : "Highest"} ${top.length} by ${label}`,
+      areaSetCode,
+      areas: top.map((row) => ({ code: row.code, name: row.name })),
+      origin: {
+        dataSourceId,
+        calculationType,
+        columns: [{ name: column, label }],
+        order: isAscending ? "lowest" : "highest",
+      },
+    });
+    toast.success(`Made ${list.name}, under Areas`);
+  };
+
   return (
     <>
       <DialogHeader className="gap-1 px-5 pt-5">
@@ -211,7 +242,10 @@ function AreaRanking({
         {ranked.isNumeric && (
           <button
             type="button"
-            onClick={() => setIsAscending(!isAscending)}
+            onClick={() => {
+              setIsAscending(!isAscending);
+              listRef.current?.scrollTo({ top: 0 });
+            }}
             data-tour="ranking-sort"
             data-ascending={isAscending}
             className="flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md border border-input px-2 text-xs text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
@@ -225,36 +259,69 @@ function AreaRanking({
           </button>
         )}
         {ranked.isNumeric && shown.length > 0 && (
-          // The first ten as shown (sorted and searched) become a list
-          <button
-            type="button"
-            onClick={() => {
-              const top = shown.slice(0, AREA_LIST_FROM_RANKING);
-              const list = createList({
-                name: `${isAscending ? "Lowest" : "Highest"} ${top.length} by ${label}`,
-                areaSetCode,
-                areas: top.map((row) => ({ code: row.code, name: row.name })),
-                origin: {
-                  dataSourceId,
-                  calculationType,
-                  columns: [{ name: column, label }],
-                  order: isAscending ? "lowest" : "highest",
-                },
-              });
-              toast.success(`Made ${list.name}, under Areas`);
-            }}
-            title={`Make a list of the first ${AREA_LIST_FROM_RANKING} shown`}
-            data-tour="list-top"
-            data-ascending={isAscending}
-            className="flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md border border-input px-2 text-xs text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
-          >
-            <ListPlusIcon className="size-3.5" />
-            List top {AREA_LIST_FROM_RANKING}
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                title="Make a list from the areas shown"
+                data-tour="list-top-menu"
+                data-ascending={isAscending}
+                className="flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md border border-input px-2 text-xs text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+              >
+                <ListPlusIcon className="size-3.5" />
+                Add to list
+                <ChevronDownIcon className="size-3 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {LIST_COUNT_OPTIONS.map((count) => (
+                <DropdownMenuItem
+                  key={count}
+                  onClick={() => makeList(count)}
+                  data-tour={count === 10 ? "list-top" : undefined}
+                  data-ascending={count === 10 ? isAscending : undefined}
+                  data-count={count}
+                >
+                  Top {count}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <form
+                className="flex items-center gap-1 px-2 py-1.5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const count = Number(customCount);
+                  if (!Number.isFinite(count) || count < 1) return;
+                  makeList(count);
+                  setCustomCount("");
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="number"
+                  min={1}
+                  max={LIST_COUNT_MAX}
+                  inputMode="numeric"
+                  placeholder="Custom"
+                  value={customCount}
+                  onChange={(e) => setCustomCount(e.target.value)}
+                  aria-label="Custom number of areas"
+                  className="h-7 min-w-0 flex-1 rounded border border-input bg-transparent px-1.5 text-xs outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!customCount || Number(customCount) < 1}
+                  className="h-7 shrink-0 cursor-pointer rounded px-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 disabled:cursor-default disabled:opacity-40"
+                >
+                  Add
+                </button>
+              </form>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
         {isPending ? (
           <p className="flex items-center gap-2 px-2 py-6 text-xs text-neutral-500">
             <Loader2 className="size-3.5 animate-spin" />

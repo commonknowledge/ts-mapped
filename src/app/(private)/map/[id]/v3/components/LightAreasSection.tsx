@@ -8,6 +8,7 @@ import { AreaSetGroupCodeLabels } from "@/labels";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { useAreaLists } from "../../hooks/useAreaLists";
 import { useAreaSettings } from "../../hooks/useAreaSettings";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useInspectorLayers } from "../../hooks/useInspectorLayers";
@@ -33,6 +34,7 @@ export default function LightAreasSection() {
   const { setBoundariesPanelOpen } = useChoropleth();
   const { viewConfig } = useMapViews();
   const { areaSettings } = useAreaSettings();
+  const { lists } = useAreaLists();
   const { setHidden: setInspectorHidden } = useInspectorLayers();
   const openInspectorSection = useOpenInspectorSectionEditor();
   const { getDataSourceById } = useDataSources();
@@ -45,7 +47,7 @@ export default function LightAreasSection() {
     boundariesLocked,
     setBoundariesLocked,
     lockedBoundary,
-    setLockedBoundary,
+    setViewBoundaries,
     fitsLockedBoundary,
     getBoundariesFor,
   } = useSavedVisualisations();
@@ -58,9 +60,6 @@ export default function LightAreasSection() {
     const closest = getBoundariesFor(dataSourceId);
     return `Not available by ${AreaSetGroupCodeLabels[lockedBoundary]} · shown by ${AreaSetGroupCodeLabels[closest]}`;
   };
-  const activeName = items.find((item) => item.id === activeId)
-    ? getDataSourceById(viewConfig.areaDataSourceId)?.name
-    : null;
 
   // One group per data source, in the order they were first added
   const groups = useMemo(() => {
@@ -134,28 +133,23 @@ export default function LightAreasSection() {
         </button>
       }
     >
-      {/* Shown once there's data (or boundaries chosen without it), then
-          always, so the list doesn't jump; greyed out while the active
-          visualisation is setting the boundaries */}
-      {(items.length > 0 ||
-        viewConfig.areaSetGroupCode ||
-        viewConfig.boundariesListsOnly) && (
-        // Headed like Visualisations and Lists: label, its action, then it
-        <div className="mb-3 flex flex-col gap-1" data-tour="boundaries">
-          <div className="flex items-center gap-1">
-            <p className="text-[11px] text-neutral-500">Boundaries</p>
-            <span className="ml-auto">{boundariesLock}</span>
-          </div>
-          <LightBoundaryPicker
-            allowNone={!activeId}
-            disabled={Boolean(activeId) && !boundariesLocked}
-            disabledReason={`Set by ${activeName ?? "the active visualisation"}. Lock to use one set of boundaries for all data.`}
-            {...(boundariesLocked
-              ? { value: lockedBoundary, onChange: setLockedBoundary }
-              : {})}
-          />
+      {/* Always shown so outlines can be turned on without a visualisation */}
+      <div className="mb-3 flex flex-col gap-1" data-tour="boundaries">
+        <div className="flex items-center gap-1">
+          <p className="text-[11px] text-neutral-500">Boundaries</p>
+          <span className="ml-auto">{boundariesLock}</span>
         </div>
-      )}
+        <LightBoundaryPicker
+          allowNone
+          offerListsOnly={lists.length > 0}
+          value={
+            boundariesLocked
+              ? lockedBoundary
+              : (viewConfig.areaSetGroupCode ?? null)
+          }
+          onChange={setViewBoundaries}
+        />
+      </div>
       {items.length > 0 ? (
         <>
           <p className="mb-1 text-[11px] text-neutral-500">Visualisations</p>

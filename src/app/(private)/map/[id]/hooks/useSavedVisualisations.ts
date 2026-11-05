@@ -230,6 +230,51 @@ export function useSavedVisualisations() {
     [getDataSourceById, updateViewConfig, viewConfig.areaDataSourceId],
   );
 
+  /** The view's boundaries: a set, none (which turns the visualisation
+   *  off), or lists only. Always the global ones when locked. */
+  const setViewBoundaries = useCallback(
+    ({
+      code,
+      listsOnly = false,
+    }: {
+      code: AreaSetGroupCode | null;
+      listsOnly?: boolean;
+    }) => {
+      if (!code) {
+        updateViewConfig({
+          savedVisualisations: withLiveSaved(),
+          activeVisualisationId: undefined,
+          ...toLiveConfig(null),
+          areaSetGroupCode: null,
+          boundariesListsOnly: listsOnly,
+          ...(boundariesLocked ? { lockedAreaSetGroupCode: null } : {}),
+        });
+        return;
+      }
+      const geocodingConfig = viewConfig.areaDataSourceId
+        ? getDataSourceById(viewConfig.areaDataSourceId)?.geocodingConfig
+        : null;
+      updateViewConfig({
+        boundariesListsOnly: false,
+        ...(boundariesLocked
+          ? {
+              lockedAreaSetGroupCode: code,
+              areaSetGroupCode: viewConfig.areaDataSourceId
+                ? getClosestAreaSetGroupCode({ target: code, geocodingConfig })
+                : code,
+            }
+          : { areaSetGroupCode: code }),
+      });
+    },
+    [
+      boundariesLocked,
+      getDataSourceById,
+      updateViewConfig,
+      viewConfig.areaDataSourceId,
+      withLiveSaved,
+    ],
+  );
+
   /** Whether a data source can be shown on the locked boundaries as they are */
   const fitsLockedBoundary = useCallback(
     (dataSourceId: string) =>
@@ -280,13 +325,21 @@ export function useSavedVisualisations() {
             }
           : { areaDataColumn: "" };
       updateViewConfig({
+        // A fresh view may have no active entry yet — give it one when
+        // the user picks a source from the prompt
+        activeVisualisationId: viewConfig.activeVisualisationId || uuidv4(),
         areaDataSourceId: dataSourceId,
         areaDataSecondaryColumn: undefined,
         areaSetGroupCode: getBoundariesFor(dataSourceId),
         ...defaults,
       });
     },
-    [getBoundariesFor, getDataSourceById, updateViewConfig],
+    [
+      getBoundariesFor,
+      getDataSourceById,
+      updateViewConfig,
+      viewConfig.activeVisualisationId,
+    ],
   );
 
   /** Shows a data source + column, reusing its list entry if there is one */
@@ -422,6 +475,7 @@ export function useSavedVisualisations() {
     setBoundariesLocked,
     lockedBoundary,
     setLockedBoundary,
+    setViewBoundaries,
     fitsLockedBoundary,
     getBoundariesFor,
     saved,
@@ -455,11 +509,29 @@ export function useSyncActiveVisualisation() {
     if (!ready || !view) return;
     const live = activeId ? getLive(activeId) : null;
     const previous = last.current;
+    const entry = activeId
+      ? saved.find((item) => item.id === activeId)
+      : undefined;
+
+    // First observation only seeds the ref. Treating it as a view switch
+    // would clear a visualisation that was just created (not yet in the
+    // shared list), which made "Create data visualisation" need two clicks.
+    if (!previous) {
+      last.current = { viewId: view.id, live };
+      if (activeId && live && !entry) {
+        const { list, id } = saveLive();
+        updateConfig({
+          savedVisualisations: list,
+          ...(id ? { activeVisualisationId: id } : {}),
+        });
+      }
+      return;
+    }
+
     last.current = { viewId: view.id, live };
     if (!activeId || !live) return;
 
-    const entry = saved.find((item) => item.id === activeId);
-    if (previous?.viewId !== view.id) {
+    if (previous.viewId !== view.id) {
       if (!entry) {
         updateConfig({
           activeVisualisationId: undefined,
@@ -476,7 +548,7 @@ export function useSyncActiveVisualisation() {
 
     // Changed here (or just made): write it back to the list
     if (entry && isSameVisualisation(entry, live)) return;
-    if (entry && previous?.live && isSameVisualisation(previous.live, live)) {
+    if (entry && previous.live && isSameVisualisation(previous.live, live)) {
       return;
     }
     const { list, id } = saveLive();

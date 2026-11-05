@@ -258,19 +258,19 @@ export type TourStepId =
   | "welcome"
   | "addMembers"
   | "toggleLayer"
-  | "customMarker"
+  | "membersVisualisation"
+  | "views"
   | "addAreaData"
   | "chooseColumn"
   | "pickColumn"
-  | "changeBoundaries"
   | "clickArea"
   | "markersTab"
+  | "dataSourceTab"
   | "showOnMap"
   | "marginalSeats"
   | "yourList"
   | "insideList"
-  | "membersVisualisation"
-  | "views"
+  | "changeBoundaries"
   | "finish";
 
 /** What the tour watches in the editor, to know when a step is done and
@@ -278,13 +278,14 @@ export type TourStepId =
 export interface TourSnapshot {
   layerCount: number;
   hiddenLayerCount: number;
-  customMarkerCount: number;
   areaDataSourceId: string;
   areaDataKey: string;
   areaSetGroupCode: string;
   boundariesLocked: boolean;
   boundaryCode: string | null;
   inspectorTab: string | null;
+  /** A person or place open in the inspector from the Markers list */
+  selectedRecordCount: number;
   listAreaCount: number;
   inspectedListId: string | null;
   newestListId: string | null;
@@ -339,22 +340,38 @@ export const TOUR_STEPS: {
     ],
   },
   {
-    id: "customMarker",
-    title: "Your own markers",
-    body: 'You can also pin places yourself: drop a marker on the map or search for an address. They\'re kept in the Custom markers folder, which opens to show each one you add. "New folder" in the same panel groups them however you like.',
-    action: 'Click +, choose "Drop a custom marker", then click the map',
-    target: [
-      '[data-tour="map-message"]',
-      '[data-tour="drop-marker"]',
-      '[data-tour="add-markers-button"]',
+    id: "membersVisualisation",
+    title: "Where your members are",
+    body: "Marker layers can colour the map too: shading each area by how many of the layer's records fall in it, in the layer's own colour. It's added under Visualisations, so you can switch back to other data at any time.",
+    action:
+      'Right-click Tutorial members and choose "Create data visualisation"',
+    target: ({ tutorial }) => [
+      '[data-tour-action="create-visualisation"]',
+      `[data-tour-layer="${tutorial?.membersDataSourceId}"]`,
+      "[data-tour-layer]",
     ],
+    zoomOut: true,
+    closePanels: true,
+  },
+  {
+    id: "views",
+    title: "A view for the next exploration",
+    body: "Views are different set-ups of the same map. Your members map is kept as “Members”; add a second view for election data — you'll build that next, and can switch back to Members any time.",
+    action: 'Click + to add a view named "Election results"',
+    target: ['[data-tour="add-view"]', '[data-tour="views"]'],
+    zoomOut: true,
   },
   {
     id: "addAreaData",
-    title: "Colour the map by data",
-    body: "Areas holds data about places, such as election results or census figures, to colour the map's boundaries by.",
-    action: "Click + next to Areas and choose 2024 General Election Results",
-    target: ["[data-tour-focused]", '[data-tour="add-area-button"]'],
+    title: "Colour the map by different data",
+    body: "This view starts empty. Pick a visualisation for it — election results or census figures — to colour the boundaries. Your members map stays on the Members view.",
+    action:
+      "Choose 2024 General Election Results from the data panel (or click + next to Areas if it's closed)",
+    target: [
+      "[data-tour-focused]",
+      '[data-tour="area-data"]',
+      '[data-tour="add-area-button"]',
+    ],
     zoomOut: true,
   },
   {
@@ -376,14 +393,6 @@ export const TOUR_STEPS: {
         : ['[data-tour="column-picker"]'],
   },
   {
-    id: "changeBoundaries",
-    title: "Boundaries: the data's, or one for all",
-    body: "Each dataset is shown at its own level: election results by constituency, census figures by neighbourhood. You can change that in the card under the column. Or lock the boundaries here, and every dataset is shown on the same ones, so you can compare like with like.",
-    action: "Click the lock to use one set of boundaries for all data",
-    target: ['[data-tour="boundaries-lock"]', '[data-tour="boundaries"]'],
-    closePanels: true,
-  },
-  {
     id: "clickArea",
     title: "The inspector",
     body: "Clicking an area opens the inspector, with the data you've added in Areas for that place. Each source in Areas is a tab here, in the same order, so adding data there adds it here too.",
@@ -394,38 +403,54 @@ export const TOUR_STEPS: {
   {
     id: "markersTab",
     title: "Who's in this area",
-    body: "After the data tabs come Markers and Notes. Markers lists the people and places in the area, grouped by layer.",
-    action: "Open the Markers tab to see the members in this constituency",
-    target: ['[data-tab-id="markers"]', "#inspector-panel"],
+    body: "After the data tabs come Markers and Notes. Markers lists everyone in the area by layer — open a person to see their record, then come back to the area.",
+    action:
+      'Open the Markers tab, click a member to open their record, then "Back to" the area',
+    target: ({ now }) => {
+      if (now.selectedRecordCount > 0) {
+        return ['[data-tour="back-to-area"]', "#inspector-panel"];
+      }
+      if (now.inspectorTab === "markers") {
+        return ['[data-tour="inspector-marker"]', "#inspector-panel"];
+      }
+      return ['[data-tab-id="markers"]', "#inspector-panel"];
+    },
+  },
+  {
+    id: "dataSourceTab",
+    title: "Back to the data",
+    body: "Each source in Areas is a tab here. Open the election results again to work with figures like Majority for this constituency.",
+    action: "Open the 2024 General Election Results tab in the inspector",
+    target: ({ now, tutorial }) => {
+      const areaSourceId = tutorial?.areaDataSourceId || now.areaDataSourceId;
+      return [
+        areaSourceId ? `[data-tab-id="${areaSourceId}"]` : "",
+        "#inspector-panel",
+      ].filter(Boolean);
+    },
   },
   {
     id: "showOnMap",
     title: "Show it on the map",
     body: "Anything in the inspector can colour the map: right-click a figure for its options, such as adding it to the map's data or comparing areas by it.",
     action:
-      'Go back to the election results tab, right-click Majority and choose "Add column to data visualisation"',
-    target: ({ now, tutorial }) => {
-      const areaSourceId = tutorial?.areaDataSourceId || now.areaDataSourceId;
-      // Still on Markers (or another tab): point back at the results
-      return now.inspectorTab && now.inspectorTab !== areaSourceId
-        ? [`[data-tab-id="${areaSourceId}"]`, "#inspector-panel"]
-        : [
-            // The menu option once it's open, else the figure to right-click
-            '[data-tour-action="show"]',
-            '[data-tour-field="Majority"]',
-            "#inspector-panel",
-          ];
-    },
+      'Right-click Majority and choose "Add column to data visualisation"',
+    target: [
+      '[data-tour-action="show"]',
+      '[data-tour-field="Majority"]',
+      "#inspector-panel",
+    ],
   },
   {
     id: "marginalSeats",
     title: "List the most marginal seats",
     body: "Lists collect the areas you're working on, such as target seats. Compare across areas ranks every constituency by a figure: lowest Majority first shows the most marginal seats.",
     action:
-      'Right-click Majority, choose "Compare across areas", sort "Lowest first", then click "List top 10"',
-    // Each part in turn: the figure, the menu option, the sort, the button
+      'Right-click Majority, choose "Compare across areas", sort "Lowest first", then Add to list › Top 10',
+    // Each part in turn: the figure, the menu option, the sort, the menu, Top 10
     target: [
       '[data-tour="list-top"][data-ascending="true"]',
+      '[data-tour="list-top-menu"][data-ascending="true"]',
       '[data-tour="ranking-sort"][data-ascending="false"]',
       '[data-tour-action="rank"]',
       '[data-tour-field="Majority"]',
@@ -450,29 +475,16 @@ export const TOUR_STEPS: {
     target: ["#inspector-panel"],
   },
   {
-    id: "membersVisualisation",
-    title: "Where your members are",
-    body: "Marker layers can colour the map too: shading each area by how many of the layer's records fall in it, in the layer's own colour. It's added under Visualisations, so you can switch back to the election results at any time.",
+    id: "changeBoundaries",
+    title: "Boundaries for this visualisation",
+    body: "By default every visualisation shares the view's boundaries (the lock at the top). Unlock that to let this dataset use its own level — keep constituencies for election results, or switch to wards or local authorities for finer detail.",
     action:
-      'Right-click Tutorial members and choose "Create data visualisation"',
-    target: ({ tutorial }) => [
-      '[data-tour-action="create-visualisation"]',
-      `[data-tour-layer="${tutorial?.membersDataSourceId}"]`,
-      "[data-tour-layer]",
-    ],
-    zoomOut: true,
+      'Unlock the global boundaries, then under the visualisation change "by" to a different set, such as Local authorities',
+    target: ({ now }) =>
+      now.boundariesLocked
+        ? ['[data-tour="boundaries-lock"]', '[data-tour="boundaries"]']
+        : ['[data-tour="viz-boundaries"]', '[data-tour="boundaries"]'],
     closePanels: true,
-  },
-  {
-    id: "views",
-    title: "Views",
-    body: "Views are different set-ups of the same map: other data, other boundaries, other markers on show. Switching between them fades the areas across so you can see what changes.",
-    action:
-      "Click + to add a view, then switch back to Default View and watch the map fade in",
-    target: ({ now, start }) =>
-      now.viewCount > start.viewCount && now.viewId !== start.viewId
-        ? [`[data-tour-view="${start.viewId}"]`, '[data-tour="views"]']
-        : ['[data-tour="add-view"]', '[data-tour="views"]'],
     zoomOut: true,
   },
   {

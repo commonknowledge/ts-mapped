@@ -11,27 +11,43 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
+import { useChoropleth } from "../../hooks/useChoropleth";
 import { useMapId } from "../../hooks/useMapCore";
 import { useMapViews, useSetViewId } from "../../hooks/useMapViews";
 import { createNewViewConfig } from "../../utils/mapView";
 import { sortByPositionAndId } from "../../utils/position";
+import { TOUR_STEPS } from "../constants";
+import {
+  TOUR_ELECTION_VIEW_NAME,
+  useTour,
+  useTutorialMap,
+} from "../hooks/useTour";
 import type { View } from "../../types";
 
 export default function LightViewTabs() {
   const mapId = useMapId();
   const { views = [], view: activeView, insertView } = useMapViews();
+  const { setBoundariesPanelOpen } = useChoropleth();
+  const { isTutorialMap } = useTutorialMap();
+  const { stepIndex } = useTour();
   const sortedViews = useMemo(() => sortByPositionAndId(views), [views]);
+  const tourStepId = stepIndex === null ? null : TOUR_STEPS[stepIndex]?.id;
 
   const createView = () => {
     if (!mapId) return;
     insertView({
       id: uuidv4(),
-      name: `View ${views.length + 1}`,
+      name:
+        isTutorialMap && tourStepId === "views"
+          ? TOUR_ELECTION_VIEW_NAME
+          : `View ${views.length + 1}`,
       config: createNewViewConfig(),
       dataSourceViews: [],
       mapId,
       createdAt: new Date(),
     });
+    // Prompt to pick a visualisation for the new view — don't create one
+    setBoundariesPanelOpen(true);
   };
 
   return (

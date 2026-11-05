@@ -16,6 +16,8 @@ export default function MarkerButton({
 }) {
   return (
     <button
+      type="button"
+      data-tour="inspector-marker"
       className="flex gap-2 w-full p-1 -mx-1 rounded cursor-pointer text-left transition-bg hover:bg-muted"
       onClick={onClick}
     >

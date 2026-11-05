@@ -3,25 +3,35 @@
 import { useCallback } from "react";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useInspectorActiveSource } from "../../hooks/useInspectorActiveSource";
+import { useMapViews } from "../../hooks/useMapViews";
 import { useSavedVisualisations } from "../../hooks/useSavedVisualisations";
 
 /**
- * Adds data to the Areas list: starts a visualisation (optionally on a given
- * source) and opens the data panel to pick it. The inspector shows the new
- * source's tab, since the Areas list and the inspector's tabs are one list.
+ * Opens the data panel to pick a visualisation. On an empty view that only
+ * prompts; if a visualisation is already on (or a source is given), saves
+ * it and starts a new one first. The inspector follows the new source.
  */
 export function useAddAreaData() {
-  const { startNew } = useSavedVisualisations();
+  const { startNew, activeId } = useSavedVisualisations();
+  const { viewConfig } = useMapViews();
   const { setBoundariesPanelOpen } = useChoropleth();
   const [, setActiveSourceId] = useInspectorActiveSource();
 
   return useCallback(
     (dataSourceId?: string) => {
-      startNew({ dataSourceId });
+      const hasVisualisation = Boolean(activeId || viewConfig.areaDataSourceId);
+      if (dataSourceId || hasVisualisation) {
+        startNew({ dataSourceId });
+      }
       setBoundariesPanelOpen(true);
-      // With no tab chosen, the inspector follows the visualised source
       setActiveSourceId(dataSourceId ?? null);
     },
-    [setActiveSourceId, setBoundariesPanelOpen, startNew],
+    [
+      activeId,
+      setActiveSourceId,
+      setBoundariesPanelOpen,
+      startNew,
+      viewConfig.areaDataSourceId,
+    ],
   );
 }

@@ -20,7 +20,6 @@ import { useMapQuery } from "../../hooks/useMapQuery";
 import { useMapViews, useViewId } from "../../hooks/useMapViews";
 import { useMarkerQueries } from "../../hooks/useMarkerQueries";
 import { useMarkerSettings } from "../../hooks/useMarkerSettings";
-import { usePlacedMarkersQuery } from "../../hooks/usePlacedMarkers";
 import { tourStepIndexAtom } from "../atoms";
 import { TOUR_OVERVIEW_BOUNDS, TOUR_STEPS } from "../constants";
 import { findDensestCluster } from "../utils/tour";
@@ -84,12 +83,17 @@ export function useTourFocusedDataSourceId(kind: "markers" | "areas") {
  * (you may have zoomed in to click something), or flying to where most
  * members live before you're asked to click an area
  */
+/** View names used when the tour splits members and election data */
+export const TOUR_MEMBERS_VIEW_NAME = "Members";
+export const TOUR_ELECTION_VIEW_NAME = "Election results";
+
 export function useTourStepStart(step: (typeof TOUR_STEPS)[number]) {
   const mapRef = useMapRef();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: markerData } = useMarkerQueries();
   const { mapConfig } = useMapConfig();
+  const { view, updateView } = useMapViews();
   const { setBoundariesPanelOpen } = useChoropleth();
   const { setMarkerSettingsDataSourceId } = useMarkerSettings();
   const [, setAddMarkersPanelOpen] = useAddMarkersPanel();
@@ -134,6 +138,10 @@ export function useTourStepStart(step: (typeof TOUR_STEPS)[number]) {
         padding: 40,
         duration: 1500,
       });
+    }
+    // Keep the members map under a clear name before the election view is added
+    if (step.id === "views" && view && view.name !== TOUR_MEMBERS_VIEW_NAME) {
+      updateView({ ...view, name: TOUR_MEMBERS_VIEW_NAME });
     }
     if (step.id === "clickArea") {
       const membersId =
@@ -191,8 +199,7 @@ export function useTourSnapshot(): TourSnapshot {
   const { viewConfig, views } = useMapViews();
   const viewId = useViewId();
   const { getDataSourceVisibility } = useLayers();
-  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { selectedBoundary } = useInspectorState();
+  const { selectedBoundary, selectedRecords } = useInspectorState();
   const [inspectorTab] = useInspectorActiveSource();
   const { lists } = useAreaLists();
   const { list: inspectedList } = useInspectedAreaList();
@@ -206,7 +213,6 @@ export function useTourSnapshot(): TourSnapshot {
     layerCount: layerIds.length,
     hiddenLayerCount: layerIds.filter((id) => !getDataSourceVisibility(id))
       .length,
-    customMarkerCount: placedMarkers.length,
     areaDataSourceId: viewConfig.areaDataSourceId ?? "",
     boundariesLocked: Boolean(viewConfig.boundariesLocked),
     areaDataKey: [
@@ -219,6 +225,7 @@ export function useTourSnapshot(): TourSnapshot {
     areaSetGroupCode: viewConfig.areaSetGroupCode ?? "",
     boundaryCode: selectedBoundary?.code ?? null,
     inspectorTab,
+    selectedRecordCount: selectedRecords.length,
     listAreaCount: lists.reduce((sum, list) => sum + list.areas.length, 0),
     inspectedListId: inspectedList?.id ?? null,
     newestListId: lists.at(-1)?.id ?? null,

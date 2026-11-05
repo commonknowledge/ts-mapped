@@ -159,14 +159,22 @@ export function useMapViews() {
   const updateViewMutate = useDebouncedCallback(updateViewMutateRaw, 600);
 
   const updateView = useCallback(
-    (view: View) => {
+    (next: View) => {
       if (!mapId) return;
 
-      const updatedViews =
-        views?.map((v) => (v.id === view.id ? view : v)) || [];
+      // Merge into the cache's views, not a stale render's, so two updates
+      // in one click (e.g. create viz, then open its panel) don't overwrite
+      const cached =
+        queryClient.getQueryData(trpc.map.byId.queryKey({ mapId }))?.views ??
+        views ??
+        [];
+      const updatedViews = cached.map((v) => (v.id === next.id ? next : v));
+      if (!updatedViews.some((v) => v.id === next.id)) {
+        updatedViews.push(next);
+      }
 
       if (!isReadOnlyRoute) {
-        setDirtyViewIds((ids) => ids.concat([view.id]));
+        setDirtyViewIds((ids) => ids.concat([next.id]));
       }
 
       // Synchronously update cache BEFORE calling mutation for instant UI feedback
@@ -199,18 +207,26 @@ export function useMapViews() {
   );
 
   const updateViewConfig = useCallback(
-    (viewConfig: Partial<MapViewConfig>) => {
-      if (!view) return;
+    (patch: Partial<MapViewConfig>) => {
+      if (!view || !mapId) return;
+
+      // Latest config from the cache, so a second update in the same tick
+      // builds on the first instead of replacing it
+      const cached = queryClient
+        .getQueryData(trpc.map.byId.queryKey({ mapId }))
+        ?.views.find((v) => v.id === view.id);
+      const base = cached ?? view;
+      const nextPatch = { ...patch };
 
       // Re-display choropleth when the user selects a visualisation
-      if (viewConfig.areaDataColumn) {
-        viewConfig.showChoropleth = true;
+      if (nextPatch.areaDataColumn) {
+        nextPatch.showChoropleth = true;
       }
 
       // Clear the selected columns when the user changes the data source
-      if (viewConfig.areaDataSourceId) {
-        if (!viewConfig.areaDataColumn) {
-          viewConfig.areaDataColumn = "";
+      if (nextPatch.areaDataSourceId) {
+        if (!nextPatch.areaDataColumn) {
+          nextPatch.areaDataColumn = "";
         }
         // Don't automatically set areaDataSecondaryColumn - let it be explicitly managed
         // Only clear it if explicitly set to undefined in the update
@@ -218,16 +234,19 @@ export function useMapViews() {
 
       // Set boundaries if the view is a hex map and no boundaries are set
       if (
-        viewConfig.mapType === MapType.Hex &&
-        !viewConfig.areaSetGroupCode &&
-        !view.config.areaSetGroupCode
+        nextPatch.mapType === MapType.Hex &&
+        !nextPatch.areaSetGroupCode &&
+        !base.config.areaSetGroupCode
       ) {
-        viewConfig.areaSetGroupCode = AreaSetGroupCode.WMC24;
+        nextPatch.areaSetGroupCode = AreaSetGroupCode.WMC24;
       }
 
-      return updateView({ ...view, config: { ...view.config, ...viewConfig } });
+      return updateView({
+        ...base,
+        config: { ...base.config, ...nextPatch },
+      });
     },
-    [updateView, view],
+    [mapId, queryClient, trpc.map.byId, updateView, view],
   );
 
   const { mutate: deleteViewMutate } = useMutation(

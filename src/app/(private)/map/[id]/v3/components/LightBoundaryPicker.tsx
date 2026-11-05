@@ -33,6 +33,7 @@ export default function LightBoundaryPicker({
   disabled = false,
   disabledReason,
   allowNone,
+  offerListsOnly = false,
   value,
   onChange,
 }: {
@@ -43,9 +44,17 @@ export default function LightBoundaryPicker({
   disabledReason?: string;
   /** Offer "No boundaries"; defaults to on when there's no data source */
   allowNone?: boolean;
+  /** Offer "Lists only", for when the map has lists */
+  offerListsOnly?: boolean;
   /** Defaults to the view's live boundaries */
   value?: AreaSetGroupCode | null;
-  onChange?: (code: AreaSetGroupCode | null) => void;
+  onChange?: ({
+    code,
+    listsOnly,
+  }: {
+    code: AreaSetGroupCode | null;
+    listsOnly: boolean;
+  }) => void;
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { getDataSourceById } = useDataSources();
@@ -67,10 +76,9 @@ export default function LightBoundaryPicker({
     [validCodes],
   );
   const showNone = allowNone ?? !dataSource;
-  // Only on the view's own boundaries, as it's a view setting
-  const offerListsOnly = showNone && !onChange;
+  const showListsOnly = showNone && offerListsOnly;
   const isListsOnly =
-    offerListsOnly && !current && Boolean(viewConfig.boundariesListsOnly);
+    showListsOnly && !current && Boolean(viewConfig.boundariesListsOnly);
   const currentName = current
     ? (BOUNDARY_GROUPS.flatMap((g) => g.options).find((o) => o.code === current)
         ?.name ?? AreaSetGroupCodeLabels[current])
@@ -103,12 +111,13 @@ export default function LightBoundaryPicker({
         value={current ?? (isListsOnly ? LISTS_ONLY : NONE)}
         onValueChange={(selected) => {
           const code = isAreaSetGroupCode(selected) ? selected : null;
+          const listsOnly = selected === LISTS_ONLY;
           if (onChange) {
-            onChange(code);
+            onChange({ code, listsOnly });
           } else {
             updateViewConfig({
               areaSetGroupCode: code,
-              boundariesListsOnly: selected === LISTS_ONLY,
+              boundariesListsOnly: listsOnly,
             });
           }
         }}
@@ -126,7 +135,7 @@ export default function LightBoundaryPicker({
               No boundaries
             </SelectItem>
           )}
-          {offerListsOnly && (
+          {showListsOnly && (
             <SelectItem value={LISTS_ONLY} className="text-xs">
               Lists only
             </SelectItem>

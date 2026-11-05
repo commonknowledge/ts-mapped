@@ -21,8 +21,5 @@ export const AREA_LIST_COLORS = [
   "#ca8a04",
 ];
 
-// How many of the areas shown in a ranking "List top" takes
-export const AREA_LIST_FROM_RANKING = 10;
-
 // Past this many people in a list's areas, the list inspector offers search
 export const AREA_LIST_MEMBERS_SEARCH_FROM = 8;

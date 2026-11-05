@@ -7,6 +7,8 @@ export const createNewViewConfig = (): MapViewConfig => {
     areaDataSourceId: "",
     areaDataColumn: "",
     areaSetGroupCode: undefined,
+    // One set of boundaries for the whole view, not per visualisation
+    boundariesLocked: true,
     mapStyleName: MapStyleName.Light,
     showLabels: true,
     showMembers: true,
