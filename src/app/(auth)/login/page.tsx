@@ -5,9 +5,7 @@ import { useState } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
-import { Separator } from "@/shadcn/ui/separator";
 import type { SyntheticEvent } from "react";
 
 export default function LoginPage() {
@@ -48,57 +46,69 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-[350px] border-none">
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        <form onSubmit={onSubmitLogin} className="flex flex-col gap-6">
-          <FormFieldWrapper id="email" label="Email">
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-            />
-          </FormFieldWrapper>
-
-          <FormFieldWrapper id="password" label="Password">
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </FormFieldWrapper>
-
-          <div className="flex flex-col gap-2">
-            <Button disabled={isPending} size="sm">
-              Login
-            </Button>
-
-            {error && <span className="text-sm text-red-500">{error}</span>}
-          </div>
-
-          <Link href="/forgot-password" className="text-sm text-center">
-            Forgot password?
-          </Link>
-        </form>
-        <Separator className="my-4" orientation="horizontal" />
-        <p className="text-sm font-medium text-center">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            Sign up to the waitlist
-          </Link>
+    <div className="flex w-full max-w-sm flex-col gap-8">
+      <div>
+        <p className="mb-2 font-mono text-[11px] tracking-[0.13em] text-neutral-500 uppercase">
+          Welcome back
         </p>
-      </CardContent>
-    </Card>
+        <h1 className="text-3xl leading-tight font-semibold tracking-[-0.02em] text-ink">
+          Log in to Mapped
+        </h1>
+      </div>
+
+      <form onSubmit={onSubmitLogin} className="flex flex-col gap-5">
+        <FormFieldWrapper id="email" label="Email">
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            className="h-10"
+          />
+        </FormFieldWrapper>
+
+        <FormFieldWrapper id="password" label="Password">
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            className="h-10"
+          />
+        </FormFieldWrapper>
+
+        <Link
+          href="/forgot-password"
+          className="-mt-2 self-end text-sm text-neutral-500 hover:text-ink"
+        >
+          Forgot password?
+        </Link>
+
+        <div className="flex flex-col gap-2">
+          <Button disabled={isPending} className="h-10">
+            {isPending ? "Logging in…" : "Log in"}
+          </Button>
+          {error && (
+            <span role="alert" className="text-sm text-red-500">
+              {error}
+            </span>
+          )}
+        </div>
+      </form>
+
+      <p className="border-t border-neutral-200 pt-6 text-sm text-neutral-600">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-ink underline hover:no-underline"
+        >
+          Join the waitlist
+        </Link>
+      </p>
+    </div>
   );
 }
