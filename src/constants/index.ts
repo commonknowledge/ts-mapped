@@ -48,6 +48,8 @@ export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";
 export const NOTES_COLUMN = `${ENRICHMENT_COLUMN_PREFIX}Notes`;
 
 export const GE_DATA_SOURCE_NAME = "2024 General Election Results";
+// The column the election results open on: each seat's winning party
+export const GE_DEFAULT_COLUMN = "First party";
 
 export const JWT_LIFETIME_SECONDS = 24 * 60 * 60;
 

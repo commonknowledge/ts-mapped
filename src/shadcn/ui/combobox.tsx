@@ -20,6 +20,8 @@ export interface ComboboxOption {
   value: string;
   label: string;
   hint?: string;
+  /** Options sharing a group sit under its heading, in first-seen order */
+  group?: string;
 }
 
 interface ComboboxProps {
@@ -47,6 +49,16 @@ interface ComboboxProps {
  *         onSelect={() => handleSelect(option.value)}
  *     >
  */
+const groupOptions = (options: ComboboxOption[]) => {
+  const groups: { heading?: string; options: ComboboxOption[] }[] = [];
+  for (const option of options) {
+    const group = groups.find((g) => g.heading === option.group);
+    if (group) group.options.push(option);
+    else groups.push({ heading: option.group, options: [option] });
+  }
+  return groups;
+};
+
 export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
   (
     {
@@ -102,50 +114,48 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
             <CommandInput placeholder={searchPlaceholder} />
             <CommandList>
               <CommandEmpty>{emptyMessage}</CommandEmpty>
-              <CommandGroup>
-                {safeOptions.length > 0
-                  ? safeOptions.map((option) => (
-                      <CommandItem
-                        key={option.value}
-                        value={option.value}
-                        // cmdk filters on `value`, which may be an opaque
-                        // id; the label is what the user types to search
-                        keywords={[option.label]}
-                        onSelect={() => handleSelect(option.value)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value === option.value
-                              ? "opacity-100"
-                              : "opacity-0",
-                          )}
-                        />
-                        {option.hint ? (
-                          <>
-                            {option.label}
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <InfoIcon
-                                  className={`h-3.5 w-3.5 cursor-help text-muted-foreground inline-block`}
-                                  aria-label="Column description"
-                                  tabIndex={0}
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-64">
-                                <p className="whitespace-pre-line">
-                                  {option.hint}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </>
-                        ) : (
-                          option.label
+              {groupOptions(safeOptions).map(({ heading, options }) => (
+                <CommandGroup key={heading ?? ""} heading={heading}>
+                  {options.map((option) => (
+                    <CommandItem
+                      key={option.value}
+                      value={option.value}
+                      // cmdk filters on `value`, which may be an opaque
+                      // id; the label is what the user types to search
+                      keywords={[option.label]}
+                      onSelect={() => handleSelect(option.value)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === option.value ? "opacity-100" : "opacity-0",
                         )}
-                      </CommandItem>
-                    ))
-                  : null}
-              </CommandGroup>
+                      />
+                      {option.hint ? (
+                        <>
+                          {option.label}
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <InfoIcon
+                                className={`h-3.5 w-3.5 cursor-help text-muted-foreground inline-block`}
+                                aria-label="Column description"
+                                tabIndex={0}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-64">
+                              <p className="whitespace-pre-line">
+                                {option.hint}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </>
+                      ) : (
+                        option.label
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              ))}
             </CommandList>
           </Command>
         </PopoverContent>

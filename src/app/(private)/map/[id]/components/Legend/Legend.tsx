@@ -51,6 +51,7 @@ import { IncludeColumnsModal } from "../controls/VisualisationPanel/IncludeColum
 import { DataSourceSelectModal } from "../DataSourceSelectButton";
 import { LegendBars } from "./LegendBars";
 import SecondaryBoundariesControl from "./SecondaryBoundariesControl";
+import { getColumnOptions } from "./utils";
 import type { AreaSetGroupCode } from "@/models/AreaSet";
 
 export default function Legend({
@@ -153,7 +154,7 @@ export default function Legend({
       )
       .map((col) => ({
         value: col.name,
-        label: `${col.name} (${col.type})`,
+        label: col.name,
         hint: columnMetadata.find((m) => m.name === col.name)?.description,
       })) || []),
   ];
@@ -278,22 +279,13 @@ export default function Legend({
                 <Combobox
                   size="sm"
                   triggerClassName="text-xs font-normal hover:border-action-hover"
-                  options={[
-                    { value: NULL_UUID, label: "None" },
-                    { value: DUMMY_COUNT_COLUMN, label: "Count" },
-                    {
-                      value: MAX_COLUMN_KEY,
-                      label: "Highest value column (String)",
-                    },
-                    ...(dataSources
-                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.map((col) => ({
-                        value: col.name,
-                        label: `${col.name} (${col.type})`,
-                        hint: columnMetadata.find((m) => m.name === col.name)
-                          ?.description,
-                      })) || []),
-                  ]}
+                  options={getColumnOptions({
+                    columnDefs: dataSource?.columnDefs ?? [],
+                    columnMetadata,
+                    suggestedColumn: dataSource?.public
+                      ? dataSource.defaultChoroplethConfig?.column
+                      : null,
+                  })}
                   value={
                     isCount
                       ? DUMMY_COUNT_COLUMN

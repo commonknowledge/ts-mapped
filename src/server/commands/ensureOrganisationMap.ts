@@ -1,6 +1,7 @@
 import {
   ADMIN_ORGANISATION_NAME,
   GE_DATA_SOURCE_NAME,
+  GE_DEFAULT_COLUMN,
   TUTORIAL_MEMBERS_NAME,
 } from "@/constants";
 import { AreaSetCode, AreaSetGroupCode } from "@/models/AreaSet";
@@ -10,11 +11,12 @@ import {
   GeocodingType,
 } from "@/models/DataSource";
 import { ColorScheme, MapStyleName } from "@/models/MapView";
-import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
+import { CalculationType, DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,
   findCSVDataSourceByUrlAndOrg,
+  updateDefaultChoroplethConfig,
 } from "@/server/repositories/DataSource";
 import {
   createMap,
@@ -176,6 +178,18 @@ export const ensureElectionResultsDataSource =
         public: true,
         recordType: DataSourceRecordType.Data,
       });
+    }
+    // Opens on the winning party; set on sources made before it had one
+    if (!dataSource.defaultChoroplethConfig) {
+      const defaultChoroplethConfig = {
+        column: GE_DEFAULT_COLUMN,
+        calculationType: CalculationType.Mode,
+      };
+      await updateDefaultChoroplethConfig(
+        dataSource.id,
+        defaultChoroplethConfig,
+      );
+      dataSource = { ...dataSource, defaultChoroplethConfig };
     }
     return dataSource;
   };

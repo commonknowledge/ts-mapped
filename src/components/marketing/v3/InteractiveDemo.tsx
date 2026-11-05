@@ -51,17 +51,25 @@ const buildConnector = ({
   };
 };
 
-// The demo's lines and dots: ink on a light section, white on a dark one
+// The demo's lines, dots and tooltips: ink on a light section, white on a
+// dark one, with the tooltips the other way round so they stand out
 const TONE_COLORS = {
   light: {
     line: "#15213b",
     dot: "bg-[#15213b]",
     outline: "focus-visible:outline-[#15213b]",
+    tooltip:
+      "bg-[#15213b] text-white [&_svg]:bg-[#15213b] [&_svg]:fill-[#15213b]",
+    tooltipLabel: "text-[#91e17e]",
+    tooltipBody: "text-white/80",
   },
   dark: {
     line: "#ffffff",
     dot: "bg-white",
     outline: "focus-visible:outline-white",
+    tooltip: "bg-white text-[#15213b] [&_svg]:bg-white [&_svg]:fill-white",
+    tooltipLabel: "text-[#3d8a2b]",
+    tooltipBody: "text-[#15213b]/75",
   },
 };
 
@@ -209,15 +217,19 @@ export default function InteractiveDemo({
             side={hotspot.tooltipSide}
             align={hotspot.tooltipAlign}
             sideOffset={12}
-            className="max-w-72 rounded-md bg-[#15213b] px-4 py-3 text-left text-white [&_svg]:bg-[#15213b] [&_svg]:fill-[#15213b]"
+            className={`max-w-72 rounded-md px-4 py-3 text-left shadow-lg ${colors.tooltip}`}
           >
-            <span className="font-mono text-[10px] tracking-widest text-[#91e17e] uppercase">
+            <span
+              className={`font-mono text-[10px] tracking-widest uppercase ${colors.tooltipLabel}`}
+            >
               {hotspot.label}
             </span>
             <p className="mt-1 text-base font-medium tracking-tight">
               {hotspot.title}
             </p>
-            <p className="mt-1 text-sm leading-snug text-pretty text-white/80">
+            <p
+              className={`mt-1 text-sm leading-snug text-pretty ${colors.tooltipBody}`}
+            >
               {hotspot.description}
             </p>
           </TooltipContent>

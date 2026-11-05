@@ -261,7 +261,6 @@ export type TourStepId =
   | "membersVisualisation"
   | "views"
   | "addAreaData"
-  | "chooseColumn"
   | "pickColumn"
   | "clickArea"
   | "markersTab"
@@ -375,17 +374,10 @@ export const TOUR_STEPS: {
     zoomOut: true,
   },
   {
-    id: "chooseColumn",
-    title: "Choose a column",
-    body: "A data source has many columns. The one you choose colours the map, and its colour key appears below it.",
-    action: "Pick a column from Column, such as a party's share of the vote",
-    target: ['[data-tour="column-picker"]', '[data-tour="add-area-button"]'],
-  },
-  {
     id: "pickColumn",
-    title: "Grouped by data source",
-    body: "Each source in Areas is one group with its columns underneath, and one tab in the inspector. Switching columns fades the areas from one to the next.",
-    action: 'Click "Add a column", then pick another one',
+    title: "Add another column",
+    body: "Library data opens on its main column: here, First party, the winner in each seat. A source can show several columns, each a row under it in Areas, and switching between them fades the areas from one to the next.",
+    action: 'Click "Add a column" and pick another, such as Lab %',
     target: ({ now }) =>
       // "source|column": a column is chosen, so add another
       now.areaDataKey.includes("|")

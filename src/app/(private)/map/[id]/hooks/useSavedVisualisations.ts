@@ -295,13 +295,21 @@ export function useSavedVisualisations() {
       secondaryColumn,
       customColor,
     }: NewVisualisation = {}) => {
+      // Library data opens on its default column (e.g. the election
+      // results' winning party) unless a column was asked for
+      const ds = dataSourceId ? getDataSourceById(dataSourceId) : null;
+      const libraryDefault =
+        !column && ds?.public ? ds.defaultChoroplethConfig : null;
       updateViewConfig({
         savedVisualisations: withLiveSaved(),
         activeVisualisationId: uuidv4(),
         ...toLiveConfig(null),
         areaSetGroupCode: getBoundariesFor(dataSourceId),
         areaDataSourceId: dataSourceId ?? "",
-        areaDataColumn: column ?? "",
+        areaDataColumn: column ?? libraryDefault?.column ?? "",
+        ...(libraryDefault
+          ? { calculationType: libraryDefault.calculationType }
+          : {}),
         areaDataSecondaryColumn: secondaryColumn,
         // A single-colour scale, e.g. a marker layer's own colour
         ...(customColor
@@ -309,7 +317,7 @@ export function useSavedVisualisations() {
           : {}),
       });
     },
-    [getBoundariesFor, updateViewConfig, withLiveSaved],
+    [getBoundariesFor, getDataSourceById, updateViewConfig, withLiveSaved],
   );
 
   /** Sets the active visualisation's data source, with boundaries that fit

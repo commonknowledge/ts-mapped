@@ -30,7 +30,6 @@ export const isTourStepDone = ({
         now.areaDataSourceId !== start.areaDataSourceId
       );
     // A column actually chosen, not just a blank one added
-    case "chooseColumn":
     case "pickColumn":
       return hasTourColumn(now) && now.areaDataKey !== start.areaDataKey;
     case "showOnMap":
@@ -59,9 +58,9 @@ export const isTourStepDone = ({
       // Back on an Areas data tab (not Markers / Notes)
       return Boolean(
         now.inspectorTab &&
-          now.inspectorTab !== "markers" &&
-          now.inspectorTab !== "notes" &&
-          now.selectedRecordCount === 0,
+        now.inspectorTab !== "markers" &&
+        now.inspectorTab !== "notes" &&
+        now.selectedRecordCount === 0,
       );
     case "marginalSeats":
       return now.listAreaCount > start.listAreaCount;
