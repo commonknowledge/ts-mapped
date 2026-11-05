@@ -4,6 +4,7 @@ export enum Feature {
   PublicMaps = "PublicMaps",
   Enrichment = "Enrichment",
   InviteUsers = "InviteUsers",
+  SharedMaps = "SharedMaps",
   SyncToCrm = "SyncToCrm",
 }
 
