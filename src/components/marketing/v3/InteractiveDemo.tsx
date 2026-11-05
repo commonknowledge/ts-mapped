@@ -152,7 +152,11 @@ export default function InteractiveDemo({
       className="group/demo pointer-events-none absolute inset-0"
       data-active={activeId ?? undefined}
     >
-      <svg aria-hidden className="absolute inset-0 size-full overflow-visible">
+      {/* Connectors and dots need the wide Figma frame — hide below lg */}
+      <svg
+        aria-hidden
+        className="absolute inset-0 hidden size-full overflow-visible lg:block"
+      >
         {Object.entries(connectors).map(([id, connector]) => (
           <path
             key={id}
@@ -166,8 +170,9 @@ export default function InteractiveDemo({
 
       <div
         ref={boxRef}
-        // The app's own UI font, not the marketing page's
-        className="pointer-events-auto absolute top-[17.644%] left-[15.417%] h-[70.033%] w-[72.431%] overflow-hidden font-sans rounded-[0.422cqw] bg-white shadow-[0px_2.682px_32.772px_2.261px_rgba(0,0,0,0.15)]"
+        // The app's own UI font, not the marketing page's. On small screens
+        // the map fills the stage; from lg it sits in the Figma frame.
+        className="pointer-events-auto absolute inset-0 overflow-hidden font-sans rounded-lg bg-white shadow-[0px_2.682px_32.772px_2.261px_rgba(0,0,0,0.15)] lg:top-[17.644%] lg:right-auto lg:bottom-auto lg:left-[15.417%] lg:h-[70.033%] lg:w-[72.431%] lg:rounded-[0.422cqw]"
       >
         <LiteMap />
       </div>
@@ -186,7 +191,7 @@ export default function InteractiveDemo({
             <button
               type="button"
               aria-label={hotspot.title}
-              className={`group pointer-events-auto absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 ${colors.outline}`}
+              className={`group pointer-events-auto absolute z-10 hidden size-8 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 lg:flex ${colors.outline}`}
               style={getDotStyle(hotspot)}
             >
               <span

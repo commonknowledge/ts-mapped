@@ -13,6 +13,7 @@ import {
   mapColors,
 } from "../styles";
 import AreaListInspector from "./AreaList/AreaListInspector";
+import QuickAddBanner from "./AreaList/QuickAddBanner";
 import BoundaryHoverInfo from "./BoundaryHoverInfo/BoundaryHoverInfo";
 import InspectorPanel from "./InspectorPanel/InspectorPanel";
 import MapStyleSelector from "./MapStyleSelector";
@@ -133,6 +134,11 @@ export default function PrivateMapControls() {
           <TimelineControl />
         </div>
       )}
+
+      {/* While adding to a list by clicking areas */}
+      <div className="pointer-events-none absolute top-4 left-1/2 z-20 -translate-x-1/2">
+        <QuickAddBanner />
+      </div>
 
       {message && (
         <div

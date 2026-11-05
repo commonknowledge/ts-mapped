@@ -13,7 +13,7 @@ export function MapsList({
   ) => ReactNode;
 }) {
   return (
-    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
+    <ul className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {maps?.map((map, index) => (
         <li key={index}>
           <MapCard

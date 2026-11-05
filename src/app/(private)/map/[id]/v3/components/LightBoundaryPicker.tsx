@@ -125,7 +125,7 @@ export default function LightBoundaryPicker({
         <SelectTrigger
           size="sm"
           className="h-7 min-w-0 flex-1 text-xs"
-          aria-label={`${label} boundaries`}
+          aria-label={label ? `${label} boundaries` : "Boundaries"}
         >
           <SelectValue>{currentName}</SelectValue>
         </SelectTrigger>

@@ -4,7 +4,11 @@ import { useEffect, useRef } from "react";
 import { type SelectedArea } from "@/app/(private)/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/(private)/map/[id]/hooks/useChoropleth";
 import { useInspectorState } from "@/app/(private)/map/[id]/hooks/useInspectorState";
-import { queryListsOnlyArea } from "../components/Choropleth/listsOnly";
+import {
+  queryListsOnlyArea,
+  queryQuickAddArea,
+} from "../components/Choropleth/listsOnly";
+import { useQuickAddAreaList } from "./useAreaLists";
 import { useInspectorActiveSource } from "./useInspectorActiveSource";
 import { usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
@@ -86,12 +90,16 @@ export function useMapClickEffect({
   const clusterClick = useClusterClick();
   const [, setActiveSourceId] = useInspectorActiveSource();
   const clusterClickRef = useRef(clusterClick);
+  // While adding to a list by clicking, clicks go to the list
+  const quickAdd = useQuickAddAreaList();
+  const quickAddRef = useRef(quickAdd);
 
   useEffect(() => {
     pinDropModeRef.current = pinDropMode;
     currentModeRef.current = currentMode;
     clusterClickRef.current = clusterClick;
-  }, [pinDropMode, currentMode, clusterClick]);
+    quickAddRef.current = quickAdd;
+  }, [pinDropMode, currentMode, clusterClick, quickAdd]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -456,8 +464,26 @@ export function useMapClickEffect({
       return true;
     };
 
+    // Quick add: the area clicked joins the list, or leaves it if it's in.
+    // Every click is the list's while it's on, so nothing else opens.
+    const handleQuickAddClick = (e: mapboxgl.MapMouseEvent): boolean => {
+      const { list, toggleArea } = quickAddRef.current;
+      if (!list) return false;
+      const area = queryQuickAddArea({
+        map,
+        point: e.point,
+        areaSetCode: list.areaSetCode,
+      });
+      if (area) toggleArea(area);
+      return true;
+    };
+
     const onClick = (e: mapboxgl.MapMouseEvent) => {
       if (currentModeRef.current === "draw_polygon" || pinDropModeRef.current) {
+        return;
+      }
+
+      if (handleQuickAddClick(e)) {
         return;
       }
 

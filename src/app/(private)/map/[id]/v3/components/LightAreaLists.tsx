@@ -6,6 +6,8 @@ import {
   EllipsisIcon,
   EyeIcon,
   EyeOffIcon,
+  MapIcon,
+  MousePointerClickIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -24,17 +26,21 @@ import {
 } from "@/shadcn/ui/dropdown-menu";
 import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
+import { getDefaultAreaSetGroupCode } from "../../components/Choropleth/configs";
 import { AREA_LIST_COLORS } from "../../constants";
 import { useAreaStats } from "../../data";
 import {
   useAreaListVisibility,
   useAreaLists,
   useInspectedAreaList,
+  useQuickAddAreaList,
 } from "../../hooks/useAreaLists";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { useGoToArea } from "../../hooks/useGoToArea";
 import { useInspectorState } from "../../hooks/useInspectorState";
 import { useMapViews } from "../../hooks/useMapViews";
+import { useSavedVisualisations } from "../../hooks/useSavedVisualisations";
+import { getBoundaryName } from "../utils/boundaries";
 import type { AreaList } from "@/models/Map";
 
 /**
@@ -43,6 +49,7 @@ import type { AreaList } from "@/models/Map";
  */
 export default function LightAreaLists() {
   const { lists, createList } = useAreaLists();
+  const { start: startQuickAdd } = useQuickAddAreaList();
   const { choroplethLayerConfig } = useChoropleth();
 
   return (
@@ -51,14 +58,17 @@ export default function LightAreaLists() {
         <p className="text-[11px] text-neutral-500">Lists</p>
         <button
           type="button"
+          // A new list, straight into adding areas to it by clicking
           onClick={() =>
-            createList({
-              name: `List ${lists.length + 1}`,
-              areaSetCode: choroplethLayerConfig.areaSetCode,
-            })
+            startQuickAdd(
+              createList({
+                name: `List ${lists.length + 1}`,
+                areaSetCode: choroplethLayerConfig.areaSetCode,
+              }).id,
+            )
           }
           aria-label="New list"
-          title="New list"
+          title="New list: click areas on the map to add them"
           className="ml-auto cursor-pointer rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
         >
           <PlusIcon className="size-4" />
@@ -84,8 +94,15 @@ function AreaListRow({ list }: { list: AreaList }) {
   const { data: areaStats } = useAreaStats();
   const { selectedBoundary, resetInspector } = useInspectorState();
   const { list: inspectedList, inspect } = useInspectedAreaList();
+  const {
+    list: quickAddList,
+    start: startQuickAdd,
+    stop: stopQuickAdd,
+  } = useQuickAddAreaList();
+  const isQuickAdding = quickAddList?.id === list.id;
   const isInspected = inspectedList?.id === list.id;
   const goToArea = useGoToArea();
+  const { setViewBoundaries } = useSavedVisualisations();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const visible = isVisible(list.id);
@@ -123,8 +140,9 @@ function AreaListRow({ list }: { list: AreaList }) {
     <>
       <div
         className={cn(
-          "group/list flex items-center gap-1.5 rounded-md px-1.5 py-1 hover:bg-neutral-50",
+          "flex items-center gap-1.5 rounded-md px-1.5 py-1 hover:bg-neutral-50",
           isInspected && "bg-neutral-100 hover:bg-neutral-100",
+          isQuickAdding && "bg-neutral-100 ring-1 ring-neutral-300",
           !visible && "opacity-60",
         )}
       >
@@ -178,28 +196,21 @@ function AreaListRow({ list }: { list: AreaList }) {
             />
           ) : (
             <span
-              className="min-w-0 flex-1 truncate text-sm"
+              className="min-w-0 flex-1"
               onDoubleClick={() => setIsRenaming(true)}
             >
-              {list.name}
+              <span className="block truncate text-sm">{list.name}</span>
+              {/* Its boundaries: what can join it, and what it's drawn on */}
+              <span className="block truncate text-[11px] text-neutral-400">
+                {list.areas.length === 0
+                  ? "Any boundaries"
+                  : getBoundaryName(list.areaSetCode)}
+              </span>
             </span>
           )}
           <span className="shrink-0 text-xs tabular-nums text-neutral-400">
             {list.areas.length}
           </span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setVisible(list.id, !visible)}
-          aria-label={`${visible ? "Hide" : "Show"} ${list.name} on the map`}
-          title={visible ? "Hide on map" : "Show on map"}
-          className={cn(
-            "flex w-6 shrink-0 cursor-pointer justify-center rounded py-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900",
-            visible &&
-              "opacity-0 group-hover/list:opacity-100 focus-visible:opacity-100",
-          )}
-        >
-          {visible ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -216,6 +227,34 @@ function AreaListRow({ list }: { list: AreaList }) {
               <PencilIcon className="size-3.5" />
               Rename
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                isQuickAdding ? stopQuickAdd() : startQuickAdd(list.id)
+              }
+            >
+              <MousePointerClickIcon className="size-3.5" />
+              {isQuickAdding ? "Done adding areas" : "Click areas to add"}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setVisible(list.id, !visible)}>
+              {visible ? (
+                <EyeOffIcon className="size-3.5" />
+              ) : (
+                <EyeIcon className="size-3.5" />
+              )}
+              {visible ? "Hide on map" : "Show on map"}
+            </DropdownMenuItem>
+            {!isOnTheseBoundaries && list.areas.length > 0 && (
+              <DropdownMenuItem
+                onClick={() =>
+                  setViewBoundaries({
+                    code: getDefaultAreaSetGroupCode(list.areaSetCode),
+                  })
+                }
+              >
+                <MapIcon className="size-3.5" />
+                Show {getBoundaryName(list.areaSetCode).toLowerCase()}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={copyNames}
               disabled={list.areas.length === 0}

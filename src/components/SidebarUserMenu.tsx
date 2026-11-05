@@ -2,7 +2,7 @@
 
 import {
   CheckIcon,
-  ChevronDown,
+  ChevronsUpDownIcon,
   LifeBuoyIcon,
   LogOutIcon,
   SettingsIcon,
@@ -24,7 +24,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { cn } from "@/shadcn/utils";
 import { getInitials } from "@/utils/text";
 import { Link } from "./Link";
 import type { SyntheticEvent } from "react";
@@ -45,24 +44,25 @@ export default function SidebarUserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <div
-          className={cn(
-            "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-          )}
-        >
-          <Avatar>
+      <DropdownMenuTrigger className="w-full cursor-pointer rounded-lg text-left outline-none hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-300 data-[state=open]:bg-neutral-100">
+        <div className="flex items-center gap-2.5 px-2 py-1.5">
+          <Avatar className="size-7">
             <AvatarImage src={user?.avatarUrl || ""} alt={user?.name} />
-            <AvatarFallback className="bg-neutral-200">
+            <AvatarFallback className="bg-mint text-[11px] font-medium text-ink">
               {getInitials(user?.name)}
             </AvatarFallback>
-          </Avatar>{" "}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-left truncate">
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-neutral-900">
               {user?.name || user?.email}
             </p>
+            {currentOrganisation?.name && (
+              <p className="truncate text-[11px] text-neutral-500">
+                {currentOrganisation.name}
+              </p>
+            )}
           </div>
-          <ChevronDown size={16} />
+          <ChevronsUpDownIcon className="size-3.5 shrink-0 text-neutral-400" />
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent

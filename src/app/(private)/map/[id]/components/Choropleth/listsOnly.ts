@@ -46,3 +46,34 @@ export const queryListsOnlyArea = ({
     sourceLayer: config.mapbox.layerId,
   };
 };
+
+// Quick add draws its list's boundary set on its own source
+export const quickAddSourceId = (areaSetCode: AreaSetCode) =>
+  `quick-add-${areaSetCode}`;
+
+export const quickAddFillLayerId = (areaSetCode: AreaSetCode) =>
+  `${quickAddSourceId(areaSetCode)}-fill`;
+
+/** The area under a point on the quick-add layer for a boundary set */
+export const queryQuickAddArea = ({
+  map,
+  point,
+  areaSetCode,
+}: {
+  map: MapRef;
+  point: PointLike;
+  areaSetCode: AreaSetCode;
+}) => {
+  const layerId = quickAddFillLayerId(areaSetCode);
+  const config = getSecondaryAreaSetConfig({ areaSetCode, mapType: null });
+  if (!config || !map.getLayer(layerId)) return null;
+  const [feature] = map.queryRenderedFeatures(point, { layers: [layerId] });
+  if (!feature) return null;
+  const code = String(feature.properties?.[config.mapbox.featureCodeProperty]);
+  return {
+    code,
+    name: String(
+      feature.properties?.[config.mapbox.featureNameProperty] ?? code,
+    ),
+  };
+};

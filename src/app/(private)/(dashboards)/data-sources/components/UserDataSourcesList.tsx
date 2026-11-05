@@ -99,7 +99,7 @@ export default function UserDataSourcesList({
 
   return (
     <div>
-      <div className="py-6 flex flex-col gap-12">
+      <div className="flex flex-col gap-10">
         {/* Empty state */}
         {dataSources && dataSources.length === 0 && (
           <div className="text-center py-12 text-neutral-500">
@@ -119,11 +119,14 @@ export default function UserDataSourcesList({
 
         {/* Member Collections Section */}
         <div>
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <UsersIcon className="w-4 h-4 text-neutral-500" />
+          <h2 className="mb-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.13em] text-neutral-500 uppercase">
+            <UsersIcon className="size-3.5" />
             Member data sources
+            <span className="text-neutral-400">
+              {memberDataSources?.length ?? 0}
+            </span>
           </h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 ">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {memberDataSources?.map((dataSource) => (
               <Link
                 key={dataSource.id}
@@ -149,8 +152,14 @@ export default function UserDataSourcesList({
 
         {/* Other Data Sources Section */}
         <div>
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-medium shrink-0">Other data sources</h2>
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="flex shrink-0 items-center gap-2 font-mono text-[11px] tracking-[0.13em] text-neutral-500 uppercase">
+              <Boxes className="size-3.5" />
+              Other data sources
+              <span className="text-neutral-400">
+                {filteredOtherDataSources.length}
+              </span>
+            </h2>
             <div className="w-full sm:ml-auto sm:w-auto sm:max-w-[40ch]">
               <Select
                 value={selectedFilter}
@@ -158,7 +167,7 @@ export default function UserDataSourcesList({
                   setSelectedFilter(value as DataSourceRecordType | "all")
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger size="sm" className="w-full bg-white text-xs">
                   <SelectValue placeholder="Choose a record type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -185,7 +194,7 @@ export default function UserDataSourcesList({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredOtherDataSources?.map((dataSource) => (
               <Link
                 key={dataSource.id}

@@ -37,10 +37,12 @@ export default function DashboardPage() {
   return (
     <div>
       <PageHeader
+        eyebrow="Maps"
         title="Public maps"
+        description="Maps you've published for anyone to see, built from your private maps."
         action={
-          <Button type="button" size="lg" onClick={() => setDialogOpen(true)}>
-            <PlusIcon /> Add new
+          <Button type="button" onClick={() => setDialogOpen(true)}>
+            <PlusIcon /> New public map
           </Button>
         }
       />

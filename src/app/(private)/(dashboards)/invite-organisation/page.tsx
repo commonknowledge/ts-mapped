@@ -42,13 +42,15 @@ export default function InviteOrganisationPage() {
   return (
     <div className="p-4 mx-auto max-w-7xl w-full">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-medium tracking-tight">
+        <h1 className="text-2xl leading-tight font-semibold tracking-[-0.02em] text-ink">
           Invite Organisation
         </h1>
         <CreateInvitationModal />
       </div>
 
-      <h2 className="text-2xl font-medium mb-4">Pending invitations</h2>
+      <h2 className="mb-3 font-mono text-[11px] tracking-[0.13em] text-neutral-500 uppercase">
+        Pending invitations
+      </h2>
       <Table>
         <TableHeader>
           <TableRow>

@@ -167,3 +167,11 @@ export const HERO_FEATURES: { id: ShowcaseFeatureId; title: string }[] = [
   { id: "strategise", title: "Strategise" },
   { id: "win", title: "Win" },
 ];
+
+// On phones, how far down the screen a step's top must reach to become the
+// current one: just below the map pinned above the steps
+export const MOBILE_STEP_LINE = 0.62;
+
+// The demo box's size in the desktop Figma frame (1440 wide), which phones
+// show scaled down so the editor keeps its desktop layout
+export const MOBILE_DEMO_SIZE = { width: 1043, height: 645 };

@@ -177,7 +177,7 @@ export function DataSourceDashboard({
               <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="flex items-center gap-2 / text-3xl font-medium tracking-tight">
+          <h1 className="flex items-center gap-2 text-2xl leading-tight font-semibold tracking-[-0.02em] text-ink">
             <DataSourceRecordTypeIcon
               type={dataSource.recordType}
               withBackground={true}
@@ -251,7 +251,9 @@ export function DataSourceDashboard({
         <TabsContent value="settings">
           <div className="grid grid-cols-2 gap-20 pb-10">
             <div className="flex flex-col gap-6">
-              <h2 className="font-medium text-xl">About this data source</h2>
+              <h2 className="text-base font-medium tracking-[-0.01em] text-ink">
+                About this data source
+              </h2>
               <DefinitionList
                 items={
                   lastImported
@@ -268,14 +270,18 @@ export function DataSourceDashboard({
             </div>
 
             <div className="flex flex-col gap-6">
-              <h2 className="font-medium text-xl">Configuration</h2>
+              <h2 className="text-base font-medium tracking-[-0.01em] text-ink">
+                Configuration
+              </h2>
               <ConfigurationForm
                 dataSource={dataSource}
                 onAutoImportChange={setAutoImportEnabled}
                 webhookStatus={webhookStatus}
               />
               <Separator />
-              <h2 className="font-medium text-xl">Danger zone</h2>
+              <h2 className="text-base font-medium tracking-[-0.01em] text-ink">
+                Danger zone
+              </h2>
               <div>
                 <DeleteDataSourceButton dataSource={dataSource} />
               </div>

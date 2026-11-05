@@ -7,6 +7,7 @@ import { mapColors } from "../../styles";
 import { getMapStyle } from "../../utils/map";
 import AreaListOutlines from "./AreaListOutlines";
 import ListsOnlyOutlines from "./ListsOnlyOutlines";
+import QuickAddLayer from "./QuickAddLayer";
 import {
   useChoroplethFeatureStatesEffect,
   useChoroplethFillColor,
@@ -209,6 +210,8 @@ export default function Choropleth() {
         </Source>
       )}
       <ListsOnlyOutlines beforeId={`${choroplethTopLayerId}-line`} />
+      {/* Above everything else, while adding to a list by clicking */}
+      <QuickAddLayer />
     </>
   );
 }

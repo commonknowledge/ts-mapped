@@ -28,6 +28,7 @@ export default function DataSourceConfigPage({
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <PageHeader
+        eyebrow="Data source"
         title={`Configure ${dataSource.name}`}
         description="Select the name and location columns in your data source to import them into Mapped"
       />

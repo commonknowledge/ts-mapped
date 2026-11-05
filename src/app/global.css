@@ -7,6 +7,10 @@
 @theme {
   --font-sans: "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
+  /* Brand colours from the marketing site: the navy ink of its type, and
+     the pale green of its hero */
+  --color-ink: #15213b;
+  --color-mint: #f0fbed;
 }
 
 :root {

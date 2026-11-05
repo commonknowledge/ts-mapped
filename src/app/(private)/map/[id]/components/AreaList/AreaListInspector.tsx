@@ -1,12 +1,21 @@
 "use client";
 
-import { ArrowDownIcon, Loader2, XIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  Loader2,
+  MousePointerClickIcon,
+  XIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { AreaSetCodeLabels } from "@/labels";
+import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
 import { useAreaListInsights } from "../../hooks/useAreaListInsights";
-import { useInspectedAreaList } from "../../hooks/useAreaLists";
+import {
+  useInspectedAreaList,
+  useQuickAddAreaList,
+} from "../../hooks/useAreaLists";
 import { useGoToArea } from "../../hooks/useGoToArea";
 import { useMarkerLayerColor } from "../../hooks/useMarkerLayerColor";
 import { formatAreaListValue, toAreaListNumber } from "../../utils/areaList";
@@ -26,6 +35,12 @@ type SortKey = string;
  */
 export default function AreaListInspector({ list }: { list: AreaList }) {
   const { inspect } = useInspectedAreaList();
+  const {
+    list: quickAddList,
+    start: startQuickAdd,
+    stop: stopQuickAdd,
+  } = useQuickAddAreaList();
+  const isQuickAdding = quickAddList?.id === list.id;
   const goToArea = useGoToArea();
   const { layers, columns } = useAreaListInsights(list);
   // The first marker layer (usually members) gets a column in the table
@@ -89,6 +104,18 @@ export default function AreaListInspector({ list }: { list: AreaList }) {
             {AreaSetCodeLabels[list.areaSetCode]}
           </p>
         </div>
+        <Button
+          size="sm"
+          variant={isQuickAdding ? "default" : "outline"}
+          className="h-7 text-xs"
+          onClick={() =>
+            isQuickAdding ? stopQuickAdd() : startQuickAdd(list.id)
+          }
+          title="Click areas on the map to add or remove them"
+        >
+          <MousePointerClickIcon className="size-3.5" />
+          {isQuickAdding ? "Done" : "Add areas"}
+        </Button>
         <button
           type="button"
           onClick={() => inspect(null)}

@@ -13,9 +13,12 @@ export default function PrivateLayout({
 }>) {
   return (
     <DesktopOnly>
-      <div className="flex h-screen">
+      <div className="flex h-screen bg-neutral-50">
         <Sidebar />
-        <div className="flex-1 overflow-auto p-10 w-full">{children}</div>
+        {/* A quiet canvas, with the page at a readable width */}
+        <main className="min-w-0 flex-1 overflow-auto">
+          <div className="mx-auto w-full max-w-7xl px-10 py-8">{children}</div>
+        </main>
       </div>
     </DesktopOnly>
   );

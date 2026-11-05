@@ -41,29 +41,30 @@ export default function DataLibraryPage() {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title="Movement data library"
-          action={
-            <Button variant="default" size="lg" asChild={true}>
-              <Link href="mailto:mapped@commonknowledge.coop?subject=Movement Data Library request">
-                <Mail size={16} />
-                Request a new data source
-              </Link>
-            </Button>
-          }
-        />
-      </div>
+    <div>
+      <PageHeader
+        variant="hero"
+        eyebrow="Shared by Common Knowledge"
+        title="Movement data library"
+        description="Election results, census figures and other public data, ready to add to any map. Start a map from one, or add it from a map's Areas."
+        action={
+          <Button variant="outline" className="bg-white" asChild={true}>
+            <Link href="mailto:mapped@commonknowledge.coop?subject=Movement Data Library request">
+              <Mail className="size-4" />
+              Request data
+            </Link>
+          </Button>
+        }
+      />
 
       {isPending ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <LoaderPinwheel className="animate-spin text-neutral-400" />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {movementSources.map((ds) => (
             <div
               key={ds.id}
-              className="border rounded-lg shadow-sm hover:bg-neutral-50 hover:border-neutral-300 transition-all p-2 flex flex-col"
+              className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 transition-all duration-200 hover:border-neutral-300 hover:shadow-[0_8px_30px_rgba(21,33,59,0.08)]"
             >
               <DataSourceItem
                 className="!border-0 !shadow-none !p-0 hover:!bg-transparent hover:!border-0"
@@ -78,7 +79,8 @@ export default function DataLibraryPage() {
 
               <Button
                 type="button"
-                variant="secondary"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setCreatingForId(ds.id);
                   createMap({
@@ -87,22 +89,20 @@ export default function DataLibraryPage() {
                   });
                 }}
                 disabled={creatingForId === ds.id}
-                className="w-full mt-2"
+                className="mt-2 w-full justify-center border-t border-neutral-100 pt-2 text-neutral-700 hover:text-ink"
               >
                 {creatingForId === ds.id ? (
                   <LoaderPinwheel className="animate-spin" />
                 ) : (
                   <MapIcon />
                 )}
-                Create map using this data source
+                Start a map with this
               </Button>
             </div>
           ))}
 
           {movementSources.length === 0 && (
-            <div className="text-sm text-muted-foreground">
-              No movement data sources available.
-            </div>
+            <p className="text-sm text-neutral-500">No shared data yet.</p>
           )}
         </div>
       )}

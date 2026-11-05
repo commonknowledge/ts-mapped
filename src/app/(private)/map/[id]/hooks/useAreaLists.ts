@@ -8,6 +8,7 @@ import { AREA_LIST_MAX_AREAS } from "@/models/Map";
 import {
   hiddenAreaListIdsAtom,
   inspectedAreaListIdAtom,
+  quickAddAreaListIdAtom,
 } from "../atoms/areaListAtoms";
 import { AREA_LIST_COLORS } from "../constants";
 import { useMapConfig } from "./useMapConfig";
@@ -88,10 +89,13 @@ export function useAreaLists() {
       listId,
       area,
       isIn,
+      areaSetCode,
     }: {
       listId: string;
       area: ListedArea;
       isIn: boolean;
+      /** The area's boundaries: an empty list takes them on */
+      areaSetCode?: AreaSetCode;
     }) =>
       save(
         lists.map((list) => {
@@ -99,6 +103,9 @@ export function useAreaLists() {
           const without = list.areas.filter((a) => a.code !== area.code);
           return {
             ...list,
+            ...(isIn && list.areas.length === 0 && areaSetCode
+              ? { areaSetCode }
+              : {}),
             areas: isIn
               ? [...without, area].slice(0, AREA_LIST_MAX_AREAS)
               : without,
@@ -147,4 +154,34 @@ export function useInspectedAreaList() {
   const [id, setId] = useAtom(inspectedAreaListIdAtom);
   const list = lists.find((candidate) => candidate.id === id) ?? null;
   return { list, inspect: setId };
+}
+
+/**
+ * Quick add: while on, clicking areas on the map adds them to a list (or
+ * takes them off) instead of opening them, until it's switched off
+ */
+export function useQuickAddAreaList() {
+  const { lists, setInList } = useAreaLists();
+  const [id, setId] = useAtom(quickAddAreaListIdAtom);
+  const { setVisible } = useAreaListVisibility();
+  const list = lists.find((candidate) => candidate.id === id) ?? null;
+
+  const start = useCallback(
+    (listId: string) => {
+      setVisible(listId, true);
+      setId(listId);
+    },
+    [setId, setVisible],
+  );
+  const stop = useCallback(() => setId(null), [setId]);
+  const toggleArea = useCallback(
+    (area: { code: string; name: string }) => {
+      if (!list) return;
+      const isIn = list.areas.some((a) => a.code === area.code);
+      setInList({ listId: list.id, area, isIn: !isIn });
+    },
+    [list, setInList],
+  );
+
+  return { list, start, stop, toggleArea };
 }

@@ -21,14 +21,16 @@ export default function DataSourcesPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div>
       <PageHeader
+        eyebrow="Data"
         title="Your data sources"
+        description="Member lists, places and other data your organisation has connected, from spreadsheets, CRMs and files. Add them to maps as markers or to colour areas."
         action={
-          <Button variant="default" size="lg" asChild={true}>
+          <Button asChild={true}>
             <Link href="/data-sources/new">
-              <PlusIcon className="w-4 h-4" />
-              Add new
+              <PlusIcon className="size-4" />
+              Connect data
             </Link>
           </Button>
         }

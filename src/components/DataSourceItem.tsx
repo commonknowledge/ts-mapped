@@ -183,7 +183,7 @@ export function DataSourceItem({
     return (
       <div
         className={cn(
-          "h-full w-full border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-50 hover:border-neutral-300",
+          "h-full w-full rounded-xl border border-neutral-200 bg-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_8px_30px_rgba(21,33,59,0.08)]",
           "p-2 flex flex-col",
           className,
         )}
@@ -284,7 +284,7 @@ export function DataSourceItem({
                   <span
                     key={name}
                     className={cn(
-                      "px-2 py-0.5 rounded-full border text-xs font-medium",
+                      "rounded-md border px-1.5 py-0.5 text-[11px]",
                       isDefault
                         ? "bg-blue-50 border-blue-200 text-blue-700"
                         : "bg-neutral-100 border-neutral-200 text-neutral-700",
@@ -326,7 +326,7 @@ export function DataSourceItem({
     return (
       <div
         className={cn(
-          "h-full w-full border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-50 hover:border-neutral-300",
+          "h-full w-full rounded-xl border border-neutral-200 bg-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_8px_30px_rgba(21,33,59,0.08)]",
           "p-2",
           className,
         )}
@@ -417,7 +417,7 @@ export function DataSourceItem({
                   <span
                     key={name}
                     className={cn(
-                      "px-2 py-0.5 rounded-full border text-xs font-medium",
+                      "rounded-md border px-1.5 py-0.5 text-[11px]",
                       "shrink-0",
                       isDefault
                         ? "bg-blue-50 border-blue-200 text-blue-700"
@@ -430,7 +430,7 @@ export function DataSourceItem({
                 );
               })}
               {columnPillsExcess > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-neutral-50 border border-neutral-200 text-xs text-muted-foreground shrink-0">
+                <span className="shrink-0 rounded-md border border-neutral-200 bg-white px-1.5 py-0.5 text-[11px] text-neutral-500">
                   +{columnPillsExcess}
                 </span>
               )}
@@ -451,7 +451,7 @@ export function DataSourceItem({
   return (
     <div
       className={cn(
-        "h-full flex flex-col items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-50 hover:border-neutral-300",
+        "h-full flex flex-col items-start gap-3 p-4 rounded-xl border border-neutral-200 bg-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_8px_30px_rgba(21,33,59,0.08)]",
         className,
       )}
     >
@@ -459,18 +459,20 @@ export function DataSourceItem({
       <div className="w-full flex justify-between items-start gap-2 text-neutral-600">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <DataSourceIcon type={dataSourceType} />
-          <p className="text-sm font-mono uppercase">{dataSourceType}</p>
+          <p className="font-mono text-[11px] tracking-wide text-neutral-500 uppercase">
+            {dataSourceType}
+          </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {dataSource.public && !hidePublishedBadge && (
-            <span className="inline-flex items-center gap-1 rounded border border-green-200 bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700">
+            <span className="inline-flex items-center gap-1 rounded-md bg-mint px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">
               <BookOpen className="h-3 w-3 shrink-0" aria-hidden />
               Published
             </span>
           )}
         </div>
       </div>
-      <h4 className="text-lg font-medium text-neutral-900 truncate leading-tight max-w-full">
+      <h4 className="max-w-full truncate text-base leading-tight font-medium tracking-[-0.01em] text-ink">
         {dataSource.name}
       </h4>
 
@@ -524,11 +526,11 @@ export function DataSourceItem({
               <span
                 key={name}
                 className={cn(
-                  "px-2 py-0.5 rounded-full border text-xs font-medium",
+                  "rounded-md border px-1.5 py-0.5 text-[11px]",
                   "shrink-0",
                   isDefault
-                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                    : "bg-neutral-100 border-neutral-200 text-neutral-700",
+                    ? "border-ink/15 bg-mint text-ink"
+                    : "border-neutral-200 bg-neutral-50 text-neutral-600",
                 )}
                 title={isDefault ? `${name} (default)` : name}
               >
@@ -537,7 +539,7 @@ export function DataSourceItem({
             );
           })}
           {columnPillsExcess > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-neutral-50 border border-neutral-200 text-xs text-muted-foreground shrink-0">
+            <span className="shrink-0 rounded-md border border-neutral-200 bg-white px-1.5 py-0.5 text-[11px] text-neutral-500">
               +{columnPillsExcess}
             </span>
           )}

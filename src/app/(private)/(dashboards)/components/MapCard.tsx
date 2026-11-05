@@ -2,7 +2,7 @@ import { MapIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Link } from "@/components/Link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import { cn } from "@/shadcn/utils";
 import type { ReactNode } from "react";
 
 export interface MapCardInterface {
@@ -18,64 +18,57 @@ export interface MapCardProps {
   renderControls?: (onMenuToggle: (open: boolean) => void) => ReactNode;
 }
 
+/** A map in a grid: its preview, then its name and when it was made */
 export default function MapCard({ map, renderControls }: MapCardProps) {
   const { createdAt, href, name, imageUrl } = map;
-  const [cardHovered, setCardHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <Link href={href}>
-      <Card
-        className="flex flex-col h-full overflow-hidden py-0 gap-0 shadow-lg hover:shadow-xl  bg-transparent hover:bg-accent transition-all duration-300s group"
-        onMouseEnter={() => setCardHovered(true)}
-        onMouseLeave={() => setCardHovered(false)}
-      >
-        <CardHeader className="px-0 gap-0">
-          <CardTitle className="flex flex-col gap-1 p-4">
-            <div className="flex items-center justify-between w-full">
-              <span className="font-semibold text-base truncate">{name}</span>
-              {renderControls && (
-                <div
-                  className={`transition-opacity duration-150 ${cardHovered || menuOpen ? "opacity-100" : "opacity-0"}`}
-                  onMouseEnter={() => setCardHovered(true)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  {renderControls(setMenuOpen)}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-1 flex items-center">
-              <span className="text-sm text-foreground font-normal">
-                {new Date(createdAt).toLocaleDateString("en-GB", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={name}
-              height={125}
-              width={280}
-              priority
-              className="w-full h-40 object-cover"
-            />
-          ) : (
-            <div className="flex justify-center items-center / w-full h-40 bg-muted text-muted-foreground">
-              <MapIcon size={32} />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <Link
+      href={href}
+      className="group block h-full overflow-hidden rounded-xl border border-neutral-200 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_8px_30px_rgba(21,33,59,0.08)] focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:outline-none"
+    >
+      <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-neutral-100 bg-neutral-100">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 90vw, 400px"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-neutral-300">
+            <MapIcon className="size-8" />
+          </div>
+        )}
+      </div>
+      <div className="flex items-start gap-2 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-ink">{name}</p>
+          <p className="mt-0.5 font-mono text-[11px] tracking-wide text-neutral-500 uppercase">
+            {new Date(createdAt).toLocaleDateString("en-GB", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        </div>
+        {renderControls && (
+          <div
+            className={cn(
+              "shrink-0 transition-opacity duration-150",
+              menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {renderControls(setMenuOpen)}
+          </div>
+        )}
+      </div>
     </Link>
   );
 }

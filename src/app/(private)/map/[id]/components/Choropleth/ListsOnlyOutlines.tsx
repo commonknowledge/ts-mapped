@@ -1,6 +1,7 @@
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapType } from "@/models/MapView";
 import { useAreaListVisibility, useAreaLists } from "../../hooks/useAreaLists";
+import { useChoropleth } from "../../hooks/useChoropleth";
 import { useInspectorState } from "../../hooks/useInspectorState";
 import { useMapMode } from "../../hooks/useMapCore";
 import { useMapViews } from "../../hooks/useMapViews";
@@ -8,9 +9,11 @@ import { getSecondaryAreaSetConfig } from "./configs";
 import { listsOnlyFillLayerId, listsOnlySourceId } from "./listsOnly";
 
 /**
- * With "Lists only" boundaries, each shown list outlined in its colour on
- * its own boundary set, with no other boundaries drawn. Its areas can be
- * hovered and clicked open in the inspector.
+ * Lists on their own boundary sets, so a list always shows whatever the
+ * map's boundaries: with "Lists only" (or no boundaries) every shown list,
+ * otherwise those on a different set from the map's (lists on the same set
+ * are outlined by AreaListOutlines). Each is outlined in its colour; with
+ * "Lists only" its areas can be hovered and clicked open in the inspector.
  */
 export default function ListsOnlyOutlines({ beforeId }: { beforeId: string }) {
   const mapMode = useMapMode();
@@ -18,17 +21,19 @@ export default function ListsOnlyOutlines({ beforeId }: { beforeId: string }) {
   const { lists } = useAreaLists();
   const { isVisible } = useAreaListVisibility();
   const { selectedBoundary } = useInspectorState();
-  if (
-    mapMode !== "private" ||
-    viewConfig.areaSetGroupCode ||
-    !viewConfig.boundariesListsOnly ||
-    viewConfig.mapType === MapType.Hex
-  ) {
+  const { choroplethLayerConfig } = useChoropleth();
+  if (mapMode !== "private" || viewConfig.mapType === MapType.Hex) {
     return null;
   }
 
+  // With boundaries on the map, lists on those are outlined there instead
+  const hasBoundaries = Boolean(viewConfig.areaSetGroupCode);
   const shown = lists.filter(
-    (list) => isVisible(list.id) && list.areas.length > 0,
+    (list) =>
+      isVisible(list.id) &&
+      list.areas.length > 0 &&
+      (!hasBoundaries ||
+        list.areaSetCode !== choroplethLayerConfig.areaSetCode),
   );
   // One source per boundary set, shared by its lists
   const sources = [...new Set(shown.map((list) => list.areaSetCode))].flatMap(

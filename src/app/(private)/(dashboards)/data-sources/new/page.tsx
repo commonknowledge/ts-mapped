@@ -69,6 +69,7 @@ export default function NewDataSourcePage() {
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <PageHeader
+        eyebrow="Data"
         title="New data source"
         description="Create a new data source to import into your maps."
       />

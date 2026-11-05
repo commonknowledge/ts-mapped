@@ -2,7 +2,6 @@
 
 import {
   BookOpenIcon,
-  Clock2,
   DatabaseIcon,
   LockIcon,
   MailPlusIcon,
@@ -33,108 +32,104 @@ export default function Sidebar() {
 
   useEffect(() => setMounted(true), []);
 
-  const isActive = (href: string) => slug === href;
+  // A page and the pages under it, e.g. a data source's own page
+  const isActive = (href: string) =>
+    slug === href || slug.startsWith(`${href}/`);
 
-  const navItems = showPublicMaps
+  const mapItems = showPublicMaps
     ? [
-        {
-          label: "Private maps",
-          href: "/maps",
-          icon: <LockIcon className="w-4 h-4" />,
-        },
-        {
-          label: "Public maps",
-          href: "/public-maps",
-          icon: <MapIcon className="w-4 h-4" />,
-        },
-        {
-          label: "Your data sources",
-          href: "/data-sources",
-          icon: <DatabaseIcon className="w-4 h-4" />,
-        },
+        { label: "Private maps", href: "/maps", icon: LockIcon },
+        { label: "Public maps", href: "/public-maps", icon: MapIcon },
       ]
-    : [
-        {
-          label: "Recent maps",
-          href: "/maps",
-          icon: <Clock2 className="w-4 h-4" />,
-        },
-        {
-          label: "Your data sources",
-          href: "/data-sources",
-          icon: <DatabaseIcon className="w-4 h-4" />,
-        },
-      ];
-
-  navItems.push({
-    label: "Movement data library",
-    href: "/data-library",
-    icon: <BookOpenIcon className="w-4 h-4" />,
-  });
-
-  if (
-    currentUser?.role === UserRole.Advocate ||
+    : [{ label: "Maps", href: "/maps", icon: MapIcon }];
+  const dataItems = [
+    { label: "Your data sources", href: "/data-sources", icon: DatabaseIcon },
+    {
+      label: "Movement data library",
+      href: "/data-library",
+      icon: BookOpenIcon,
+    },
+  ];
+  const adminItems = [
+    ...(currentUser?.role === UserRole.Advocate ||
     currentUser?.role === UserRole.Superadmin
-  ) {
-    navItems.push({
-      label: "Invite organisation",
-      href: "/invite-organisation",
-      icon: <MailPlusIcon className="w-4 h-4" />,
-    });
-  }
-
-  if (currentUser?.role === UserRole.Superadmin) {
-    navItems.push({
-      label: "Superadmin",
-      href: "/superadmin",
-      icon: <UserCogIcon className="w-4 h-4" />,
-    });
-  }
+      ? [
+          {
+            label: "Invite organisation",
+            href: "/invite-organisation",
+            icon: MailPlusIcon,
+          },
+        ]
+      : []),
+    ...(currentUser?.role === UserRole.Superadmin
+      ? [{ label: "Superadmin", href: "/superadmin", icon: UserCogIcon }]
+      : []),
+  ];
+  const sections = [
+    { label: "Maps", items: mapItems },
+    { label: "Data", items: dataItems },
+    ...(adminItems.length ? [{ label: "Admin", items: adminItems }] : []),
+  ];
 
   return (
-    <div className="w-64 h-screen bg-primary-foreground border-r border-neutral-200 flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-neutral-200 flex justify-between items-center gap-4">
-        <Link href="/maps" className="flex items-center gap-2">
+    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-neutral-200 bg-white">
+      <div className="px-5 pt-5 pb-6">
+        <Link href="/maps" className="block w-fit">
+          {/* The marketing site's wordmark, its white text in ink */}
           <Image
-            src="/logo-full-lock-up.svg"
+            src="/logo-wordmark-ink.svg"
             alt="Mapped"
-            width={320}
-            height={32}
+            width={110}
+            height={36}
             priority
           />
         </Link>
-        {/* TODO: Implement functionality */}
-        {/*         <Button variant="outline" size="sm">
-          <PlusIcon className="w-4 h-4" />
-        </Button> */}
       </div>
 
-      {/* Navigation */}
       {/* Prevent hydration mismatch caused by the feature flag */}
       {mounted && (
         <>
-          <nav className="flex-1 p-4">
-            <ul className="space-y-2">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                      isActive(item.href) && "bg-neutral-200 text-primary",
-                    )}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3">
+            {sections.map((section) => (
+              <div key={section.label}>
+                <p className="mb-1.5 px-2.5 font-mono text-[10px] tracking-widest text-neutral-400 uppercase">
+                  {section.label}
+                </p>
+                <ul className="flex flex-col gap-0.5">
+                  {section.items.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          aria-current={active ? "page" : undefined}
+                          className={cn(
+                            "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                            active
+                              ? "bg-neutral-100 font-medium text-ink"
+                              : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900",
+                          )}
+                        >
+                          <item.icon
+                            className={cn(
+                              "size-4 shrink-0",
+                              active ? "text-ink" : "text-neutral-400",
+                            )}
+                          />
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           </nav>
-          <SidebarUserMenu />
+          <div className="border-t border-neutral-100 p-3">
+            <SidebarUserMenu />
+          </div>
         </>
       )}
-    </div>
+    </aside>
   );
 }
