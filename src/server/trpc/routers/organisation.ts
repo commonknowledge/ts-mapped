@@ -6,6 +6,10 @@ import {
   featureSchema,
   organisationSchema,
 } from "@/models/Organisation";
+import {
+  OrganisationUserRole,
+  organisationUserRoleSchema,
+} from "@/models/OrganisationUser";
 import Invite from "@/server/emails/Invite";
 import InviteExistingUser from "@/server/emails/InviteExistingUser";
 import {
@@ -19,7 +23,10 @@ import {
   updateOrganisation,
 } from "@/server/repositories/Organisation";
 import {
+  deleteOrganisationUser,
+  findOrganisationUser,
   findUsersByOrganisationId,
+  updateOrganisationUserRole,
   upsertOrganisationUser,
 } from "@/server/repositories/OrganisationUser";
 import { findUserByEmail } from "@/server/repositories/User";
@@ -27,6 +34,7 @@ import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import {
   advocateProcedure,
+  organisationAdminProcedure,
   organisationProcedure,
   protectedProcedure,
   router,
@@ -83,7 +91,7 @@ export const organisationRouter = router({
         });
       }
     }),
-  inviteMember: organisationProcedure
+  inviteMember: organisationAdminProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -140,6 +148,69 @@ export const organisationRouter = router({
           message: "Failed to send invitation",
         });
       }
+    }),
+  removeMember: organisationAdminProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      if (input.userId === ctx.user.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot remove yourself from the organisation",
+        });
+      }
+      const member = await findOrganisationUser(
+        ctx.organisation.id,
+        input.userId,
+      );
+      if (!member) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Member not found",
+        });
+      }
+      if (member.role === OrganisationUserRole.Admin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Organisation admins cannot be removed",
+        });
+      }
+      await deleteOrganisationUser(ctx.organisation.id, input.userId);
+    }),
+  removeUser: superadminProcedure
+    .input(z.object({ organisationId: z.string(), userId: z.string() }))
+    .mutation(async ({ input }) => {
+      const member = await findOrganisationUser(
+        input.organisationId,
+        input.userId,
+      );
+      if (!member) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Member not found",
+        });
+      }
+      await deleteOrganisationUser(input.organisationId, input.userId);
+    }),
+  setMemberRole: superadminProcedure
+    .input(
+      z.object({
+        organisationId: z.string(),
+        userId: z.string(),
+        role: organisationUserRoleSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const member = await findOrganisationUser(
+        input.organisationId,
+        input.userId,
+      );
+      if (!member) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Member not found",
+        });
+      }
+      return updateOrganisationUserRole(input);
     }),
   update: organisationProcedure
     .input(organisationSchema.pick({ name: true, avatarUrl: true }).partial())

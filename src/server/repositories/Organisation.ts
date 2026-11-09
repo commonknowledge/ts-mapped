@@ -33,6 +33,7 @@ export function findOrganisationsByUserId(userId: string) {
     )
     .where("organisationUser.userId", "=", userId)
     .selectAll("organisation")
+    .select("organisationUser.role as memberRole")
     .orderBy("createdAt asc")
     .execute();
 }
@@ -51,6 +52,7 @@ export function findOrganisationForUser(
     .where("organisationUser.userId", "=", userId)
     .where("organisationUser.organisationId", "=", organisationId)
     .selectAll("organisation")
+    .select("organisationUser.role as memberRole")
     .executeTakeFirst();
 }
 

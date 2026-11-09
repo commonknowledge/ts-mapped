@@ -89,6 +89,7 @@ export interface OrganisationUser {
   id: number; // bigserial, NOT NULL
   organisationId: string | null; // uuid, NULL
   userId: string | null; // uuid, NULL
+  role: string; // text, DEFAULT 'Member', NOT NULL ("Admin" | "Member")
 
   // CONSTRAINTS:
   // - UNIQUE (organisationId, userId)

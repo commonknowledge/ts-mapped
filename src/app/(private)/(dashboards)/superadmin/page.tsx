@@ -2,10 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Settings } from "lucide-react";
+import { Settings, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { useCurrentUser } from "@/hooks";
 import { UserRole } from "@/models/User";
 import { useTRPC } from "@/services/trpc/react";
@@ -28,6 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { FeatureAccessTab } from "./FeatureAccessTab";
 import { UserChart } from "./UserChart";
+import UserOrganisations from "./UserOrganisations";
 
 export default function SuperadminPage() {
   const { currentUser } = useCurrentUser();
@@ -63,6 +66,23 @@ export default function SuperadminPage() {
     }),
   );
 
+  const [userToDelete, setUserToDelete] = useState<{
+    id: string;
+    email: string;
+  } | null>(null);
+  const { mutate: deleteUser, isPending: isDeleting } = useMutation(
+    trpc.user.delete.mutationOptions({
+      onSuccess: () => {
+        client.invalidateQueries({ queryKey: trpc.user.list.queryKey() });
+        setUserToDelete(null);
+        toast.success("User deleted");
+      },
+      onError: (error) => {
+        toast.error("Failed to delete user.", { description: error.message });
+      },
+    }),
+  );
+
   if (currentUser?.role !== UserRole.Superadmin) redirect("/");
 
   if (usersLoading || publicDataSourcesLoading) {
@@ -93,9 +113,10 @@ export default function SuperadminPage() {
               <TableRow>
                 <TableHead>Email</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead className="max-w-xs">Organisation</TableHead>
+                <TableHead className="min-w-72">Organisations</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Trial</TableHead>
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,8 +124,8 @@ export default function SuperadminPage() {
                 <TableRow key={u.id}>
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.name}</TableCell>
-                  <TableCell className="max-w-xs">
-                    {u.organisations.join(", ")}
+                  <TableCell className="min-w-72">
+                    <UserOrganisations user={u} />
                   </TableCell>
                   <TableCell>
                     <Select
@@ -149,10 +170,38 @@ export default function SuperadminPage() {
                       <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </TableCell>
+                  <TableCell className="text-right">
+                    {u.id !== currentUser.id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        title={`Delete ${u.email}`}
+                        onClick={() =>
+                          setUserToDelete({ id: u.id, email: u.email })
+                        }
+                      >
+                        <Trash2Icon className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          <DeleteConfirmationDialog
+            open={Boolean(userToDelete)}
+            onOpenChange={(open) => {
+              if (!open) setUserToDelete(null);
+            }}
+            title="Delete user?"
+            description={`${userToDelete?.email} will be permanently deleted and removed from all their organisations. This cannot be undone.`}
+            confirmButtonText="Delete user"
+            isPending={isDeleting}
+            onConfirm={() => {
+              if (userToDelete) deleteUser({ userId: userToDelete.id });
+            }}
+          />
         </TabsContent>
         <TabsContent value="public-library" className="mt-6">
           <h2 className="text-2xl font-medium mb-4">Movement Data Library</h2>
