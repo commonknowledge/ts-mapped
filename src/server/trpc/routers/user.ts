@@ -3,6 +3,8 @@ import z from "zod";
 import { UserRole, passwordSchema, userSchema } from "@/models/User";
 import {
   clearUserTrial,
+  deleteUser,
+  findUserById,
   listUsers,
   updateUser,
   updateUserRole,
@@ -16,6 +18,21 @@ export const userRouter = router({
     .input(z.object({ userId: z.uuid() }))
     .mutation(async ({ input }) => {
       return clearUserTrial(input.userId);
+    }),
+  delete: superadminProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      if (input.userId === ctx.user.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot delete yourself",
+        });
+      }
+      const user = await findUserById(input.userId);
+      if (!user) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+      await deleteUser(input.userId);
     }),
   updateRole: superadminProcedure
     .input(

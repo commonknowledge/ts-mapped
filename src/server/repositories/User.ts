@@ -2,6 +2,7 @@ import { jwtVerify } from "jose";
 import { sql } from "kysely";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
+import type { OrganisationUserRole } from "@/models/OrganisationUser";
 import type { UserRole } from "@/models/User";
 import type { NewUser, UserUpdate } from "@/server/models/User";
 
@@ -77,7 +78,15 @@ export function listUsers() {
       "organisation.id",
     )
     .selectAll("user")
-    .select(sql<string[]>`array_agg(organisation.name)`.as("organisations"))
+    .select(
+      sql<{ id: string; name: string; role: OrganisationUserRole }[]>`COALESCE(
+        jsonb_agg(
+          jsonb_build_object('id', organisation.id, 'name', organisation.name, 'role', organisation_user.role)
+          ORDER BY organisation.name
+        ) FILTER (WHERE organisation.id IS NOT NULL),
+        '[]'::jsonb
+      )`.as("organisations"),
+    )
     .groupBy("user.id")
     .orderBy("email")
     .execute();

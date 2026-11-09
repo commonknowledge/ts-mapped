@@ -6,6 +6,9 @@ import {
   useSetOrganisationId,
 } from "@/atoms/organisationAtoms";
 import { ORGANISATION_COOKIE_NAME } from "@/constants";
+import { useCurrentUser } from "@/hooks";
+import { OrganisationUserRole } from "@/models/OrganisationUser";
+import { UserRole } from "@/models/User";
 import { useTRPC } from "@/services/trpc/react";
 import type { Organisation } from "@/models/Organisation";
 
@@ -29,6 +32,12 @@ export function useOrganisations() {
   const currentOrganisation = organisations?.find(
     (o) => o.id === organisationId,
   );
+
+  const { currentUser } = useCurrentUser();
+  const isOrganisationAdmin =
+    currentOrganisation?.memberRole === OrganisationUserRole.Admin;
+  const isSuperadmin = currentUser?.role === UserRole.Superadmin;
+  const canManageMembers = isOrganisationAdmin || isSuperadmin;
 
   const {
     mutate: updateOrganisation,
@@ -85,6 +94,7 @@ export function useOrganisations() {
     organisationId,
     setOrganisationId,
     currentOrganisation,
+    canManageMembers,
     updateOrganisation,
     isUpdating,
     updateError,

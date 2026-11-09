@@ -21,7 +21,6 @@ interface User {
   createdAt: string | Date;
   email: string;
   name: string;
-  organisations: string[];
 }
 
 interface UserChartProps {

@@ -23,7 +23,7 @@ import { Input } from "@/shadcn/ui/input";
 export default function InviteMemberDialog() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { currentOrganisation } = useOrganisations();
+  const { currentOrganisation, canManageMembers } = useOrganisations();
   const canInviteUsers = useFeatureFlagEnabled(
     Feature.InviteUsers,
     currentOrganisation?.features,
@@ -54,7 +54,7 @@ export default function InviteMemberDialog() {
     }),
   );
 
-  if (!currentOrganisation || !canInviteUsers) {
+  if (!currentOrganisation || !canInviteUsers || !canManageMembers) {
     return null;
   }
 

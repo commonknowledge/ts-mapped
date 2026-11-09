@@ -4,6 +4,7 @@ import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
 import { getVisitorGrants } from "@/auth/visitorGrants";
 import { TRIAL_EXPIRED_MESSAGE } from "@/constants";
+import { OrganisationUserRole } from "@/models/OrganisationUser";
 import { UserRole } from "@/models/User";
 import { getClientIp } from "@/server/services/ratelimit";
 import {
@@ -175,6 +176,21 @@ export const organisationProcedure = protectedProcedure
 
     return next({ ctx: { organisation } });
   });
+
+export const organisationAdminProcedure = organisationProcedure.use(
+  async ({ ctx, next }) => {
+    const isOrganisationAdmin =
+      ctx.organisation.memberRole === OrganisationUserRole.Admin;
+    const isSuperadmin = ctx.user.role === UserRole.Superadmin;
+    if (!isOrganisationAdmin && !isSuperadmin) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You must be an organisation admin to perform this action.",
+      });
+    }
+    return next();
+  },
+);
 
 export const dataSourceReadProcedure = publicProcedure
   .input(z.object({ dataSourceId: z.string() }))
