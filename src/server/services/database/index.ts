@@ -7,6 +7,7 @@ import { PointPlugin } from "./plugins/PointPlugin";
 import type { AirtableWebhookTable } from "@/server/models/AirtableWebhook";
 import type { AreaSearchTable, AreaTable } from "@/server/models/Area";
 import type { AreaSetTable } from "@/server/models/AreaSet";
+import type { CsvUploadMigrationTable } from "@/server/models/CsvUploadMigration";
 import type { DataRecordTable } from "@/server/models/DataRecord";
 import type { DataSourceTable } from "@/server/models/DataSource";
 import type { DataSourceOrganisationOverrideTable } from "@/server/models/DataSourceOrganisationOverride";
@@ -66,6 +67,7 @@ export interface Database {
   area: AreaTable;
   areaSearch: AreaSearchTable;
   areaSet: AreaSetTable;
+  csvUploadMigration: CsvUploadMigrationTable;
   dataSourceOrganisationOverride: DataSourceOrganisationOverrideTable;
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;

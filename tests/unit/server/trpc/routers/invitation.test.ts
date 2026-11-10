@@ -28,7 +28,9 @@ import {
   upsertUser,
 } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
+import { privateFileExists } from "@/server/services/minio";
 import { invitationRouter } from "@/server/trpc/routers/invitation";
+import { storeTestCsv } from "../../../../helpers/csv";
 
 const userIds: string[] = [];
 const mapIds: string[] = [];
@@ -209,10 +211,10 @@ describe("invitation.create", () => {
       organisationId: sourceOrg.id,
       autoEnrich: false,
       autoImport: false,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: sourceOrg.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: ["Name"] },
@@ -260,6 +262,17 @@ describe("invitation.create", () => {
 
     const copiedDs = await findDataSourceById(copiedDsIds[0]);
     expect(copiedDs?.organisationId).toBe(targetOrgId);
+
+    // The copy has its own CSV file, so deleting either keeps the other's
+    expect(copiedDs?.config.type).toBe(DataSourceType.CSV);
+    if (
+      copiedDs?.config.type === DataSourceType.CSV &&
+      sourceDs.config.type === DataSourceType.CSV
+    ) {
+      expect(copiedDs.config.fileKey).not.toBe(sourceDs.config.fileKey);
+      expect(copiedDs.config.fileKey.startsWith(`${targetOrgId}/`)).toBe(true);
+      expect(await privateFileExists(copiedDs.config.fileKey)).toBe(true);
+    }
 
     // ensureOrganisationMap would have created an additional default map —
     // confirm only the copied map exists in the new org

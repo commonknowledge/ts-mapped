@@ -17,7 +17,7 @@ import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { DataSourceType } from "@/models/DataSource";
 import { OAUTH_STATE_KEY, oAuthStateSchema } from "@/models/OAuth";
 import { useTRPC } from "@/services/trpc/react";
-import { uploadFile } from "@/services/uploads";
+import { uploadCsvFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import {
@@ -116,7 +116,10 @@ function NewDataSourceForm({ oAuthState }: { oAuthState: OAuthState | null }) {
       if (!organisationId) return toast.error("No organisation selected");
       if (!value.config) return toast.error("No config added");
       setIsLoading(true);
-      const preparedConfig = await prepareDataSource(value.config);
+      const preparedConfig = await prepareDataSource({
+        config: value.config,
+        organisationId,
+      });
       createDataSource({ ...value, config: preparedConfig, organisationId });
     },
   });
@@ -310,12 +313,16 @@ function ConfigFields({
   }
 }
 
-const prepareDataSource = async (
-  config: NewDataSourceConfig,
-): Promise<DataSourceConfig> => {
+const prepareDataSource = async ({
+  config,
+  organisationId,
+}: {
+  config: NewDataSourceConfig;
+  organisationId: string;
+}): Promise<DataSourceConfig> => {
   if (config.type === DataSourceType.CSV) {
-    const url = await uploadFile(config.file);
-    return { ...config, url };
+    const fileKey = await uploadCsvFile({ file: config.file, organisationId });
+    return { type: config.type, fileKey };
   }
   return config;
 };

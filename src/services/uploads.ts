@@ -1,5 +1,5 @@
 import { MAX_FILE_SIZE } from "@/constants";
-import type { UploadResponseBody } from "@/types";
+import type { CSVUploadResponseBody, UploadResponseBody } from "@/types";
 
 export const uploadFile = async (file: File | null): Promise<string> => {
   if (!file) {
@@ -19,4 +19,28 @@ export const uploadFile = async (file: File | null): Promise<string> => {
   }
   const data = (await response.json()) as UploadResponseBody;
   return data.url;
+};
+
+export const uploadCsvFile = async ({
+  file,
+  organisationId,
+}: {
+  file: File;
+  organisationId: string;
+}): Promise<string> => {
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("File size exceeds the maximum allowed");
+  }
+  const body = new FormData();
+  body.set("file", file);
+  body.set("organisationId", organisationId);
+  const response = await fetch("/api/csv-upload", {
+    body,
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to upload file");
+  }
+  const data = (await response.json()) as CSVUploadResponseBody;
+  return data.fileKey;
 };

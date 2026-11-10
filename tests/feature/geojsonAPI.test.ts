@@ -13,6 +13,7 @@ import { createDataSource } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
+import { createCsvFileKey } from "@/server/services/minio";
 import type { Feature } from "geojson";
 
 describe("GeoJSON REST API", () => {
@@ -62,7 +63,7 @@ describe("GeoJSON REST API", () => {
         public: false,
         config: {
           type: DataSourceType.CSV,
-          url: "https://example.com/test.csv",
+          fileKey: createCsvFileKey(testOrganisation.id),
         },
         columnDefs: [
           { name: "name", type: ColumnType.String },

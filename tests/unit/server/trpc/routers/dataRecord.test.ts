@@ -1,11 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
 import { AreaSetCode } from "@/models/AreaSet";
-import {
-  DataSourceRecordType,
-  DataSourceType,
-  GeocodingType,
-} from "@/models/DataSource";
+import { DataSourceRecordType, GeocodingType } from "@/models/DataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,
@@ -13,6 +8,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { dataRecordRouter } from "@/server/trpc/routers/dataRecord";
+import { storeTestCsv } from "../../../../helpers/csv";
 
 describe("dataRecord router tests", () => {
   const toRemove: string[] = [];
@@ -29,10 +25,10 @@ describe("dataRecord router tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },

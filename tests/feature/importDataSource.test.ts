@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
 import { AreaSetCode } from "@/models/AreaSet";
 
@@ -6,7 +5,6 @@ import {
   ColumnSemanticType,
   ColumnType,
   DataSourceRecordType,
-  DataSourceType,
   GeocodingType,
 } from "@/models/DataSource";
 import { FilterType } from "@/models/MapView";
@@ -20,6 +18,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { getAreaStats } from "@/server/stats";
+import { storeTestCsv } from "../helpers/csv";
 
 describe("importDataSource tests", () => {
   const toRemove: string[] = [];
@@ -36,10 +35,10 @@ describe("importDataSource tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Members,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/members.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "members.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -234,10 +233,10 @@ describe("importDataSource tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -324,10 +323,10 @@ describe("importDataSource tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/stats_with_na.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "stats_with_na.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -396,10 +395,10 @@ describe("importDataSource tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/stats_with_na.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "stats_with_na.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -464,10 +463,10 @@ describe("importDataSource tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/percentages.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "percentages.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -513,10 +512,10 @@ describe("importDataSource tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/percentages.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "percentages.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       // Pre-set a semantic type for pct_share as if the user manually chose it
       columnMetadata: [

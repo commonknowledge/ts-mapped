@@ -6,6 +6,7 @@ import {
 } from "@/models/DataSource";
 import { createDataSource } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
+import { createCsvFileKey } from "@/server/services/minio";
 import { serverDataSourceSerializer } from "@/utils/superjson";
 
 test("server data source serializer", async () => {
@@ -19,7 +20,7 @@ test("server data source serializer", async () => {
     recordType: DataSourceRecordType.Data,
     config: {
       type: DataSourceType.CSV,
-      url: "https://example.com/superjson.csv",
+      fileKey: createCsvFileKey(org.id),
     },
     columnDefs: [],
     columnMetadata: [],
@@ -45,6 +46,9 @@ test("server data source serializer", async () => {
     }).config,
   ).toStrictEqual({
     type: DataSourceType.CSV,
-    url: "https://example.com/superjson.csv",
+    fileKey:
+      dataSource.config.type === DataSourceType.CSV
+        ? dataSource.config.fileKey
+        : null,
   });
 });

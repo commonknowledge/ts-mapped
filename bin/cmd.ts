@@ -2,12 +2,15 @@ import { Command } from "commander";
 import { SignJWT } from "jose";
 import backfillAreaSet from "@/server/commands/backfillAreaSet";
 import backfillRecordDates from "@/server/commands/backfillRecordDates";
+import checkCsvDataSources from "@/server/commands/checkCsvDataSources";
+import deleteLegacyPublicCsvs from "@/server/commands/deleteLegacyPublicCsvs";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importAreaSet from "@/server/commands/importAreaSet";
 import importPostcodes from "@/server/commands/importPostcodes";
 import populateGeocodeCache from "@/server/commands/populateGeocodeCache";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
+import seedLegacyCsvUploads from "@/server/commands/seedLegacyCsvUploads";
 import Invite from "@/server/emails/Invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
@@ -300,6 +303,42 @@ program
       .forEach(({ name, size }, i) => {
         logger.info(`${i + 1}. ${name} (${toHuman(size)})`);
       });
+  });
+
+program
+  .command("checkCsvDataSources")
+  .description(
+    "Read-only: check every CSV data source's file can be read from private storage",
+  )
+  .action(async () => {
+    await checkCsvDataSources();
+  });
+
+program
+  .command("deleteLegacyPublicCsvs")
+  .description(
+    "Delete the public copies of CSVs moved to private storage (dry run unless --confirm)",
+  )
+  .option("--confirm", "Actually delete the files")
+  .option(
+    "--include-orphans",
+    "Also delete CSVs in public storage that no data source uses",
+  )
+  .action(async (options) => {
+    await deleteLegacyPublicCsvs({
+      confirm: Boolean(options.confirm),
+      includeOrphans: Boolean(options.includeOrphans),
+    });
+  });
+
+program
+  .command("seedLegacyCsvUploads")
+  .description(
+    "Local only: create CSV data sources in the pre-migration format, to test the csv_private_storage migration",
+  )
+  .requiredOption("--email <email>", "Existing user to add to the organisation")
+  .action(async (options) => {
+    await seedLegacyCsvUploads({ email: options.email });
   });
 
 program

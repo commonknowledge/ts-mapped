@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { AreaSetCode } from "@/models/AreaSet";
@@ -6,7 +5,6 @@ import { AreaSetCode } from "@/models/AreaSet";
 import {
   ColumnType,
   DataSourceRecordType,
-  DataSourceType,
   GeocodingType,
 } from "@/models/DataSource";
 import { CalculationType } from "@/models/shared";
@@ -18,6 +16,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { getAreaStats } from "@/server/stats";
+import { storeTestCsv } from "../helpers/csv";
 
 describe("getAreaStats tests", () => {
   let dataSourceId: string;
@@ -32,10 +31,10 @@ describe("getAreaStats tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },

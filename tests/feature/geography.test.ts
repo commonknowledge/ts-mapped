@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from "vitest";
-import { DataSourceRecordType, DataSourceType } from "@/models/DataSource";
+import { DataSourceRecordType } from "@/models/DataSource";
 import { GeocodingType } from "@/models/DataSource";
 import { FilterType } from "@/models/MapView";
 import importDataSource from "@/server/jobs/importDataSource";
@@ -14,6 +14,7 @@ import {
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { db } from "@/server/services/database";
 import { toGeography } from "@/server/services/database/geography";
+import { storeTestCsv } from "../helpers/csv";
 
 /**
  * Geography values are written explicitly via `toGeography` and parsed on
@@ -34,11 +35,9 @@ describe("geography columns", () => {
     await deleteCacheRow();
   });
 
-  const createSource = async (config: {
-    type: DataSourceType.CSV;
-    url: string;
-  }) => {
+  const createSource = async (fixture: string) => {
     const org = await upsertOrganisation({ name: "Test Geography Org" });
+    const config = await storeTestCsv({ fixture, organisationId: org.id });
     const dataSource = await createDataSource({
       name: "Test Geography Source",
       autoEnrich: false,
@@ -71,11 +70,7 @@ describe("geography columns", () => {
   };
 
   test("toGeography round-trips a point through a geography column", async () => {
-    // Config is unique per organisation, so use a distinct (unused) URL
-    const dataSource = await createSource({
-      type: DataSourceType.CSV,
-      url: "file://tests/resources/members.csv",
-    });
+    const dataSource = await createSource("members.csv");
     const point = { lat: 51.5074, lng: -0.1278 };
     await upsertDataRecords([
       {
@@ -112,10 +107,7 @@ describe("geography columns", () => {
   });
 
   test("record JSON with lat and lng keys is stored as JSON, not a point", async () => {
-    const dataSource = await createSource({
-      type: DataSourceType.CSV,
-      url: "file://tests/resources/lat_lng_columns.csv",
-    });
+    const dataSource = await createSource("lat_lng_columns.csv");
 
     const ok = await importDataSource({ dataSourceId: dataSource.id });
     expect(ok).toBe(true);

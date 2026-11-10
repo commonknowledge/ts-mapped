@@ -1,10 +1,6 @@
 import { afterAll, describe, expect, test, vi } from "vitest";
 import { AreaSetCode } from "@/models/AreaSet";
-import {
-  DataSourceRecordType,
-  DataSourceType,
-  GeocodingType,
-} from "@/models/DataSource";
+import { DataSourceRecordType, GeocodingType } from "@/models/DataSource";
 import { FilterType } from "@/models/MapView";
 import importDataRecords from "@/server/jobs/importDataRecords";
 import importDataSource from "@/server/jobs/importDataSource";
@@ -19,6 +15,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { db } from "@/server/services/database";
+import { storeTestCsv } from "../helpers/csv";
 
 const getRecords = async (dataSourceId: string) => {
   const stream = streamDataRecordsByDataSource(
@@ -52,10 +49,10 @@ describe("importDataRecords", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Members,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/members.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "members.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -111,10 +108,10 @@ describe("importDataRecords", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Members,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/members.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "members.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },
@@ -169,10 +166,10 @@ describe("importDataRecords", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Members,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/members.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "members.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },

@@ -44,6 +44,7 @@ resources/areaSets/*
 
 uploads/*
 !uploads/.gitkeep
+private-uploads/
 
 # vercel
 .vercel

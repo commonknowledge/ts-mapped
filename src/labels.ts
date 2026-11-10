@@ -138,7 +138,7 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   spreadsheetId: "Spreadsheet ID",
   tableId: "Table ID",
   type: "Type",
-  url: "URL",
+  fileKey: "File",
   orgId: "Organisation ID",
   recordType: "Record Type",
 };

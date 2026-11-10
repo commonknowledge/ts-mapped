@@ -12,6 +12,7 @@ import { createDataSource } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
+import { createCsvFileKey } from "@/server/services/minio";
 
 describe("Data sources REST API", () => {
   const testPassword = "testPassword123";
@@ -67,7 +68,10 @@ describe("Data sources REST API", () => {
       autoEnrich: false,
       autoImport: false,
       public: false,
-      config: { type: DataSourceType.CSV, url: "https://example.com/org1.csv" },
+      config: {
+        type: DataSourceType.CSV,
+        fileKey: createCsvFileKey(organisationOne.id),
+      },
       columnDefs: [{ name: "name", type: ColumnType.String }],
       columnMetadata: [],
       columnRoles: { nameColumns: ["name"] },
@@ -82,7 +86,10 @@ describe("Data sources REST API", () => {
       autoEnrich: false,
       autoImport: false,
       public: false,
-      config: { type: DataSourceType.CSV, url: "https://example.com/org2.csv" },
+      config: {
+        type: DataSourceType.CSV,
+        fileKey: createCsvFileKey(organisationTwo.id),
+      },
       columnDefs: [{ name: "name", type: ColumnType.String }],
       columnMetadata: [],
       columnRoles: { nameColumns: ["name"] },
@@ -97,7 +104,10 @@ describe("Data sources REST API", () => {
       autoEnrich: false,
       autoImport: false,
       public: false,
-      config: { type: DataSourceType.CSV, url: "https://example.com/org3.csv" },
+      config: {
+        type: DataSourceType.CSV,
+        fileKey: createCsvFileKey(organisationThree.id),
+      },
       columnDefs: [{ name: "name", type: ColumnType.String }],
       columnMetadata: [],
       columnRoles: { nameColumns: ["name"] },

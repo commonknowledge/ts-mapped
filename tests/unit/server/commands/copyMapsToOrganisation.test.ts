@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   DataSourceRecordType,
-  DataSourceType,
   GeocodingType,
   JobStatus,
 } from "@/models/DataSource";
@@ -26,6 +25,7 @@ import {
   upsertMapView,
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
+import { storeTestCsv } from "../../../helpers/csv";
 import type { Map } from "@/models/Map";
 import type { MapView } from "@/models/MapView";
 
@@ -40,10 +40,10 @@ async function createTestDataSource(organisationId: string, name: string) {
     organisationId,
     autoEnrich: false,
     autoImport: false,
-    config: {
-      type: DataSourceType.CSV,
-      url: `file://tests/resources/stats.csv?${uuidv4()}`,
-    },
+    config: await storeTestCsv({
+      fixture: "stats.csv",
+      organisationId: organisationId,
+    }),
     columnDefs: [],
     columnMetadata: [],
     columnRoles: { nameColumns: ["Name"] },

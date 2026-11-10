@@ -1,11 +1,8 @@
-import * as fs from "fs";
-import { join } from "path";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import logger from "@/server/services/logger";
-import { getAbsoluteUrl } from "@/utils/appUrl";
-import { getBaseDir } from "../utils";
+import { readPrivateFile } from "@/server/services/minio";
 import type { DataSourceAdaptor, WebhookToggleResult } from "./abstract";
 import type { ExternalRecord } from "@/types";
 
@@ -35,10 +32,10 @@ export function decodeBuffer(buffer: Buffer): Buffer {
 }
 
 export class CSVAdaptor implements DataSourceAdaptor {
-  private url: string;
+  private fileKey: string;
 
-  constructor(url: string) {
-    this.url = url.startsWith("/api/upload") ? getAbsoluteUrl(url) : url;
+  constructor(fileKey: string) {
+    this.fileKey = fileKey;
   }
 
   extractExternalRecordIdsFromWebhookBody(
@@ -71,29 +68,9 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   async createReadStream() {
-    if (this.url.startsWith("file://")) {
-      return this.createFileReadStream(this.url);
-    }
-    const response = await fetch(this.url);
-    if (!response.ok) {
-      throw new Error(
-        `Could not fetch CSV URL ${this.url} (HTTP ${response.status})`,
-      );
-    }
-    if (!response.body) {
-      throw new Error(`Could not read URL ${this.url}`);
-    }
-
-    // Buffer the entire response to avoid Render's proxy killing
-    // long-lived HTTP connections during slow stream consumption
-    const buffer = Buffer.from(await response.arrayBuffer());
-    return Readable.from(decodeBuffer(buffer));
-  }
-
-  createFileReadStream(url: string) {
-    const relativePath = url.replace(/^file:\/\//, "").split("?")[0];
-    const absolutePath = join(getBaseDir(), relativePath);
-    const buffer = fs.readFileSync(absolutePath);
+    // The whole file is read into memory, as before: streaming from storage
+    // while parsing slowly risks the connection being closed part way through
+    const buffer = await readPrivateFile(this.fileKey);
     return Readable.from(decodeBuffer(buffer));
   }
 
@@ -121,7 +98,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
       }
       throw new Error("Empty CSV");
     } catch (error) {
-      logger.warn(`Could not get first record for CSV ${this.url}`, {
+      logger.warn(`Could not get first record for CSV ${this.fileKey}`, {
         error,
       });
     }

@@ -83,6 +83,18 @@ export const MAX_COLUMN_KEY = "__maxColumn";
 
 export const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MiB
 
+// CSV files that ship with the app in resources/dataSets, used for the
+// sample maps every new organisation gets. Data sources refer to them with a
+// file key of `sample/<name>`.
+// The migration that moved uploaded CSVs into private storage
+export const CSV_PRIVATE_STORAGE_MIGRATION =
+  "1790500000000_csv_private_storage";
+
+export const SAMPLE_CSV_FILE_NAMES = ["sampleMembers.csv", "ge2024.csv"];
+
+// MinIO hosts that are on this machine, such as the docker compose MinIO
+export const LOCAL_MINIO_HOSTS = ["localhost", "127.0.0.1"];
+
 export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 
 export const ORGANISATION_COOKIE_NAME = "MappedOrgId";

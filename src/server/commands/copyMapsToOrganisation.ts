@@ -1,3 +1,4 @@
+import { DataSourceType } from "@/models/DataSource";
 import {
   createDataSource,
   findDataSourceById,
@@ -9,6 +10,7 @@ import {
   upsertMapView,
 } from "@/server/repositories/MapView";
 import logger from "@/server/services/logger";
+import { copyCsvFileToOrganisation } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
 import type { MapConfig } from "@/models/Map";
 
@@ -76,12 +78,25 @@ const copyMapsToOrganisation = async (
         continue;
       }
 
+      // Each organisation gets its own copy of an uploaded CSV, so deleting
+      // one data source can't remove the other's file
+      const config =
+        original.config.type === DataSourceType.CSV
+          ? {
+              ...original.config,
+              fileKey: await copyCsvFileToOrganisation({
+                fileKey: original.config.fileKey,
+                organisationId: targetOrgId,
+              }),
+            }
+          : original.config;
+
       const copy = await createDataSource({
         name: original.name,
         organisationId: targetOrgId,
         autoEnrich: original.autoEnrich,
         autoImport: original.autoImport,
-        config: original.config,
+        config,
         columnRoles: original.columnRoles,
         enrichments: original.enrichments,
         geocodingConfig: original.geocodingConfig,
