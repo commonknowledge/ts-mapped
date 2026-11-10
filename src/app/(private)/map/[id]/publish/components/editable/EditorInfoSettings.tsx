@@ -103,6 +103,7 @@ export default function EditorInfoSettings() {
           }}
           className="w-full shadow-none"
           type="file"
+          accept="image/*"
         />
       </FormFieldWrapper>
 

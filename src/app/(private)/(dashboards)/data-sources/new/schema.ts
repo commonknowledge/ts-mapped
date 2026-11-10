@@ -14,7 +14,7 @@ export const newCSVConfigSchema = csvConfigSchema
     file: z.instanceof(File),
     filename: z.string().min(1, "Filename is required"),
   })
-  .omit({ url: true });
+  .omit({ fileKey: true });
 
 export type NewCSVConfig = z.infer<typeof newCSVConfigSchema>;
 

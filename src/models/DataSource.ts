@@ -1,4 +1,5 @@
 import z from "zod";
+import { SAMPLE_CSV_FILE_NAMES } from "@/constants";
 import { AreaSetCode } from "./AreaSet";
 import {
   CalculationType,
@@ -105,9 +106,26 @@ export const googleSheetsConfigSchema = z.object({
 
 export type GoogleSheetsConfig = z.infer<typeof googleSheetsConfigSchema>;
 
+const UUID_PATTERN =
+  "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+
+const SAMPLE_CSV_PATTERN = SAMPLE_CSV_FILE_NAMES.map((name) =>
+  name.replace(".", "\\."),
+).join("|");
+
+/**
+ * Where a CSV data source's file is stored. Uploaded files live in private
+ * storage under `<organisationId>/<random hex>.csv`; sample files that ship
+ * with the app are `sample/<name>`. The pattern doubles as path validation:
+ * a key can never contain `..` or anything else that escapes storage.
+ */
+export const CSV_FILE_KEY_REGEX = new RegExp(
+  `^(${UUID_PATTERN}/[0-9a-f]{32}\\.csv|sample/(${SAMPLE_CSV_PATTERN}))$`,
+);
+
 export const csvConfigSchema = z.object({
   type: z.literal(DataSourceType.CSV),
-  url: z.string().nonempty(),
+  fileKey: z.string().regex(CSV_FILE_KEY_REGEX),
 });
 
 export type CSVConfig = z.infer<typeof csvConfigSchema>;

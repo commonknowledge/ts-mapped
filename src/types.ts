@@ -89,6 +89,10 @@ export interface UploadResponseBody {
   url: string;
 }
 
+export interface CSVUploadResponseBody {
+  fileKey: string;
+}
+
 export interface PublicFiltersFormValue {
   name: string;
   type: PublicMapColumnType;

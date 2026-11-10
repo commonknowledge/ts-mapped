@@ -5,7 +5,7 @@ export default function PrivacyPage() {
   return (
     <Prose className="mx-auto">
       <h1>Privacy Policy</h1>
-      <p>Effective date: 07/01/2025</p>
+      <p>Effective date: 10 November 2026</p>
       <h2>1. Introduction</h2>
       <p>
         Welcome to Mapped! Mapped is developed and maintained by Common
@@ -21,7 +21,8 @@ export default function PrivacyPage() {
       <p>
         Our Privacy Policy governs your visit to https://ts-mapped.onrender.com
         and explains how we collect, safeguard and disclose information that
-        results from your use of our Service.
+        results from your use of our Service. Section 4 explains how we handle
+        the data that organisations import into Mapped.
       </p>
       <p>
         We use your data to provide and improve Service. By using Service, you
@@ -122,14 +123,146 @@ export default function PrivacyPage() {
         Please contact us at hello@commonknowledge.coop if you wish to make a
         request.
       </p>
-      <h2>4. Information Collection and Use</h2>
+      <h2>4. Data your organisation imports into Mapped</h2>
       <p>
-        <strong>4.1.</strong> We collect several different types of information
+        This section covers the data that organisations bring into Mapped, such
+        as membership lists, supporter records and campaign data (“Imported
+        Data”). Imported Data often contains personal data about people other
+        than the User, and may contain special category data, such as
+        information about health or disability.
+      </p>
+      <p>
+        <strong>4.1. Who is responsible.</strong> The organisation that imports
+        the data is the data controller for Imported Data. Common Knowledge
+        processes Imported Data on the organisation{"'"}s behalf, as a data
+        processor, and only to provide the Service to that organisation. The
+        organisation is responsible for having a lawful basis to process the
+        data, including a condition for processing any special category data,
+        and for being transparent with the people the data is about. We
+        recommend importing only the fields you need to make your maps.
+      </p>
+      <p>
+        <strong>4.2. How data gets into Mapped.</strong> Imported Data comes
+        from CSV files that users upload, or from systems that users connect to
+        Mapped, such as Action Network, Airtable, Baserow, Google Sheets,
+        Mailchimp and Zetkin. For connected systems, Mapped stores the access
+        credentials the organisation provides, keeps a copy of the records in
+        its database, and keeps that copy up to date with the source system.
+      </p>
+      <p>
+        <strong>4.3. How Imported Data is used.</strong> We use Imported Data
+        only to provide the features the organisation chooses to use, such as:
+      </p>
+      <ol>
+        <li>showing records on maps and in tables;</li>
+        <li>
+          geocoding records, which means turning addresses or postcodes into map
+          locations;
+        </li>
+        <li>
+          adding information about the area a record is in, such as its
+          constituency or ward;
+        </li>
+        <li>
+          writing that area information or tags back to a connected system, if
+          the organisation turns this on.
+        </li>
+      </ol>
+      <p>
+        We do not use Imported Data for marketing, we do not sell it, and we do
+        not use it to train artificial intelligence models. We do not combine
+        one organisation{"'"}s Imported Data with another{"'"}s. The uses of
+        personal data listed in section 7 of this policy do not apply to
+        Imported Data.
+      </p>
+      <p>
+        <strong>4.4. Where Imported Data is stored.</strong> Imported Data,
+        including uploaded files, is stored in a PostgreSQL database and file
+        storage hosted by Render, in Render{"'"}s Frankfurt region in the
+        European Union. Data is encrypted in transit between your browser,
+        Mapped and the systems Mapped connects to.
+      </p>
+      <p>
+        <strong>4.5. Who can access Imported Data.</strong>
+      </p>
+      <ol>
+        <li>
+          <strong>Members of your organisation.</strong> Imported Data can be
+          seen by the users who are members of the organisation that imported
+          it. Organisation admins control who is a member, and can remove
+          members at any time.
+        </li>
+        <li>
+          <strong>People you share maps with.</strong> If your organisation
+          shares a map by link, or publishes a public map, the people who view
+          it can see the data shown on that map. Shared links can be protected
+          with a password, and can be turned off at any time. Nothing is shared
+          or published unless a member of your organisation chooses to do so.
+        </li>
+        <li>
+          <strong>Common Knowledge staff.</strong> A small number of Common
+          Knowledge staff have access to the systems that run Mapped. They
+          access Imported Data only when it is needed to provide support,
+          maintain the Service or keep it secure, or when your organisation asks
+          them to.
+        </li>
+      </ol>
+      <p>
+        <strong>4.6. Service providers that handle Imported Data.</strong> Some
+        parts of Imported Data are sent to the following providers, only so that
+        the Service can work:
+      </p>
+      <ol>
+        <li>Render, which hosts Mapped and its database and file storage;</li>
+        <li>
+          Mapbox, which receives addresses to geocode them, if your organisation
+          geocodes by address;
+        </li>
+        <li>
+          postcodes.io, which receives postcodes to find their location and
+          area, if your organisation geocodes by postcode;
+        </li>
+        <li>
+          Sentry, which receives error reports. Error reports can include
+          technical details about the records involved. Sentry session
+          recordings hide all text and form input on the page.
+        </li>
+      </ol>
+      <p>
+        Data is only sent to a connected system, such as Airtable or Google
+        Sheets, when your organisation has connected it.
+      </p>
+      <p>
+        <strong>4.7. Retention and deletion.</strong> Imported Data is kept
+        while your organisation uses it in Mapped. When a data source is
+        deleted, its records are deleted from the database. Data deleted from
+        the database may remain in backups for a limited period before the
+        backups expire. If your organisation stops using Mapped, contact us and
+        we will delete its Imported Data, including any files it uploaded.
+      </p>
+      <p>
+        <strong>4.8. Requests from the people in your data.</strong> If someone
+        whose data your organisation has imported wants to exercise their data
+        protection rights, they should contact your organisation. We will help
+        your organisation respond to these requests.
+      </p>
+      <p>
+        <strong>4.9. Security incidents.</strong> If we become aware of a
+        security incident affecting your organisation{"'"}s Imported Data, we
+        will tell your organisation without undue delay.
+      </p>
+      <p>
+        If you have questions about how Imported Data is handled, contact
+        data@commonknowledge.coop.
+      </p>
+      <h2>5. Information Collection and Use</h2>
+      <p>
+        <strong>5.1.</strong> We collect several different types of information
         for various purposes to provide and improve our Service to you.
       </p>
-      <h2>5. Types of Data Collected</h2>
+      <h2>6. Types of Data Collected</h2>
       <p>
-        <strong>5.1. Personal Data</strong>
+        <strong>6.1. Personal Data</strong>
       </p>
       <p>
         While using our Service, we may ask you to provide us with certain
@@ -150,7 +283,7 @@ export default function PrivacyPage() {
         communications from us by emailing to hello@commonknowledge.coop
       </p>
       <p>
-        <strong>5.2. Usage Data</strong>
+        <strong>6.2. Usage Data</strong>
       </p>
       <p>
         We may also collect information that your browser sends whenever you
@@ -165,7 +298,7 @@ export default function PrivacyPage() {
         Usage Data.
       </p>
       <p>
-        <strong>5.3. Tracking Cookies Data</strong>
+        <strong>6.3. Tracking Cookies Data</strong>
       </p>
       <p>
         We use cookies and similar tracking technologies to track the activity
@@ -194,7 +327,7 @@ export default function PrivacyPage() {
           Security Cookies: We use Security Cookies for security purposes.
         </li>
       </ol>
-      <h2>6. Use of Data</h2>
+      <h2>7. Use of Data</h2>
       <p>Common Knowledge uses the collected data for various purposes:</p>
       <ol>
         <li>to provide and maintain our Service;</li>
@@ -231,9 +364,9 @@ export default function PrivacyPage() {
         </li>
         <li>for any other purpose with your consent.</li>
       </ol>
-      <h2>7. Retention of Data</h2>
+      <h2>8. Retention of Data</h2>
       <p>
-        <strong>7.1.</strong> We will retain your Personal Data only for as long
+        <strong>8.1.</strong> We will retain your Personal Data only for as long
         as is necessary for the purposes set out in the Agreement and this
         Privacy Policy but no more than twelve months after the termination of
         your Account. We will retain and use your Personal Data to the extent
@@ -241,13 +374,14 @@ export default function PrivacyPage() {
         required to retain your data to comply with applicable laws, resolve
         disputes, and enforce our legal agreements and policies).
       </p>
-      <h2>8. Processing Location</h2>
+      <h2>9. Processing Location</h2>
       <p>
-        <strong>8.1.</strong> Your consent to this Privacy Policy followed by
-        your submission of such information represents your agreement to process
-        the data in the United Kingdom.
+        <strong>9.1.</strong> Mapped is hosted by Render in its Frankfurt
+        region, in the European Union, and your data is stored there. Some of
+        the service providers named in this policy may process data outside the
+        United Kingdom and the European Union.
       </p>
-      <h2>9. Disclosure of Data</h2>
+      <h2>10. Disclosure of Data</h2>
       <p>
         We may disclose personal information that we collect, or you provide:
       </p>
@@ -285,7 +419,7 @@ export default function PrivacyPage() {
           </ol>
         </li>
       </ol>
-      <h2>10. Security of Data</h2>
+      <h2>11. Security of Data</h2>
       <p>
         The security of your data is important to us but remember that no method
         of transmission over the Internet or method of electronic storage is
@@ -295,7 +429,7 @@ export default function PrivacyPage() {
         While we strive to use commercially acceptable means to protect your
         Personal Data, we cannot guarantee its absolute security.
       </p>
-      <h2>11. Service Providers</h2>
+      <h2>12. Service Providers</h2>
       <p>
         We may employ third party companies and individuals to facilitate our
         Service (“Service Providers”), provide Service on our behalf, perform
@@ -307,36 +441,36 @@ export default function PrivacyPage() {
         these tasks on our behalf and are obligated not to disclose or use it
         for any other purpose.
       </p>
-      <h2>12. Analytics</h2>
+      <h2>13. Analytics</h2>
       <p>
         We may use third-party Service Providers to monitor and analyse the use
         of the Service.
       </p>
       <p>
-        <strong>12.1. Sentry.</strong> Sentry is an open-source error tracking
+        <strong>13.1. Sentry.</strong> Sentry is an open-source error tracking
         solution provided by Functional Software Inc. More information is
         available here: https://sentry.io/privacy/. To opt out of Sentry
         tracking, see https://sentry.io/contact/gdpr/
       </p>
       <p>
-        <strong>12.2. Posthog.</strong> Posthog is a product analytics service
+        <strong>13.2. Posthog.</strong> Posthog is a product analytics service
         we use to capture usage data, which we use to maintain and improve the
         product.
       </p>
-      <h2>13. CI/CD tools</h2>
+      <h2>14. CI/CD tools</h2>
       <p>
         We may use third-party Service Providers to automate the development
         process of our Service.
       </p>
       <p>
-        <strong>13.1. GitHub.</strong> GitHub is provided by GitHub, Inc. GitHub
+        <strong>14.1. GitHub.</strong> GitHub is provided by GitHub, Inc. GitHub
         is a development platform to host and review code, manage projects, and
         build software. For more information on what data GitHub collects for
         what purpose and how the protection of the data is ensured, please visit
         GitHub Privacy Policy page:
         https://help.github.com/en/articles/github-privacy-statement
       </p>
-      <h2>14. Links to Other Sites</h2>
+      <h2>15. Links to Other Sites</h2>
       <p>
         Our Service may contain links to other sites that are not operated by
         us. If you click a third party link, you will be directed to that third
@@ -347,7 +481,7 @@ export default function PrivacyPage() {
         We have no control over and assume no responsibility for the content,
         privacy policies or practices of any third party sites or services.
       </p>
-      <h2>15. Children{"'"}s Privacy</h2>
+      <h2>16. Children{"'"}s Privacy</h2>
       <p>
         Our Services are not intended for use by children age 13 and under for
         users in the United States, Belgium, Denmark, Portugal, Sweden and the
@@ -363,7 +497,7 @@ export default function PrivacyPage() {
         Personal Data from Children without verification of parental consent, we
         take steps to remove that information from our servers.
       </p>
-      <h2>16. Changes to This Privacy Policy</h2>
+      <h2>17. Changes to This Privacy Policy</h2>
       <p>
         We may update our Privacy Policy from time to time. We will notify you
         of any changes by posting the new Privacy Policy on this page.
@@ -378,7 +512,7 @@ export default function PrivacyPage() {
         changes. Changes to this Privacy Policy are effective when they are
         posted on this page.
       </p>
-      <h2>16. How to complain</h2>
+      <h2>18. How to complain</h2>
       <p>
         If you have any concerns about our use of your personal information, you
         can make a complaint to us at data@commonknowledge.coop
@@ -403,7 +537,7 @@ export default function PrivacyPage() {
       </p>
       <p>Helpline number: 0303 123 1113</p>
       <p>ICO website: https://www.ico.org.uk</p>
-      <h2>17. Contact us</h2>
+      <h2>19. Contact us</h2>
       <p>
         If you have any questions relating to this Privacy Policy, please
         contact: data@commonknowledge.coop

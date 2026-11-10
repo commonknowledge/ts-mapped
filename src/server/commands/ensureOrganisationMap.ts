@@ -10,7 +10,7 @@ import { DEFAULT_CALCULATION_TYPE } from "@/models/shared";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
   createDataSource,
-  findCSVDataSourceByUrlAndOrg,
+  findCSVDataSourceByFileKeyAndOrg,
 } from "@/server/repositories/DataSource";
 import {
   createMap,
@@ -106,15 +106,15 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
 };
 
 const ensureMembersDataSource = async (orgId: string): Promise<DataSource> => {
-  const url = "file://resources/dataSets/sampleMembers.csv?orgId=" + orgId;
-  let dataSource = await findCSVDataSourceByUrlAndOrg(url, orgId);
+  const fileKey = "sample/sampleMembers.csv";
+  let dataSource = await findCSVDataSourceByFileKeyAndOrg(fileKey, orgId);
   if (!dataSource) {
     dataSource = await createDataSource({
       name: MEMBERS_DATA_SOURCE_NAME,
       organisationId: orgId,
       autoEnrich: false,
       autoImport: false,
-      config: { type: DataSourceType.CSV, url },
+      config: { type: DataSourceType.CSV, fileKey },
       columnRoles: { nameColumns: ["First name", "Last name"] },
       enrichments: [],
       geocodingConfig: {
@@ -136,9 +136,9 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
     name: ADMIN_ORGANISATION_NAME,
   });
 
-  const url = "file://resources/dataSets/ge2024.csv";
-  let dataSource = await findCSVDataSourceByUrlAndOrg(
-    url,
+  const fileKey = "sample/ge2024.csv";
+  let dataSource = await findCSVDataSourceByFileKeyAndOrg(
+    fileKey,
     commonKnowledgeOrg.id,
   );
   if (!dataSource) {
@@ -147,7 +147,7 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
       organisationId: commonKnowledgeOrg.id,
       autoEnrich: false,
       autoImport: false,
-      config: { type: DataSourceType.CSV, url },
+      config: { type: DataSourceType.CSV, fileKey },
       columnRoles: { nameColumns: ["Constituency name"] },
       enrichments: [],
       geocodingConfig: {

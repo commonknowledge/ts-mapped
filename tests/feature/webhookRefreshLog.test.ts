@@ -16,6 +16,7 @@ import {
   createWebhookRefreshLog,
   findWebhookRefreshLogsByDataSourceId,
 } from "@/server/repositories/WebhookRefreshLog";
+import { storeTestCsv } from "../helpers/csv";
 
 const credentials = inject("credentials");
 
@@ -52,10 +53,10 @@ describe("webhookRefreshLog tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Members,
-      config: {
-        type: DataSourceType.CSV,
-        url: "file://tests/resources/members.csv",
-      },
+      config: await storeTestCsv({
+        fixture: "members.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },

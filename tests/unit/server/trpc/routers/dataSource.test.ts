@@ -1,11 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
-import {
-  DataSourceRecordType,
-  DataSourceType,
-  GeocodingType,
-} from "@/models/DataSource";
+import { DataSourceRecordType, GeocodingType } from "@/models/DataSource";
 import {
   createDataSource,
   deleteDataSource,
@@ -14,6 +10,7 @@ import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { deleteUser, upsertUser } from "@/server/repositories/User";
 import { dataSourceRouter } from "@/server/trpc/routers/dataSource";
+import { storeTestCsv } from "../../../../helpers/csv";
 
 describe("dataSource router tests", () => {
   const dataSourceIds: string[] = [];
@@ -40,10 +37,10 @@ describe("dataSource router tests", () => {
       autoEnrich: false,
       autoImport: false,
       recordType: DataSourceRecordType.Data,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: organisationId,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: [] },

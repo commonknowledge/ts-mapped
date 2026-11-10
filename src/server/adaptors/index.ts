@@ -35,7 +35,7 @@ export const getDataSourceAdaptor = (dataSource: {
         password: config.password,
       });
     case DataSourceType.CSV:
-      return new CSVAdaptor(config.url);
+      return new CSVAdaptor(config.fileKey);
     case DataSourceType.GoogleSheets:
       return new GoogleSheetsAdaptor(
         id,

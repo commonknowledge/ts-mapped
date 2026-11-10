@@ -30,6 +30,7 @@ import {
   findDataSourcesByIds,
   getJobInfo,
   getUniqueColumnValues,
+  isCsvFileKeyInUse,
   updateDataSource,
   updateDefaultChoroplethConfig,
   updateDefaultInspectorConfig,
@@ -48,9 +49,11 @@ import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { removeDataSourceFromPublicMaps } from "@/server/repositories/PublicMap";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import { deletePrivateFile } from "@/server/services/minio";
 import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
 import { canReadDataSource } from "@/server/utils/auth";
+import { isCsvFileKeyUsableBy } from "@/utils/csvFileKey";
 import { getVisualisedDataSourceIds } from "@/utils/map";
 import {
   dataSourceOwnerProcedure,
@@ -422,7 +425,22 @@ export const dataSourceRouter = router({
     .input(
       dataSourceSchema.pick({ name: true, recordType: true, config: true }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      // An uploaded CSV can only be used by the organisation it was uploaded
+      // for. Sample files are shared by every organisation.
+      const isForeignCsvFile =
+        input.config.type === DataSourceType.CSV &&
+        !isCsvFileKeyUsableBy({
+          fileKey: input.config.fileKey,
+          organisationId: ctx.organisation.id,
+        });
+      if (isForeignCsvFile) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This file does not belong to your organisation",
+        });
+      }
+
       const id = uuidv4();
       const adaptor = getDataSourceAdaptor({ id, config: input.config });
 
@@ -717,6 +735,23 @@ export const dataSourceRouter = router({
 
   delete: dataSourceOwnerProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);
+    const deletedCsvFileKey =
+      ctx.dataSource.config.type === DataSourceType.CSV
+        ? ctx.dataSource.config.fileKey
+        : null;
+    // The records are gone, so the uploaded file must go too, unless another
+    // data source still uses it. Don't fail the request if storage is
+    // unavailable, but make sure it's reported.
+    if (deletedCsvFileKey && !(await isCsvFileKeyInUse(deletedCsvFileKey))) {
+      try {
+        await deletePrivateFile(deletedCsvFileKey);
+      } catch (error) {
+        logger.error(
+          `Could not delete CSV file for deleted data source ${ctx.dataSource.id}`,
+          { error },
+        );
+      }
+    }
     // Purge references to the deleted data source from the org's maps,
     // map views, and public maps so they don't linger as orphans.
     const ref = {

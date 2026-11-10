@@ -1,11 +1,7 @@
 import { randomUUID } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
-import {
-  DataSourceRecordType,
-  DataSourceType,
-  GeocodingType,
-} from "@/models/DataSource";
+import { DataSourceRecordType, GeocodingType } from "@/models/DataSource";
 import { MapStyleName } from "@/models/MapView";
 import { CalculationType } from "@/models/shared";
 import {
@@ -24,6 +20,7 @@ import { deleteUser, upsertUser } from "@/server/repositories/User";
 import { areaRouter } from "@/server/trpc/routers/area";
 import { mapRouter } from "@/server/trpc/routers/map";
 import { canReadDataSource, hashPassword } from "@/server/utils/auth";
+import { storeTestCsv } from "../../../helpers/csv";
 import type { ShareGrant } from "@/authTypes";
 import type { MapShare } from "@/models/MapShare";
 
@@ -104,10 +101,10 @@ describe("share grant access control", () => {
       organisationId: orgId,
       autoEnrich: false,
       autoImport: false,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: orgId,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: ["Name"] },

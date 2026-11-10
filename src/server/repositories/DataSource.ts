@@ -147,7 +147,10 @@ export function findReadableDataSources(userId: string | null | undefined) {
     .execute();
 }
 
-export async function findCSVDataSourceByUrlAndOrg(url: string, orgId: string) {
+export async function findCSVDataSourceByFileKeyAndOrg(
+  fileKey: string,
+  orgId: string,
+) {
   return await db
     .selectFrom("dataSource")
     .where("organisationId", "=", orgId)
@@ -155,10 +158,21 @@ export async function findCSVDataSourceByUrlAndOrg(url: string, orgId: string) {
       return eb(ref("config", "->>").key("type"), "=", DataSourceType.CSV);
     })
     .where(({ eb, ref }) => {
-      return eb(ref("config", "->>").key("url"), "=", url);
+      return eb(ref("config", "->>").key("fileKey"), "=", fileKey);
     })
     .selectAll()
     .executeTakeFirst();
+}
+
+export async function isCsvFileKeyInUse(fileKey: string) {
+  const dataSource = await db
+    .selectFrom("dataSource")
+    .where(({ eb, ref }) => {
+      return eb(ref("config", "->>").key("fileKey"), "=", fileKey);
+    })
+    .select("id")
+    .executeTakeFirst();
+  return Boolean(dataSource);
 }
 
 export async function updateDataSource(

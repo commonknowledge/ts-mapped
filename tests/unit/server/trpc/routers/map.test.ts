@@ -1,10 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
-import {
-  DataSourceRecordType,
-  DataSourceType,
-  GeocodingType,
-} from "@/models/DataSource";
+import { DataSourceRecordType, GeocodingType } from "@/models/DataSource";
 import { UserRole } from "@/models/User";
 import {
   createDataSource,
@@ -19,6 +15,7 @@ import {
   upsertUser,
 } from "@/server/repositories/User";
 import { mapRouter } from "@/server/trpc/routers/map";
+import { storeTestCsv } from "../../../../helpers/csv";
 
 const userIds: string[] = [];
 const mapIds: string[] = [];
@@ -73,10 +70,10 @@ describe("map.listAll", () => {
       organisationId: org.id,
       autoEnrich: false,
       autoImport: false,
-      config: {
-        type: DataSourceType.CSV,
-        url: `file://tests/resources/stats.csv?${uuidv4()}`,
-      },
+      config: await storeTestCsv({
+        fixture: "stats.csv",
+        organisationId: org.id,
+      }),
       columnDefs: [],
       columnMetadata: [],
       columnRoles: { nameColumns: ["Name"] },

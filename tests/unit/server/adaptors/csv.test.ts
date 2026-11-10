@@ -49,7 +49,7 @@ test("decodeBuffer transcodes UTF-16 BE (with BOM) to UTF-8", () => {
 });
 
 test("deleteColumn rejects non-enrichment columns", () => {
-  const adaptor = new CSVAdaptor("/api/upload/test.csv");
+  const adaptor = new CSVAdaptor("sample/sampleMembers.csv");
 
   expect(() => adaptor.deleteColumn("NotPrefixed")).toThrow(
     `Refusing to delete column "NotPrefixed": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
@@ -57,9 +57,26 @@ test("deleteColumn rejects non-enrichment columns", () => {
 });
 
 test("deleteColumn throws not updatable for enrichment columns", () => {
-  const adaptor = new CSVAdaptor("/api/upload/test.csv");
+  const adaptor = new CSVAdaptor("sample/sampleMembers.csv");
 
   expect(() => adaptor.deleteColumn("Mapped: SomeField")).toThrow(
     "CSVs are not updatable.",
   );
+});
+
+test("reads a CSV from storage by its file key", async () => {
+  const adaptor = new CSVAdaptor("sample/sampleMembers.csv");
+  const first = await adaptor.fetchFirst();
+  expect(first?.json).toMatchObject({ Postcode: "CO7 0JY" });
+  expect(await adaptor.getRecordCount()).toBe(137);
+});
+
+test.each([
+  "file://.env",
+  "/api/upload/../../.env",
+  "http://169.254.169.254/latest/meta-data/",
+])("never reads the old URL-style config %s", async (url) => {
+  const adaptor = new CSVAdaptor(url);
+  await expect(adaptor.getRecordCount()).rejects.toThrow("Invalid file key");
+  expect(await adaptor.fetchFirst()).toBeNull();
 });
