@@ -1,69 +1,49 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { MenuIcon, XIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Link } from "@/components/Link";
-import { Button } from "@/shadcn/ui/button";
+import { DOC_GROUPS } from "@/content/marketing/docs";
 import { cn } from "@/shadcn/utils";
-import type { FeatureSetProps } from "../types";
 
-export default function DocsSidebar({ featureSets }: FeatureSetProps) {
+const itemClass = (active: boolean) =>
+  cn(
+    "block rounded-md px-3 py-2 text-sm transition-colors",
+    active
+      ? "bg-mint font-medium text-ink"
+      : "text-ink/70 hover:bg-mint/60 hover:text-ink",
+  );
+
+/** The docs' contents, grouped as in content/marketing/docs.ts */
+export default function DocsSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const activeFeatureSets = featureSets.filter(
-    (featureSet) => featureSet.features && featureSet.features.length > 0,
-  );
-
-  const sidebarContent = (
-    <nav className="space-y-6">
-      {/* Overview Link */}
-      <div>
-        <Link
-          href="/docs"
-          className={cn(
-            "block px-3 py-2 text-sm font-medium rounded-md transition-colors",
-            pathname === "/docs"
-              ? "bg-neutral-100"
-              : "text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100",
-          )}
-        >
-          Overview
-        </Link>
-      </div>
-
-      {/* Feature Sets */}
-      {activeFeatureSets.map((featureSet) => (
-        <div key={featureSet._id} className="space-y-2">
-          {/* Feature Set Header */}
-          <div className="px-3">
-            <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-              {featureSet.title}
-            </h3>
-          </div>
-
-          {/* Features in this set */}
-          <div className="space-y-1">
-            {featureSet.features && featureSet.features?.length > 0
-              ? featureSet.features
-                  .filter((feature) => feature.isActive !== false)
-                  .map((feature) => (
-                    <Link
-                      key={feature._id}
-                      href={`/docs/${feature.slug.current}`}
-                      className={cn(
-                        "block px-3 py-2 text-sm rounded-md transition-colors ml-3",
-                        pathname === `/docs/${feature.slug.current}`
-                          ? "bg-neutral-100"
-                          : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
-                      )}
-                    >
-                      {feature.title}
-                    </Link>
-                  ))
-              : null}
-          </div>
+  const nav = (
+    <nav className="space-y-6" aria-label="Docs">
+      <Link
+        href="/docs"
+        className={itemClass(pathname === "/docs")}
+        onClick={() => setIsOpen(false)}
+      >
+        Overview
+      </Link>
+      {DOC_GROUPS.map((group) => (
+        <div key={group.title} className="space-y-1">
+          <p className="px-3 pb-1 font-mono text-[11px] tracking-[0.13em] text-ink/50 uppercase">
+            {group.title}
+          </p>
+          {group.pages.map((page) => (
+            <Link
+              key={page.slug}
+              href={`/docs/${page.slug}`}
+              className={itemClass(pathname === `/docs/${page.slug}`)}
+              onClick={() => setIsOpen(false)}
+            >
+              {page.title}
+            </Link>
+          ))}
         </div>
       ))}
     </nav>
@@ -71,43 +51,40 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="md:hidden mb-4"
+      {/* Phones: the contents in a drawer */}
+      <button
+        type="button"
+        className="flex w-fit items-center gap-2 rounded border border-ink/15 px-3 py-2 text-sm font-medium text-ink md:hidden"
         onClick={() => setIsOpen(true)}
       >
-        <Menu className="h-4 w-4 mr-2" />
-        Menu
-      </Button>
-
-      {/* Mobile Overlay */}
+        <MenuIcon className="size-4" />
+        Docs contents
+      </button>
       {isOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="fixed inset-0 bg-black/50"
+            className="fixed inset-0 bg-ink/40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Documentation</h2>
-              <Button
-                variant="ghost"
-                size="sm"
+          <div className="fixed top-0 left-0 h-full w-72 overflow-y-auto bg-white p-4 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="font-bold tracking-[-0.02em] text-ink">Docs</p>
+              <button
+                type="button"
+                aria-label="Close"
+                className="rounded p-1 text-ink hover:bg-mint"
                 onClick={() => setIsOpen(false)}
               >
-                <X className="h-4 w-4" />
-              </Button>
+                <XIcon className="size-4" />
+              </button>
             </div>
-            <div className="p-4">{sidebarContent}</div>
+            {nav}
           </div>
         </div>
       )}
 
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block w-64 flex-shrink-0">
-        <div className="sticky top-8">{sidebarContent}</div>
+      <div className="hidden w-60 shrink-0 md:block">
+        <div className="sticky top-8 border-r border-ink/10 pr-6">{nav}</div>
       </div>
     </>
   );

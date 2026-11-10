@@ -1,9 +1,14 @@
 import { MonitorIcon } from "lucide-react";
-import { Manrope } from "next/font/google";
 import Image from "next/image";
 import { Link } from "@/components/Link";
+import {
+  NAV_ITEMS,
+  REQUEST_ACCESS_URL,
+} from "@/components/marketing/v3/constants";
+import { manrope } from "@/components/marketing/v3/fonts";
 import HeroFeatures from "@/components/marketing/v3/HeroFeatures";
 import InteractiveDemo from "@/components/marketing/v3/InteractiveDemo";
+import MarketingFooter from "@/components/marketing/v3/MarketingFooter";
 import MobileDemo from "@/components/marketing/v3/MobileDemo";
 import MobileMenu from "@/components/marketing/v3/MobileMenu";
 import type { Metadata } from "next";
@@ -13,23 +18,12 @@ import type { ReactNode } from "react";
 // each section is a fixed-ratio stage: positions are percentages of its
 // frame and type is sized in container query units (1cqw = 14.4px at 1440
 // wide). Below lg, sections stack in normal document flow with rem type.
-
-const manrope = Manrope({ subsets: ["latin"], weight: ["400", "500", "700"] });
+// The nav and buttons have a floor (max(px, cqw)) so they stay readable
+// on narrower desktops.
 
 export const metadata: Metadata = {
   title: "Mapped — mapping for political organisers",
 };
-
-// The waitlist form, as linked from the login page
-const REQUEST_ACCESS_URL =
-  "https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false";
-
-const NAV_ITEMS = [
-  { label: "Solutions", href: "/features" },
-  { label: "Docs", href: "/docs" },
-  { label: "News", href: "/news" },
-  { label: "About", href: "/about" },
-];
 
 const NEWS_POSTS = [
   {
@@ -120,7 +114,7 @@ function Button({
   return (
     <Link
       href={href}
-      className={`flex items-center justify-center border border-white/80 leading-[0.98] font-bold tracking-[-0.02em] whitespace-nowrap text-[#16223c] drop-shadow-[0_0_8px_rgba(0,0,0,0.08)] lg:h-[2.639cqw] lg:rounded-[0.191cqw] lg:px-[0.694cqw] lg:text-[1.111cqw] lg:drop-shadow-[0_0_0.53cqw_rgba(0,0,0,0.08)] ${
+      className={`flex items-center justify-center border border-white/80 leading-[0.98] font-bold tracking-[-0.02em] whitespace-nowrap text-[#16223c] drop-shadow-[0_0_8px_rgba(0,0,0,0.08)] lg:h-[max(36px,2.639cqw)] lg:rounded-[max(3px,0.191cqw)] lg:px-[max(10px,0.694cqw)] lg:text-[length:max(13px,1.111cqw)] lg:drop-shadow-[0_0_0.53cqw_rgba(0,0,0,0.08)] ${
         size === "compact"
           ? "h-9 rounded px-2.5 text-xs"
           : "h-10 rounded px-3 text-sm"
@@ -226,9 +220,10 @@ export default function MarketingV3Page() {
     <main
       className={`${manrope.className} min-h-screen bg-white text-[#15213b]`}
     >
-      {/* Hero */}
+      {/* Hero — full width, capped to the screen on desktop so the bottom
+          row stays in view; the left map keeps its own proportion */}
       <section className="@container relative w-full overflow-clip">
-        <div className="relative flex flex-col bg-[#f0fbed] lg:block lg:aspect-[1440/921]">
+        <div className="relative flex flex-col bg-[#f0fbed] lg:block lg:h-svh">
           {/* Boundary pattern — corner accent on mobile, Figma placement on lg */}
           <Image
             src="/marketing-v3/pattern-hero.svg"
@@ -254,19 +249,19 @@ export default function MarketingV3Page() {
           </Link>
 
           <nav className="absolute top-[2.28%] left-[39.722%] z-20 hidden w-[57.361%] items-center justify-between lg:flex">
-            <ul className="flex items-center gap-[0.903cqw]">
+            <ul className="flex items-center gap-[max(4px,0.903cqw)]">
               {NAV_ITEMS.map((item) => (
                 <li key={item.label}>
                   <Link
                     href={item.href}
-                    className="block p-[0.694cqw] text-[1cqw] leading-[0.98] font-medium tracking-[-0.01em] hover:underline"
+                    className="block p-[max(8px,0.694cqw)] text-[length:max(14px,1cqw)] leading-[0.98] font-medium tracking-[-0.01em] hover:underline"
                   >
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
-            <div className="flex items-center gap-[0.694cqw]">
+            <div className="flex items-center gap-[max(8px,0.694cqw)]">
               <Button href={REQUEST_ACCESS_URL} variant="white">
                 Request Access
               </Button>
@@ -317,9 +312,9 @@ export default function MarketingV3Page() {
           />
 
           {/* Used by — flow on mobile, absolute on desktop */}
-          <UsedByLogos className="relative border-t border-[#15213b]/10 px-5 py-6 lg:absolute lg:top-[85.125%] lg:left-[39.931%] lg:w-[28.986%] lg:border-0 lg:px-0 lg:py-0" />
+          <UsedByLogos className="relative border-t border-[#15213b]/10 px-5 py-6 lg:absolute lg:bottom-[6.3%] lg:left-[39.931%] lg:w-[28.986%] lg:border-0 lg:px-0 lg:py-0" />
 
-          <p className="relative z-10 px-5 pb-10 text-sm leading-[1.3] text-black opacity-50 lg:absolute lg:top-[83.279%] lg:left-[75.347%] lg:w-[21.944%] lg:px-0 lg:pb-0 lg:text-[1.111cqw]">
+          <p className="relative z-10 px-5 pb-10 text-sm leading-[1.3] text-black opacity-50 lg:absolute lg:bottom-[7.7%] lg:left-[75.347%] lg:w-[21.944%] lg:px-0 lg:pb-0 lg:text-[1.111cqw]">
             Mapped was built for and with organisers: tenant unions, climate
             action groups, migrant solidarity organisations, divestment
             campaigns and more.
@@ -488,64 +483,7 @@ export default function MarketingV3Page() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="@container relative w-full overflow-clip">
-        <div className="relative flex flex-col bg-white px-5 pt-10 pb-8 lg:aspect-[1440/527] lg:block lg:px-0 lg:pt-0 lg:pb-0">
-          <Image
-            src="/marketing-v3/footer-rule.svg"
-            alt=""
-            width={1379}
-            height={1}
-            className="absolute top-0 left-5 w-[calc(100%-2.5rem)] max-w-none lg:left-[2.083%] lg:w-[95.764%]"
-          />
-
-          <div className="relative z-10 flex flex-col gap-6 text-sm leading-[1.3] text-black lg:absolute lg:top-[4.08%] lg:left-[2.083%] lg:w-[95.764%] lg:flex-row lg:items-start lg:gap-[1.545cqw] lg:text-[1.111cqw]">
-            <p className="text-2xl leading-none font-bold tracking-[-0.032em] text-[#15213b] lg:w-[30.764cqw] lg:text-[1.667cqw]">
-              Made for the movement,
-              <br />
-              by the movement
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row lg:flex-1 lg:items-start lg:gap-[1.528cqw]">
-              <p className="flex-1">
-                Mapped was built for and with organisers: tenant unions, climate
-                action groups, migrant solidarity organisations, divestment
-                campaigns and more.
-              </p>
-              <p className="flex-1">
-                It’s a project by Common Knowledge, a not-for-profit worker
-                cooperative that uses digital technology to build power for
-                social movements.
-              </p>
-            </div>
-          </div>
-
-          <Image
-            src="/marketing-v3/wordmark-footer.svg"
-            alt="Mapped"
-            width={1386}
-            height={452}
-            className="pointer-events-none relative mt-8 h-auto w-full max-w-none lg:absolute lg:top-[10.911%] lg:left-[1.944%] lg:mt-0 lg:w-[96.25%]"
-          />
-
-          <div className="relative z-10 mt-6 flex items-center justify-between gap-4 text-sm leading-[1.3] text-black lg:static lg:mt-0 lg:text-[1.111cqw]">
-            <p className="lg:absolute lg:top-[93.454%] lg:left-[1.944%]">
-              Made by{" "}
-              <a
-                href="https://commonknowledge.coop"
-                className="underline hover:no-underline"
-              >
-                Common Knowledge
-              </a>
-            </p>
-            <Link
-              href="/privacy"
-              className="underline hover:no-underline lg:absolute lg:top-[93.454%] lg:left-[90.139%]"
-            >
-              Privacy Policy
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </main>
   );
 }

@@ -1,11 +1,6 @@
 import Image from "next/image";
-import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
-import {
-  TypographyH1,
-  TypographyH3,
-  TypographyP,
-} from "@/components/typography";
+import MarketingPageHero from "@/components/marketing/v3/MarketingPageHero";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import type { NewsItem } from "../../types";
@@ -42,46 +37,44 @@ export default async function NewsPage() {
     });
   }
   return (
-    <Container>
-      <TypographyH1 className="mb-2">News</TypographyH1>
-      <TypographyP className="mb-8">
-        Latest news and updates from Mapped
-      </TypographyP>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {news.map((newsItem: NewsItem) => (
-          <Link
-            href={`/news/${newsItem.slug.current}`}
-            key={newsItem._id}
-            className="border border-neutral-200 rounded-md overflow-hidden shadow-md hover:bg-neutral-50 transition-all duration-300"
-          >
-            <div className="relative w-full h-48 border-b border-neutral-200">
-              {newsItem.image ? (
+    <>
+      <MarketingPageHero
+        eyebrow="News"
+        title="News"
+        description="What we've been building, and who with"
+      />
+      <div className="mx-auto w-full max-w-[1440px] px-5 py-16 lg:px-[30px] lg:py-24">
+        <ul className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-3">
+          {news.map((newsItem: NewsItem) => (
+            <li key={newsItem._id}>
+              <Link
+                href={`/news/${newsItem.slug.current}`}
+                className="group flex flex-col gap-5"
+              >
                 <Image
-                  src={urlFor(newsItem.image).url()}
-                  alt={newsItem.title}
+                  src={
+                    newsItem.image
+                      ? urlFor(newsItem.image).url()
+                      : "/screenshot-placeholder.jpeg"
+                  }
+                  alt=""
                   width={1000}
-                  height={1000}
-                  className="w-full h-full object-cover object-top"
+                  height={624}
+                  className="aspect-[670/418] h-auto w-full object-cover object-top transition-opacity group-hover:opacity-90"
                 />
-              ) : (
-                <Image
-                  src={"/screenshot-placeholder.jpeg"}
-                  alt={newsItem.title}
-                  width={1000}
-                  height={1000}
-                  className="w-full h-full object-cover object-top"
-                />
-              )}
-            </div>
-            <div className="p-4">
-              <TypographyH3>{newsItem.title}</TypographyH3>
-              <TypographyP className="text-sm text-neutral-500">
-                {formatDate(newsItem.publishedAt)}
-              </TypographyP>
-            </div>
-          </Link>
-        ))}
+                <span className="flex flex-col gap-2">
+                  <span className="font-mono text-[11px] leading-[0.85] font-semibold tracking-[0.08em] text-[#678de3] uppercase">
+                    {formatDate(newsItem.publishedAt)}
+                  </span>
+                  <span className="text-2xl leading-[1.05] font-bold tracking-[-0.042em] text-balance group-hover:underline">
+                    {newsItem.title}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
-    </Container>
+    </>
   );
 }

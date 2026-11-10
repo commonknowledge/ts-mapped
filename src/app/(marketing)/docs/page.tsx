@@ -1,61 +1,56 @@
-"use client";
-
-import React from "react";
 import { Link } from "@/components/Link";
-import {
-  TypographyH1,
-  TypographyH2,
-  TypographyLead,
-  TypographyMuted,
-  TypographyP,
-} from "@/components/typography";
-import { useFeatures } from "./FeaturesContext";
-import type { Feature, FeatureSet } from "@/app/(marketing)/types";
+import { DOC_GROUPS } from "@/content/marketing/docs";
+import type { Metadata } from "next";
 
-export default function FeaturesPage() {
-  const { featureSetsWithFeatures } = useFeatures();
+export const metadata: Metadata = {
+  title: "Docs — Mapped",
+  description: "How to map your members, overlay data and plan with Mapped.",
+};
 
-  const activeFeatureSets = featureSetsWithFeatures.filter(
-    (featureSet) => featureSet.features && featureSet.features.length > 0,
-  );
+export default function DocsPage() {
   return (
     <div className="max-w-4xl">
-      {/* Header */}
-      <TypographyMuted className="mb-4">Docs</TypographyMuted>
+      <p className="text-lg leading-[1.35] text-ink/70">
+        New to Mapped? Start with{" "}
+        <Link
+          href="/docs/tutorial"
+          className="font-medium text-ink underline underline-offset-2 hover:no-underline"
+        >
+          the guided tutorial
+        </Link>
+        , then come back here for the details.
+      </p>
 
-      <TypographyH1>Mapped Documentation</TypographyH1>
-
-      <TypographyLead className="mt-6">
-        Discover the powerful tools and capabilities that make Mapped the
-        ultimate solution for data management and mapping.
-      </TypographyLead>
-
-      {/* Feature Sets */}
-      <div className="mt-12 space-y-12">
-        {activeFeatureSets.map((featureSet: FeatureSet) => (
-          <section key={featureSet._id}>
-            <TypographyH2>{featureSet.title}</TypographyH2>
-            {featureSet.description && (
-              <TypographyP className="mt-2 text-neutral-500 ">
-                {featureSet.description}
-              </TypographyP>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              {featureSet.features &&
-                featureSet.features.length > 0 &&
-                featureSet.features
-                  .filter((feature: Feature) => feature.isActive !== false)
-                  .map((feature: Feature) => (
-                    <Link
-                      key={feature._id}
-                      href={`/docs/${feature.slug.current}`}
-                      className="flex flex-col p-4 font-medium gap-2 border hover:bg-neutral-50 transition-all duration-300 border-neutral-200 pb-4 rounded-md"
-                    >
-                      <p>{feature.title}</p>
-                    </Link>
-                  ))}
-            </div>
+      <div className="mt-12 space-y-14">
+        {DOC_GROUPS.map((group) => (
+          <section key={group.title}>
+            <h2 className="text-3xl leading-none font-bold tracking-[-0.042em]">
+              {group.title}
+            </h2>
+            <p className="mt-2 text-ink/60">{group.description}</p>
+            <ul className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {group.pages.map((page) => (
+                <li key={page.slug}>
+                  <Link
+                    href={`/docs/${page.slug}`}
+                    className="group flex h-full flex-col gap-1.5 rounded-lg border border-ink/10 p-5 transition-colors hover:border-ink/25 hover:bg-mint"
+                  >
+                    <span className="flex items-center justify-between gap-2 font-bold tracking-[-0.02em]">
+                      {page.title}
+                      <span
+                        aria-hidden
+                        className="text-ink/40 transition-transform group-hover:translate-x-0.5"
+                      >
+                        →
+                      </span>
+                    </span>
+                    <span className="text-sm leading-snug text-ink/60">
+                      {page.subtitle}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         ))}
       </div>

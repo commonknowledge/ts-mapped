@@ -175,3 +175,19 @@ export const MOBILE_STEP_LINE = 0.62;
 // The demo box's size in the desktop Figma frame (1440 wide), which phones
 // show scaled down so the editor keeps its desktop layout
 export const MOBILE_DEMO_SIZE = { width: 1043, height: 645 };
+
+// The waitlist form, as linked from the login page
+export const REQUEST_ACCESS_URL =
+  "https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false";
+
+export const NAV_ITEMS = [
+  { label: "Solutions", href: "/solutions" },
+  { label: "Docs", href: "/docs" },
+  { label: "News", href: "/news" },
+  { label: "About", href: "/about" },
+];
+
+// Long-form text (about, privacy, news, docs) in the homepage's ink and
+// tight bold headings
+export const MARKETING_PROSE =
+  "max-w-none text-ink/80 prose-headings:font-bold prose-headings:tracking-[-0.032em] prose-headings:text-ink prose-h1:tracking-[-0.052em] prose-a:text-ink prose-strong:text-ink prose-li:marker:text-ink/40";

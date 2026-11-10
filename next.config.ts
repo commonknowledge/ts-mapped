@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "./src/constants";
+import { MARKETING_REDIRECTS } from "./src/content/marketing/redirects";
 import type { NextConfig } from "next";
 
 const mainHost = new URL(
@@ -31,6 +32,10 @@ const nextConfig: NextConfig = {
   },
   // Packages that can't be bundled in the NextJS build
   serverExternalPackages: ["@whatwg-node", "@ngrok/ngrok"],
+  // Old Solutions and Docs addresses, now written in code
+  async redirects() {
+    return MARKETING_REDIRECTS;
+  },
   async rewrites() {
     return [
       {

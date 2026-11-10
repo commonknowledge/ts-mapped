@@ -1,8 +1,10 @@
 import Image from "next/image";
 import { PortableText } from "next-sanity";
 import React from "react";
+import { MARKETING_PROSE } from "@/components/marketing/v3/constants";
 import Prose from "@/components/Prose";
 import { urlFor } from "@/sanity/lib/image";
+import { cn } from "@/shadcn/utils";
 import type { RichTextBlock } from "@/app/(marketing)/types";
 import type { PortableTextComponents } from "next-sanity";
 
@@ -25,7 +27,7 @@ export default function RichTextComponent({
   };
 
   return (
-    <Prose className={className}>
+    <Prose className={cn(MARKETING_PROSE, className)}>
       <PortableText value={content} components={components} />
     </Prose>
   );

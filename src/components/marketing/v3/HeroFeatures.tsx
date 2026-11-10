@@ -40,8 +40,10 @@ export default function HeroFeatures({
 
   return (
     <>
-      {/* Desktop only: on phones the map comes with the steps, below */}
-      <div className="relative hidden overflow-clip bg-[#e8eef0] lg:absolute lg:inset-y-0 lg:left-0 lg:block lg:h-full lg:w-[34.514%]">
+      {/* Desktop only: on phones the map comes with the steps, below.
+          Width follows the panel's design aspect from the stage height, so
+          widening the page doesn't stretch the map. */}
+      <div className="relative hidden overflow-clip bg-[#e8eef0] lg:absolute lg:inset-y-0 lg:left-0 lg:block lg:aspect-[497/921] lg:h-full lg:w-auto lg:max-w-[34.514%]">
         <HeroMap featureId={sceneId} />
         {/* Scrim for the wordmark: always on mobile, only while a scene plays on lg */}
         <div
@@ -58,7 +60,7 @@ export default function HeroFeatures({
           priority
           unoptimized
           className={cn(
-            "pointer-events-none absolute inset-0 size-full object-cover transition-opacity duration-500",
+            "pointer-events-none absolute inset-0 size-full object-cover object-center transition-opacity duration-500",
             active && "opacity-0",
           )}
         />

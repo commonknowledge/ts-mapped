@@ -1,8 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import RichTextComponent from "@/app/(marketing)/components/RichTextComponent";
-import Container from "@/components/layout/Container";
-import { TypographyH1, TypographyP } from "@/components/typography";
+import MarketingPageHero from "@/components/marketing/v3/MarketingPageHero";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import type { Metadata } from "next";
@@ -38,39 +37,25 @@ export default async function NewsPage({
     });
   }
   return (
-    <Container>
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <TypographyH1>{news.title}</TypographyH1>
-          <TypographyP className="text-sm text-neutral-500">
-            {formatDate(news.publishedAt)}
-          </TypographyP>
-        </div>
-
-        <div className="relative max-w-4xl border border-neutral-200 rounded-md overflow-hidden shadow-md">
-          {news.image ? (
-            <Image
-              src={urlFor(news.image).url()}
-              alt={news.title}
-              width={1000}
-              height={1000}
-              className="w-full h-full object-cover object-top"
-            />
-          ) : (
-            <Image
-              src={"/screenshot-placeholder.jpeg"}
-              alt={news.title}
-              width={1000}
-              height={1000}
-              className="w-full h-full object-cover object-top"
-            />
-          )}
-        </div>
-
-        <div className="max-w-4xl">
-          <RichTextComponent content={news.body} />
-        </div>
-      </div>
-    </Container>
+    <>
+      <MarketingPageHero
+        eyebrow={formatDate(news.publishedAt)}
+        title={news.title}
+      />
+      <article className="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-5 py-16 lg:px-[30px] lg:py-24">
+        <Image
+          src={
+            news.image
+              ? urlFor(news.image).url()
+              : "/screenshot-placeholder.jpeg"
+          }
+          alt=""
+          width={1600}
+          height={1000}
+          className="h-auto w-full max-w-4xl object-cover object-top"
+        />
+        <RichTextComponent content={news.body} className="prose-lg max-w-3xl" />
+      </article>
+    </>
   );
 }
