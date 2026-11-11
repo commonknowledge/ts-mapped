@@ -34,14 +34,14 @@ services:
 
   # Optional local MinIO, for testing file storage. Not started by default:
   #   docker compose --profile minio up -d
-  # MinIO no longer publishes images to Docker Hub, so this needs a
-  # minio/minio image already on your machine (or set MINIO_IMAGE to one you
-  # can pull). Both services use it: the image includes the mc client.
+  # MinIO no longer publishes images, so this uses Chainguard's build, as
+  # production does (set MINIO_IMAGE to use another). Both services use it:
+  # the image includes the mc client.
   # The root credentials come from LOCAL_MINIO_ROOT_USER and
   # LOCAL_MINIO_ROOT_PASSWORD in .env. Generate random values: never reuse
   # the production MinIO keys here.
   minio:
-    image: ${MINIO_IMAGE:-minio/minio:latest}
+    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
     container_name: ts-mapped-minio
     profiles: ["minio"]
     command: server /data --console-address ":9001"
@@ -62,7 +62,7 @@ services:
   # Creates the buckets to match production: ts-mapped is publicly readable,
   # the private bucket is not
   minio-init:
-    image: ${MINIO_IMAGE:-minio/minio:latest}
+    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
     profiles: ["minio"]
     depends_on:
       minio:

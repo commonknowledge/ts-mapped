@@ -10,6 +10,7 @@ import importPostcodes from "@/server/commands/importPostcodes";
 import populateGeocodeCache from "@/server/commands/populateGeocodeCache";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
+import rewriteStoredFileUrls from "@/server/commands/rewriteStoredFileUrls";
 import seedLegacyCsvUploads from "@/server/commands/seedLegacyCsvUploads";
 import Invite from "@/server/emails/Invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
@@ -328,6 +329,25 @@ program
     await deleteLegacyPublicCsvs({
       confirm: Boolean(options.confirm),
       includeOrphans: Boolean(options.includeOrphans),
+    });
+  });
+
+program
+  .command("rewriteStoredFileUrls")
+  .description(
+    "Point stored file URLs at a new MinIO origin (dry run unless --confirm)",
+  )
+  .requiredOption(
+    "--from <origin>",
+    "The old MinIO origin, e.g. https://old.onrender.com",
+  )
+  .requiredOption("--to <origin>", "The new MinIO origin")
+  .option("--confirm", "Actually rewrite the URLs")
+  .action(async (options) => {
+    await rewriteStoredFileUrls({
+      from: options.from,
+      to: options.to,
+      confirm: Boolean(options.confirm),
     });
   });
 
