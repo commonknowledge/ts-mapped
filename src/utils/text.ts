@@ -1,3 +1,5 @@
+import z from "zod";
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -66,3 +68,5 @@ export const formatNumber = (v: number): string => {
 
   return sign + to3sf(av);
 };
+
+export const isEmail = (value: string) => z.email().safeParse(value).success;
