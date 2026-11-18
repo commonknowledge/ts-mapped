@@ -6,12 +6,12 @@ import ReadOnlyNavbar from "@/app/(private)/map/[id]/components/readonly/ReadOnl
 import SharedMap from "@/app/(private)/map/[id]/components/SharedMap";
 import MapJotaiProvider from "@/app/(private)/map/[id]/providers/MapJotaiProvider";
 import { getShareGrants } from "@/auth/shareGrants";
+import MapAccessCard from "@/components/MapAccessCard";
+import MapAccessForm from "@/components/MapAccessForm";
 import { findMapById } from "@/server/repositories/Map";
 import { findMapShareByToken } from "@/server/repositories/MapShare";
 import { findValidShareGrantForMap } from "@/server/utils/auth";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
-import ShareClaim from "./components/ShareClaim";
-import SharePasswordForm from "./components/SharePasswordForm";
 import type { Metadata } from "next";
 
 interface Props {
@@ -49,17 +49,16 @@ export default async function SharedMapPage({ params, searchParams }: Props) {
   const grants = await getShareGrants();
   const grant = await findValidShareGrantForMap(grants, share.mapId);
 
+  // No access yet: as on a moderated public map, the visitor requests
+  // access by email, or arrives with a magic link that the form exchanges
+  // for the grant cookie (cookies cannot be set during page render)
   if (!grant) {
-    if (share.passwordHash) {
-      const map = await getMapById(share.mapId);
-      return (
-        <SharePasswordForm token={token} mapName={map?.name ?? "Shared map"} />
-      );
-    }
-    // Passwordless: the grant cookie is minted by the claim endpoint
-    // (cookies cannot be set during page render). ShareClaim calls it and
-    // refreshes, after which the grant check above passes.
-    return <ShareClaim token={token} />;
+    const map = await getMapById(share.mapId);
+    return (
+      <MapAccessCard name={map?.name ?? "Shared map"}>
+        <MapAccessForm target={{ kind: "mapShare", shareToken: token }} />
+      </MapAccessCard>
+    );
   }
 
   const caller = await createCaller();

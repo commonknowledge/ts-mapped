@@ -11,10 +11,10 @@ import * as React from "react";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import { EmailLayout } from "./Layout";
 
-export default function PublicMapAccessRequested({
+export default function MapAccessRequested({
   mapName = "My Public Map",
   email = "visitor@example.org",
-  reviewUrl = "https://localhost:3000/public-map-access/123",
+  reviewUrl = "https://localhost:3000/map-access/123",
 }: {
   mapName: string;
   email: string;

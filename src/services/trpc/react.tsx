@@ -90,10 +90,14 @@ const errorLink: TRPCLink<AppRouter> = () => {
               err.data?.code === "UNAUTHORIZED" ||
               err.data?.code === "FORBIDDEN";
             // On a public map's own host (possibly embedded on another
-            // site), access was lost (e.g. a moderated map's grant expired
-            // or was revoked). Reload so the server renders the access gate:
-            // the login page can't be embedded, and visitors have no account
-            if (isAuthError && window.location.host !== getAppHost()) {
+            // site), or on a shared map, access was lost (e.g. a grant
+            // expired or was revoked). Reload so the server renders the
+            // access gate: the login page can't be embedded, and visitors
+            // have no account
+            const isPublicMapHost = window.location.host !== getAppHost();
+            const isSharedMap = window.location.pathname.startsWith("/share/");
+            const hasAccessGate = isPublicMapHost || isSharedMap;
+            if (isAuthError && hasAccessGate) {
               if (reloadForAccessGate()) {
                 return;
               }

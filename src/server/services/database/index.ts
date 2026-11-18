@@ -17,16 +17,16 @@ import type { InspectorDataSourceConfigTable } from "@/server/models/InspectorDa
 import type { InvitationTable } from "@/server/models/Invitation";
 import type { JobTable } from "@/server/models/Job";
 import type { MapTable } from "@/server/models/Map";
+import type {
+  MapAccessTable,
+  MapAccessTokenTable,
+} from "@/server/models/MapAccess";
 import type { MapShareTable } from "@/server/models/MapShare";
 import type { MapViewTable } from "@/server/models/MapView";
 import type { OrganisationTable } from "@/server/models/Organisation";
 import type { OrganisationUserTable } from "@/server/models/OrganisationUser";
 import type { PlacedMarkerTable } from "@/server/models/PlacedMarker";
 import type { PublicMapTable } from "@/server/models/PublicMap";
-import type {
-  PublicMapAccessTable,
-  PublicMapAccessTokenTable,
-} from "@/server/models/PublicMapAccess";
 import type { ReverseGeocodeCacheTable } from "@/server/models/ReverseGeocodeCache";
 import type { TurfTable } from "@/server/models/Turf";
 import type { UserTable } from "@/server/models/User";
@@ -82,8 +82,8 @@ export interface Database {
   organisationUser: OrganisationUserTable;
   placedMarker: PlacedMarkerTable;
   publicMap: PublicMapTable;
-  publicMapAccess: PublicMapAccessTable;
-  publicMapAccessToken: PublicMapAccessTokenTable;
+  mapAccess: MapAccessTable;
+  mapAccessToken: MapAccessTokenTable;
   reverseGeocodeCache: ReverseGeocodeCacheTable;
   turf: TurfTable;
   user: UserTable;

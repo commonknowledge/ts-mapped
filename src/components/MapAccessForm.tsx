@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
-  PUBLIC_MAP_ACCESS_TOKEN_PARAM,
+  MAP_ACCESS_TOKEN_PARAM,
   PUBLIC_MAP_EMBED_PAGE_PARAM,
 } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
@@ -13,8 +13,14 @@ import { Input } from "@/shadcn/ui/input";
 
 type ClaimStatus = "none" | "claiming" | "claimed" | "invalid";
 
+// What the gate is for: a moderated public map (opened at its own address,
+// or embedded with embed.js), or a shared private map
+export type MapAccessFormTarget =
+  | { kind: "publicMap"; publicMapId: string; mapUrl: string }
+  | { kind: "mapShare"; shareToken: string };
+
 /**
- * The interactive part of the access gate.
+ * The interactive part of the access gate, for public and shared maps.
  *
  * Arriving with a magic link token in the URL: the token is removed from
  * the address bar (so it is not shared by copying the URL) and exchanged
@@ -23,12 +29,10 @@ type ClaimStatus = "none" | "claiming" | "claimed" | "invalid";
  *
  * Otherwise: a form to request access by email.
  */
-export default function PublicMapAccessForm({
-  publicMapId,
-  mapUrl,
+export default function MapAccessForm({
+  target,
 }: {
-  publicMapId: string;
-  mapUrl: string;
+  target: MapAccessFormTarget;
 }) {
   const router = useRouter();
   const trpc = useTRPC();
@@ -41,12 +45,18 @@ export default function PublicMapAccessForm({
   // is on
   const [isBareIframe, setIsBareIframe] = useState(false);
 
+  const publicMapRequest = useMutation(
+    trpc.mapAccess.requestPublicMap.mutationOptions(),
+  );
+  const mapShareRequest = useMutation(
+    trpc.mapAccess.requestMapShare.mutationOptions(),
+  );
   const {
-    mutate: requestAccess,
     isPending: isRequesting,
     isSuccess: hasRequested,
     isError: requestFailed,
-  } = useMutation(trpc.publicMapAccess.request.mutationOptions());
+  } = target.kind === "publicMap" ? publicMapRequest : mapShareRequest;
+  const isPublicMap = target.kind === "publicMap";
 
   useEffect(() => {
     if (didClaim.current) {
@@ -56,22 +66,26 @@ export default function PublicMapAccessForm({
 
     const url = new URL(window.location.href);
     const isFramed = window.self !== window.top;
-    if (isFramed && !url.searchParams.has(PUBLIC_MAP_EMBED_PAGE_PARAM)) {
+    const isBareEmbed =
+      isPublicMap &&
+      isFramed &&
+      !url.searchParams.has(PUBLIC_MAP_EMBED_PAGE_PARAM);
+    if (isBareEmbed) {
       setIsBareIframe(true);
       return;
     }
 
-    const token = url.searchParams.get(PUBLIC_MAP_ACCESS_TOKEN_PARAM);
+    const token = url.searchParams.get(MAP_ACCESS_TOKEN_PARAM);
     if (!token) {
       return;
     }
-    url.searchParams.delete(PUBLIC_MAP_ACCESS_TOKEN_PARAM);
+    url.searchParams.delete(MAP_ACCESS_TOKEN_PARAM);
     window.history.replaceState(window.history.state, "", url);
 
     setClaimStatus("claiming");
     const claim = async () => {
       try {
-        const response = await fetch("/api/public-map-access/claim", {
+        const response = await fetch("/api/map-access/claim", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),
@@ -87,20 +101,28 @@ export default function PublicMapAccessForm({
       }
     };
     void claim();
-  }, [router]);
+  }, [router, isPublicMap]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || isRequesting) {
       return;
     }
+    if (target.kind === "mapShare") {
+      mapShareRequest.mutate({ shareToken: target.shareToken, email });
+      return;
+    }
     const pageUrl = new URL(window.location.href).searchParams.get(
       PUBLIC_MAP_EMBED_PAGE_PARAM,
     );
-    requestAccess({ publicMapId, email, pageUrl });
+    publicMapRequest.mutate({
+      publicMapId: target.publicMapId,
+      email,
+      pageUrl,
+    });
   };
 
-  if (isBareIframe) {
+  if (isBareIframe && target.kind === "publicMap") {
     return (
       <div className="flex flex-col gap-2 text-sm">
         <p className="font-medium">
@@ -108,7 +130,7 @@ export default function PublicMapAccessForm({
         </p>
         <p>
           You can still{" "}
-          <a href={mapUrl} target="_blank" className="underline">
+          <a href={target.mapUrl} target="_blank" className="underline">
             request access at the map&apos;s own address
           </a>
           .
@@ -124,11 +146,11 @@ export default function PublicMapAccessForm({
     return <p className="text-sm">Opening the map…</p>;
   }
 
-  // Cookie-stick detection, as in `ShareClaim`: the grant cookie is
-  // httpOnly, so the only way to learn whether it stuck is to see what the
-  // server renders. Once the refresh has finished, either the server saw
-  // the grant and swapped in the map (unmounting us), or we are still
-  // here, meaning the browser did not keep the cookie.
+  // Cookie-stick detection: the grant cookie is httpOnly, so the only way
+  // to learn whether it stuck is to see what the server renders. Once the
+  // refresh has finished, either the server saw the grant and swapped in
+  // the map (unmounting us), or we are still here, meaning the browser did
+  // not keep the cookie.
   if (claimStatus === "claimed") {
     return (
       <p className="text-sm">

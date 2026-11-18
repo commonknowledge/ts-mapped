@@ -15,16 +15,15 @@ export interface ServerSession {
 }
 
 /**
- * Grants an anonymous visitor read access to a shared map. Minted after the
- * visitor proves possession of the share link (and its password, if set);
- * carried in a signed cookie. Never sufficient on its own: every check
- * re-validates against the live mapShare row.
+ * Grants an anonymous visitor read access to a shared private map. Minted
+ * when the visitor follows a valid magic link. Never sufficient on its own:
+ * every check re-validates against the live mapAccess and mapShare rows.
  */
 export interface ShareGrant {
-  shareId: string;
+  accessId: string;
   mapId: string;
   // Unix seconds when the grant was minted. Grants minted before the
-  // share's passwordUpdatedAt fail validation while a password is set.
+  // access row's decidedAt fail validation.
   iat: number;
 }
 
@@ -33,7 +32,7 @@ export interface ShareGrant {
  * when the visitor follows a valid magic link; carried in a partitioned
  * cookie so it works inside an iframe on the embedding site. Never
  * sufficient on its own: every check re-validates against the live
- * publicMapAccess row.
+ * mapAccess row.
  */
 export interface PublicMapAccessGrant {
   accessId: string;

@@ -1,24 +1,24 @@
 import { randomUUID } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
+import { MapAccessStatus } from "@/models/MapAccess";
 import { MapStyleName } from "@/models/MapView";
 import { PublicMapAccessMode } from "@/models/PublicMap";
-import { PublicMapAccessStatus } from "@/models/PublicMapAccess";
 import { CalculationType } from "@/models/shared";
 import { createMap, deleteMap, updateMap } from "@/server/repositories/Map";
+import {
+  findOrCreateMapAccess,
+  setMapAccessStatus,
+} from "@/server/repositories/MapAccess";
 import { upsertMapView } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { applyDraft } from "@/server/repositories/PublicMap";
-import {
-  findOrCreatePublicMapAccess,
-  setPublicMapAccessStatus,
-} from "@/server/repositories/PublicMapAccess";
 import { mapRouter } from "@/server/trpc/routers/map";
 import { publicMapRouter } from "@/server/trpc/routers/publicMap";
 import { canReadDataSource } from "@/server/utils/auth";
 import type { PublicMapAccessGrant, VisitorGrants } from "@/authTypes";
+import type { MapAccess } from "@/models/MapAccess";
 import type { PublicMapDraft } from "@/models/PublicMap";
-import type { PublicMapAccess } from "@/models/PublicMapAccess";
 
 const mapIds: string[] = [];
 
@@ -32,17 +32,14 @@ let moderatedMapId: string;
 let moderatedViewId: string;
 let moderatedPublicMapId: string;
 let openMapId: string;
-let access: PublicMapAccess;
+let access: MapAccess;
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-function grantFor(
-  row: PublicMapAccess,
-  iatOffsetSeconds = 0,
-): PublicMapAccessGrant {
+function grantFor(row: MapAccess, iatOffsetSeconds = 0): PublicMapAccessGrant {
   return {
     accessId: row.id,
-    publicMapId: row.publicMapId,
+    publicMapId: row.publicMapId ?? "",
     iat: nowSeconds() + iatOffsetSeconds,
   };
 }
@@ -165,7 +162,7 @@ describe("moderated public map access control", () => {
 
   test("setup: a moderated and an open public map sharing a data source", async () => {
     const org = await upsertOrganisation({
-      name: `PublicMapAccess Test Org ${uuidv4()}`,
+      name: `MapAccess Test Org ${uuidv4()}`,
     });
     orgId = org.id;
 
@@ -185,8 +182,8 @@ describe("moderated public map access control", () => {
     });
     openMapId = open.mapId;
 
-    const { access: created } = await findOrCreatePublicMapAccess({
-      publicMapId: moderatedPublicMapId,
+    const { access: created } = await findOrCreateMapAccess({
+      target: { kind: "publicMap", id: moderatedPublicMapId },
       email: "Visitor@Example.org",
     });
     access = created;
@@ -229,12 +226,12 @@ describe("moderated public map access control", () => {
 
   test("requests are stored with a lowercased email", () => {
     expect(access.email).toBe("visitor@example.org");
-    expect(access.status).toBe(PublicMapAccessStatus.Pending);
+    expect(access.status).toBe(MapAccessStatus.Pending);
   });
 
   test("a repeat request returns the existing row", async () => {
-    const repeat = await findOrCreatePublicMapAccess({
-      publicMapId: moderatedPublicMapId,
+    const repeat = await findOrCreateMapAccess({
+      target: { kind: "publicMap", id: moderatedPublicMapId },
       email: "visitor@example.org",
     });
     expect(repeat.created).toBe(false);
@@ -250,10 +247,10 @@ describe("moderated public map access control", () => {
   // ---------- approved ----------
 
   test("once approved, a grant unlocks the map, its data and its config", async () => {
-    await setPublicMapAccessStatus({
+    await setMapAccessStatus({
       id: access.id,
-      fromStatus: PublicMapAccessStatus.Pending,
-      status: PublicMapAccessStatus.Approved,
+      fromStatus: MapAccessStatus.Pending,
+      status: MapAccessStatus.Approved,
     });
     const grants = [grantFor(access)];
 
@@ -297,10 +294,10 @@ describe("moderated public map access control", () => {
 
   test("revoking access invalidates existing grants immediately", async () => {
     const grant = grantFor(access);
-    await setPublicMapAccessStatus({
+    await setMapAccessStatus({
       id: access.id,
-      fromStatus: PublicMapAccessStatus.Approved,
-      status: PublicMapAccessStatus.Revoked,
+      fromStatus: MapAccessStatus.Approved,
+      status: MapAccessStatus.Revoked,
     });
     await expect(
       makeMapCaller([grant]).byId({ mapId: moderatedMapId }),
@@ -310,10 +307,10 @@ describe("moderated public map access control", () => {
 
   test("re-approving does not revive grants from before the revocation", async () => {
     const oldGrant = grantFor(access, -60);
-    await setPublicMapAccessStatus({
+    await setMapAccessStatus({
       id: access.id,
-      fromStatus: PublicMapAccessStatus.Revoked,
-      status: PublicMapAccessStatus.Approved,
+      fromStatus: MapAccessStatus.Revoked,
+      status: MapAccessStatus.Approved,
     });
     expect(await canRead(DS_MODERATED_ONLY, [oldGrant])).toBe(false);
     expect(await canRead(DS_MODERATED_ONLY, [grantFor(access)])).toBe(true);

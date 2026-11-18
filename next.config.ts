@@ -43,6 +43,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      // Moderators' review links never expire, and those emailed before
+      // shared maps used moderated access point at the old path
+      {
+        source: "/public-map-access/:token",
+        destination: "/map-access/:token",
+        permanent: true,
+      },
+    ];
+  },
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
   async headers() {

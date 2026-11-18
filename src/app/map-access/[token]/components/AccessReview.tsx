@@ -1,32 +1,32 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PublicMapAccessStatus } from "@/models/PublicMapAccess";
+import { MapAccessStatus } from "@/models/MapAccess";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 
-const statusText: Record<PublicMapAccessStatus, string> = {
-  [PublicMapAccessStatus.Pending]: "is waiting for a decision",
-  [PublicMapAccessStatus.Approved]:
+const statusText: Record<MapAccessStatus, string> = {
+  [MapAccessStatus.Pending]: "is waiting for a decision",
+  [MapAccessStatus.Approved]:
     "has been approved. They have been emailed a link to the map",
-  [PublicMapAccessStatus.Rejected]: "has been rejected",
-  [PublicMapAccessStatus.Revoked]: "had access, which has been revoked",
+  [MapAccessStatus.Rejected]: "has been rejected",
+  [MapAccessStatus.Revoked]: "had access, which has been revoked",
 };
 
-const decisionLabels: Record<PublicMapAccessStatus, string> = {
-  [PublicMapAccessStatus.Pending]: "",
-  [PublicMapAccessStatus.Approved]: "Approve",
-  [PublicMapAccessStatus.Rejected]: "Reject",
-  [PublicMapAccessStatus.Revoked]: "Revoke access",
+const decisionLabels: Record<MapAccessStatus, string> = {
+  [MapAccessStatus.Pending]: "",
+  [MapAccessStatus.Approved]: "Approve",
+  [MapAccessStatus.Rejected]: "Reject",
+  [MapAccessStatus.Revoked]: "Revoke access",
 };
 
 export default function AccessReview({ token }: { token: string }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const queryKey = trpc.publicMapAccess.review.queryKey({ token });
+  const queryKey = trpc.mapAccess.review.queryKey({ token });
 
   const { data: review } = useQuery(
-    trpc.publicMapAccess.review.queryOptions({ token }),
+    trpc.mapAccess.review.queryOptions({ token }),
   );
 
   const {
@@ -35,7 +35,7 @@ export default function AccessReview({ token }: { token: string }) {
     error,
     variables,
   } = useMutation(
-    trpc.publicMapAccess.decide.mutationOptions({
+    trpc.mapAccess.decide.mutationOptions({
       onSuccess: (result) => queryClient.setQueryData(queryKey, result),
       // Another moderator may have decided first: show the current state
       onError: () => queryClient.invalidateQueries({ queryKey }),
@@ -72,9 +72,7 @@ export default function AccessReview({ token }: { token: string }) {
               <Button
                 key={status}
                 variant={
-                  status === PublicMapAccessStatus.Approved
-                    ? "default"
-                    : "outline"
+                  status === MapAccessStatus.Approved ? "default" : "outline"
                 }
                 disabled={isPending}
                 onClick={() => decide({ token, status })}

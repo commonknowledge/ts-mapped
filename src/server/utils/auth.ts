@@ -1,23 +1,20 @@
 import { randomBytes, scrypt } from "crypto";
-import {
-  PUBLIC_MAP_ACCESS_LIFETIME_SECONDS,
-  SHARE_GRANT_LIFETIME_SECONDS,
-} from "@/constants";
+import { MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
+import { MapAccessStatus } from "@/models/MapAccess";
 import { PublicMapAccessMode } from "@/models/PublicMap";
-import { PublicMapAccessStatus } from "@/models/PublicMapAccess";
+import { findMapAccessById } from "@/server/repositories/MapAccess";
 import {
-  findMapShareByMapId,
+  findMapShareById,
   findMapShareVisualisingDataSource,
 } from "@/server/repositories/MapShare";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
 import { findPublishedPublicMapsByDataSourceId } from "@/server/repositories/PublicMap";
-import { findPublicMapAccessById } from "@/server/repositories/PublicMapAccess";
 import type {
   PublicMapAccessGrant,
   ShareGrant,
   VisitorGrants,
 } from "@/authTypes";
-import type { MapShare } from "@/models/MapShare";
+import type { MapAccess } from "@/models/MapAccess";
 import type { PublicMap } from "@/models/PublicMap";
 
 /**
@@ -53,28 +50,41 @@ export async function canViewPublicMap({
 
 /**
  * A grant from the public map access cookie must match a live access row
- * for the same public map that is still approved, and must have been minted
- * after the row's latest decision (so revoking and re-approving an email
- * does not revive old sessions). Grants also age out independently of the
- * cookie.
+ * for the same public map that is still approved (see `isAccessGrantLive`).
  */
 async function isPublicMapAccessGrantValid(
   grant: PublicMapAccessGrant,
 ): Promise<boolean> {
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  if (grant.iat + PUBLIC_MAP_ACCESS_LIFETIME_SECONDS < nowSeconds) {
-    return false;
-  }
-  const access = await findPublicMapAccessById(grant.accessId);
+  const access = await findMapAccessById(grant.accessId);
   if (!access || access.publicMapId !== grant.publicMapId) {
     return false;
   }
-  if (access.status !== PublicMapAccessStatus.Approved) {
+  return isAccessGrantLive({ access, iat: grant.iat });
+}
+
+/**
+ * Whether a grant minted at `iat` (Unix seconds) for this access row still
+ * holds: the row is approved, and the grant was minted after the row's
+ * latest decision (so revoking and re-approving an email does not revive
+ * old sessions). Grants also age out independently of the cookie.
+ */
+function isAccessGrantLive({
+  access,
+  iat,
+}: {
+  access: MapAccess;
+  iat: number;
+}): boolean {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (iat + MAP_ACCESS_LIFETIME_SECONDS < nowSeconds) {
+    return false;
+  }
+  if (access.status !== MapAccessStatus.Approved) {
     return false;
   }
   if (access.decidedAt) {
     const decidedAtSeconds = Math.floor(access.decidedAt.getTime() / 1000);
-    if (grant.iat < decidedAtSeconds) {
+    if (iat < decidedAtSeconds) {
       return false;
     }
   }
@@ -146,31 +156,23 @@ export async function canReadDataSource({
 }
 
 /**
- * A grant from the share cookie is never sufficient on its own: it must
- * match the live mapShare row, which must be enabled, and — when a password
- * is currently set — the grant must have been minted after the last
- * password change. Grants also age out independently of the cookie.
+ * A grant from the share cookie must match a live access row for a share of
+ * the same map, which is still approved (see `isAccessGrantLive`), and the
+ * share must still be enabled.
  */
-function isShareGrantValid(grant: ShareGrant, share: MapShare): boolean {
-  if (!share.enabled || grant.shareId !== share.id) {
+async function isShareGrantValid(grant: ShareGrant): Promise<boolean> {
+  const access = await findMapAccessById(grant.accessId);
+  if (!access?.mapShareId) {
     return false;
   }
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  if (grant.iat + SHARE_GRANT_LIFETIME_SECONDS < nowSeconds) {
+  if (!isAccessGrantLive({ access, iat: grant.iat })) {
     return false;
   }
-  if (share.passwordHash && share.passwordUpdatedAt) {
-    const passwordUpdatedAtSeconds = Math.floor(
-      share.passwordUpdatedAt.getTime() / 1000,
-    );
-    if (grant.iat < passwordUpdatedAtSeconds) {
-      return false;
-    }
-  }
-  return true;
+  const share = await findMapShareById(access.mapShareId);
+  return Boolean(share?.enabled && share.mapId === grant.mapId);
 }
 
-/** Find a grant for this map and validate it against the live share row. */
+/** Find a grant for this map and validate it against the live rows. */
 export async function findValidShareGrantForMap(
   shareGrants: ShareGrant[] | undefined,
   mapId: string,
@@ -179,21 +181,16 @@ export async function findValidShareGrantForMap(
   if (!grant) {
     return null;
   }
-  const share = await findMapShareByMapId(mapId);
-  if (!share || !isShareGrantValid(grant, share)) {
-    return null;
-  }
-  return grant;
+  return (await isShareGrantValid(grant)) ? grant : null;
 }
 
-/** The mapIds of all grants that validate against their live share rows. */
+/** The mapIds of all grants that validate against their live rows. */
 export async function getValidShareGrantMapIds(
   shareGrants: ShareGrant[] | undefined,
 ): Promise<string[]> {
   const mapIds: string[] = [];
   for (const grant of shareGrants ?? []) {
-    const share = await findMapShareByMapId(grant.mapId);
-    if (share && isShareGrantValid(grant, share)) {
+    if (await isShareGrantValid(grant)) {
       mapIds.push(grant.mapId);
     }
   }

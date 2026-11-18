@@ -55,17 +55,15 @@ export const GE_DATA_SOURCE_NAME = "2024 General Election Results";
 
 export const JWT_LIFETIME_SECONDS = 24 * 60 * 60;
 
-// Lifetime of a read-only map share grant (see ShareGrant in authTypes.ts)
-export const SHARE_GRANT_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
+// Lifetime of both a magic link (to a moderated public map or a shared
+// map) and the access grant it mints (see PublicMapAccessGrant and
+// ShareGrant in authTypes.ts)
+export const MAP_ACCESS_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
 
-// Lifetime of both a moderated public map's magic link and the access
-// grant it mints (see PublicMapAccessGrant in authTypes.ts)
-export const PUBLIC_MAP_ACCESS_LIFETIME_SECONDS = 7 * 24 * 60 * 60;
-
-// Query parameter carrying a moderated public map's magic link token, on
-// the embedding page (forwarded into the iframe by embed.js) or on the
-// map's own subdomain
-export const PUBLIC_MAP_ACCESS_TOKEN_PARAM = "mapped_access";
+// Query parameter carrying a magic link token: on a shared map's address,
+// or for a moderated public map, on the embedding page (forwarded into the
+// iframe by embed.js) or on the map's own subdomain
+export const MAP_ACCESS_TOKEN_PARAM = "mapped_access";
 
 // Query parameter naming which map a magic link's token is for (the map's
 // host), so embed.js only forwards the token into that map's iframe when a
