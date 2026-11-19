@@ -6,8 +6,9 @@ import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useDataSources } from "@/hooks/useDataSources";
 import { useLayers } from "../../hooks/useLayers";
-import { useMapMode, useMapRef } from "../../hooks/useMapCore";
+import { useMapRef, useMapRoute } from "../../hooks/useMapCore";
 import { useTimelineFilter } from "../../hooks/useTimelineFilter";
+import { isPublicMapLayout } from "../../utils/mapRoute";
 import { DataSourceMarkers } from "./DataSourceMarkers";
 import { isMarkerIconImageId, registerMarkerIcons } from "./markerIcons";
 
@@ -20,12 +21,12 @@ export default function Markers() {
   const mapRef = useMapRef();
   const { activeRange } = useTimelineFilter();
   const areaStats = useAreaStats().data;
-  const mapMode = useMapMode();
+  const route = useMapRoute();
 
   // A choropleth fill is painted only when all of these hold (Choropleth.tsx)
-  // Map.tsx only renders Choropleth in private mode, not on public maps or
-  // in the publish editor
-  const choroplethRendered = mapMode === "private";
+  // Map.tsx only renders Choropleth outside the public map layout (not on
+  // public maps or in the publish editor)
+  const choroplethRendered = !isPublicMapLayout(route);
   const choroplethSwitchedOn = Boolean(viewConfig.showChoropleth);
   const boundariesSelected = Boolean(viewConfig.areaSetGroupCode);
   const hasAreaStats = Boolean(areaStats?.stats.length);

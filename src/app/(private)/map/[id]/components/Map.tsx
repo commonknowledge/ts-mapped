@@ -35,12 +35,13 @@ import {
   useSetEditAreaMode,
   useShowControls,
 } from "../hooks/useMapControls";
-import { useMapMode, useMapRef, useSetDrawMode } from "../hooks/useMapCore";
+import { useMapRef, useMapRoute, useSetDrawMode } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
 import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import { getMapStyle } from "../utils/map";
+import { isPublicMapLayout } from "../utils/mapRoute";
 import Choropleth from "./Choropleth/Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
@@ -74,7 +75,8 @@ export default function Map({
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
   const { resetInspector, setSelectedTurf, selectedTurf } = useInspectorState();
-  const mapMode = useMapMode();
+  const route = useMapRoute();
+  const publicMapLayout = isPublicMapLayout(route);
 
   const [draw, setDraw] = useDraw();
   const setDrawMode = useSetDrawMode();
@@ -157,7 +159,7 @@ export default function Map({
       // Ignore failure to remove existing turfs
     }
 
-    if (mapMode !== "private") {
+    if (publicMapLayout) {
       return;
     }
 
@@ -173,7 +175,7 @@ export default function Map({
     } catch {
       // Draw store is not ready yet; the effect will re-run when draw is re-initialised
     }
-  }, [visibleTurfs, draw, viewConfig.showTurf, mapMode]);
+  }, [visibleTurfs, draw, viewConfig.showTurf, publicMapLayout]);
 
   // Update draw layer colors when turfColor changes
   useEffect(() => {
@@ -627,7 +629,7 @@ export default function Map({
       >
         {ready && (
           <>
-            {mapMode === "private" && (
+            {!publicMapLayout && (
               <>
                 <Choropleth />
                 <SecondaryBoundaries />

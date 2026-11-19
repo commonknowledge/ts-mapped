@@ -3,30 +3,31 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
-import { useMapMode } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import { useMapRoute } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/(private)/map/[id]/hooks/useMapViews";
 import {
   usePublicDataSourceIds,
   usePublicMapValue,
 } from "@/app/(private)/map/[id]/publish/hooks/usePublicMap";
+import { isPublicMapLayout } from "@/app/(private)/map/[id]/utils/mapRoute";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 
 export function useMarkerQueries() {
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
-  const mapMode = useMapMode();
+  const publicMapLayout = isPublicMapLayout(useMapRoute());
   const publicDataSourceIds = usePublicDataSourceIds();
   const publicMap = usePublicMapValue();
 
-  // In public mode (the publish editor as well as the standalone public page)
-  // markers follow the public map config; in private mode they follow the
-  // full private marker data source list.
+  // In the public map layout (the publish editor as well as the public map)
+  // markers follow the public map config; otherwise they follow the full
+  // private marker data source list.
   const dataSourceIds = useMemo(() => {
-    return mapMode === "public"
+    return publicMapLayout
       ? publicDataSourceIds
       : getMarkerDataSourceIds(mapConfig);
-  }, [mapConfig, mapMode, publicDataSourceIds]);
+  }, [mapConfig, publicMapLayout, publicDataSourceIds]);
 
   // Using the `combine` option in this useQueries call makes `markerQueries`
   // only update when the data updates. This prevents infinite loops

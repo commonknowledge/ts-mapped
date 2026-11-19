@@ -12,7 +12,7 @@ import {
 import { useMapQuery } from "@/app/(private)/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useIsMobileEffect } from "@/hooks/useIsMobile";
-import { useEditable } from "../hooks/usePublicMap";
+import { usePublicMapEditable } from "../hooks/usePublicMap";
 import PublishControls from "./editable/PublishControls";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
 import PublicMapSidebar from "./PublicMapSidebar";
@@ -24,7 +24,7 @@ export default function PublicMapOverlay({
   standalone?: boolean;
 }) {
   const mapId = useMapId();
-  const editable = useEditable();
+  const editable = usePublicMapEditable();
   const areaStatsQuery = useAreaStats();
   const setLastLoadedSourceId = useSetLastLoadedSourceId();
   const markerQueries = useMarkerQueries();

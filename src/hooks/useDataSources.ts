@@ -1,18 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
 import { useCallback, useMemo } from "react";
-import {
-  isPublicMapRouteAtom,
-  isReadOnlyRouteAtom,
-} from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
-import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import {
+  useMapId,
+  useMapRoute,
+} from "@/app/(private)/map/[id]/hooks/useMapCore";
 import {
   useMapViews,
   useViewId,
 } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { isAnonymousViewerRoute } from "@/app/(private)/map/[id]/utils/mapRoute";
 import { useIsSuperadminDataSourceRoute } from "@/atoms/dataSourceAtoms";
 import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { useTRPC } from "@/services/trpc/react";
@@ -20,8 +19,7 @@ import { useTRPC } from "@/services/trpc/react";
 export function useDataSources() {
   const trpc = useTRPC();
   const organisationId = useOrganisationId();
-  const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
-  const isReadOnlyRoute = useAtomValue(isReadOnlyRouteAtom);
+  const route = useMapRoute();
   const isSuperadminDataSourceRoute = useIsSuperadminDataSourceRoute();
   const mapId = useMapId();
   const viewId = useViewId();
@@ -29,7 +27,7 @@ export function useDataSources() {
   // Routes serving anonymous viewers (the public map page and the
   // read-only shared map page) list only the data sources the map/view
   // visualises; `listReadable` requires an authenticated user.
-  const isAnonymousViewerRoute = isPublicMapRoute || isReadOnlyRoute;
+  const isAnonymousViewer = isAnonymousViewerRoute(route);
 
   const listPublicQuery = useQuery(
     trpc.dataSource.listPublic.queryOptions(undefined, {
@@ -42,20 +40,20 @@ export function useDataSources() {
       {
         activeOrganisationId: organisationId ?? undefined,
       },
-      { enabled: !isAnonymousViewerRoute && !isSuperadminDataSourceRoute },
+      { enabled: !isAnonymousViewer && !isSuperadminDataSourceRoute },
     ),
   );
 
   const listForMapViewQuery = useQuery(
     trpc.dataSource.listForMapView.queryOptions(
       { mapId: mapId ?? "", viewId: viewId ?? "" },
-      { enabled: isAnonymousViewerRoute && Boolean(mapId) && Boolean(viewId) },
+      { enabled: isAnonymousViewer && Boolean(mapId) && Boolean(viewId) },
     ),
   );
 
   const query = isSuperadminDataSourceRoute
     ? listPublicQuery
-    : isAnonymousViewerRoute
+    : isAnonymousViewer
       ? listForMapViewQuery
       : listReadableQuery;
 

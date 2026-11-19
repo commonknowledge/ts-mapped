@@ -74,7 +74,7 @@ export default async function SharedMapPage({ params, searchParams }: Props) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <MapJotaiProvider mapId={share.mapId} viewId={viewId} isReadOnlyRoute>
+      <MapJotaiProvider mapId={share.mapId} viewId={viewId} route="shared">
         <div className="relative h-screen w-full">
           <SharedMap />
           <div className="absolute inset-0 z-10 pointer-events-none flex flex-col">

@@ -19,7 +19,7 @@ import {
   parseDateValue,
 } from "@/utils/dataRecord";
 import { useDataSourceColumn } from "../../hooks/useDataSourceColumn";
-import { useMapMode } from "../../hooks/useMapCore";
+import { useMapRoute } from "../../hooks/useMapCore";
 import { PAST_EVENTS_FILTER_KEY } from "../../publish/dateFilters";
 import {
   useFilteredRecords,
@@ -31,6 +31,7 @@ import {
   usePublicMapValue,
 } from "../../publish/hooks/usePublicMap";
 import { mapColors } from "../../styles";
+import { isPublicMapLayout } from "../../utils/mapRoute";
 import { ClustersLayer, UNCLUSTERED_FILTER } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
 import {
@@ -85,7 +86,7 @@ export function DataSourceMarkers({
   const publicDateFilter = usePublicDateFilter();
   const publicMap = usePublicMapValue();
   const colorScheme = useColorScheme();
-  const mapMode = useMapMode();
+  const publicMapLayout = isPublicMapLayout(useMapRoute());
 
   const dataSourceId = dataSourceMarkers.dataSourceId;
 
@@ -187,13 +188,12 @@ export function DataSourceMarkers({
     ? mapColors.member.color
     : mapColors.dataSource.color;
 
-  const color =
-    mapMode === "public"
-      ? publicMapColor || defaultColor
-      : customColor || defaultColor;
+  const color = publicMapLayout
+    ? publicMapColor || defaultColor
+    : customColor || defaultColor;
 
   // Column-driven styling (private editor only)
-  const visualisation = mapMode === "public" ? undefined : markerVisualisation;
+  const visualisation = publicMapLayout ? undefined : markerVisualisation;
 
   // Published maps only ever show clustered circles or plain pins, chosen by
   // the publish switch — heatmap and overlap are editor-only display modes
@@ -206,8 +206,7 @@ export function DataSourceMarkers({
   const privateDisplayMode =
     markerVisualisation?.displayMode ?? MarkerDisplayMode.Circles;
 
-  const displayMode =
-    mapMode === "public" ? publicDisplayMode : privateDisplayMode;
+  const displayMode = publicMapLayout ? publicDisplayMode : privateDisplayMode;
   const iconColumn =
     visualisation?.iconMode === MarkerIconMode.Categories
       ? visualisation.iconColumn

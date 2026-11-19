@@ -4,11 +4,9 @@ import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useSearchParams } from "next/navigation";
 import {
-  type MapMode,
-  isPublicMapRouteAtom,
-  isReadOnlyRouteAtom,
+  type MapRoute,
   mapIdAtom,
-  mapModeAtom,
+  mapRouteAtom,
   viewIdAtom,
 } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import type { ReactNode } from "react";
@@ -16,34 +14,25 @@ import type { ReactNode } from "react";
 /**
  * Creates a Jotai store boundary and hydrates all "route-level" atoms.
  *
- * `isPublicMapRoute` is `true` only on the standalone public page (`/public/[host]`).
- * The navbar visibility and editor-mode flag are derived from this single boolean,
- * and `mapMode` is derived from the URL.
- *
- * `isReadOnlyRoute` is `true` only on the shared map page (`/share/[token]`),
- * where anonymous viewers see the private map without editing affordances.
+ * `route` is "public" on the published public map page (`/public/[host]`)
+ * and "shared" on the shared map page (`/share/[token]`). Omitted, it is
+ * the private map page (`/map/[id]`), which is "editor" or "publish"
+ * according to the `mode` URL parameter (see useSyncMapRouteToUrlEffect).
  */
 export default function MapJotaiProvider({
   mapId,
   viewId,
-  isPublicMapRoute = false,
-  isReadOnlyRoute = false,
+  route,
   children,
 }: {
   mapId: string;
   viewId?: string;
-  isPublicMapRoute?: boolean;
-  isReadOnlyRoute?: boolean;
+  route?: Extract<MapRoute, "public" | "shared">;
   children: ReactNode;
 }) {
   return (
     <Provider>
-      <HydrateAtoms
-        mapId={mapId}
-        viewId={viewId}
-        isPublicMapRoute={isPublicMapRoute}
-        isReadOnlyRoute={isReadOnlyRoute}
-      >
+      <HydrateAtoms mapId={mapId} viewId={viewId} route={route}>
         {children}
       </HydrateAtoms>
     </Provider>
@@ -53,34 +42,27 @@ export default function MapJotaiProvider({
 function HydrateAtoms({
   mapId,
   viewId,
-  isPublicMapRoute,
-  isReadOnlyRoute,
+  route,
   children,
 }: {
   mapId: string;
   viewId?: string;
-  isPublicMapRoute: boolean;
-  isReadOnlyRoute: boolean;
+  route?: MapRoute;
   children: ReactNode;
 }) {
-  // On the private route, derive mapMode + viewId from the URL so the very
-  // first render is correct (no flicker).
+  // On the private route, derive the route + viewId from the URL so the
+  // very first render is correct (no flicker).
   const searchParams = useSearchParams();
 
-  const resolvedMapMode: MapMode = isPublicMapRoute
-    ? "public"
-    : searchParams.get("mode") === "publish"
-      ? "public"
-      : "private";
+  const resolvedRoute: MapRoute =
+    route ?? (searchParams.get("mode") === "publish" ? "publish" : "editor");
 
   const resolvedViewId = viewId ?? searchParams.get("viewId") ?? undefined;
 
   useHydrateAtoms([
     [mapIdAtom, mapId],
     [viewIdAtom, resolvedViewId || null],
-    [mapModeAtom, resolvedMapMode],
-    [isPublicMapRouteAtom, isPublicMapRoute],
-    [isReadOnlyRouteAtom, isReadOnlyRoute],
+    [mapRouteAtom, resolvedRoute],
   ]);
 
   return children;

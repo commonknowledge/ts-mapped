@@ -4,9 +4,8 @@ import {
   lastLoadedSourceIdAtom,
   mapBottomPaddingAtom,
   mapIdAtom,
-  mapModeAtom,
   mapRefAtom,
-  showNavbarAtom,
+  mapRouteAtom,
 } from "../atoms/mapStateAtoms";
 
 // Route-level atoms (map ID, view ID, map mode) are written during mount: by
@@ -82,12 +81,14 @@ export function useSetLastLoadedSourceId() {
   return useSetAtom(lastLoadedSourceIdAtom);
 }
 
-export function useMapMode() {
-  return useAtomValueRawSync(mapModeAtom);
+/** Which of the four map pages is rendering (see MapRoute). */
+export function useMapRoute() {
+  return useAtomValueRawSync(mapRouteAtom);
 }
 
+/** The navbar is shown everywhere except the published public map. */
 export function useShowNavbar() {
-  return useAtomValue(showNavbarAtom);
+  return useMapRoute() !== "public";
 }
 
 export function useDrawMode() {
