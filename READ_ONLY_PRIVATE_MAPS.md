@@ -1,5 +1,17 @@
 # Read-only Private Maps
 
+> **Superseded in part (2026-11-18).** Passwords and "anyone with the link"
+> access were dropped before the share dialog shipped. Shared maps now use the
+> same moderated access as public maps: visitors request access by email at
+> `/share/[token]`, a moderator (from the share's `moderatorEmails`) approves
+> via an emailed review link, and approved visitors get a one-week magic link.
+> Access rows live in the shared `map_access` table (`map_share_id` or
+> `public_map_id`), and `ShareGrant` points at an approved access row. See
+> `migrations/1790600000000_map_share_moderated_access.ts`,
+> `src/server/services/mapAccess.ts` and `src/server/utils/auth.ts`. The
+> password gate, password rate limiting and "Reset link" described below no
+> longer exist.
+
 ## Summary
 
 Allow users to share a private map, exactly as it is configured, with a small audience

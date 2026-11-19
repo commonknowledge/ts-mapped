@@ -1,5 +1,5 @@
-import { LockIcon } from "lucide-react";
-import PublicMapAccessForm from "./PublicMapAccessForm";
+import MapAccessCard from "@/components/MapAccessCard";
+import MapAccessForm from "@/components/MapAccessForm";
 import type { EmbedContext } from "@/utils/publicMapAccess";
 
 /**
@@ -25,27 +25,13 @@ export default function PublicMapAccessGate({
   embedContext: EmbedContext;
 }) {
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-neutral-50 p-4">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <LockIcon size={16} className="text-muted-foreground shrink-0" />
-            <h1 className="text-base font-semibold truncate">{name}</h1>
-          </div>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          )}
-        </div>
-        {embedContext.kind === "unlisted" ? (
-          <UnlistedWebsiteMessage
-            origin={embedContext.origin}
-            mapUrl={mapUrl}
-          />
-        ) : (
-          <PublicMapAccessForm publicMapId={publicMapId} mapUrl={mapUrl} />
-        )}
-      </div>
-    </div>
+    <MapAccessCard name={name} description={description}>
+      {embedContext.kind === "unlisted" ? (
+        <UnlistedWebsiteMessage origin={embedContext.origin} mapUrl={mapUrl} />
+      ) : (
+        <MapAccessForm target={{ kind: "publicMap", publicMapId, mapUrl }} />
+      )}
+    </MapAccessCard>
   );
 }
 

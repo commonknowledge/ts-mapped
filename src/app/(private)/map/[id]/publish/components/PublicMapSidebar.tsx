@@ -4,7 +4,7 @@ import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
 import {
   useColorScheme,
-  useEditable,
+  usePublicMapEditable,
   usePublicMapValue,
   useSetSearchLocation,
 } from "../hooks/usePublicMap";
@@ -16,7 +16,7 @@ import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
   const publicMap = usePublicMapValue();
-  const editable = useEditable();
+  const editable = usePublicMapEditable();
   const setSearchLocation = useSetSearchLocation();
   const colorScheme = useColorScheme();
 

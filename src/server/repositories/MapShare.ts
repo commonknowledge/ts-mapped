@@ -5,9 +5,18 @@ import type { MapConfig } from "@/models/Map";
 import type { MapViewConfig } from "@/models/MapView";
 import type { TraversedJSONPathBuilder } from "kysely";
 
-// 18 random bytes → 24-char base64url token (144 bits of entropy).
-// The URL is itself a secret for passwordless shares.
+// 18 random bytes → 24-char base64url token (144 bits of entropy). The
+// link alone grants nothing (visitors must be approved), but an
+// unguessable link keeps the map's name and request form unlisted.
 const generateShareToken = () => randomBytes(18).toString("base64url");
+
+export function findMapShareById(id: string) {
+  return db
+    .selectFrom("mapShare")
+    .where("id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
 
 export function findMapShareByToken(token: string) {
   return db
@@ -23,20 +32,6 @@ export function findMapShareByMapId(mapId: string) {
     .where("mapId", "=", mapId)
     .selectAll()
     .executeTakeFirst();
-}
-
-/**
- * Enable sharing for a map. The first call creates the share with a fresh
- * token; later calls re-enable it, keeping the existing token and password
- * so a disabled link is restored rather than replaced.
- */
-export function upsertMapShareForMap(mapId: string) {
-  return db
-    .insertInto("mapShare")
-    .values({ mapId, token: generateShareToken(), enabled: true })
-    .onConflict((oc) => oc.column("mapId").doUpdateSet({ enabled: true }))
-    .returningAll()
-    .executeTakeFirstOrThrow();
 }
 
 export function setMapShareEnabled({
@@ -55,24 +50,28 @@ export function setMapShareEnabled({
 }
 
 /**
- * Set (or remove, with `passwordHash: null`) the share password hash.
- * Hashing happens in the caller (see the mapShare router) to keep this
- * module free of auth imports. Always bumps `passwordUpdatedAt` so viewer
- * grants issued before the change stop validating.
+ * Create the share if needed, and set who is emailed about access requests.
+ * Creating it this way leaves it disabled: sharing is turned on separately,
+ * once there are moderators.
  */
-export function setMapSharePassword({
+export function setMapShareModeratorEmails({
   mapId,
-  passwordHash,
+  moderatorEmails,
 }: {
   mapId: string;
-  passwordHash: string | null;
+  moderatorEmails: string[];
 }) {
   return db
-    .updateTable("mapShare")
-    .set({ passwordHash, passwordUpdatedAt: new Date() })
-    .where("mapId", "=", mapId)
+    .insertInto("mapShare")
+    .values({
+      mapId,
+      token: generateShareToken(),
+      enabled: false,
+      moderatorEmails,
+    })
+    .onConflict((oc) => oc.column("mapId").doUpdateSet({ moderatorEmails }))
     .returningAll()
-    .executeTakeFirst();
+    .executeTakeFirstOrThrow();
 }
 
 /**
@@ -128,15 +127,5 @@ export function findMapShareVisualisingDataSource({
       ]),
     )
     .selectAll("mapShare")
-    .executeTakeFirst();
-}
-
-/** Rotate the token, invalidating the previously shared URL. */
-export function regenerateMapShareToken(mapId: string) {
-  return db
-    .updateTable("mapShare")
-    .set({ token: generateShareToken() })
-    .where("mapId", "=", mapId)
-    .returningAll()
     .executeTakeFirst();
 }

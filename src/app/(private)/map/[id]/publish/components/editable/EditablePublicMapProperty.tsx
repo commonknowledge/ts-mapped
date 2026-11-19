@@ -2,7 +2,7 @@ import { Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import { Input } from "@/shadcn/ui/input";
 import {
-  useEditable,
+  usePublicMapEditable,
   usePublicMapValue,
   useUpdateAdditionalColumn,
   useUpdateDataSourceConfig,
@@ -34,7 +34,7 @@ export default function EditablePublicMapProperty({
   const updatePublicMap = useUpdatePublicMap();
   const updateDataSourceConfig = useUpdateDataSourceConfig();
   const updateAdditionalColumn = useUpdateAdditionalColumn();
-  const editable = useEditable();
+  const editable = usePublicMapEditable();
   const inputRef = useRef<HTMLInputElement>(null);
 
   let initialValue = "";

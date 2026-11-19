@@ -11,7 +11,7 @@ export enum PublicMapColumnType {
 export const publicMapColumnTypes = Object.values(PublicMapColumnType);
 
 // Who can see a published public map: anyone, or only visitors a
-// moderator has approved (see PublicMapAccess)
+// moderator has approved (see MapAccess)
 export enum PublicMapAccessMode {
   Open = "Open",
   Moderated = "Moderated",

@@ -19,22 +19,19 @@ export const metadata: Metadata = {
  * covers this one request. Deciding is a button press (a POST), never the
  * page load itself, because email link scanners open every link.
  */
-export default async function PublicMapAccessReviewPage({ params }: Props) {
+export default async function MapAccessReviewPage({ params }: Props) {
   const { token } = await params;
   const caller = await createCaller();
 
   let review;
   try {
-    review = await caller.publicMapAccess.review({ token });
+    review = await caller.mapAccess.review({ token });
   } catch {
     notFound();
   }
 
   const queryClient = getQueryClient();
-  queryClient.setQueryData(
-    trpc.publicMapAccess.review.queryKey({ token }),
-    review,
-  );
+  queryClient.setQueryData(trpc.mapAccess.review.queryKey({ token }), review);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

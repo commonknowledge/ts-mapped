@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
-import { isPublicMapRouteAtom } from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
+import { useMapRoute } from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useDataSources } from "@/hooks/useDataSources";
 import { getPublicDataSourceIds } from "@/utils/map";
 import {
@@ -34,16 +34,11 @@ export function usePublishedPublicMapValue() {
 }
 
 /**
- * Returns `true` when on the private `/map/[id]` route (the "editor"),
- * `false` on the standalone public page.
- * This replaces the old `editableAtom`.
+ * Whether the public map's settings can be edited: `true` in publish mode,
+ * `false` on the published public map.
  */
-export function useEditable() {
-  return !useAtomValue(isPublicMapRouteAtom);
-}
-
-export function useIsPublicMapRoute() {
-  return useAtomValue(isPublicMapRouteAtom);
+export function usePublicMapEditable() {
+  return useMapRoute() === "publish";
 }
 
 export function useSearchLocation() {

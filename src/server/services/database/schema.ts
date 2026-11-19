@@ -306,36 +306,57 @@ export interface PublicMap {
 }
 
 /**
- * publicMapAccess Table
- * Access requests for moderated public maps, one per (publicMap, email)
+ * mapShare Table
+ * A private map shared read-only with people outside the organisation.
+ * Visitors request access by email and moderators approve them (mapAccess).
  */
-export interface PublicMapAccess {
+export interface MapShare {
   id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
-  publicMapId: string; // uuid, NOT NULL
-  email: string; // text, NOT NULL, UNIQUE (publicMapId, email)
+  mapId: string; // uuid, NOT NULL, UNIQUE
+  token: string; // text, NOT NULL, UNIQUE - the share link is /share/<token>
+  enabled: boolean; // boolean, NOT NULL, DEFAULT true
+  moderatorEmails: string[]; // jsonb, NOT NULL, DEFAULT []
+  createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
+
+  // FOREIGN KEYS:
+  // - mapId -> map.id (CASCADE DELETE, CASCADE UPDATE)
+}
+
+/**
+ * mapAccess Table
+ * Access requests for moderated public maps and shared maps, one per
+ * (publicMap or mapShare, email). Exactly one of publicMapId and
+ * mapShareId is set (CHECK constraint).
+ */
+export interface MapAccess {
+  id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+  publicMapId: string | null; // uuid, NULL, UNIQUE (publicMapId, email)
+  mapShareId: string | null; // uuid, NULL, UNIQUE (mapShareId, email)
+  email: string; // text, NOT NULL
   status: string; // text, NOT NULL ('Pending' | 'Approved' | 'Rejected' | 'Revoked')
-  requestedFromUrl: string | null; // text, NULL - embedding page of the latest request; NULL = the map's own address
+  requestedFromUrl: string | null; // text, NULL - embedding page of the latest request; NULL = the map's own address (always NULL for shares)
   moderatorsNotifiedAt: Date | null; // timestamp, NULL - NULL until a moderator has been emailed about the request
   decidedAt: Date | null; // timestamp, NULL - grants minted before this are invalid
   createdAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
 
   // FOREIGN KEYS:
   // - publicMapId -> publicMap.id (CASCADE DELETE, CASCADE UPDATE)
+  // - mapShareId -> mapShare.id (CASCADE DELETE, CASCADE UPDATE)
 }
 
 /**
- * publicMapAccessToken Table
+ * mapAccessToken Table
  * Magic links issued to approved visitors. Each stays valid until it
  * expires, however many newer ones are issued.
  */
-export interface PublicMapAccessToken {
+export interface MapAccessToken {
   id: string; // uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
-  publicMapAccessId: string; // uuid, NOT NULL, INDEXED
+  mapAccessId: string; // uuid, NOT NULL, INDEXED
   tokenHash: string; // text, NOT NULL, UNIQUE - hash of the magic link token
   issuedAt: Date; // timestamp, NOT NULL, DEFAULT CURRENT_TIMESTAMP
 
   // FOREIGN KEYS:
-  // - publicMapAccessId -> publicMapAccess.id (CASCADE DELETE, CASCADE UPDATE)
+  // - mapAccessId -> mapAccess.id (CASCADE DELETE, CASCADE UPDATE)
 }
 
 // ============================================================================
@@ -489,7 +510,9 @@ export interface Database {
   mapView: MapView;
   inspectorDataSourceConfig: InspectorDataSourceConfig;
   publicMap: PublicMap;
-  publicMapAccess: PublicMapAccess;
+  mapShare: MapShare;
+  mapAccess: MapAccess;
+  mapAccessToken: MapAccessToken;
 
   // Map Annotations
   folder: Folder;

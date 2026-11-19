@@ -195,9 +195,11 @@ export default function PrivacyPage() {
         <li>
           <strong>People you share maps with.</strong> If your organisation
           shares a map by link, or publishes a public map, the people who view
-          it can see the data shown on that map. Shared links can be protected
-          with a password, and can be turned off at any time. Nothing is shared
-          or published unless a member of your organisation chooses to do so.
+          it can see the data shown on that map. A shared map can only be seen
+          by people that a moderator chosen by your organisation approves, and a
+          public map can be limited in the same way. Sharing can be turned off
+          at any time. Nothing is shared or published unless a member of your
+          organisation chooses to do so.
         </li>
         <li>
           <strong>Common Knowledge staff.</strong> A small number of Common

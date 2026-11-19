@@ -1,27 +1,25 @@
-import { PUBLIC_MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
-import { PublicMapAccessStatus } from "@/models/PublicMapAccess";
+import { MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
+import { MapAccessStatus } from "@/models/MapAccess";
 import { db } from "@/server/services/database";
+import { mapAccessTargetColumn } from "@/utils/mapAccess";
+import type { MapAccessTargetRef } from "@/models/MapAccess";
 
-export function findPublicMapAccessById(id: string) {
+export function findMapAccessById(id: string) {
   return db
-    .selectFrom("publicMapAccess")
+    .selectFrom("mapAccess")
     .where("id", "=", id)
     .selectAll()
     .executeTakeFirst();
 }
 
 /** The access row a magic link is for, with when that link was issued. */
-export function findPublicMapAccessByTokenHash(tokenHash: string) {
+export function findMapAccessByTokenHash(tokenHash: string) {
   return db
-    .selectFrom("publicMapAccessToken")
-    .innerJoin(
-      "publicMapAccess",
-      "publicMapAccess.id",
-      "publicMapAccessToken.publicMapAccessId",
-    )
-    .where("publicMapAccessToken.tokenHash", "=", tokenHash)
-    .selectAll("publicMapAccess")
-    .select("publicMapAccessToken.issuedAt as tokenIssuedAt")
+    .selectFrom("mapAccessToken")
+    .innerJoin("mapAccess", "mapAccess.id", "mapAccessToken.mapAccessId")
+    .where("mapAccessToken.tokenHash", "=", tokenHash)
+    .selectAll("mapAccess")
+    .select("mapAccessToken.issuedAt as tokenIssuedAt")
     .executeTakeFirst();
 }
 
@@ -30,35 +28,37 @@ export function findPublicMapAccessByTokenHash(tokenHash: string) {
  * email keeps the existing row and its status, but records where it came
  * from (so a fresh magic link goes back there).
  */
-export async function findOrCreatePublicMapAccess({
-  publicMapId,
+export async function findOrCreateMapAccess({
+  target,
   email,
   requestedFromUrl = null,
 }: {
-  publicMapId: string;
+  target: MapAccessTargetRef;
   email: string;
   requestedFromUrl?: string | null;
 }) {
+  const column = mapAccessTargetColumn(target);
   const created = await db
-    .insertInto("publicMapAccess")
+    .insertInto("mapAccess")
     .values({
-      publicMapId,
+      publicMapId: target.kind === "publicMap" ? target.id : null,
+      mapShareId: target.kind === "mapShare" ? target.id : null,
       email: email.toLowerCase(),
-      status: PublicMapAccessStatus.Pending,
+      status: MapAccessStatus.Pending,
       requestedFromUrl,
       moderatorsNotifiedAt: null,
       decidedAt: null,
     })
-    .onConflict((oc) => oc.columns(["publicMapId", "email"]).doNothing())
+    .onConflict((oc) => oc.columns([column, "email"]).doNothing())
     .returningAll()
     .executeTakeFirst();
   if (created) {
     return { access: created, created: true };
   }
   const access = await db
-    .updateTable("publicMapAccess")
+    .updateTable("mapAccess")
     .set({ requestedFromUrl })
-    .where("publicMapId", "=", publicMapId)
+    .where(column, "=", target.id)
     .where("email", "=", email.toLowerCase())
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -66,9 +66,9 @@ export async function findOrCreatePublicMapAccess({
 }
 
 /** Record that moderators have been emailed about this request. */
-export async function setPublicMapAccessModeratorsNotified(id: string) {
+export async function setMapAccessModeratorsNotified(id: string) {
   await db
-    .updateTable("publicMapAccess")
+    .updateTable("mapAccess")
     .set({ moderatorsNotifiedAt: new Date() })
     .where("id", "=", id)
     .execute();
@@ -78,24 +78,24 @@ export async function setPublicMapAccessModeratorsNotified(id: string) {
  * Store the hash of a newly issued magic link token. Earlier links keep
  * working until they expire; expired ones are cleared out here.
  */
-export async function addPublicMapAccessToken({
-  publicMapAccessId,
+export async function addMapAccessToken({
+  mapAccessId,
   tokenHash,
 }: {
-  publicMapAccessId: string;
+  mapAccessId: string;
   tokenHash: string;
 }) {
   const expiredBefore = new Date(
-    Date.now() - PUBLIC_MAP_ACCESS_LIFETIME_SECONDS * 1000,
+    Date.now() - MAP_ACCESS_LIFETIME_SECONDS * 1000,
   );
   await db
-    .deleteFrom("publicMapAccessToken")
-    .where("publicMapAccessId", "=", publicMapAccessId)
+    .deleteFrom("mapAccessToken")
+    .where("mapAccessId", "=", mapAccessId)
     .where("issuedAt", "<", expiredBefore)
     .execute();
   await db
-    .insertInto("publicMapAccessToken")
-    .values({ publicMapAccessId, tokenHash })
+    .insertInto("mapAccessToken")
+    .values({ mapAccessId, tokenHash })
     .execute();
 }
 
@@ -108,27 +108,27 @@ export async function addPublicMapAccessToken({
  * decision. Anything but approval also deletes the visitor's magic links,
  * so approving them again later does not bring old links back to life.
  */
-export function setPublicMapAccessStatus({
+export function setMapAccessStatus({
   id,
   fromStatus,
   status,
 }: {
   id: string;
-  fromStatus: PublicMapAccessStatus;
-  status: PublicMapAccessStatus;
+  fromStatus: MapAccessStatus;
+  status: MapAccessStatus;
 }) {
   return db.transaction().execute(async (tx) => {
     const updated = await tx
-      .updateTable("publicMapAccess")
+      .updateTable("mapAccess")
       .set({ status, decidedAt: new Date() })
       .where("id", "=", id)
       .where("status", "=", fromStatus)
       .returningAll()
       .executeTakeFirst();
-    if (updated && status !== PublicMapAccessStatus.Approved) {
+    if (updated && status !== MapAccessStatus.Approved) {
       await tx
-        .deleteFrom("publicMapAccessToken")
-        .where("publicMapAccessId", "=", id)
+        .deleteFrom("mapAccessToken")
+        .where("mapAccessId", "=", id)
         .execute();
     }
     return updated;

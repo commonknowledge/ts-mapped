@@ -4,12 +4,12 @@ import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
 import { publicMapColorSchemes } from "@/app/(private)/map/[id]/styles";
 import { getMarkerDataSourceIds } from "@/utils/map";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import { useColorScheme, useEditable } from "../hooks/usePublicMap";
+import { useColorScheme, usePublicMapEditable } from "../hooks/usePublicMap";
 import DataSourceTabs from "./DataSourceTabs";
 
 export function PublicMapListings() {
   const { mapConfig } = useMapConfig();
-  const editable = useEditable();
+  const editable = usePublicMapEditable();
   const colorScheme = useColorScheme();
   const dataRecordsQueries = usePublicDataRecordsQueries();
 

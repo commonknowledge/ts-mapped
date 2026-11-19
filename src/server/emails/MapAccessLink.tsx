@@ -11,7 +11,7 @@ import * as React from "react";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import { EmailLayout } from "./Layout";
 
-export default function PublicMapAccessLink({
+export default function MapAccessLink({
   mapName = "My Public Map",
   link = "https://example.org/map?mapped_access=123",
 }: {

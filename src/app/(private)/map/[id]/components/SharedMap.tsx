@@ -2,20 +2,22 @@
 
 import {
   useMapBottomPadding,
-  useMapMode,
+  useMapRoute,
   useSetLastLoadedSourceId,
   useShowNavbar,
 } from "../hooks/useMapCore";
+import { isPublicMapLayout } from "../utils/mapRoute";
 import Map from "./Map";
 
 export default function SharedMap() {
-  const mapMode = useMapMode();
+  const route = useMapRoute();
   const showNavbar = useShowNavbar();
   const mapBottomPadding = useMapBottomPadding();
   const setLastLoadedSourceId = useSetLastLoadedSourceId();
 
   const baseClass =
-    mapMode === "private"
+    // Like the editor, the shared map is desktop-only
+    !isPublicMapLayout(route)
       ? "absolute inset-0 hidden lg:block"
       : "absolute inset-0";
 

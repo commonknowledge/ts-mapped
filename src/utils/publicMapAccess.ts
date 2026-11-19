@@ -1,6 +1,6 @@
 import {
+  MAP_ACCESS_TOKEN_PARAM,
   PUBLIC_MAP_ACCESS_MAP_PARAM,
-  PUBLIC_MAP_ACCESS_TOKEN_PARAM,
 } from "@/constants";
 import { getPublicMapUrl } from "./appUrl";
 
@@ -52,7 +52,7 @@ export function getEmbedContext({
     return { kind: "unlisted", origin: page?.origin ?? null };
   }
   page.hash = "";
-  page.searchParams.delete(PUBLIC_MAP_ACCESS_TOKEN_PARAM);
+  page.searchParams.delete(MAP_ACCESS_TOKEN_PARAM);
   page.searchParams.delete(PUBLIC_MAP_ACCESS_MAP_PARAM);
   return { kind: "embedded", pageUrl: page.toString() };
 }
@@ -81,7 +81,7 @@ export function buildPublicMapAccessLink({
   const context = getEmbedContext({ embedOrigins, pageUrl: requestedFromUrl });
   const isEmbedded = context.kind === "embedded";
   const url = new URL(isEmbedded ? context.pageUrl : getPublicMapUrl(host));
-  url.searchParams.set(PUBLIC_MAP_ACCESS_TOKEN_PARAM, token);
+  url.searchParams.set(MAP_ACCESS_TOKEN_PARAM, token);
   if (isEmbedded) {
     url.searchParams.set(PUBLIC_MAP_ACCESS_MAP_PARAM, host);
   }

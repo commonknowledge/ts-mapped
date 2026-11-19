@@ -15,7 +15,7 @@ import { TRANS_FRIENDLY_HOST } from "../const";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import {
   useColorScheme,
-  useEditable,
+  usePublicMapEditable,
   usePublicMapValue,
   useUpdateAdditionalColumn,
 } from "../hooks/usePublicMap";
@@ -416,7 +416,7 @@ function ImageColumn({
   sourceColumns: string[];
   json: Record<string, unknown>;
 }) {
-  const editable = useEditable();
+  const editable = usePublicMapEditable();
 
   const url = sourceColumns
     .map((c) => json[c])
@@ -452,7 +452,7 @@ function LinkColumn({
   sourceColumns: string[];
   json: Record<string, unknown>;
 }) {
-  const editable = useEditable();
+  const editable = usePublicMapEditable();
   const updateAdditionalColumn = useUpdateAdditionalColumn();
 
   // In the editor, edit the button text inline while keeping the button look.

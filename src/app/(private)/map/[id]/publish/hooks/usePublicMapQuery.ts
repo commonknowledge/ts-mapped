@@ -2,16 +2,16 @@
 
 import { arrayMove } from "@dnd-kit/sortable";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  isPublicMapRouteAtom,
-  mapModeAtom,
-} from "@/app/(private)/map/[id]/atoms/mapStateAtoms";
 import { useMapConfig } from "@/app/(private)/map/[id]/hooks/useMapConfig";
-import { useMapId } from "@/app/(private)/map/[id]/hooks/useMapCore";
+import {
+  useMapId,
+  useMapRoute,
+} from "@/app/(private)/map/[id]/hooks/useMapCore";
 import { useViewId } from "@/app/(private)/map/[id]/hooks/useMapViews";
+import { isPublicMapLayout } from "@/app/(private)/map/[id]/utils/mapRoute";
 import { useDataSources } from "@/hooks/useDataSources";
 import { PublicMapAccessMode } from "@/models/PublicMap";
 import { useTRPC } from "@/services/trpc/react";
@@ -95,12 +95,12 @@ export function usePublicMapQuery() {
   const viewId = useViewId();
   const mapId = useMapId();
   const trpc = useTRPC();
-  const isPublicMapRoute = useAtomValue(isPublicMapRouteAtom);
-  const mapMode = useAtomValue(mapModeAtom);
+  const route = useMapRoute();
+  const isPublicMapRoute = route === "public";
 
-  // Only fetch when on the public route or in publish mode – avoids an
-  // unnecessary tRPC call on every private map page load.
-  const needsPublicMap = isPublicMapRoute || mapMode === "public";
+  // Only fetch on the public map or in publish mode – avoids an unnecessary
+  // tRPC call on every private map page load.
+  const needsPublicMap = isPublicMapLayout(route);
 
   const options = trpc.publicMap.get.queryOptions(
     { viewId: viewId ?? "" },

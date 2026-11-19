@@ -1,12 +1,12 @@
-import { PUBLIC_MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
+import { MAP_ACCESS_LIFETIME_SECONDS } from "@/constants";
 import { addToGrantsCookie, getGrantsCookie } from "./grantsCookie";
 import type { PublicMapAccessGrant } from "@/authTypes";
 
-export const PUBLIC_MAP_ACCESS_COOKIE = "PublicMapAccess";
+export const PUBLIC_MAP_ACCESS_COOKIE = "MapAccess";
 
 /**
  * The visitor's public map access grants. Callers must validate them
- * against the live publicMapAccess row (see `canViewPublicMap` in
+ * against the live mapAccess row (see `canViewPublicMap` in
  * server/utils/auth.ts).
  */
 export function getPublicMapAccessGrants(): Promise<PublicMapAccessGrant[]> {
@@ -35,11 +35,11 @@ export function addPublicMapAccessGrant({
     name: PUBLIC_MAP_ACCESS_COOKIE,
     grant: { accessId, publicMapId, iat: Math.floor(Date.now() / 1000) },
     replaces: (grant) => grant.publicMapId === publicMapId,
-    lifetimeSeconds: PUBLIC_MAP_ACCESS_LIFETIME_SECONDS,
+    lifetimeSeconds: MAP_ACCESS_LIFETIME_SECONDS,
     cookieOptions: {
       sameSite: "none",
       partitioned: true,
-      maxAge: PUBLIC_MAP_ACCESS_LIFETIME_SECONDS,
+      maxAge: MAP_ACCESS_LIFETIME_SECONDS,
     },
   });
 }

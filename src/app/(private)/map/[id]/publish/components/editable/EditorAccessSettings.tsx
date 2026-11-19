@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import z from "zod";
+import { useEffect } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import ListField from "@/components/forms/ListField";
 import { PublicMapAccessMode } from "@/models/PublicMap";
 import {
   Select,
@@ -9,15 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { Textarea } from "@/shadcn/ui/textarea";
 import { toOrigin } from "@/utils/publicMapAccess";
+import { isEmail } from "@/utils/text";
 import {
   usePublicMapValue,
   useSetFieldInvalid,
   useUpdatePublicMap,
 } from "../../hooks/usePublicMap";
+import type { ListFieldProps } from "@/components/forms/ListField";
 
-const isEmail = (value: string) => z.email().safeParse(value).success;
 const isOrigin = (value: string) => toOrigin(value) === value;
 
 export default function EditorAccessSettings() {
@@ -63,7 +63,7 @@ export default function EditorAccessSettings() {
 
       {moderated && (
         <>
-          <ListField
+          <DraftListField
             label="Moderator emails"
             hint="One per line. Each is emailed when someone requests access."
             placeholder="moderator@example.org"
@@ -73,7 +73,7 @@ export default function EditorAccessSettings() {
             normalise={(value) => value.toLowerCase()}
             onCommit={(moderatorEmails) => updatePublicMap({ moderatorEmails })}
           />
-          <ListField
+          <DraftListField
             label="Websites this map is embedded on"
             hint={
               <>
@@ -102,32 +102,13 @@ export default function EditorAccessSettings() {
 }
 
 /**
- * A one-per-line list. The draft only accepts valid values (it is
- * validated when auto-saved), so the text is buffered while typing and
- * committed on blur once every line is valid. Until then, publishing is
- * blocked, as it would silently use the last valid list.
+ * A ListField in the public map draft. The draft only accepts valid values
+ * (it is validated when auto-saved), so until every line is valid,
+ * publishing is blocked, as it would silently use the last valid list.
  */
-function ListField({
-  label,
-  hint,
-  placeholder,
-  values,
-  isValid,
-  invalidMessage,
-  normalise = (value) => value,
-  onCommit,
-}: {
-  label: string;
-  hint: React.ReactNode;
-  placeholder: string;
-  values: string[];
-  isValid: (value: string) => boolean;
-  invalidMessage: string;
-  normalise?: (value: string) => string;
-  onCommit: (values: string[]) => void;
-}) {
-  const [text, setText] = useState<string | null>(null);
+function DraftListField(props: Omit<ListFieldProps, "onInvalidChange">) {
   const setFieldInvalid = useSetFieldInvalid();
+  const { label } = props;
 
   // Hidden fields (e.g. after switching to open access) don't block publishing
   useEffect(
@@ -135,50 +116,10 @@ function ListField({
     [label, setFieldInvalid],
   );
 
-  const parse = (value: string) => {
-    const parsed = [
-      ...new Set(
-        value
-          .split(/[\s,]+/)
-          .map((line) => normalise(line.trim()))
-          .filter(Boolean),
-      ),
-    ];
-    return { parsed, invalid: parsed.filter((line) => !isValid(line)) };
-  };
-
-  const value = text ?? values.join("\n");
-  const { parsed, invalid } = parse(value);
-
-  const onChange = (next: string) => {
-    setText(next);
-    setFieldInvalid(label, parse(next).invalid.length > 0);
-  };
-
-  const commit = () => {
-    if (text === null || invalid.length > 0) {
-      return;
-    }
-    onCommit(parsed);
-    setText(null);
-  };
-
   return (
-    <FormFieldWrapper
-      label={label}
-      id={label}
-      hint={hint}
-      error={invalid.length ? `${invalidMessage}: ${invalid.join(", ")}` : null}
-    >
-      <Textarea
-        id={label}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={commit}
-        className="w-full shadow-none"
-        rows={3}
-      />
-    </FormFieldWrapper>
+    <ListField
+      {...props}
+      onInvalidChange={(invalid) => setFieldInvalid(label, invalid)}
+    />
   );
 }

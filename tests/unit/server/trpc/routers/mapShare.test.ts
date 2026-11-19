@@ -1,12 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
 import { createMap, deleteMap } from "@/server/repositories/Map";
-import { findMapShareByMapId } from "@/server/repositories/MapShare";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { deleteUser, upsertUser } from "@/server/repositories/User";
 import { mapShareRouter } from "@/server/trpc/routers/mapShare";
-import { verifyPassword } from "@/server/utils/auth";
 
 const userIds: string[] = [];
 const mapIds: string[] = [];
@@ -27,6 +25,7 @@ function makeCaller(user: Awaited<ReturnType<typeof createTestUser>> | null) {
 }
 
 let mapId: string;
+let orgId: string;
 let member: Awaited<ReturnType<typeof createTestUser>>;
 let outsider: Awaited<ReturnType<typeof createTestUser>>;
 
@@ -52,6 +51,7 @@ describe("mapShare router", () => {
     const org = await upsertOrganisation({
       name: `MapShare Router Org ${uuidv4()}`,
     });
+    orgId = org.id;
     member = await createTestUser();
     outsider = await createTestUser();
     await upsertOrganisationUser({
@@ -92,70 +92,44 @@ describe("mapShare router", () => {
     expect(share).toBeNull();
   });
 
-  test("disable, setPassword and regenerateToken fail before enabling", async () => {
+  test("disable fails before there is a share", async () => {
     const caller = makeCaller(member);
 
     await expect(caller.disable({ mapId })).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
-    await expect(
-      caller.setPassword({ mapId, password: "long enough password" }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
-    await expect(caller.regenerateToken({ mapId })).rejects.toMatchObject({
-      code: "NOT_FOUND",
-    });
   });
 
-  test("member can enable sharing", async () => {
+  test("setting moderators creates a disabled share, lowercased and deduplicated", async () => {
     const caller = makeCaller(member);
-    const share = await caller.enable({ mapId });
-
-    expect(share.enabled).toBe(true);
-    expect(share.hasPassword).toBe(false);
-    expect(share.token).toMatch(/^[A-Za-z0-9_-]{24}$/);
-    expect("passwordHash" in share).toBe(false);
-  });
-
-  test("member can set a password; response never contains the hash", async () => {
-    const caller = makeCaller(member);
-    const share = await caller.setPassword({
+    const share = await caller.setModeratorEmails({
       mapId,
-      password: "correct horse battery staple",
+      moderatorEmails: ["Moderator@Example.org", "moderator@example.org"],
     });
 
-    expect(share.hasPassword).toBe(true);
-    expect("passwordHash" in share).toBe(false);
-
-    // The stored row holds a verifiable scrypt hash, not the plaintext
-    const row = await findMapShareByMapId(mapId);
-    expect(row?.passwordHash).not.toContain("correct horse");
-    const valid = await verifyPassword(
-      "correct horse battery staple",
-      row?.passwordHash ?? "",
-    );
-    expect(valid).toBe(true);
+    expect(share.enabled).toBe(false);
+    expect(share.moderatorEmails).toEqual(["moderator@example.org"]);
+    expect(share.token).toMatch(/^[A-Za-z0-9_-]{24}$/);
   });
 
-  test("passwords shorter than 8 characters are rejected", async () => {
+  test("moderator emails must be valid", async () => {
     const caller = makeCaller(member);
     await expect(
-      caller.setPassword({ mapId, password: "short" }),
+      caller.setModeratorEmails({ mapId, moderatorEmails: ["not an email"] }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
-  test("member can remove the password", async () => {
+  test("member can enable sharing once there is a moderator", async () => {
     const caller = makeCaller(member);
-    const share = await caller.setPassword({ mapId, password: null });
-    expect(share.hasPassword).toBe(false);
+    const share = await caller.enable({ mapId });
+    expect(share.enabled).toBe(true);
   });
 
-  test("member can regenerate the token", async () => {
+  test("the last moderator can't be removed while sharing", async () => {
     const caller = makeCaller(member);
-    const before = await caller.get({ mapId });
-    const share = await caller.regenerateToken({ mapId });
-
-    expect(share.token).toMatch(/^[A-Za-z0-9_-]{24}$/);
-    expect(share.token).not.toBe(before?.token);
+    await expect(
+      caller.setModeratorEmails({ mapId, moderatorEmails: [] }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   test("member can disable and re-enable, keeping the same link", async () => {
@@ -167,5 +141,32 @@ describe("mapShare router", () => {
     const reEnabled = await caller.enable({ mapId });
     expect(reEnabled.enabled).toBe(true);
     expect(reEnabled.token).toBe(disabled.token);
+  });
+
+  test("moderators can all be removed once sharing is off", async () => {
+    const caller = makeCaller(member);
+    await caller.disable({ mapId });
+    const share = await caller.setModeratorEmails({
+      mapId,
+      moderatorEmails: [],
+    });
+    expect(share.moderatorEmails).toEqual([]);
+  });
+
+  test("enabling a map's first share makes the editor its moderator", async () => {
+    const otherMap = await createMap(orgId, "MapShare Router First Share");
+    mapIds.push(otherMap.id);
+    const caller = makeCaller(member);
+
+    const share = await caller.enable({ mapId: otherMap.id });
+    expect(share.enabled).toBe(true);
+    expect(share.moderatorEmails).toEqual([member.email.toLowerCase()]);
+  });
+
+  test("sharing can't be enabled once every moderator is removed", async () => {
+    const caller = makeCaller(member);
+    await expect(caller.enable({ mapId })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 });

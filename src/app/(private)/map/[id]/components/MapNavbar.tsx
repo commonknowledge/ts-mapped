@@ -1,26 +1,23 @@
 "use client";
 
 import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
-import { useMapMode, useShowNavbar } from "../hooks/useMapCore";
-import { useSyncMapModeToUrlEffect } from "../hooks/useSyncMapModeToUrl";
+import { useMapRoute } from "../hooks/useMapCore";
+import { useSyncMapRouteToUrlEffect } from "../hooks/useSyncMapRouteToUrl";
 import { useSyncViewIdToUrlEffect } from "../hooks/useSyncViewIdToUrl";
 import PublicMapEditorNavbar from "../publish/components/editable/EditorNavbar";
 import PrivateMapNavbar from "./PrivateMapNavbar";
 
 export default function MapNavbar() {
-  const showNavbar = useShowNavbar();
-  const mapMode = useMapMode();
+  const route = useMapRoute();
 
   // Ensure a view is selected (creates a default view if none exist)
   useInitialMapViewEffect();
   // Keep the viewId URL param in sync with the Jotai atom
   useSyncViewIdToUrlEffect();
-  // Sync ?mode=publish to the mapMode atom
-  useSyncMapModeToUrlEffect();
+  // Sync ?mode=publish to the map route atom
+  useSyncMapRouteToUrlEffect();
 
-  if (!showNavbar) return null;
-
-  if (mapMode === "public") {
+  if (route === "publish") {
     return (
       <div className="pointer-events-auto">
         <PublicMapEditorNavbar />

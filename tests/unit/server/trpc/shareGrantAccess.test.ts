@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
 import { DataSourceRecordType, GeocodingType } from "@/models/DataSource";
+import { MapAccessStatus } from "@/models/MapAccess";
 import { MapStyleName } from "@/models/MapView";
 import { CalculationType } from "@/models/shared";
 import {
@@ -10,18 +11,23 @@ import {
 } from "@/server/repositories/DataSource";
 import { createMap, deleteMap, updateMap } from "@/server/repositories/Map";
 import {
+  findOrCreateMapAccess,
+  setMapAccessStatus,
+} from "@/server/repositories/MapAccess";
+import {
   setMapShareEnabled,
-  setMapSharePassword,
-  upsertMapShareForMap,
+  setMapShareModeratorEmails,
 } from "@/server/repositories/MapShare";
 import { upsertMapView } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { deleteUser, upsertUser } from "@/server/repositories/User";
+import { db } from "@/server/services/database";
 import { areaRouter } from "@/server/trpc/routers/area";
 import { mapRouter } from "@/server/trpc/routers/map";
-import { canReadDataSource, hashPassword } from "@/server/utils/auth";
+import { canReadDataSource } from "@/server/utils/auth";
 import { storeTestCsv } from "../../../helpers/csv";
 import type { ShareGrant } from "@/authTypes";
+import type { MapAccess } from "@/models/MapAccess";
 import type { MapShare } from "@/models/MapShare";
 
 const userIds: string[] = [];
@@ -37,13 +43,15 @@ let orgId: string;
 let mapAId: string;
 let mapBId: string;
 let shareA: MapShare;
+let accessA: MapAccess;
 let markerDataSourceId: string;
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
+// A grant for share A's approved visitor
 function grantFor(share: MapShare, iatOffsetSeconds = 0): ShareGrant {
   return {
-    shareId: share.id,
+    accessId: accessA.id,
     mapId: share.mapId,
     iat: nowSeconds() + iatOffsetSeconds,
   };
@@ -153,7 +161,29 @@ describe("share grant access control", () => {
       },
     });
 
-    shareA = await upsertMapShareForMap(mapAId);
+    await setMapShareModeratorEmails({
+      mapId: mapAId,
+      moderatorEmails: ["moderator@example.org"],
+    });
+    const enabled = await setMapShareEnabled({ mapId: mapAId, enabled: true });
+    if (!enabled) {
+      throw new Error("Share A was not created");
+    }
+    shareA = enabled;
+
+    const { access } = await findOrCreateMapAccess({
+      target: { kind: "mapShare", id: shareA.id },
+      email: "visitor@example.org",
+    });
+    const approved = await setMapAccessStatus({
+      id: access.id,
+      fromStatus: MapAccessStatus.Pending,
+      status: MapAccessStatus.Approved,
+    });
+    if (!approved) {
+      throw new Error("Share A's visitor was not approved");
+    }
+    accessA = approved;
   });
 
   // ---------- mapReadProcedure (via map.byId) ----------
@@ -179,10 +209,18 @@ describe("share grant access control", () => {
     });
   });
 
-  test("a grant with the wrong shareId is rejected", async () => {
-    const grant = { ...grantFor(shareA), shareId: randomUUID() };
+  test("a grant with an unknown accessId is rejected", async () => {
+    const grant = { ...grantFor(shareA), accessId: randomUUID() };
     const caller = makeMapCaller([grant]);
     await expect(caller.byId({ mapId: mapAId })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  test("a grant naming another map than its access row's share is rejected", async () => {
+    const grant = { ...grantFor(shareA), mapId: mapBId };
+    const caller = makeMapCaller([grant]);
+    await expect(caller.byId({ mapId: mapBId })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
   });
@@ -209,28 +247,52 @@ describe("share grant access control", () => {
     expect(result.id).toBe(mapAId);
   });
 
-  test("setting a password invalidates grants minted before the change", async () => {
+  test("revoking access rejects grants; re-approving does not revive them", async () => {
+    // Approved two minutes ago, so a grant minted a minute ago is valid
+    // until the decisions below (decidedAt has second precision)
+    await db
+      .updateTable("mapAccess")
+      .set({ decidedAt: new Date(Date.now() - 120_000) })
+      .where("id", "=", accessA.id)
+      .execute();
     const staleGrant = grantFor(shareA, -60);
-    await setMapSharePassword({
-      mapId: mapAId,
-      passwordHash: await hashPassword("view the map"),
-    });
-
     const staleCaller = makeMapCaller([staleGrant]);
+    expect((await staleCaller.byId({ mapId: mapAId })).id).toBe(mapAId);
+
+    await setMapAccessStatus({
+      id: accessA.id,
+      fromStatus: MapAccessStatus.Approved,
+      status: MapAccessStatus.Revoked,
+    });
     await expect(staleCaller.byId({ mapId: mapAId })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
 
-    // A grant minted after the password change (i.e. after passing the
-    // password check) is accepted
-    const freshCaller = makeMapCaller([grantFor(shareA, 5)]);
-    const result = await freshCaller.byId({ mapId: mapAId });
-    expect(result.id).toBe(mapAId);
+    await setMapAccessStatus({
+      id: accessA.id,
+      fromStatus: MapAccessStatus.Revoked,
+      status: MapAccessStatus.Approved,
+    });
+    await expect(staleCaller.byId({ mapId: mapAId })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
 
-    // Removing the password restores link-only access for older grants
-    await setMapSharePassword({ mapId: mapAId, passwordHash: null });
-    const restored = await staleCaller.byId({ mapId: mapAId });
-    expect(restored.id).toBe(mapAId);
+    // A grant minted after re-approval (from a new magic link) is accepted
+    const freshCaller = makeMapCaller([grantFor(shareA, 5)]);
+    expect((await freshCaller.byId({ mapId: mapAId })).id).toBe(mapAId);
+  });
+
+  test("a grant for a pending request is rejected", async () => {
+    const { access: pending } = await findOrCreateMapAccess({
+      target: { kind: "mapShare", id: shareA.id },
+      email: "pending@example.org",
+    });
+    const caller = makeMapCaller([
+      { accessId: pending.id, mapId: mapAId, iat: nowSeconds() },
+    ]);
+    await expect(caller.byId({ mapId: mapAId })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
   });
 
   // ---------- canReadDataSource ----------
