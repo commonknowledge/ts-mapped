@@ -92,7 +92,7 @@ export default function ShareMapDialog({ mapId }: { mapId: string }) {
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm">
           <Share2Icon />
-          Share
+          Share link
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-96 flex flex-col gap-4">
