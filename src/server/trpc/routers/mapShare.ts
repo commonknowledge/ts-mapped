@@ -27,10 +27,17 @@ export const mapShareRouter = router({
     return share ? toShareState(share) : null;
   }),
   // As with publishing a moderated public map, sharing needs a moderator:
-  // otherwise nobody would be told about access requests
+  // otherwise nobody would be told about access requests. A map shared for
+  // the first time has the editor sharing it as its moderator, as the
+  // share dialog shows before anything is saved.
   enable: mapWriteProcedure.mutation(async ({ ctx }) => {
     const existing = await findMapShareByMapId(ctx.map.id);
-    if (!existing?.moderatorEmails.length) {
+    if (!existing) {
+      await setMapShareModeratorEmails({
+        mapId: ctx.map.id,
+        moderatorEmails: [ctx.user.email.toLowerCase()],
+      });
+    } else if (!existing.moderatorEmails.length) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Add at least one moderator email before sharing.",

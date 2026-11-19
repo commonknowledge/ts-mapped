@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CopyIcon, Share2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrentUser } from "@/atoms/sessionAtoms";
 import ListField from "@/components/forms/ListField";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -25,6 +26,7 @@ type ShareState = RouterOutputs["mapShare"]["get"];
 export default function ShareMapDialog({ mapId }: { mapId: string }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const currentUser = useCurrentUser();
 
   const { data: share, isPending: shareLoading } = useQuery(
     trpc.mapShare.get.queryOptions({ mapId }),
@@ -55,7 +57,14 @@ export default function ShareMapDialog({ mapId }: { mapId: string }) {
 
   const mutating = enabling || disabling || savingModerators;
   const enabled = Boolean(share?.enabled);
-  const moderatorEmails = share?.moderatorEmails ?? [];
+  // Before the map is first shared, the editor is the suggested moderator:
+  // enabling sharing saves them as one (see mapShare.enable)
+  const defaultModeratorEmails = currentUser
+    ? [currentUser.email.toLowerCase()]
+    : [];
+  const moderatorEmails = share
+    ? share.moderatorEmails
+    : defaultModeratorEmails;
   const hasModerators = moderatorEmails.length > 0;
   const shareUrl = share
     ? buildMapShareAccessLink({ shareToken: share.token })

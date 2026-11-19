@@ -25,6 +25,7 @@ function makeCaller(user: Awaited<ReturnType<typeof createTestUser>> | null) {
 }
 
 let mapId: string;
+let orgId: string;
 let member: Awaited<ReturnType<typeof createTestUser>>;
 let outsider: Awaited<ReturnType<typeof createTestUser>>;
 
@@ -50,6 +51,7 @@ describe("mapShare router", () => {
     const org = await upsertOrganisation({
       name: `MapShare Router Org ${uuidv4()}`,
     });
+    orgId = org.id;
     member = await createTestUser();
     outsider = await createTestUser();
     await upsertOrganisationUser({
@@ -95,14 +97,6 @@ describe("mapShare router", () => {
 
     await expect(caller.disable({ mapId })).rejects.toMatchObject({
       code: "NOT_FOUND",
-    });
-  });
-
-  test("sharing can't be enabled without a moderator", async () => {
-    const caller = makeCaller(member);
-
-    await expect(caller.enable({ mapId })).rejects.toMatchObject({
-      code: "BAD_REQUEST",
     });
   });
 
@@ -157,5 +151,22 @@ describe("mapShare router", () => {
       moderatorEmails: [],
     });
     expect(share.moderatorEmails).toEqual([]);
+  });
+
+  test("enabling a map's first share makes the editor its moderator", async () => {
+    const otherMap = await createMap(orgId, "MapShare Router First Share");
+    mapIds.push(otherMap.id);
+    const caller = makeCaller(member);
+
+    const share = await caller.enable({ mapId: otherMap.id });
+    expect(share.enabled).toBe(true);
+    expect(share.moderatorEmails).toEqual([member.email.toLowerCase()]);
+  });
+
+  test("sharing can't be enabled once every moderator is removed", async () => {
+    const caller = makeCaller(member);
+    await expect(caller.enable({ mapId })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
   });
 });
