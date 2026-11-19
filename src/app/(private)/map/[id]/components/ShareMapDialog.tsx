@@ -114,7 +114,7 @@ export default function ShareMapDialog({ mapId }: { mapId: string }) {
 
         <div className="flex items-start justify-between gap-4 border-t pt-3">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">Share by request</p>
+            <p className="text-sm font-medium">Enable share link</p>
             <p className="text-xs text-muted-foreground">
               {hasModerators
                 ? "People outside your organisation request access by email. A moderator approves each request, then the person is emailed a link that works for one week. They can view the live map, but not edit it."
@@ -125,7 +125,7 @@ export default function ShareMapDialog({ mapId }: { mapId: string }) {
             checked={enabled}
             disabled={shareLoading || mutating || (!enabled && !hasModerators)}
             onCheckedChange={onToggleSharing}
-            aria-label="Share by request"
+            aria-label="Enable share link"
           />
         </div>
 
