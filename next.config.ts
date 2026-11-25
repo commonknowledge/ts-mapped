@@ -14,19 +14,34 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // Next 16 refuses to optimise images from local IPs. The docker compose
+    // MinIO is on localhost, so allow it in development only.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
     remotePatterns: [
       {
         protocol: "https",
         hostname: "cdn.sanity.io",
         pathname: "/images/**",
       },
-      ...["localhost", process.env.MINIO_DOMAIN]
-        .filter((d) => d !== undefined)
-        .map((d) => ({
-          protocol: "https" as const,
-          hostname: d,
-          pathname: "/**",
-        })),
+      {
+        protocol: "https",
+        hostname: "localhost",
+        pathname: "/**",
+      },
+      ...(process.env.MINIO_DOMAIN
+        ? [
+            {
+              // Mirrors the defaults in src/server/services/minio.ts
+              protocol:
+                process.env.MINIO_USE_SSL === "false"
+                  ? ("http" as const)
+                  : ("https" as const),
+              // No port: matches any, including MINIO_PORT
+              hostname: process.env.MINIO_DOMAIN,
+              pathname: "/**",
+            },
+          ]
+        : []),
     ],
   },
   // Packages that can't be bundled in the NextJS build
