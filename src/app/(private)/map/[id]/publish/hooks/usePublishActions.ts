@@ -76,41 +76,35 @@ export function usePublishActions() {
 
   const loading = isApplyingDraft || isDiscarding;
 
-  const handleSwitchChange = (checked: boolean) => {
+  const applyPublished = (published: boolean) => {
     if (!publicMap || !mapId) return;
-
-    if (checked) {
-      if (hasInvalidFields) {
-        toast.error(INVALID_FIELDS_MESSAGE);
-        return;
-      }
-      if (hostAvailable === false) {
-        toast.error("Subdomain is taken — choose another before publishing.");
-        return;
-      }
-      if (!getSubdomain(publicMap.host ?? "")) {
-        toast.error("Enter a subdomain before publishing.");
-        return;
-      }
-      const draft = extractDraft({ ...publicMap, published: true });
-      applyDraft({
-        mapId,
-        viewId: publicMap.viewId,
-        publicMapId: publicMap.id,
-        draft,
-      });
-      updatePublicMap({ published: true });
-    } else {
-      const draft = extractDraft({ ...publicMap, published: false });
-      applyDraft({
-        mapId,
-        viewId: publicMap.viewId,
-        publicMapId: publicMap.id,
-        draft,
-      });
-      updatePublicMap({ published: false });
-    }
+    applyDraft({
+      mapId,
+      viewId: publicMap.viewId,
+      publicMapId: publicMap.id,
+      draft: extractDraft({ ...publicMap, published }),
+    });
+    updatePublicMap({ published });
   };
+
+  const handlePublish = () => {
+    if (!publicMap) return;
+    if (hasInvalidFields) {
+      toast.error(INVALID_FIELDS_MESSAGE);
+      return;
+    }
+    if (hostAvailable === false) {
+      toast.error("Subdomain is taken — choose another before publishing.");
+      return;
+    }
+    if (!getSubdomain(publicMap.host ?? "")) {
+      toast.error("Enter a subdomain before publishing.");
+      return;
+    }
+    applyPublished(true);
+  };
+
+  const handleUnpublish = () => applyPublished(false);
 
   const handleApplyDraft = () => {
     if (!publicMap || !mapId) return;
@@ -143,7 +137,8 @@ export function usePublishActions() {
     isDiscarding,
     isPublishedOnServer,
     publishedHost,
-    handleSwitchChange,
+    handlePublish,
+    handleUnpublish,
     handleApplyDraft,
     handleRevert,
   };

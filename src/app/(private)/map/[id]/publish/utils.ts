@@ -211,3 +211,18 @@ export const formatStringColumn = ({
   const separator = isMultiLine ? "\n\n" : ", ";
   return values.join(separator);
 };
+
+export const getPublishBlocker = ({
+  hasSubdomain,
+  hostTaken,
+  hasInvalidFields,
+}: {
+  hasSubdomain: boolean;
+  hostTaken: boolean;
+  hasInvalidFields: boolean;
+}) => {
+  if (!hasSubdomain) return "Set a subdomain in Settings before publishing.";
+  if (hostTaken) return "That subdomain is taken — choose another in Settings.";
+  if (hasInvalidFields) return "Fix the highlighted fields before publishing.";
+  return null;
+};
