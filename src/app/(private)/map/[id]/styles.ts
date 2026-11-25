@@ -150,6 +150,10 @@ export const publicMapColorSchemes: Record<string, PublicMapColorScheme> = {
     primary: "#A074B3",
     primaryMuted: "#F9F7FA",
   },
+  lime: {
+    primary: "#C6D800",
+    primaryMuted: "#FCFDF2",
+  },
   ["trans-pride"]: {
     primary: "#92C7DC",
     primaryMuted: "#F6FDFF",
