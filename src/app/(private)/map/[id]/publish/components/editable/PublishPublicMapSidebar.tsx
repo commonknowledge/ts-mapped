@@ -25,6 +25,7 @@ import EditorAccessSettings from "./EditorAccessSettings";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
+import PublishFooter from "./PublishFooter";
 
 export default function PublishPublicMapSidebar() {
   const publicMap = usePublicMapValue();
@@ -37,6 +38,12 @@ export default function PublishPublicMapSidebar() {
 
   // Auto-save draft whenever the atom changes
   useAutoSaveDraftEffect();
+
+  // Lets global.css move the report-a-bug trigger clear of this sidebar
+  useEffect(() => {
+    document.body.classList.add("publish-page");
+    return () => document.body.classList.remove("publish-page");
+  }, []);
 
   // Auto-select first record when data source tab changes and data panel is open
   useEffect(() => {
@@ -135,6 +142,7 @@ export default function PublishPublicMapSidebar() {
             </VerticalTabsContent>
           </VerticalTabs>
         )}
+        <PublishFooter />
       </div>
     </div>
   );

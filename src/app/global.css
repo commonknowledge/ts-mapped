@@ -193,3 +193,10 @@ main {
 body.map-page #sentry-feedback {
   --inset: auto 108px 0 auto;
 }
+
+/* In publishing mode the 380px editor sidebar fills the right edge, so the
+   trigger sits 16px clear of it. The inset is added to the 2rem page margin,
+   hence the subtraction. The body class is set by PublishPublicMapSidebar. */
+body.publish-page #sentry-feedback {
+  --inset: auto calc(380px + 16px - 2rem) 0 auto;
+}

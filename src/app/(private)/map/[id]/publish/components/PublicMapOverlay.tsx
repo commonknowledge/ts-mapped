@@ -13,7 +13,6 @@ import { useMapQuery } from "@/app/(private)/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/hooks/useMarkerQueries";
 import { useIsMobileEffect } from "@/hooks/useIsMobile";
 import { usePublicMapEditable } from "../hooks/usePublicMap";
-import PublishControls from "./editable/PublishControls";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
 import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
@@ -75,11 +74,6 @@ export default function PublicMapOverlay({
               />
             )}
             {loading && <Loading />}
-            {editable && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
-                <PublishControls />
-              </div>
-            )}
             <a
               href="https://mapped.tools"
               target="_blank"

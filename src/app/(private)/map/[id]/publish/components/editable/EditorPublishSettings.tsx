@@ -23,7 +23,7 @@ export default function EditorPublishSettings() {
   const setHostAvailable = useSetHostAvailable();
   const trpc = useTRPC();
 
-  // Detect in-flight applyDraft/discard mutations (owned by usePublishActions in the navbar)
+  // Detect in-flight applyDraft/discard mutations (owned by usePublishActions in the sidebar footer)
   const isApplyDraftMutating = useIsMutating({
     mutationKey: trpc.publicMap.applyDraft.mutationOptions().mutationKey,
   });

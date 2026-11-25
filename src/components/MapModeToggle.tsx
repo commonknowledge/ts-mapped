@@ -49,7 +49,7 @@ export default function MapModeToggle({ mode }: MapModeToggleProps) {
             : "text-neutral-500 hover:text-neutral-700",
         )}
       >
-        Explore
+        Exploring
       </button>
       <button
         role="tab"
@@ -63,7 +63,7 @@ export default function MapModeToggle({ mode }: MapModeToggleProps) {
             : "text-neutral-500 hover:text-neutral-700",
         )}
       >
-        Publish
+        Publishing
       </button>
     </div>
   );
